@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useTaskStore, type Task } from "@/src/store/taskStore";
 import { useSettingsStore } from "@/src/store/settingsStore";
 import { cn } from "@/src/lib/utils";
@@ -32,6 +32,7 @@ import {
 // Remove old mock time import comments
 
 import { TaskEditorModal } from "./TaskEditorModal";
+import { useVirtual } from "react-virtual";
 
 const CustomDatePicker = ({
   value,
@@ -223,8 +224,12 @@ const CustomDatePicker = ({
 };
 
 export const TasksPage = ({ paneId }: { paneId: string }) => {
-  let { tasks, addTask, updateTask, deleteTask } = useTaskStore();
-  tasks = tasks || [];
+  const tasks = useTaskStore(state => state.tasks) || [];
+  const addTask = useTaskStore(state => state.addTask);
+  const updateTask = useTaskStore(state => state.updateTask);
+  const deleteTask = useTaskStore(state => state.deleteTask);
+  const parentRef = useRef<HTMLDivElement>(null);
+
   const [activeTab, setActiveTab] = useState<
     "Today" | "Upcoming" | "All Tasks"
   >("Today");
@@ -240,15 +245,21 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
     new Date().toISOString(),
   );
 
-  const filteredTasks = tasks.filter((t) => {
-    if (activeTab === "All Tasks") return true;
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((t) => {
+      if (activeTab === "All Tasks") return true;
+      const creationUtc = t.startDate || t.createdAt;
+      if (activeTab === "Today") return isTaskCreatedToday(creationUtc);
+      if (activeTab === "Upcoming") return isTaskUpcoming(creationUtc);
+      return true;
+    });
+  }, [tasks, activeTab]);
 
-    // Fallback to createdAt if startDate is undefined, to preserve existing task behavior
-    const creationUtc = t.startDate || t.createdAt;
-
-    if (activeTab === "Today") return isTaskCreatedToday(creationUtc);
-    if (activeTab === "Upcoming") return isTaskUpcoming(creationUtc);
-    return true;
+  const rowVirtualizer = useVirtual({
+    size: filteredTasks.length,
+    parentRef,
+    estimateSize: useCallback(() => 66, []), // 50px height + 16px gap spacing
+    overscan: 5,
   });
 
   const handleCreateTask = () => {
@@ -265,7 +276,7 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto no-scrollbar relative w-full items-center p-8 bg-background">
+    <div ref={parentRef} className="flex flex-col h-full overflow-y-auto no-scrollbar relative w-full items-center p-8 bg-background">
       <div className="w-full max-w-[1200px] mx-auto flex flex-col gap-10 pt-8">
         <div className="flex items-center gap-4 mb-2">
           <button
@@ -301,23 +312,46 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
           />
         </div>
 
-        <div className="flex flex-col relative before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
-          <div className="flex flex-col gap-4 pl-8">
-            <AnimatePresence>
-              {filteredTasks.map((task) => (
-                <TaskRow
-                  key={task.id}
-                  task={task}
-                  updateTask={updateTask}
-                  deleteTask={deleteTask}
-                  onOpen={() => setActiveTask(task.id)}
-                />
-              ))}
-            </AnimatePresence>
+        <div className="flex flex-col relative before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent w-full">
+          <div className="flex flex-col pl-8 w-full">
+            <div
+              style={{
+                height: `${rowVirtualizer.totalSize}px`,
+                width: '100%',
+                position: 'relative',
+              }}
+            >
+              <AnimatePresence>
+                {rowVirtualizer.virtualItems.map((virtualRow) => {
+                  const task = filteredTasks[virtualRow.index];
+                  if (!task) return null;
+                  return (
+                    <div
+                      key={task.id}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: `${virtualRow.size}px`,
+                        transform: `translateY(${virtualRow.start}px)`,
+                      }}
+                    >
+                      <TaskRow
+                        task={task}
+                        updateTask={updateTask}
+                        deleteTask={deleteTask}
+                        onOpen={() => setActiveTask(task.id)}
+                      />
+                    </div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
             {filteredTasks.length === 0 && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-muted-foreground text-sm italic py-4">
+              <div className="text-muted-foreground text-sm italic py-4">
                 No tasks in this list.
-              </motion.div>
+              </div>
             )}
           </div>
         </div>
@@ -327,10 +361,10 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
         {isTaskInputOpen && (
           <>
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/40 backdrop-blur-3xl z-40"
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               className="fixed inset-0 bg-black/60 z-40"
               onClick={() => setIsTaskInputOpen(false)}
             />
             <motion.div
@@ -444,7 +478,7 @@ const TabButton = ({
   );
 };
 
-const TaskRow = ({
+const TaskRow = React.memo(({
   task,
   updateTask,
   deleteTask,
@@ -455,13 +489,31 @@ const TaskRow = ({
   deleteTask: (id: string) => void;
   onOpen: () => void;
 }) => {
+  const [localTitle, setLocalTitle] = useState(task.title);
+
+  useEffect(() => {
+    setLocalTitle(task.title);
+  }, [task.title]);
+
+  const handleBlur = () => {
+    if (localTitle !== task.title) {
+      updateTask(task.id, { title: localTitle });
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.currentTarget.blur();
+    }
+  };
+
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      className="flex items-center justify-between group relative bg-muted/20 border border-border p-3 rounded-xl hover:bg-muted/50 hover:border-muted-foreground/30 transition-all shadow-none"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 10 }}
+      transition={{ duration: 0.15 }}
+      className="flex items-center justify-between group relative bg-muted border border-border p-3 rounded-xl hover:bg-muted/80 hover:border-muted-foreground/30 transition-colors duration-150 shadow-none"
     >
       <div className="absolute -left-8 top-1/2 -translate-y-1/2 w-4 h-[2px] bg-border group-hover:bg-muted-foreground group-hover:w-6 transition-all" />
 
@@ -479,8 +531,10 @@ const TaskRow = ({
         </div>
 
         <input
-          value={task.title}
-          onChange={(e) => updateTask(task.id, { title: e.target.value })}
+          value={localTitle}
+          onChange={(e) => setLocalTitle(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
           className={cn(
             "text-base font-sans transition-all bg-transparent border-none outline-none focus:ring-1 focus:ring-border px-2 flex-1",
             task.completed
@@ -524,4 +578,4 @@ const TaskRow = ({
       </div>
     </motion.div>
   );
-};
+});

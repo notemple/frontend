@@ -152,6 +152,8 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote }: { documentId
     }),
   ], []);
 
+  const debouncedUpdateRef = useRef<any>(null);
+
   const editor = useEditor({
     extensions,
     content: document?.content || '',
@@ -217,11 +219,18 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote }: { documentId
     },
     onUpdate: ({ editor }) => {
       if (!isNew) {
-        setTimeout(() => {
+        if (debouncedUpdateRef.current) {
+          clearTimeout(debouncedUpdateRef.current);
+        }
+        debouncedUpdateRef.current = setTimeout(() => {
           updateDocument(documentId, { content: editor.getHTML() });
-        }, 0);
+          debouncedUpdateRef.current = null;
+        }, 750);
       } else if (editor.getHTML() !== '<p></p>' && editor.getHTML() !== '') {
-        setTimeout(() => {
+        if (debouncedUpdateRef.current) {
+          clearTimeout(debouncedUpdateRef.current);
+        }
+        debouncedUpdateRef.current = setTimeout(() => {
           const newId = `doc-${crypto.randomUUID()}`;
           addDocument({
             id: newId,
@@ -234,10 +243,42 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote }: { documentId
           if (paneId) {
             setActiveTab(newId, paneId);
           }
-        }, 0);
+          debouncedUpdateRef.current = null;
+        }, 500);
       }
     }
   });
+
+  // Synchronously save any pending editor edits on unmount or tab switch
+  useEffect(() => {
+    return () => {
+      if (debouncedUpdateRef.current) {
+        clearTimeout(debouncedUpdateRef.current);
+        debouncedUpdateRef.current = null;
+        if (editor && !editor.isDestroyed) {
+          const html = editor.getHTML();
+          if (html !== '<p></p>' && html !== '') {
+            if (!isNew) {
+              useDocumentStore.getState().updateDocument(documentId, { content: html });
+            } else {
+              const newId = `doc-${crypto.randomUUID()}`;
+              useDocumentStore.getState().addDocument({
+                id: newId,
+                title: title || 'Untitled',
+                content: html,
+                type: 'page',
+                tags,
+                updatedAt: new Date().toISOString()
+              });
+              if (paneId) {
+                useUiStore.getState().setActiveTab(newId, paneId);
+              }
+            }
+          }
+        }
+      }
+    };
+  }, [documentId, isNew, title, tags, editor, paneId]);
 
   useEffect(() => {
     const handleStyleChange = (e: CustomEvent) => {
@@ -346,9 +387,9 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote }: { documentId
         background: localStyle.backdropColor || undefined,
       }}
     >
-      {/* If Faded style backdrop is selected, overlay a soft white glass backdrop blur layer */}
+      {/* If Faded style backdrop is selected, overlay a soft white matte solid layer */}
       {hasCustomStyle && localStyle.backdropStyle === 'faded' && (
-        <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] pointer-events-none z-0" style={{ transition: 'all 0.3s ease' }} />
+        <div className="absolute inset-0 bg-white/85 pointer-events-none z-0" style={{ transition: 'background-color 0.15s ease' }} />
       )}
 
       <motion.div
@@ -480,7 +521,7 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote }: { documentId
                 </button>
               )}
               {showTagsDropdown && (
-                <div className="absolute top-full left-0 mt-2 w-56 bg-background/95 backdrop-blur-xl border border-border shadow-2xl z-50 overflow-hidden text-sans text-foreground">
+                <div className="absolute top-full left-0 mt-2 w-56 bg-background border border-border shadow-2xl z-50 overflow-hidden text-sans text-foreground">
                   <div className="max-h-40 overflow-y-auto no-scrollbar">
                     {allExistingTags.filter(t => !tags.includes(t)).length === 0 && (
                       <div className="px-3 py-2 text-xs text-muted-foreground/60">No existing tags.</div>
@@ -533,7 +574,7 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote }: { documentId
             <BubbleMenu
               editor={editor}
               options={{ placement: 'top' }}
-              className="flex items-center gap-1 bg-background/95 backdrop-blur-3xl border border-border rounded-xl shadow-2xl p-1.5 font-sans"
+              className="flex items-center gap-1 bg-background border border-border rounded-xl shadow-2xl p-1.5 font-sans"
             >
               <button
                 onClick={() => editor.chain().focus().toggleBold().run()}

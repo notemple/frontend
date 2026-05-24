@@ -49,7 +49,7 @@ const CreatedTodayItem = ({ docId, paneId }: { docId: string; paneId: string }) 
       className="neu-flat border border-border p-4 rounded-xl flex flex-col gap-3 group relative shadow-none min-h-[120px] cursor-pointer hover:bg-muted transition-colors"
     >
       <div className="flex items-center gap-2">
-        <span className="bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium">
+        <span className="bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium border">
           <FileText size={12} weight="fill" /> Page
         </span>
       </div>
@@ -61,7 +61,7 @@ const CreatedTodayItem = ({ docId, paneId }: { docId: string; paneId: string }) 
           {doc.tags.map((tag) => (
             <span
               key={tag}
-              className="bg-emerald-600/30 text-emerald-300 text-[10px] px-2 py-0.5 rounded"
+              className="bg-emerald-500/10 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 dark:border-emerald-900/30 text-[10px] px-2 py-0.5 rounded border"
             >
               {tag}
             </span>
@@ -87,11 +87,11 @@ const MonthViewItem = ({ docId, onClick }: { docId: string; onClick: () => void 
   return (
     <div
       onClick={onClick}
-      className="p-4 rounded-xl border border-border bg-muted/20 hover:bg-muted/65 transition-all cursor-pointer group flex flex-col gap-4 min-h-[260px]"
+      className="p-4 rounded-xl border border-border bg-muted hover:bg-muted/80 transition-colors duration-150 cursor-pointer group flex flex-col gap-4 min-h-[260px]"
     >
       <div className="flex items-center gap-2 mb-1">
-        <span className="text-[10px] pr-2 font-medium text-blue-500 bg-blue-500/10 py-0.5 rounded border border-blue-500/20 flex items-center gap-1 w-fit whitespace-nowrap">
-          <div className="bg-blue-500/20 p-1 rounded-sm ml-0.5">
+        <span className="text-[10px] pr-2 font-medium text-blue-600 dark:text-blue-400 bg-blue-500/10 dark:bg-blue-500/20 py-0.5 rounded border border-blue-500/20 dark:border-blue-500/30 flex items-center gap-1 w-fit whitespace-nowrap border">
+          <div className="bg-blue-500/10 dark:bg-blue-500/20 p-1 rounded-sm ml-0.5 border border-blue-500/20 dark:border-blue-500/30">
             <CalendarBlank size={12} weight="fill" />
           </div>{" "}
           Daily Note
@@ -367,7 +367,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
           key={i}
           onClick={() => setSelectedDate(d)}
           className={cn(
-            "p-1 cursor-pointer hover:bg-white/10 flex items-center justify-center aspect-square relative transition-colors text-sm",
+            "p-1 cursor-pointer hover:bg-muted flex items-center justify-center aspect-square relative transition-colors text-sm",
             !isSelectedMonth ? "text-muted-foreground/30" : "text-foreground",
             isSelected
               ? "bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30 dark:border-rose-500/20 shadow-[0_0_12px_rgba(244,63,94,0.15)] hover:bg-rose-500/30 font-bold"
@@ -388,7 +388,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
         <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.01] to-transparent pointer-events-none" />
 
         {/* Top Bar Navigation */}
-        <div className="flex flex-col sticky top-0 bg-muted/40 backdrop-blur-3xl z-20 transition-all border-b border-border">
+        <div className="flex flex-col sticky top-0 bg-background z-20 border-b border-border">
           <div className="flex items-center justify-between p-4 px-8 relative">
             <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-border to-transparent pointer-events-none" />
             <div className="flex-1">
@@ -486,7 +486,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
             </div>
           </div>
           {view === "Month" && (
-            <div className="flex items-center justify-between px-8 py-2 text-sm bg-muted/40 backdrop-blur-md border-t border-border sticky top-[73px] z-10 font-sans">
+            <div className="flex items-center justify-between px-8 py-2 text-sm bg-muted border-t border-border sticky top-[73px] z-10 font-sans">
               {Array.from({ length: 12 }).map((_, i) => {
                 const date = new Date(selectedDate);
                 date.setMonth(i);
@@ -622,32 +622,22 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                   </div>
                 </div>
 
-                <AnimatePresence>
-                  {isCreatedTodayOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2, ease: "easeOut" }}
-                      className="overflow-hidden"
-                    >
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
-                        {objectsCreatedTodayIds.length === 0 && (
-                          <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-xl">
-                            No other documents created today.
-                          </div>
-                        )}
-                        {objectsCreatedTodayIds.map((id) => (
-                          <CreatedTodayItem
-                            key={id}
-                            docId={id}
-                            paneId={paneId}
-                          />
-                        ))}
+                {isCreatedTodayOpen && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+                    {objectsCreatedTodayIds.length === 0 && (
+                      <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-xl">
+                        No other documents created today.
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    )}
+                    {objectsCreatedTodayIds.map((id) => (
+                      <CreatedTodayItem
+                        key={id}
+                        docId={id}
+                        paneId={paneId}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col mt-10 gap-6">
@@ -685,17 +675,9 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                     </button>
                   </div>
 
-                  <AnimatePresence>
-                    {isTasksCreatedOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="overflow-hidden"
-                      >
-                        <div className="flex flex-col gap-2 mb-4">
-                          {tasks
+                  {isTasksCreatedOpen && (
+                    <div className="flex flex-col gap-2 mb-4">
+                      {tasks
                             .filter((t) => {
                               const { timezone } = useSettingsStore.getState();
                               if (!t.createdAt) return false;
@@ -750,13 +732,13 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <button
                                     onClick={() => deleteTask(task.id)}
-                                    className="text-muted-foreground hover:text-red-400 transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-white/10"
+                                    className="text-muted-foreground hover:text-red-400 transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
                                   >
                                     <Trash size={16} />
                                   </button>
                                   <button
                                     onClick={() => setEditingTaskId(task.id)}
-                                    className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-white/10"
+                                    className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
                                   >
                                     <ArrowCircleRight size={16} />
                                   </button>
@@ -779,21 +761,19 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                               </div>
                             )}
                         </div>
-                      </motion.div>
                     )}
-                  </AnimatePresence>
                 </div>
 
                 {/* Tasks to be Completed */}
                 <div className="flex flex-col">
                   <div
-                    className="flex items-center gap-2 mb-2 cursor-pointer group select-none py-1 -mx-2 px-2 hover:bg-white/5 rounded-lg transition-colors"
+                    className="flex items-center gap-2 mb-2 cursor-pointer group select-none py-1 -mx-2 px-2 hover:bg-muted rounded-lg transition-colors"
                     onClick={() => setIsTasksFinishedOpen(!isTasksFinishedOpen)}
                   >
                     <h2 className="text-sm font-medium text-foreground">
                       Tasks to be completed
                     </h2>
-                    <span className="bg-[#2A2A2A] text-muted-foreground text-xs px-2 rounded-full font-medium">
+                    <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
                       {
                         tasks.filter((t) => {
                           const { timezone } = useSettingsStore.getState();
@@ -820,17 +800,9 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                     </button>
                   </div>
 
-                  <AnimatePresence>
-                    {isTasksFinishedOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="overflow-hidden"
-                      >
-                        <div className="flex flex-col gap-2 mb-4">
-                          {tasks
+                  {isTasksFinishedOpen && (
+                    <div className="flex flex-col gap-2 mb-4">
+                      {tasks
                             .filter((t) => {
                               const { timezone } = useSettingsStore.getState();
                               if (!t.deadline) return false;
@@ -847,7 +819,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                             .map((task) => (
                               <div
                                 key={task.id}
-                                className="flex items-center justify-between group relative hover:bg-white/5 pl-2 pr-2 py-1 -mx-2 rounded transition-colors"
+                                className="flex items-center justify-between group relative hover:bg-muted pl-2 pr-2 py-1 -mx-2 rounded transition-colors"
                               >
                                 <div className="flex items-center gap-3">
                                   <div
@@ -855,7 +827,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                                       "w-5 h-5 shrink-0 rounded-[4px] border transition-colors flex items-center justify-center cursor-pointer min-w-[20px]",
                                       task.completed
                                         ? "bg-purple-500 border-purple-500 text-white"
-                                        : "border-white/20 hover:border-white/40",
+                                        : "border-border hover:border-muted-foreground",
                                     )}
                                     onClick={() =>
                                       updateTask(task.id, {
@@ -873,7 +845,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                                   >
                                     {task.title}
                                   </span>
-                                  <span className="text-xs text-muted-foreground border border-white/5 rounded px-2 py-0.5 bg-white/5 ml-2">
+                                  <span className="text-xs text-muted-foreground border border-border rounded px-2 py-0.5 bg-muted ml-2">
                                     Deadline:{" "}
                                     {(() => {
                                       const d = new Date(task.deadline);
@@ -885,13 +857,13 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <button
                                     onClick={() => deleteTask(task.id)}
-                                    className="text-muted-foreground hover:text-red-400 transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-white/10"
+                                    className="text-muted-foreground hover:text-red-400 transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
                                   >
                                     <Trash size={16} />
                                   </button>
                                   <button
                                     onClick={() => setEditingTaskId(task.id)}
-                                    className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-white/10"
+                                    className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
                                   >
                                     <ArrowCircleRight size={16} />
                                   </button>
@@ -916,9 +888,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                               </div>
                             )}
                         </div>
-                      </motion.div>
                     )}
-                  </AnimatePresence>
                 </div>
               </div>
             </>

@@ -4,6 +4,7 @@ import { useUiStore } from '../../store/uiStore';
 import { MagnifyingGlass, Columns, FileText, ArrowRight } from '@phosphor-icons/react';
 import { useDocumentStore } from '../../store/documentStore';
 import { useShallow } from 'zustand/react/shallow';
+import { useVirtual } from 'react-virtual';
 
 let lastDocuments: any = null;
 let cachedDocsList: any[] = [];
@@ -24,6 +25,7 @@ export const CommandPalette = () => {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const { addPane, openDocument } = useUiStore();
+  const parentRef = useRef<HTMLDivElement>(null);
   
   // Stable outer selector wrapped in useShallow
   const docsList = useDocumentStore(useShallow(docsListSelector));
@@ -31,6 +33,13 @@ export const CommandPalette = () => {
   const filteredDocs = docsList.filter(doc =>
     doc && (doc.title || 'Untitled').toLowerCase().includes(query.toLowerCase())
   );
+
+  const rowVirtualizer = useVirtual({
+    size: filteredDocs.length,
+    parentRef,
+    estimateSize: React.useCallback(() => 42, []), // estimated row height is 42px
+    overscan: 5,
+  });
 
   const allItems = [
     { type: 'command', title: 'Split Workspace', icon: <Columns size={16} />, action: () => { addPane(`pane-${Date.now()}`); setIsOpen(false); } },
@@ -82,65 +91,83 @@ export const CommandPalette = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.15 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-black/40 backdrop-blur-md z-50 pointer-events-auto"
+            className="fixed inset-0 bg-black/60 z-50 pointer-events-auto"
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: -10 }}
+            initial={{ opacity: 0, scale: 0.97, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: -10 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="fixed top-[15%] left-1/2 -translate-x-1/2 w-full max-w-2xl bg-black/60 backdrop-blur-3xl border border-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.6)] z-50 flex flex-col overflow-hidden rounded-2xl"
+            exit={{ opacity: 0, scale: 0.97, y: 10 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="fixed top-[15%] left-1/2 -translate-x-1/2 w-full max-w-2xl bg-background border border-border shadow-2xl z-50 flex flex-col overflow-hidden rounded-2xl"
           >
-            <div className="flex items-center px-4 border-b border-white/5 relative">
-              <MagnifyingGlass size={22} className="text-white/40 mr-3" />
+            <div className="flex items-center px-4 border-b border-border relative">
+              <MagnifyingGlass size={22} className="text-muted-foreground mr-3" />
               <input
                 autoFocus
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Search documents or type a command..."
-                className="w-full bg-transparent h-16 text-white placeholder:text-white/30 outline-none text-lg font-sans tracking-tight"
+                className="w-full bg-transparent h-16 text-foreground placeholder:text-muted-foreground/50 outline-none text-lg font-sans tracking-tight"
               />
-              <div className="text-[10px] uppercase tracking-widest text-white/30 font-mono absolute right-6 pointer-events-none">
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-mono absolute right-6 pointer-events-none">
                 Esc to close
               </div>
             </div>
 
-            <div className="max-h-[60vh] overflow-y-auto p-2 no-scrollbar">
-              <div className="text-xs font-semibold px-3 py-2 text-white/40 mb-1 uppercase tracking-wider font-mono">Commands</div>
+            <div ref={parentRef} className="max-h-[60vh] overflow-y-auto p-2 no-scrollbar">
+              <div className="text-xs font-semibold px-3 py-2 text-muted-foreground mb-1 uppercase tracking-wider font-mono">Commands</div>
               <button
                 onClick={allItems[0].action}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] text-left transition-all group ${selectedIndex === 0 ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white/90'}`}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] text-left transition-colors duration-100 group ${selectedIndex === 0 ? 'bg-muted text-foreground font-semibold shadow-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
               >
                 <div className="flex items-center">
-                  {React.cloneElement(allItems[0].icon, { className: selectedIndex === 0 ? 'text-white mr-3' : 'text-white/40 group-hover:text-white/70 mr-3' })}
+                  {React.cloneElement(allItems[0].icon, { className: selectedIndex === 0 ? 'text-foreground mr-3' : 'text-muted-foreground mr-3' })}
                   {allItems[0].title}
                 </div>
-                {selectedIndex === 0 && <ArrowRight size={14} className="text-white/50" />}
+                {selectedIndex === 0 && <ArrowRight size={14} className="text-muted-foreground/60" />}
               </button>
 
               {filteredDocs.length > 0 && (
                 <>
-                  <div className="text-xs font-semibold px-3 py-2 text-white/40 mt-4 mb-1 uppercase tracking-wider font-mono">Documents</div>
-                  {filteredDocs.map((doc, idx) => {
-                    const itemIndex = idx + 1; // plus command
-                    const isSelected = selectedIndex === itemIndex;
-                    return (
-                      <button
-                        key={doc.id}
-                        onClick={() => allItems[itemIndex].action()}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] text-left transition-all group ${isSelected ? 'bg-white/10 text-white shadow-sm' : 'text-white/60 hover:bg-white/5 hover:text-white/90'}`}
-                      >
-                        <div className="flex items-center">
-                          {React.cloneElement(allItems[itemIndex].icon, { className: isSelected ? 'text-white mr-3' : 'text-white/40 group-hover:text-white/70 mr-3' })}
-                          {doc.title}
-                        </div>
-                        {isSelected && <ArrowRight size={14} className="text-white/50" />}
-                      </button>
-                    );
-                  })}
+                  <div className="text-xs font-semibold px-3 py-2 text-muted-foreground mt-4 mb-1 uppercase tracking-wider font-mono">Documents</div>
+                  <div
+                    style={{
+                      height: `${rowVirtualizer.totalSize}px`,
+                      width: '100%',
+                      position: 'relative',
+                    }}
+                  >
+                    {rowVirtualizer.virtualItems.map((virtualRow) => {
+                      const doc = filteredDocs[virtualRow.index];
+                      if (!doc) return null;
+                      const itemIndex = virtualRow.index + 1; // plus command
+                      const isSelected = selectedIndex === itemIndex;
+                      return (
+                        <button
+                          key={doc.id}
+                          onClick={() => allItems[itemIndex].action()}
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: `${virtualRow.size}px`,
+                            transform: `translateY(${virtualRow.start}px)`,
+                          }}
+                          className={`flex items-center justify-between px-3 py-2 rounded-xl text-[13px] text-left transition-colors duration-100 group ${isSelected ? 'bg-muted text-foreground font-semibold shadow-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                        >
+                          <div className="flex items-center">
+                            {React.cloneElement(allItems[itemIndex].icon, { className: isSelected ? 'text-foreground mr-3' : 'text-muted-foreground mr-3' })}
+                            {doc.title || 'Untitled'}
+                          </div>
+                          {isSelected && <ArrowRight size={14} className="text-muted-foreground/60" />}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </>
               )}
             </div>

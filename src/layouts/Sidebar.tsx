@@ -289,14 +289,11 @@ export const Sidebar = () => {
   };
 
   return (
-    <motion.div
-      initial={false}
-      animate={{
-        width: isSidebarOpen ? 260 : 64,
-        padding: isSidebarOpen ? "1.5rem" : "1.5rem 0.5rem",
-      }}
-      transition={{ type: "tween", ease: [0.16, 1, 0.3, 1], duration: 0.3 }}
-      className="h-full flex flex-col border-r border-border bg-muted/30 backdrop-blur-md relative shrink-0 overflow-y-auto no-scrollbar group/sidebar z-30 shadow-[4px_0_24px_rgba(0,0,0,0.02)] [will-change:width,padding]"
+    <div
+      className={cn(
+        "h-full flex flex-col border-r border-border bg-muted relative shrink-0 overflow-y-auto no-scrollbar group/sidebar z-30 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-250 ease-out will-change-[width,padding]",
+        isSidebarOpen ? "w-[260px] p-6" : "w-16 py-6 px-2"
+      )}
     >
       <div className="flex items-center justify-between mb-8 shrink-0 relative z-10 px-1 h-8">
         <AnimatePresence mode="popLayout">
@@ -585,7 +582,7 @@ export const Sidebar = () => {
           handleDelete={handleDelete}
         />
       )}
-    </motion.div>
+    </div>
   );
 };
 
@@ -616,12 +613,10 @@ const SidebarItem = ({
   customHighlightClass?: string
 }) => {
   return (
-    <motion.button
+    <button
       onClick={onClick}
-      whileHover="hover"
-      whileTap={{ scale: 0.98 }}
       className={cn(
-        "relative flex items-center gap-3 w-full px-2 py-1.5 text-[13px] transition-colors duration-150 ease-out outline-none group/item rounded-md",
+        "relative flex items-center gap-3 w-full px-2 py-1.5 text-[13px] outline-none group/item rounded-md transition-all duration-100 ease-out active:scale-[0.98]",
         !isOpen && "justify-center px-0 items-center",
         highlight
           ? (customHighlightClass || "text-foreground bg-muted border border-border shadow-sm font-semibold")
@@ -629,22 +624,16 @@ const SidebarItem = ({
       )}
     >
       {highlight && (
-        <motion.div
-          layoutId="sidebar-active"
-          className="absolute left-0 top-1.5 bottom-1.5 w-[2px] bg-current rounded-r-full shadow-[0_0_8px_currentColor]"
-          transition={{ type: "spring", bounce: 0.1, duration: 0.25 }}
-        />
+        <div className="absolute left-0 top-1.5 bottom-1.5 w-[2px] bg-current rounded-r-full shadow-[0_0_4px_currentColor]" />
       )}
-      <motion.div
-        variants={{ hover: { scale: isOpen ? 1 : 1.15 } }}
-        transition={{ type: "spring", stiffness: 450, damping: 25 }}
+      <div
         className={cn(
-          "shrink-0 flex items-center justify-center w-5 h-5 relative z-10 transition-colors",
+          "shrink-0 flex items-center justify-center w-5 h-5 relative z-10 transition-transform duration-100 group-hover/item:scale-[1.05]",
           highlight ? "text-current" : "text-muted-foreground group-hover/item:text-foreground"
         )}
       >
         {icon}
-      </motion.div>
+      </div>
       <div
         className={cn(
           "flex-1 flex items-center justify-between min-w-0 transition-all duration-200 ease-out",
@@ -660,6 +649,6 @@ const SidebarItem = ({
           </div>
         )}
       </div>
-    </motion.button>
+    </button>
   );
 };

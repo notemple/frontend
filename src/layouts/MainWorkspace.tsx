@@ -39,8 +39,8 @@ export const MainWorkspace = () => {
   const headerText = useDocumentStore(useShallow(headerTextSelector));
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-background relative pt-0 z-10 w-full rounded-tl-2xl shadow-[-10px_0_40px_rgba(0,0,0,0.1)] border-l border-border">
-      <div className="h-14 w-full flex items-center justify-between px-6 shrink-0 transition-colors bg-muted/40 backdrop-blur-3xl border-b border-border z-20">
+    <div className="flex-1 flex flex-col overflow-hidden bg-background relative pt-0 z-10 w-full border-l border-border">
+      <div className="h-14 w-full flex items-center justify-between px-6 shrink-0 bg-background border-b border-border z-20">
         <div className="flex-1 flex items-center">
           <button
             onClick={toggleSidebar}
@@ -54,7 +54,7 @@ export const MainWorkspace = () => {
         </div>
         <div className="flex items-center gap-4 flex-1 justify-end">
           {/* Inline Theme Segmented Control */}
-          <div className="flex items-center bg-muted/80 p-0.5 rounded-lg border border-border">
+          <div className="flex items-center bg-muted p-0.5 rounded-lg border border-border">
             <button
               onClick={() => setAppearance('light')}
               className={cn(
@@ -140,16 +140,60 @@ export const MainWorkspace = () => {
   );
 };
 
-const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: string }) => {
+const SectionGridItem = React.memo(({
+  itemId,
+  itemType,
+  paneId
+}: {
+  itemId: string;
+  itemType: 'page' | 'folder';
+  paneId: string;
+}) => {
   const { openDocument } = useUiStore();
 
-  if (sectionId === 'section-daily-notes') {
-    return <DailyNotesPage paneId={paneId} />;
-  }
-  if (sectionId === 'section-tasks') {
-    return <TasksPage paneId={paneId} />;
-  }
+  const detailsSelector = useCallback(
+    (state: any) => {
+      if (itemType === 'folder') {
+        const folder = state.folders.find((f: any) => f?.id === itemId);
+        return folder ? { title: folder.name } : null;
+      } else {
+        const doc = state.documents[itemId];
+        return doc ? { title: doc.title, type: doc.type || 'page' } : null;
+      }
+    },
+    [itemId, itemType]
+  );
+  const item = useDocumentStore(useShallow(detailsSelector));
 
+  if (!item) return null;
+
+  return (
+    <div
+      onClick={() => {
+        if (itemType === 'folder') {
+          openDocument(`section-folder-${itemId}`, paneId);
+        } else {
+          openDocument(itemId, paneId);
+        }
+      }}
+      className="p-6 rounded-xl bg-muted border border-border hover:border-muted-foreground/50 hover:bg-muted/80 cursor-pointer group flex flex-col gap-3 transition-colors duration-150 overflow-hidden relative"
+    >
+      <div className="absolute inset-0 bg-gradient-to-tr from-foreground/[0.01] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="flex flex-col gap-4 relative">
+        <div className="w-10 h-10 rounded-lg bg-muted border border-border flex items-center justify-center text-muted-foreground group-hover:text-foreground transition-colors duration-300 shadow-inner">
+          {itemType === 'folder' ? <FolderIcon size={20} weight="duotone" /> : <FileText size={20} weight="duotone" />}
+        </div>
+        <span className="font-medium text-sm truncate text-foreground/80 group-hover:text-foreground transition-colors">
+          {item.title || 'Untitled'}
+        </span>
+      </div>
+    </div>
+  );
+});
+
+SectionGridItem.displayName = 'SectionGridItem';
+
+const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: string }) => {
   const titleSelector = useCallback(
     state => {
       if (sectionId === 'section-favorites') return 'Favorites';
@@ -169,39 +213,20 @@ const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: string 
   const itemsSelector = useCallback(
     state => {
       if (sectionId === 'section-favorites') {
-        return state.documentOrder
-          .filter(id => state.documents[id]?.isFavorite)
-          .map(id => ({
-            id,
-            title: state.documents[id]?.title || 'Untitled',
-            type: state.documents[id]?.type || 'page',
-            isFavorite: true
-          }));
+        return state.documentOrder.filter(id => state.documents[id]?.isFavorite);
       }
       if (sectionId === 'section-folders') {
-        return state.folders.filter(Boolean).map(f => ({ id: f.id, title: f.name, type: 'folder' }));
+        return state.folders.filter(Boolean).map(f => f.id);
       }
       if (sectionId.startsWith('section-folder-')) {
         const folderId = sectionId.replace('section-folder-', '');
-        return state.documentOrder
-          .filter(id => state.documents[id]?.folderId === folderId)
-          .map(id => ({
-            id,
-            title: state.documents[id]?.title || 'Untitled',
-            type: state.documents[id]?.type || 'page'
-          }));
+        return state.documentOrder.filter(id => state.documents[id]?.folderId === folderId);
       }
       if (sectionId === 'section-uncategorized') {
-        return state.documentOrder
-          .filter(id => {
-            const doc = state.documents[id];
-            return doc && !doc.folderId && !id.startsWith('daily-note-');
-          })
-          .map(id => ({
-            id,
-            title: state.documents[id]?.title || 'Untitled',
-            type: state.documents[id]?.type || 'page'
-          }));
+        return state.documentOrder.filter(id => {
+          const doc = state.documents[id];
+          return doc && !doc.folderId && !id.startsWith('daily-note-') && !id.startsWith('task-');
+        });
       }
       return [];
     },
@@ -209,31 +234,25 @@ const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: string 
   );
   const items = useDocumentStore(useShallow(itemsSelector));
 
+  if (sectionId === 'section-daily-notes') {
+    return <DailyNotesPage paneId={paneId} />;
+  }
+  if (sectionId === 'section-tasks') {
+    return <TasksPage paneId={paneId} />;
+  }
+
   return (
     <div className="p-10 h-full overflow-y-auto no-scrollbar relative min-h-full flex flex-col">
       <div className="absolute inset-0 bg-gradient-to-b from-foreground/[0.01] to-transparent pointer-events-none" />
       <h1 className="text-4xl font-semibold mb-10 text-foreground/90 tracking-tight font-sans relative">{title}</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative">
-        {items.filter(Boolean).map(item => (
-          <div
-            key={item.id}
-            onClick={() => {
-              if (item.type === 'folder') {
-                openDocument(`section-folder-${item.id}`, paneId);
-              } else {
-                openDocument(item.id, paneId);
-              }
-            }}
-            className="p-6 rounded-xl bg-muted/30 border border-border hover:bg-muted/60 hover:border-muted-foreground/30 cursor-pointer group flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-foreground/5 overflow-hidden relative"
-          >
-            <div className="absolute inset-0 bg-gradient-to-tr from-foreground/[0.01] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="flex flex-col gap-4 relative">
-              <div className="w-10 h-10 rounded-lg bg-muted border border-border flex items-center justify-center text-muted-foreground group-hover:text-foreground transition-colors duration-300 shadow-inner">
-                {item.type === 'folder' ? <FolderIcon size={20} weight="duotone" /> : <FileText size={20} weight="duotone" />}
-              </div>
-              <span className="font-medium text-sm truncate text-foreground/80 group-hover:text-foreground transition-colors">{item.title || 'Untitled'}</span>
-            </div>
-          </div>
+        {items.map(itemId => (
+          <SectionGridItem
+            key={itemId}
+            itemId={itemId}
+            itemType={sectionId === 'section-folders' ? 'folder' : 'page'}
+            paneId={paneId}
+          />
         ))}
         {items.length === 0 && (
           <div className="col-span-full py-20 text-center flex flex-col items-center gap-4">

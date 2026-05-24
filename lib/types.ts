@@ -1,1 +1,0 @@
-export type ViewState = 'home' | 'about' | 'contact' | 'terms' | 'privacy' | 'signin' | 'signup';

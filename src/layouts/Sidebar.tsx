@@ -291,7 +291,7 @@ export const Sidebar = () => {
   return (
     <div
       className={cn(
-        "h-full flex flex-col border-r border-border bg-muted relative shrink-0 overflow-y-auto no-scrollbar group/sidebar z-30 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-250 ease-out will-change-[width,padding]",
+        "h-full flex flex-col border-r border-border bg-muted relative shrink-0 overflow-y-auto no-scrollbar group/sidebar z-30 shadow-none transition-all duration-250 ease-out will-change-[width,padding]",
         isSidebarOpen ? "w-[260px] p-6" : "w-16 py-6 px-2"
       )}
     >

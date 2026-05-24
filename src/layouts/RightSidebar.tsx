@@ -26,7 +26,7 @@ export const RightSidebar = () => {
   return (
     <div
       className={cn(
-        "h-full border-l border-border bg-background shrink-0 flex flex-col overflow-hidden z-20 shadow-2xl transition-[width,opacity] duration-250 ease-out will-change-[width,opacity]",
+        "h-full border-l border-border bg-background shrink-0 flex flex-col overflow-hidden z-20 shadow-none transition-[width,opacity] duration-250 ease-out will-change-[width,opacity]",
         isRightSidebarOpen ? "w-[320px] opacity-100" : "w-0 opacity-0 pointer-events-none"
       )}
     >

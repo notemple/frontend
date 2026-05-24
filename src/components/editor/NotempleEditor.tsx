@@ -165,6 +165,9 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote }: { documentId
             ? ''
             : 'text-foreground prose-headings:text-foreground hover:prose-a:text-foreground prose-a:text-muted-foreground prose-strong:text-foreground prose-code:text-foreground prose-ol:text-foreground prose-ul:text-foreground prose-p:text-foreground/95'
         ),
+        style: (localStyle.backdropColor || localStyle.textColor || localStyle.documentColor)
+          ? `color: ${localStyle.textColor || 'inherit'}; --tw-prose-body: ${localStyle.textColor || 'inherit'}; --tw-prose-headings: ${localStyle.textColor || 'inherit'}; --tw-prose-bold: ${localStyle.textColor || 'inherit'}; --tw-prose-links: ${localStyle.textColor || 'inherit'}; --tw-prose-quotes: ${localStyle.textColor || 'inherit'}; --tw-prose-code: ${localStyle.textColor || 'inherit'};`
+          : ''
       },
       handleDrop: (view, event, slice, moved) => {
         if (!event.dataTransfer) return false;
@@ -308,6 +311,28 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote }: { documentId
     return () => window.removeEventListener('doc-style-change', handleStyleChange as EventListener);
   }, [documentId, isNew, title, tags, editor, paneId]);
 
+  // Dynamically update Tiptap editor class attributes when document style changes
+  useEffect(() => {
+    if (editor && !editor.isDestroyed) {
+      const hasStyle = !!(localStyle.backdropColor || localStyle.textColor || localStyle.documentColor);
+      editor.setOptions({
+        editorProps: {
+          attributes: {
+            class: cn(
+              'prose prose-sm sm:prose lg:prose-lg mx-auto focus:outline-none w-full max-w-full',
+              hasStyle
+                ? ''
+                : 'text-foreground prose-headings:text-foreground hover:prose-a:text-foreground prose-a:text-muted-foreground prose-strong:text-foreground prose-code:text-foreground prose-ol:text-foreground prose-ul:text-foreground prose-p:text-foreground/95'
+            ),
+            style: hasStyle
+              ? `color: ${localStyle.textColor || 'inherit'}; --tw-prose-body: ${localStyle.textColor || 'inherit'}; --tw-prose-headings: ${localStyle.textColor || 'inherit'}; --tw-prose-bold: ${localStyle.textColor || 'inherit'}; --tw-prose-links: ${localStyle.textColor || 'inherit'}; --tw-prose-quotes: ${localStyle.textColor || 'inherit'}; --tw-prose-code: ${localStyle.textColor || 'inherit'};`
+              : ''
+          }
+        }
+      });
+    }
+  }, [editor, localStyle.backdropColor, localStyle.textColor, localStyle.documentColor]);
+
 
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -399,7 +424,7 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote }: { documentId
         className={cn(
           "w-full mx-auto font-content transition-[max-width,padding,border-radius,box-shadow,background-color,color] duration-300 ease-out flex flex-col shrink-0 z-10",
           hasCustomStyle
-            ? "max-w-[950px] p-8 sm:p-12 md:p-16 rounded-[1.5rem] shadow-[0_40px_80px_rgba(0,0,0,0.5)] relative border border-border min-h-[500px] md:min-h-[calc(100vh-160px)] ring-1 ring-black/10 overflow-hidden"
+            ? "max-w-[950px] p-8 sm:p-12 md:p-16 rounded-[1.5rem] shadow-none relative border border-border min-h-[500px] md:min-h-[calc(100vh-160px)] overflow-hidden"
             : "max-w-[900px] py-16 px-12 h-full"
         )}
         style={{

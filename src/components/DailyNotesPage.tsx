@@ -23,6 +23,283 @@ import { formatInTimeZone } from "date-fns-tz";
 import { TaskEditorModal } from "./TaskEditorModal";
 
 import { getCalendarDays } from "../lib/time";
+import { useShallow } from 'zustand/react/shallow';
+import { useCallback } from 'react';
+
+// ==========================================
+// OPTIMIZED SUB-COMPONENTS FOR PERFORMANCE
+// ==========================================
+
+const CreatedTodayItem = ({ docId, paneId }: { docId: string; paneId: string }) => {
+  const docSelector = useCallback(
+    (state: any) => {
+      const doc = state.documents[docId];
+      return doc ? { title: doc.title, tags: doc.tags } : null;
+    },
+    [docId]
+  );
+  const doc = useDocumentStore(useShallow(docSelector));
+  const { setActiveTab } = useUiStore();
+
+  if (!doc) return null;
+
+  return (
+    <div
+      onClick={() => setActiveTab(docId, paneId)}
+      className="neu-flat border border-border p-4 rounded-xl flex flex-col gap-3 group relative shadow-none min-h-[120px] cursor-pointer hover:bg-muted transition-colors"
+    >
+      <div className="flex items-center gap-2">
+        <span className="bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium">
+          <FileText size={12} weight="fill" /> Page
+        </span>
+      </div>
+      <h3 className="font-bold text-foreground text-base truncate">
+        {doc.title || "Untitled"}
+      </h3>
+      {doc.tags && doc.tags.length > 0 && (
+        <div className="mt-auto pt-2 flex gap-1 flex-wrap">
+          {doc.tags.map((tag) => (
+            <span
+              key={tag}
+              className="bg-emerald-600/30 text-emerald-300 text-[10px] px-2 py-0.5 rounded"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const MonthViewItem = ({ docId, onClick }: { docId: string; onClick: () => void }) => {
+  const docSelector = useCallback(
+    (state: any) => {
+      const doc = state.documents[docId];
+      return doc ? { title: doc.title, content: doc.content } : null;
+    },
+    [docId]
+  );
+  const doc = useDocumentStore(useShallow(docSelector));
+
+  if (!doc) return null;
+
+  return (
+    <div
+      onClick={onClick}
+      className="p-4 rounded-xl border border-border bg-muted/20 hover:bg-muted/65 transition-all cursor-pointer group flex flex-col gap-4 min-h-[260px]"
+    >
+      <div className="flex items-center gap-2 mb-1">
+        <span className="text-[10px] pr-2 font-medium text-blue-500 bg-blue-500/10 py-0.5 rounded border border-blue-500/20 flex items-center gap-1 w-fit whitespace-nowrap">
+          <div className="bg-blue-500/20 p-1 rounded-sm ml-0.5">
+            <CalendarBlank size={12} weight="fill" />
+          </div>{" "}
+          Daily Note
+        </span>
+      </div>
+      <h3 className="text-xl font-bold text-foreground whitespace-nowrap overflow-hidden text-ellipsis">
+        {(() => {
+          const dateParts = docId.replace("daily-note-", "").split("-");
+          if (dateParts.length !== 3) return "";
+          const docYear = parseInt(dateParts[0], 10);
+          const docMonth = parseInt(dateParts[1], 10) - 1;
+          const docDay = parseInt(dateParts[2], 10);
+          const docDate = new Date(docYear, docMonth, docDay);
+          return docDate.toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          });
+        })()}
+      </h3>
+      <div className="flex-1 bg-background group-hover:bg-muted/40 rounded-lg p-5 transition-colors border border-border overflow-hidden flex flex-col min-h-[140px]">
+        {doc.title && (
+          <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 text-sm font-bold text-foreground overflow-hidden text-ellipsis whitespace-nowrap">
+              <div className="bg-rose-500/15 text-rose-600 dark:text-rose-400 p-1.5 rounded border border-rose-500/20">
+                <FileText size={12} weight="fill" />
+              </div>
+              {doc.title}
+            </div>
+          </div>
+        )}
+        <div
+          className="text-muted-foreground text-sm line-clamp-6 prose max-w-none prose-p:my-0 text-ellipsis break-words"
+          dangerouslySetInnerHTML={{ __html: doc.content }}
+        />
+      </div>
+      <div className="flex items-center gap-1 text-muted-foreground text-sm mt-1 font-medium">
+        <Tag size={14} /> Tags
+      </div>
+    </div>
+  );
+};
+
+const MonthViewPane = ({ selectedDate, setView, setSelectedDate }: {
+  selectedDate: Date;
+  setView: (v: "Day" | "Week" | "Month") => void;
+  setSelectedDate: (d: Date) => void;
+}) => {
+  const monthDocIdsSelector = useCallback(
+    (state: any) => {
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth();
+      const docs = state.documentOrder
+        .map((id: string) => state.documents[id])
+        .filter((doc: any) => !!doc && doc.id.startsWith("daily-note-"))
+        .filter((doc: any) => {
+          const dateParts = doc.id.replace("daily-note-", "").split("-");
+          if (dateParts.length !== 3) return false;
+          const docYear = parseInt(dateParts[0], 10);
+          const docMonth = parseInt(dateParts[1], 10) - 1;
+          return docYear === year && docMonth === month;
+        });
+
+      // Sort by ID descending
+      docs.sort((a: any, b: any) => b.id.localeCompare(a.id));
+      return docs.map((doc: any) => doc.id);
+    },
+    [selectedDate.getFullYear(), selectedDate.getMonth()]
+  );
+  const monthDocIds = useDocumentStore(useShallow(monthDocIdsSelector));
+
+  if (monthDocIds.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[50vh] text-center gap-2">
+        <h2 className="text-xl font-bold text-foreground">
+          No daily notes created for this month.
+        </h2>
+        <p className="text-muted-foreground">
+          You can change this by creating a new object.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start w-full max-w-none">
+      {monthDocIds.map((docId) => {
+        const dateParts = docId.replace("daily-note-", "").split("-");
+        const docYear = parseInt(dateParts[0], 10);
+        const docMonth = parseInt(dateParts[1], 10) - 1;
+        const docDay = parseInt(dateParts[2], 10);
+        const docDate = new Date(docYear, docMonth, docDay);
+
+        return (
+          <MonthViewItem
+            key={docId}
+            docId={docId}
+            onClick={() => {
+              setSelectedDate(docDate);
+              setView("Day");
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+};
+
+const WeekViewItem = ({ date, formattedId, setView, setSelectedDate }: {
+  date: Date;
+  formattedId: string;
+  setView: (v: "Day" | "Week" | "Month") => void;
+  setSelectedDate: (d: Date) => void;
+}) => {
+  const did = `daily-note-${formattedId}`;
+  const docSelector = useCallback(
+    (state: any) => {
+      const doc = state.documents[did];
+      return doc ? { title: doc.title, content: doc.content } : null;
+    },
+    [did]
+  );
+  const doc = useDocumentStore(useShallow(docSelector));
+
+  const isMockToday = date.getDate() === 17 && date.getMonth() === 4;
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="text-rose-500 dark:text-rose-400 font-medium">
+            {date.toLocaleDateString("en-US", {
+              weekday: "long",
+            })}
+          </span>
+          {isMockToday && (
+            <span className="bg-rose-500/10 text-rose-600 dark:text-rose-300 text-xs px-2 py-0.5 rounded font-medium border border-rose-500/20">
+              Today
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <button
+            onClick={() => {
+              setSelectedDate(date);
+              setView("Day");
+            }}
+            className="p-1 hover:text-foreground transition-colors"
+          >
+            <ArrowsOutSimple size={14} />
+          </button>
+          <button className="p-1 hover:text-foreground transition-colors">
+            <DotsThree size={16} weight="bold" />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex items-baseline gap-4 mt-2 mb-4">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          {date.toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })}
+        </h1>
+        <span className="text-muted-foreground font-medium text-sm">
+          Week 20
+        </span>
+      </div>
+
+      <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium mb-4">
+        <Tag size={16} /> Tags
+      </div>
+
+      {doc ? (
+        <div className="flex flex-col gap-3">
+          {doc.title && (
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center gap-3">
+                <div className="bg-rose-500/15 text-rose-600 dark:text-rose-400 p-1.5 rounded-lg border border-rose-500/20">
+                  <FileText size={16} weight="fill" />
+                </div>
+                <span className="text-foreground font-bold">
+                  {doc.title}
+                </span>
+              </div>
+              <button className="p-1.5 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground border border-border transition-colors">
+                <DotsThree size={16} />
+              </button>
+            </div>
+          )}
+          <div
+            className="text-foreground/90 text-sm mt-1 prose max-w-none prose-p:my-1 line-clamp-2 overflow-hidden text-ellipsis"
+            dangerouslySetInnerHTML={{
+              __html: doc.content,
+            }}
+          />
+        </div>
+      ) : (
+        <div className="text-muted-foreground text-sm italic mt-2">
+          Empty note...
+        </div>
+      )}
+
+      <div className="w-full h-px bg-border mt-12" />
+    </div>
+  );
+};
 
 export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
   const [view, setView] = useState<"Month" | "Week" | "Day">("Day");
@@ -36,11 +313,10 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
   const [isTasksCreatedOpen, setIsTasksCreatedOpen] = useState(true);
   const [isTasksFinishedOpen, setIsTasksFinishedOpen] = useState(true);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-  let { documents, documentOrder } = useDocumentStore();
-  documents = documents || {};
-  documentOrder = documentOrder || [];
-  let { tasks, updateTask, deleteTask } = useTaskStore();
-  tasks = tasks || [];
+
+  const tasks = useTaskStore(state => state.tasks) || [];
+  const updateTask = useTaskStore(state => state.updateTask);
+  const deleteTask = useTaskStore(state => state.deleteTask);
   const { setActiveTab } = useUiStore();
 
   const formattedDateId = formatInTimeZone(
@@ -50,13 +326,35 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
   );
   const documentId = `daily-note-${formattedDateId}`;
 
-  const objectsCreatedToday = documentOrder.filter((id) => {
-    const doc = documents[id];
-    if (!doc) return false;
-    if (doc.id.startsWith("daily-note-")) return false;
-    return doc.updatedAt.startsWith(formattedDateId);
-  });
-  const createdTodayCount = objectsCreatedToday.length;
+  // Optimized selector to get only the IDs of non-daily note documents created today
+  const createdTodayIdsSelector = useCallback(
+    (state: any) => {
+      const order = state.documentOrder || [];
+      return order.filter((id: string) => {
+        const doc = state.documents[id];
+        if (!doc) return false;
+        if (doc.id.startsWith("daily-note-")) return false;
+        return doc.updatedAt.startsWith(formattedDateId);
+      });
+    },
+    [formattedDateId]
+  );
+  const objectsCreatedTodayIds = useDocumentStore(useShallow(createdTodayIdsSelector));
+
+  // Optimized selector for count of documents created today to avoid unnecessary re-renders
+  const createdTodayCountSelector = useCallback(
+    (state: any) => {
+      const order = state.documentOrder || [];
+      return order.filter((id: string) => {
+        const doc = state.documents[id];
+        if (!doc) return false;
+        if (doc.id.startsWith("daily-note-")) return false;
+        return doc.updatedAt.startsWith(formattedDateId);
+      }).length;
+    },
+    [formattedDateId]
+  );
+  const createdTodayCount = useDocumentStore(createdTodayCountSelector);
 
   const renderDays = () => {
     const calendarDays = getCalendarDays(selectedDate);
@@ -219,191 +517,26 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
         {/* Content container */}
         <div className="px-8 pb-20 max-w-[900px] mx-auto w-full pt-10">
           {view === "Month" ? (
-            (() => {
-              // Get all documents for the selected month
-              const monthDocs = documentOrder
-                .map((id) => documents[id])
-                .filter((doc) => !!doc && doc.id.startsWith("daily-note-"))
-                .filter((doc) => {
-                  const dateParts = doc.id
-                    .replace("daily-note-", "")
-                    .split("-");
-                  if (dateParts.length !== 3) return false;
-                  const docYear = parseInt(dateParts[0], 10);
-                  const docMonth = parseInt(dateParts[1], 10) - 1;
-                  return (
-                    docYear === selectedDate.getFullYear() &&
-                    docMonth === selectedDate.getMonth()
-                  );
-                });
-
-              monthDocs.sort((a, b) => b.id.localeCompare(a.id));
-
-              if (monthDocs.length === 0) {
-                return (
-                  <div className="flex flex-col items-center justify-center h-[50vh] text-center gap-2">
-                    <h2 className="text-xl font-bold text-foreground">
-                      No daily notes created for this month.
-                    </h2>
-                    <p className="text-muted-foreground">
-                      You can change this by creating a new object.
-                    </p>
-                  </div>
-                );
-              }
-
-              return (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start w-full max-w-none">
-                  {monthDocs.map((doc) => {
-                    const dateParts = doc.id
-                      .replace("daily-note-", "")
-                      .split("-");
-                    const docYear = parseInt(dateParts[0], 10);
-                    const docMonth = parseInt(dateParts[1], 10) - 1;
-                    const docDay = parseInt(dateParts[2], 10);
-                    const docDate = new Date(docYear, docMonth, docDay);
-
-                    return (
-                      <div
-                        key={doc.id}
-                        onClick={() => {
-                          setSelectedDate(docDate);
-                          setView("Day");
-                        }}
-                        className="p-4 rounded-xl border border-border bg-muted/20 hover:bg-muted/65 transition-all cursor-pointer group flex flex-col gap-4 min-h-[260px]"
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[10px] pr-2 font-medium text-blue-500 bg-blue-500/10 py-0.5 rounded border border-blue-500/20 flex items-center gap-1 w-fit whitespace-nowrap">
-                            <div className="bg-blue-500/20 p-1 rounded-sm ml-0.5">
-                              <CalendarBlank size={12} weight="fill" />
-                            </div>{" "}
-                            Daily Note
-                          </span>
-                        </div>
-                        <h3 className="text-xl font-bold text-foreground whitespace-nowrap overflow-hidden text-ellipsis">
-                          {docDate.toLocaleDateString("en-US", {
-                            month: "long",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
-                        </h3>
-                        <div className="flex-1 bg-background group-hover:bg-muted/40 rounded-lg p-5 transition-colors border border-border overflow-hidden flex flex-col min-h-[140px]">
-                          {doc.title && (
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="flex items-center gap-2 text-sm font-bold text-foreground overflow-hidden text-ellipsis whitespace-nowrap">
-                                <div className="bg-rose-500/15 text-rose-600 dark:text-rose-400 p-1.5 rounded border border-rose-500/20">
-                                  <FileText size={12} weight="fill" />
-                                </div>
-                                {doc.title}
-                              </div>
-                            </div>
-                          )}
-                          <div
-                            className="text-muted-foreground text-sm line-clamp-6 prose max-w-none prose-p:my-0 text-ellipsis break-words"
-                            dangerouslySetInnerHTML={{ __html: doc.content }}
-                          />
-                        </div>
-                        <div className="flex items-center gap-1 text-muted-foreground text-sm mt-1 font-medium">
-                          <Tag size={14} /> Tags
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })()
+            <MonthViewPane
+              selectedDate={selectedDate}
+              setView={setView}
+              setSelectedDate={setSelectedDate}
+            />
           ) : view === "Week" ? (
             <div className="flex flex-col gap-12">
               {Array.from({ length: 7 }).map((_, i) => {
                 const date = new Date(selectedDate);
                 date.setDate(selectedDate.getDate() + i);
                 const formattedId = date.toISOString().split("T")[0];
-                const did = `daily-note-${formattedId}`;
-                const doc = documents[did];
-
-                const isMockToday =
-                  date.getDate() === 17 && date.getMonth() === 4;
 
                 return (
-                  <div key={formattedId} className="flex flex-col gap-1">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-rose-500 dark:text-rose-400 font-medium">
-                          {date.toLocaleDateString("en-US", {
-                            weekday: "long",
-                          })}
-                        </span>
-                        {isMockToday && (
-                          <span className="bg-rose-500/10 text-rose-600 dark:text-rose-300 text-xs px-2 py-0.5 rounded font-medium border border-rose-500/20">
-                            Today
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <button
-                          onClick={() => {
-                            setSelectedDate(date);
-                            setView("Day");
-                          }}
-                          className="p-1 hover:text-foreground transition-colors"
-                        >
-                          <ArrowsOutSimple size={14} />
-                        </button>
-                        <button className="p-1 hover:text-foreground transition-colors">
-                          <DotsThree size={16} weight="bold" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex items-baseline gap-4 mt-2 mb-4">
-                      <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                        {date.toLocaleDateString("en-US", {
-                          month: "long",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </h1>
-                      <span className="text-muted-foreground font-medium text-sm">
-                        Week 20
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium mb-4">
-                      <Tag size={16} /> Tags
-                    </div>
-
-                    {doc ? (
-                      <div className="flex flex-col gap-3">
-                        {doc.title && (
-                          <div className="flex items-center justify-between pt-1">
-                            <div className="flex items-center gap-3">
-                              <div className="bg-rose-500/15 text-rose-600 dark:text-rose-400 p-1.5 rounded-lg border border-rose-500/20">
-                                <FileText size={16} weight="fill" />
-                              </div>
-                              <span className="text-foreground font-bold">
-                                {doc.title}
-                              </span>
-                            </div>
-                            <button className="p-1.5 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground border border-border transition-colors">
-                              <DotsThree size={16} />
-                            </button>
-                          </div>
-                        )}
-                        <div
-                          className="text-foreground/90 text-sm mt-1 prose max-w-none prose-p:my-1 line-clamp-2 overflow-hidden text-ellipsis"
-                          dangerouslySetInnerHTML={{
-                            __html: doc.content,
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="text-muted-foreground text-sm italic mt-2">
-                        Empty note...
-                      </div>
-                    )}
-
-                    <div className="w-full h-px bg-border mt-12" />
-                  </div>
+                  <WeekViewItem
+                    key={formattedId}
+                    date={date}
+                    formattedId={formattedId}
+                    setView={setView}
+                    setSelectedDate={setSelectedDate}
+                  />
                 );
               })}
             </div>
@@ -499,55 +632,18 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                       className="overflow-hidden"
                     >
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
-                        {documentOrder.filter((id) => {
-                          const doc = documents[id];
-                          if (!doc) return false;
-                          // Exclude daily notes from this list
-                          if (doc.id.startsWith("daily-note-")) return false;
-                          return doc.updatedAt.startsWith(formattedDateId);
-                        }).length === 0 && (
-                            <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-xl">
-                              No other documents created today.
-                            </div>
-                          )}
-                        {documentOrder
-                          .filter((id) => {
-                            const doc = documents[id];
-                            if (!doc) return false;
-                            if (doc.id.startsWith("daily-note-")) return false;
-                            return doc.updatedAt.startsWith(formattedDateId);
-                          })
-                          .map((id) => {
-                            const doc = documents[id];
-                            return (
-                              <div
-                                key={id}
-                                onClick={() => setActiveTab(id, paneId)}
-                                className="neu-flat border border-border p-4 rounded-xl flex flex-col gap-3 group relative shadow-none min-h-[120px] cursor-pointer hover:bg-muted transition-colors"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <span className="bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium">
-                                    <FileText size={12} weight="fill" /> Page
-                                  </span>
-                                </div>
-                                <h3 className="font-bold text-foreground text-base truncate">
-                                  {doc.title || "Untitled"}
-                                </h3>
-                                {doc.tags && doc.tags.length > 0 && (
-                                  <div className="mt-auto pt-2 flex gap-1 flex-wrap">
-                                    {doc.tags.map((tag) => (
-                                      <span
-                                        key={tag}
-                                        className="bg-emerald-600/30 text-emerald-300 text-[10px] px-2 py-0.5 rounded"
-                                      >
-                                        {tag}
-                                      </span>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
+                        {objectsCreatedTodayIds.length === 0 && (
+                          <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-xl">
+                            No other documents created today.
+                          </div>
+                        )}
+                        {objectsCreatedTodayIds.map((id) => (
+                          <CreatedTodayItem
+                            key={id}
+                            docId={id}
+                            paneId={paneId}
+                          />
+                        ))}
                       </div>
                     </motion.div>
                   )}

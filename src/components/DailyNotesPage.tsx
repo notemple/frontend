@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CaretLeft,
   CaretRight,
@@ -11,6 +11,8 @@ import {
   CaretUp,
   Trash,
   ArrowCircleRight,
+  X,
+  ArrowsInSimple,
 } from "@phosphor-icons/react";
 import { cn } from "../lib/utils";
 import { useDocumentStore } from "../store/documentStore";
@@ -21,22 +23,20 @@ import { motion, AnimatePresence } from "motion/react";
 import { useSettingsStore } from "../store/settingsStore";
 import { formatInTimeZone, toDate } from "date-fns-tz";
 import { TaskEditorModal } from "./TaskEditorModal";
-import { 
-  getCalendarDays, 
-  formatDisplayDate, 
-  formatDisplayDateTime,
-  isSameDayInTimezone, 
-  isSameMonthInTimezone, 
+import {
+  getCalendarDays,
+  formatDisplayDate,
+  isSameDayInTimezone,
+  isSameMonthInTimezone,
   isSameDayString,
-  getZonedYear, 
-  getZonedMonth, 
-  getZonedDate, 
-  setZonedYear, 
-  setZonedMonth, 
-  changeZonedMonth, 
-  addDaysInTimezone, 
-  getMonthDateInTimezone, 
-  useIsMounted 
+  getZonedYear,
+  getZonedMonth,
+  getZonedDate,
+  setZonedYear,
+  setZonedMonth,
+  changeZonedMonth,
+  addDaysInTimezone,
+  getMonthDateInTimezone,
 } from "../lib/time";
 import { useShallow } from 'zustand/react/shallow';
 import { useCallback } from 'react';
@@ -210,11 +210,12 @@ const MonthViewPane = ({ selectedDate, setView, setSelectedDate }: {
   );
 };
 
-const WeekViewItem = ({ date, formattedId, setView, setSelectedDate }: {
+const WeekViewItem = ({ date, formattedId, setView, setSelectedDate, onOpenFullEditor }: {
   date: Date;
   formattedId: string;
   setView: (v: "Day" | "Week" | "Month") => void;
   setSelectedDate: (d: Date) => void;
+  onOpenFullEditor: (id: string) => void;
 }) => {
   const { timezone } = useSettingsStore();
   const did = `daily-note-${formattedId}`;
@@ -245,10 +246,10 @@ const WeekViewItem = ({ date, formattedId, setView, setSelectedDate }: {
         <div className="flex items-center gap-2 text-muted-foreground">
           <button
             onClick={() => {
-              setSelectedDate(date);
-              setView("Day");
+              onOpenFullEditor(did);
             }}
-            className="p-1 hover:text-foreground transition-colors"
+            className="p-1 hover:text-foreground transition-colors cursor-pointer"
+            title="Open in full editor"
           >
             <ArrowsOutSimple size={14} />
           </button>
@@ -310,19 +311,17 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
   const [view, setView] = useState<"Month" | "Week" | "Day">("Day");
   const { timezone, weekStartDay } = useSettingsStore();
 
-  const [selectedDate, setSelectedDate] = useState(() => {
-    return new Date();
-  });
+  const { selectedDailyNoteDate: selectedDate, setSelectedDailyNoteDate: setSelectedDate, setActiveTab, openDocument } = useUiStore();
   const [isCalendarOpen, setIsCalendarOpen] = useState(true);
   const [isCreatedTodayOpen, setIsCreatedTodayOpen] = useState(true);
   const [isTasksCreatedOpen, setIsTasksCreatedOpen] = useState(true);
   const [isTasksFinishedOpen, setIsTasksFinishedOpen] = useState(true);
+  const [isFullEditorOpen, setIsFullEditorOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
   const tasks = useTaskStore(state => state.tasks) || [];
   const updateTask = useTaskStore(state => state.updateTask);
   const deleteTask = useTaskStore(state => state.deleteTask);
-  const { setActiveTab } = useUiStore();
 
   const formattedDateId = formatInTimeZone(
     selectedDate,
@@ -384,6 +383,22 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
       );
     });
   };
+
+  if (isFullEditorOpen) {
+    return (
+      <div className="flex w-full h-full text-foreground bg-background overflow-hidden relative">
+        <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar relative min-h-full">
+          <NotempleEditor
+            key={documentId}
+            documentId={documentId}
+            paneId={paneId}
+            isDailyNote={false}
+            onClosePopup={() => setIsFullEditorOpen(false)}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex w-full h-full text-foreground bg-background overflow-hidden relative">
@@ -531,6 +546,12 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                     formattedId={formattedId}
                     setView={setView}
                     setSelectedDate={setSelectedDate}
+                    onOpenFullEditor={(noteId) => {
+                      const dateStr = noteId.replace("daily-note-", "");
+                      const parsedDate = toDate(`${dateStr}T00:00:00`, { timeZone: timezone });
+                      setSelectedDate(parsedDate);
+                      setIsFullEditorOpen(true);
+                    }}
                   />
                 );
               })}
@@ -549,7 +570,11 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                   )}
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <button className="p-1 hover:text-foreground transition-colors">
+                  <button
+                    onClick={() => setIsFullEditorOpen(true)}
+                    className="p-1 hover:text-foreground transition-colors cursor-pointer"
+                    title="Open in full editor"
+                  >
                     <ArrowsOutSimple size={14} />
                   </button>
                   <button className="p-1 hover:text-foreground transition-colors">
@@ -655,65 +680,65 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                   {isTasksCreatedOpen && (
                     <div className="flex flex-col gap-2 mb-4">
                       {tasks
-                            .filter((t) => isSameDayString(t.createdAt, formattedDateId))
-                            .map((task) => (
+                        .filter((t) => isSameDayString(t.createdAt, formattedDateId))
+                        .map((task) => (
+                          <div
+                            key={task.id}
+                            className="flex items-center justify-between group relative hover:bg-muted pl-2 pr-2 py-1 -mx-2 rounded transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
                               <div
-                                key={task.id}
-                                className="flex items-center justify-between group relative hover:bg-muted pl-2 pr-2 py-1 -mx-2 rounded transition-colors"
+                                className={cn(
+                                  "w-5 h-5 shrink-0 rounded-[4px] border transition-colors flex items-center justify-center cursor-pointer min-w-[20px]",
+                                  task.completed
+                                    ? "bg-purple-500 border-purple-500 text-white"
+                                    : "border-border hover:border-muted-foreground",
+                                )}
+                                onClick={() =>
+                                  updateTask(task.id, {
+                                    completed: !task.completed,
+                                  })
+                                }
+                              />
+                              <span
+                                className={cn(
+                                  "text-sm font-medium transition-colors",
+                                  task.completed
+                                    ? "line-through text-muted-foreground"
+                                    : "text-foreground",
+                                )}
                               >
-                                <div className="flex items-center gap-3">
-                                  <div
-                                    className={cn(
-                                      "w-5 h-5 shrink-0 rounded-[4px] border transition-colors flex items-center justify-center cursor-pointer min-w-[20px]",
-                                      task.completed
-                                        ? "bg-purple-500 border-purple-500 text-white"
-                                        : "border-border hover:border-muted-foreground",
-                                    )}
-                                    onClick={() =>
-                                      updateTask(task.id, {
-                                        completed: !task.completed,
-                                      })
-                                    }
-                                  />
-                                  <span
-                                    className={cn(
-                                      "text-sm font-medium transition-colors",
-                                      task.completed
-                                        ? "line-through text-muted-foreground"
-                                        : "text-foreground",
-                                    )}
-                                  >
-                                    {task.title}
-                                  </span>
-                                  {task.deadline && (
-                                    <span className="text-xs text-muted-foreground border border-border rounded px-2 py-0.5 bg-muted ml-2">
-                                      Deadline: {formatDisplayDate(task.deadline, "MMM d")}
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button
-                                    onClick={() => deleteTask(task.id)}
-                                    className="text-muted-foreground hover:text-red-400 transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
-                                  >
-                                    <Trash size={16} />
-                                  </button>
-                                  <button
-                                    onClick={() => setEditingTaskId(task.id)}
-                                    className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
-                                  >
-                                    <ArrowCircleRight size={16} />
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                          {tasks.filter((t) => isSameDayString(t.createdAt, formattedDateId)).length === 0 && (
-                              <div className="text-muted-foreground text-sm italic py-2">
-                                No tasks created on this date.
-                              </div>
-                            )}
+                                {task.title}
+                              </span>
+                              {task.deadline && (
+                                <span className="text-xs text-muted-foreground border border-border rounded px-2 py-0.5 bg-muted ml-2">
+                                  Deadline: {formatDisplayDate(task.deadline, "MMM d")}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => deleteTask(task.id)}
+                                className="text-muted-foreground hover:text-red-400 transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
+                              >
+                                <Trash size={16} />
+                              </button>
+                              <button
+                                onClick={() => setEditingTaskId(task.id)}
+                                className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
+                              >
+                                <ArrowCircleRight size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      {tasks.filter((t) => isSameDayString(t.createdAt, formattedDateId)).length === 0 && (
+                        <div className="text-muted-foreground text-sm italic py-2">
+                          No tasks created on this date.
                         </div>
-                    )}
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Tasks to be Completed */}
@@ -741,63 +766,63 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                   {isTasksFinishedOpen && (
                     <div className="flex flex-col gap-2 mb-4">
                       {tasks
-                            .filter((t) => isSameDayString(t.deadline, formattedDateId))
-                            .map((task) => (
+                        .filter((t) => isSameDayString(t.deadline, formattedDateId))
+                        .map((task) => (
+                          <div
+                            key={task.id}
+                            className="flex items-center justify-between group relative hover:bg-muted pl-2 pr-2 py-1 -mx-2 rounded transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
                               <div
-                                key={task.id}
-                                className="flex items-center justify-between group relative hover:bg-muted pl-2 pr-2 py-1 -mx-2 rounded transition-colors"
+                                className={cn(
+                                  "w-5 h-5 shrink-0 rounded-sm border transition-colors flex items-center justify-center cursor-pointer min-w-[20px]",
+                                  task.completed
+                                    ? "bg-purple-500 border-purple-500 text-white"
+                                    : "border-border hover:border-muted-foreground",
+                                )}
+                                onClick={() =>
+                                  updateTask(task.id, {
+                                    completed: !task.completed,
+                                  })
+                                }
+                              />
+                              <span
+                                className={cn(
+                                  "text-sm font-medium transition-colors",
+                                  task.completed
+                                    ? "line-through text-muted-foreground"
+                                    : "text-foreground",
+                                )}
                               >
-                                <div className="flex items-center gap-3">
-                                  <div
-                                    className={cn(
-                                      "w-5 h-5 shrink-0 rounded-[4px] border transition-colors flex items-center justify-center cursor-pointer min-w-[20px]",
-                                      task.completed
-                                        ? "bg-purple-500 border-purple-500 text-white"
-                                        : "border-border hover:border-muted-foreground",
-                                    )}
-                                    onClick={() =>
-                                      updateTask(task.id, {
-                                        completed: !task.completed,
-                                      })
-                                    }
-                                  />
-                                  <span
-                                    className={cn(
-                                      "text-sm font-medium transition-colors",
-                                      task.completed
-                                        ? "line-through text-muted-foreground"
-                                        : "text-foreground",
-                                    )}
-                                  >
-                                    {task.title}
-                                  </span>
-                                  <span className="text-xs text-muted-foreground border border-border rounded px-2 py-0.5 bg-muted ml-2">
-                                    Deadline: {formatDisplayDate(task.deadline, "MMM d")}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button
-                                    onClick={() => deleteTask(task.id)}
-                                    className="text-muted-foreground hover:text-red-400 transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
-                                  >
-                                    <Trash size={16} />
-                                  </button>
-                                  <button
-                                    onClick={() => setEditingTaskId(task.id)}
-                                    className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
-                                  >
-                                    <ArrowCircleRight size={16} />
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                          {tasks.filter((t) => isSameDayString(t.deadline, formattedDateId)).length === 0 && (
-                              <div className="text-muted-foreground text-sm italic py-2">
-                                No tasks with deadline on this date.
-                              </div>
-                            )}
+                                {task.title}
+                              </span>
+                              <span className="text-xs text-muted-foreground border border-border rounded px-2 py-0.5 bg-muted ml-2">
+                                Deadline: {formatDisplayDate(task.deadline, "MMM d")}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => deleteTask(task.id)}
+                                className="text-muted-foreground hover:text-red-400 transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
+                              >
+                                <Trash size={16} />
+                              </button>
+                              <button
+                                onClick={() => setEditingTaskId(task.id)}
+                                className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
+                              >
+                                <ArrowCircleRight size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      {tasks.filter((t) => isSameDayString(t.deadline, formattedDateId)).length === 0 && (
+                        <div className="text-muted-foreground text-sm italic py-2">
+                          No tasks with deadline on this date.
                         </div>
-                    )}
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </>
@@ -814,7 +839,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
             exit={{ width: 0, opacity: 0 }}
             className="border-l border-border bg-background shrink-0 flex flex-col p-4 overflow-hidden"
           >
-            <div className="w-[268px]">
+            <div className="w-67">
               <div className="flex items-center justify-between mb-4 text-sm font-medium text-muted-foreground w-full">
                 <button
                   className="p-1 hover:text-foreground"

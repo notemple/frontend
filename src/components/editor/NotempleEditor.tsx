@@ -19,7 +19,9 @@ import { SlashCommand, getSuggestionItems, renderItems } from './SlashCommand';
 import { useDocumentStore } from '@/src/store/documentStore';
 import { useUiStore } from '@/src/store/uiStore';
 import { useShallow } from 'zustand/react/shallow';
-import { Tag, TextB, TextItalic, TextStrikethrough, TextAUnderline, Code } from '@phosphor-icons/react';
+import { Tag, TextB, TextItalic, TextStrikethrough, TextAUnderline, Code, ArrowsInSimple } from '@phosphor-icons/react';
+import { useSettingsStore } from '@/src/store/settingsStore';
+import { toDate } from 'date-fns-tz';
 import { cn } from '@/src/lib/utils';
 import { formatDisplayDate } from '@/src/lib/time';
 
@@ -41,11 +43,27 @@ const allExistingTagsSelector = (state: any) => {
   return cachedAllExistingTags;
 };
 
-export const NotempleEditor = ({ documentId, paneId, isDailyNote }: { documentId: string, paneId?: string, isDailyNote?: boolean }) => {
+export const NotempleEditor = ({ documentId, paneId, isDailyNote, onClosePopup }: { documentId: string, paneId?: string, isDailyNote?: boolean, onClosePopup?: () => void }) => {
   const isNew = documentId === 'new-note';
   const addDocument = useDocumentStore(state => state.addDocument);
   const updateDocument = useDocumentStore(state => state.updateDocument);
-  const { setActiveTab } = useUiStore();
+  const { setActiveTab, openDocument, setSelectedDailyNoteDate } = useUiStore();
+  const { timezone } = useSettingsStore();
+
+  const handleBackToDailyNotes = () => {
+    if (onClosePopup) {
+      onClosePopup();
+      return;
+    }
+    const dateStr = documentId.replace('daily-note-', '');
+    const parsedDate = toDate(`${dateStr}T00:00:00`, { timeZone: timezone });
+    setSelectedDailyNoteDate(parsedDate);
+    if (paneId) {
+      openDocument('section-daily-notes', paneId);
+    } else {
+      openDocument('section-daily-notes');
+    }
+  };
 
   const documentSelector = useCallback(
     (state: any) => {
@@ -72,7 +90,7 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote }: { documentId
   const [tags, setTags] = useState<string[]>(document?.tags || []);
   const [showTagsDropdown, setShowTagsDropdown] = useState(false);
 
-  const [localStyle, setLocalStyle] = useState({
+  const localStyle = {
     color: document?.color || '#ffffff',
     fontFamily: document?.fontFamily || '',
     backdropColor: document?.backdropColor,
@@ -83,38 +101,14 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote }: { documentId
     backdropGradientDirection: document?.backdropGradientDirection || '',
     documentColor: document?.documentColor,
     textColor: document?.textColor
-  });
+  };
 
   useEffect(() => {
     if (document) {
       setTitle(document.title || '');
       setTags(document.tags || []);
-      setLocalStyle({
-        color: document.color || '#ffffff',
-        fontFamily: document.fontFamily || '',
-        backdropColor: document.backdropColor,
-        backdropType: document.backdropType || 'none',
-        backdropStyle: document.backdropStyle || 'immersive',
-        backdropGradientStart: document.backdropGradientStart || '',
-        backdropGradientEnd: document.backdropGradientEnd || '',
-        backdropGradientDirection: document.backdropGradientDirection || '',
-        documentColor: document.documentColor,
-        textColor: document.textColor
-      });
     }
-  }, [
-    document?.id,
-    document?.color,
-    document?.fontFamily,
-    document?.backdropColor,
-    document?.backdropType,
-    document?.backdropStyle,
-    document?.backdropGradientStart,
-    document?.backdropGradientEnd,
-    document?.backdropGradientDirection,
-    document?.documentColor,
-    document?.textColor
-  ]); // Run when document ID or style properties change
+  }, [document?.id]);
 
   const extensions = useMemo(() => [
     StarterKit.configure({
@@ -288,8 +282,6 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote }: { documentId
     const handleStyleChange = (e: CustomEvent) => {
       // Only apply if this editor is focused (simple approximation: using local state, but we should verify focus if multiple editors exist)
       // Assuming single active editor capturing the event for simplicity in this layout
-      setLocalStyle(prev => ({ ...prev, ...e.detail }));
-
       if (!isNew) {
         updateDocument(documentId, e.detail);
       } else {
@@ -406,8 +398,8 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote }: { documentId
   return (
     <div
       className={cn(
-        "w-full h-full overflow-y-auto no-scrollbar flex flex-col transition-all duration-300 relative",
-        hasCustomStyle ? "p-4 sm:p-8 md:p-12 lg:p-16" : ""
+        "w-full h-full overflow-y-auto no-scrollbar flex flex-col relative",
+        hasCustomStyle ? "p-4 sm:p-8 md:p-12 lg:p-16 transition-[padding] duration-300" : ""
       )}
       style={{
         background: localStyle.backdropColor || undefined,
@@ -423,9 +415,9 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote }: { documentId
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 380, damping: 35 }}
         className={cn(
-          "w-full mx-auto font-content transition-[max-width,padding,border-radius,box-shadow,background-color,color] duration-300 ease-out flex flex-col shrink-0 z-10",
+          "w-full mx-auto font-content flex flex-col shrink-0 z-10",
           hasCustomStyle
-            ? "max-w-[950px] p-8 sm:p-12 md:p-16 rounded-[1.5rem] shadow-none relative border border-border min-h-[500px] md:min-h-[calc(100vh-160px)] overflow-hidden"
+            ? "max-w-[950px] p-8 sm:p-12 md:p-16 rounded-[1.5rem] shadow-none relative border border-border min-h-[500px] md:min-h-[calc(100vh-160px)] overflow-hidden transition-[max-width,padding,border-radius,box-shadow] duration-300 ease-out"
             : "max-w-[900px] py-16 px-12 h-full"
         )}
         style={{
@@ -445,10 +437,23 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote }: { documentId
         )}
 
         <div className="mb-12 px-[54px] relative z-10">
-          <div className="flex items-center gap-2 mb-4 text-[10px] font-mono uppercase tracking-[0.2em]" style={{ color: localStyle.textColor || (hasCustomStyle ? '#4b5563' : 'var(--muted-foreground)') }}>
-            <span>{document.type}</span>
-            <span>/</span>
-            <span>{formatDisplayDate(document.updatedAt, "MMM d, yyyy")}</span>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em]" style={{ color: localStyle.textColor || (hasCustomStyle ? '#4b5563' : 'var(--muted-foreground)') }}>
+              <span>{document.type}</span>
+              <span>/</span>
+              <span>{formatDisplayDate(document.updatedAt, "MMM d, yyyy")}</span>
+            </div>
+
+            {documentId.startsWith('daily-note-') && !isDailyNote && (
+              <button
+                onClick={handleBackToDailyNotes}
+                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg border border-border bg-muted/40 hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all cursor-pointer shadow-sm select-none"
+                title="Back to Daily Notes view"
+              >
+                <ArrowsInSimple size={14} />
+                <span>Daily Notes</span>
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-4">

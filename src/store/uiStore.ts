@@ -27,6 +27,9 @@ interface UiState {
 
   appearance: 'light' | 'dark' | 'system';
   setAppearance: (appearance: 'light' | 'dark' | 'system') => void;
+
+  selectedDailyNoteDate: Date;
+  setSelectedDailyNoteDate: (date: Date) => void;
 }
 
 const DEFAULT_PANE_ID = 'pane-main';
@@ -46,6 +49,9 @@ export const useUiStore = create<UiState>((set, get) => ({
 
   isRightSidebarOpen: false,
   toggleRightSidebar: () => set((state) => ({ isRightSidebarOpen: !state.isRightSidebarOpen })),
+
+  selectedDailyNoteDate: new Date(),
+  setSelectedDailyNoteDate: (selectedDailyNoteDate) => set({ selectedDailyNoteDate }),
 
   panes: [{ id: DEFAULT_PANE_ID, tabs: ['section-daily-notes'], activeTabId: 'section-daily-notes' }],
   activePaneId: DEFAULT_PANE_ID,

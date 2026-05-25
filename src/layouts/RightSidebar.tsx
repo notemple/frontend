@@ -16,6 +16,7 @@ import {
   CaretDown
 } from '@phosphor-icons/react';
 import { cn } from '../lib/utils';
+import { getRelativeTimeString } from '../lib/time';
 
 export const RightSidebar = () => {
   const { isRightSidebarOpen, toggleRightSidebar } = useUiStore();
@@ -673,17 +674,7 @@ const InfoTab = () => {
 
   const formatRelativeTime = (dateString?: string) => {
     if (!dateString) return 'Never';
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMins < 1) return 'Just Now';
-    if (diffMins < 60) return `${diffMins} ${diffMins === 1 ? 'minute' : 'minutes'} ago`;
-    if (diffHours < 24) return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`;
-    return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
+    return getRelativeTimeString(dateString);
   };
 
   return (

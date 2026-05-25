@@ -21,6 +21,7 @@ import { useUiStore } from '@/src/store/uiStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Tag, TextB, TextItalic, TextStrikethrough, TextAUnderline, Code } from '@phosphor-icons/react';
 import { cn } from '@/src/lib/utils';
+import { formatDisplayDate } from '@/src/lib/time';
 
 const EMPTY_TAGS: string[] = [];
 
@@ -447,7 +448,7 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote }: { documentId
           <div className="flex items-center gap-2 mb-4 text-[10px] font-mono uppercase tracking-[0.2em]" style={{ color: localStyle.textColor || (hasCustomStyle ? '#4b5563' : 'var(--muted-foreground)') }}>
             <span>{document.type}</span>
             <span>/</span>
-            <span>{new Date(document.updatedAt).toLocaleDateString()}</span>
+            <span>{formatDisplayDate(document.updatedAt, "MMM d, yyyy")}</span>
           </div>
 
           <div className="flex items-center gap-4">

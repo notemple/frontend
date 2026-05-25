@@ -27,6 +27,10 @@ import {
   toUtcString,
   formatDisplayDate,
   isTaskCreatedToday,
+  changeZonedMonth,
+  isSameMonthInTimezone,
+  isSameDayInTimezone,
+  getZonedDate,
 } from "@/src/lib/time";
 
 // Remove old mock time import comments
@@ -133,18 +137,12 @@ const CustomDatePicker = ({
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between px-1">
                 <span className="font-bold text-sm">
-                  {currentMonth.toLocaleDateString("en-US", { month: "long" })}
+                  {formatDisplayDate(currentMonth.toISOString(), "MMMM")}
                 </span>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() =>
-                      setCurrentMonth(
-                        new Date(
-                          currentMonth.getFullYear(),
-                          currentMonth.getMonth() - 1,
-                          1,
-                        ),
-                      )
+                      setCurrentMonth(changeZonedMonth(currentMonth, -1, timezone))
                     }
                     className="p-1 hover:bg-muted rounded"
                   >
@@ -158,13 +156,7 @@ const CustomDatePicker = ({
                   </button>
                   <button
                     onClick={() =>
-                      setCurrentMonth(
-                        new Date(
-                          currentMonth.getFullYear(),
-                          currentMonth.getMonth() + 1,
-                          1,
-                        ),
-                      )
+                      setCurrentMonth(changeZonedMonth(currentMonth, 1, timezone))
                     }
                     className="p-1 hover:bg-muted rounded"
                   >
@@ -181,11 +173,8 @@ const CustomDatePicker = ({
 
               <div className="grid grid-cols-7 gap-1 text-sm font-medium">
                 {calendarDays.map((d, i) => {
-                  const isSelectedMonth =
-                    d.getMonth() === currentMonth.getMonth();
-                  const todayMatches =
-                    formatDisplayDate(toUtcString(d), "yyyy-MM-dd") ===
-                    formatDisplayDate(toUtcString(new Date()), "yyyy-MM-dd");
+                  const isSelectedMonth = isSameMonthInTimezone(d, currentMonth, timezone);
+                  const todayMatches = isSameDayInTimezone(d, new Date(), timezone);
                   return (
                     <button
                       key={i}
@@ -200,7 +189,7 @@ const CustomDatePicker = ({
                           : "",
                       )}
                     >
-                      {d.getDate()}
+                      {getZonedDate(d, timezone)}
                     </button>
                   );
                 })}

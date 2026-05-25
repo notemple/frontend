@@ -2,21 +2,35 @@ import React, { useState } from 'react';
 import { X } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useSettingsStore } from '@/src/store/settingsStore';
+import { formatDisplayDateTime, useIsMounted } from '@/src/lib/time';
 
 export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const { timezone, timeFormat, weekStartDay, setTimezone, setTimeFormat, setWeekStartDay } = useSettingsStore();
+  const mounted = useIsMounted();
 
   // Simple list of timezones
-  const timezones = [
+  const timezonesPreset = [
     'UTC',
     'America/New_York',
     'America/Los_Angeles',
+    'America/Chicago',
+    'America/Denver',
     'Europe/London',
     'Europe/Paris',
+    'Europe/Berlin',
+    'Europe/Moscow',
     'Asia/Tokyo',
     'Asia/Kolkata',
-    'Australia/Sydney'
+    'Asia/Singapore',
+    'Asia/Dubai',
+    'Australia/Sydney',
+    'Pacific/Auckland'
   ];
+
+  // Dynamically ensure the active timezone is in the select options
+  const timezones = timezonesPreset.includes(timezone)
+    ? timezonesPreset
+    : [...timezonesPreset, timezone].sort();
 
   return (
     <AnimatePresence>
@@ -55,7 +69,9 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
                       <option key={tz} value={tz}>{tz}</option>
                     ))}
                   </select>
-                  <p className="text-xs text-muted-foreground mt-1">Current local time: {new Date().toLocaleTimeString('en-US', { timeZone: timezone })}</p>
+                  {mounted && (
+                    <p className="text-xs text-muted-foreground mt-1">Current local time: {formatDisplayDateTime(new Date().toISOString())}</p>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-2">

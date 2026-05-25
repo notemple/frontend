@@ -19,10 +19,25 @@ import { useTaskStore } from "../store/taskStore";
 import { NotempleEditor } from "./editor/NotempleEditor";
 import { motion, AnimatePresence } from "motion/react";
 import { useSettingsStore } from "../store/settingsStore";
-import { formatInTimeZone } from "date-fns-tz";
+import { formatInTimeZone, toDate } from "date-fns-tz";
 import { TaskEditorModal } from "./TaskEditorModal";
-
-import { getCalendarDays } from "../lib/time";
+import { 
+  getCalendarDays, 
+  formatDisplayDate, 
+  formatDisplayDateTime,
+  isSameDayInTimezone, 
+  isSameMonthInTimezone, 
+  isSameDayString,
+  getZonedYear, 
+  getZonedMonth, 
+  getZonedDate, 
+  setZonedYear, 
+  setZonedMonth, 
+  changeZonedMonth, 
+  addDaysInTimezone, 
+  getMonthDateInTimezone, 
+  useIsMounted 
+} from "../lib/time";
 import { useShallow } from 'zustand/react/shallow';
 import { useCallback } from 'react';
 
@@ -99,17 +114,10 @@ const MonthViewItem = ({ docId, onClick }: { docId: string; onClick: () => void 
       </div>
       <h3 className="text-xl font-bold text-foreground whitespace-nowrap overflow-hidden text-ellipsis">
         {(() => {
-          const dateParts = docId.replace("daily-note-", "").split("-");
-          if (dateParts.length !== 3) return "";
-          const docYear = parseInt(dateParts[0], 10);
-          const docMonth = parseInt(dateParts[1], 10) - 1;
-          const docDay = parseInt(dateParts[2], 10);
-          const docDate = new Date(docYear, docMonth, docDay);
-          return docDate.toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          });
+          const dateStr = docId.replace("daily-note-", "");
+          const { timezone } = useSettingsStore.getState();
+          const docDate = toDate(`${dateStr}T00:00:00`, { timeZone: timezone });
+          return formatDisplayDate(docDate.toISOString(), "MMMM d, yyyy");
         })()}
       </h3>
       <div className="flex-1 bg-background group-hover:bg-muted/40 rounded-lg p-5 transition-colors border border-border overflow-hidden flex flex-col min-h-[140px]">
@@ -140,10 +148,12 @@ const MonthViewPane = ({ selectedDate, setView, setSelectedDate }: {
   setView: (v: "Day" | "Week" | "Month") => void;
   setSelectedDate: (d: Date) => void;
 }) => {
+  const { timezone } = useSettingsStore();
+
   const monthDocIdsSelector = useCallback(
     (state: any) => {
-      const year = selectedDate.getFullYear();
-      const month = selectedDate.getMonth();
+      const year = getZonedYear(selectedDate, timezone);
+      const month = getZonedMonth(selectedDate, timezone);
       const docs = state.documentOrder
         .map((id: string) => state.documents[id])
         .filter((doc: any) => !!doc && doc.id.startsWith("daily-note-"))
@@ -159,7 +169,7 @@ const MonthViewPane = ({ selectedDate, setView, setSelectedDate }: {
       docs.sort((a: any, b: any) => b.id.localeCompare(a.id));
       return docs.map((doc: any) => doc.id);
     },
-    [selectedDate.getFullYear(), selectedDate.getMonth()]
+    [selectedDate, timezone]
   );
   const monthDocIds = useDocumentStore(useShallow(monthDocIdsSelector));
 
@@ -180,10 +190,10 @@ const MonthViewPane = ({ selectedDate, setView, setSelectedDate }: {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start w-full max-w-none">
       {monthDocIds.map((docId) => {
         const dateParts = docId.replace("daily-note-", "").split("-");
-        const docYear = parseInt(dateParts[0], 10);
-        const docMonth = parseInt(dateParts[1], 10) - 1;
-        const docDay = parseInt(dateParts[2], 10);
-        const docDate = new Date(docYear, docMonth, docDay);
+        const docYear = dateParts[0];
+        const docMonth = dateParts[1];
+        const docDay = dateParts[2];
+        const docDate = toDate(`${docYear}-${String(docMonth).padStart(2, '0')}-${String(docDay).padStart(2, '0')}T00:00:00`, { timeZone: timezone });
 
         return (
           <MonthViewItem
@@ -206,6 +216,7 @@ const WeekViewItem = ({ date, formattedId, setView, setSelectedDate }: {
   setView: (v: "Day" | "Week" | "Month") => void;
   setSelectedDate: (d: Date) => void;
 }) => {
+  const { timezone } = useSettingsStore();
   const did = `daily-note-${formattedId}`;
   const docSelector = useCallback(
     (state: any) => {
@@ -216,16 +227,14 @@ const WeekViewItem = ({ date, formattedId, setView, setSelectedDate }: {
   );
   const doc = useDocumentStore(useShallow(docSelector));
 
-  const isMockToday = date.getDate() === 17 && date.getMonth() === 4;
+  const isMockToday = getZonedDate(date, timezone) === 17 && getZonedMonth(date, timezone) === 4;
 
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-rose-500 dark:text-rose-400 font-medium">
-            {date.toLocaleDateString("en-US", {
-              weekday: "long",
-            })}
+            {formatDisplayDate(date.toISOString(), "EEEE")}
           </span>
           {isMockToday && (
             <span className="bg-rose-500/10 text-rose-600 dark:text-rose-300 text-xs px-2 py-0.5 rounded font-medium border border-rose-500/20">
@@ -251,11 +260,7 @@ const WeekViewItem = ({ date, formattedId, setView, setSelectedDate }: {
 
       <div className="flex items-baseline gap-4 mt-2 mb-4">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          {date.toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          })}
+          {formatDisplayDate(date.toISOString(), "MMMM d, yyyy")}
         </h1>
         <span className="text-muted-foreground font-medium text-sm">
           Week 20
@@ -334,7 +339,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
         const doc = state.documents[id];
         if (!doc) return false;
         if (doc.id.startsWith("daily-note-")) return false;
-        return doc.updatedAt.startsWith(formattedDateId);
+        return isSameDayString(doc.updatedAt, formattedDateId);
       });
     },
     [formattedDateId]
@@ -349,7 +354,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
         const doc = state.documents[id];
         if (!doc) return false;
         if (doc.id.startsWith("daily-note-")) return false;
-        return doc.updatedAt.startsWith(formattedDateId);
+        return isSameDayString(doc.updatedAt, formattedDateId);
       }).length;
     },
     [formattedDateId]
@@ -359,9 +364,8 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
   const renderDays = () => {
     const calendarDays = getCalendarDays(selectedDate);
     return calendarDays.map((d, i) => {
-      const isSelectedMonth = d.getMonth() === selectedDate.getMonth();
-      const isSelected =
-        isSelectedMonth && d.getDate() === selectedDate.getDate();
+      const isSelectedMonth = isSameMonthInTimezone(d, selectedDate, timezone);
+      const isSelected = isSameDayInTimezone(d, selectedDate, timezone);
       return (
         <div
           key={i}
@@ -375,7 +379,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
           )}
           style={{ borderRadius: isSelected ? "9999px" : undefined }}
         >
-          {d.getDate()}
+          {getZonedDate(d, timezone)}
         </div>
       );
     });
@@ -394,10 +398,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
             <div className="flex-1">
               {view === "Month" && (
                 <span className="text-xl font-bold text-foreground/90 tracking-tight">
-                  {selectedDate.toLocaleDateString("en-US", {
-                    month: "short",
-                    year: "numeric",
-                  })}
+                  {formatDisplayDate(selectedDate.toISOString(), "MMM yyyy")}
                 </span>
               )}
             </div>
@@ -439,13 +440,12 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
             <div className="flex-1 flex items-center justify-end gap-3 text-muted-foreground">
               <button
                 onClick={() => {
-                  const newDate = new Date(selectedDate);
                   if (view === "Month")
-                    newDate.setMonth(newDate.getMonth() - 1);
+                    setSelectedDate(changeZonedMonth(selectedDate, -1, timezone));
                   else if (view === "Week")
-                    newDate.setDate(newDate.getDate() - 7);
-                  else newDate.setDate(newDate.getDate() - 1);
-                  setSelectedDate(newDate);
+                    setSelectedDate(addDaysInTimezone(selectedDate, -7, timezone));
+                  else
+                    setSelectedDate(addDaysInTimezone(selectedDate, -1, timezone));
                 }}
                 className="hover:text-foreground hover:bg-muted/80 transition-all p-2 rounded-md"
               >
@@ -459,13 +459,12 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
               </span>
               <button
                 onClick={() => {
-                  const newDate = new Date(selectedDate);
                   if (view === "Month")
-                    newDate.setMonth(newDate.getMonth() + 1);
+                    setSelectedDate(changeZonedMonth(selectedDate, 1, timezone));
                   else if (view === "Week")
-                    newDate.setDate(newDate.getDate() + 7);
-                  else newDate.setDate(newDate.getDate() + 1);
-                  setSelectedDate(newDate);
+                    setSelectedDate(addDaysInTimezone(selectedDate, 7, timezone));
+                  else
+                    setSelectedDate(addDaysInTimezone(selectedDate, 1, timezone));
                 }}
                 className="hover:text-foreground hover:bg-muted/80 transition-all p-2 rounded-md"
               >
@@ -488,16 +487,13 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
           {view === "Month" && (
             <div className="flex items-center justify-between px-8 py-2 text-sm bg-muted border-t border-border sticky top-[73px] z-10 font-sans">
               {Array.from({ length: 12 }).map((_, i) => {
-                const date = new Date(selectedDate);
-                date.setMonth(i);
-                const isSelected = selectedDate.getMonth() === i;
+                const date = getMonthDateInTimezone(getZonedYear(selectedDate, timezone), i, timezone);
+                const isSelected = getZonedMonth(selectedDate, timezone) === i;
                 return (
                   <button
                     key={i}
                     onClick={() => {
-                      const newDate = new Date(selectedDate);
-                      newDate.setMonth(i);
-                      setSelectedDate(newDate);
+                      setSelectedDate(setZonedMonth(selectedDate, i, timezone));
                     }}
                     className={cn(
                       "px-4 py-1 rounded-full transition-all text-[13px] font-medium border duration-300",
@@ -506,7 +502,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                         : "text-muted-foreground hover:text-foreground border-transparent hover:bg-muted/50",
                     )}
                   >
-                    {date.toLocaleDateString("en-US", { month: "short" })}
+                    {formatDisplayDate(date.toISOString(), "MMM")}
                   </button>
                 );
               })}
@@ -525,9 +521,8 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
           ) : view === "Week" ? (
             <div className="flex flex-col gap-12">
               {Array.from({ length: 7 }).map((_, i) => {
-                const date = new Date(selectedDate);
-                date.setDate(selectedDate.getDate() + i);
-                const formattedId = date.toISOString().split("T")[0];
+                const date = addDaysInTimezone(selectedDate, i, timezone);
+                const formattedId = formatInTimeZone(date, timezone, "yyyy-MM-dd");
 
                 return (
                   <WeekViewItem
@@ -545,11 +540,9 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-rose-500 dark:text-rose-400 font-medium">
-                    {selectedDate.toLocaleDateString("en-US", {
-                      weekday: "long",
-                    })}
+                    {formatDisplayDate(selectedDate.toISOString(), "EEEE")}
                   </span>
-                  {selectedDate.getDate() === 17 && (
+                  {getZonedDate(selectedDate, timezone) === 17 && getZonedMonth(selectedDate, timezone) === 4 && (
                     <span className="bg-rose-500/10 text-rose-600 dark:text-rose-300 text-xs px-2 py-0.5 rounded font-medium border border-rose-500/20">
                       Today
                     </span>
@@ -567,11 +560,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
 
               <div className="flex items-baseline gap-4 mt-2">
                 <h1 className="text-5xl font-bold tracking-tight">
-                  {selectedDate.toLocaleDateString("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+                  {formatDisplayDate(selectedDate.toISOString(), "MMMM d, yyyy")}
                 </h1>
                 <span className="text-muted-foreground font-medium text-lg">
                   Week 20
@@ -651,19 +640,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                       Today's tasks (Created)
                     </h2>
                     <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
-                      {
-                        tasks.filter((t) => {
-                          const { timezone } = useSettingsStore.getState();
-                          if (!t.createdAt) return false;
-                          return (
-                            formatInTimeZone(
-                              new Date(t.createdAt),
-                              timezone,
-                              "yyyy-MM-dd",
-                            ) === formattedDateId
-                          );
-                        }).length
-                      }
+                      {tasks.filter((t) => isSameDayString(t.createdAt, formattedDateId)).length}
                     </span>
                     <div className="flex-1" />
                     <button className="text-muted-foreground group-hover:text-foreground transition-colors p-1">
@@ -678,17 +655,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                   {isTasksCreatedOpen && (
                     <div className="flex flex-col gap-2 mb-4">
                       {tasks
-                            .filter((t) => {
-                              const { timezone } = useSettingsStore.getState();
-                              if (!t.createdAt) return false;
-                              return (
-                                formatInTimeZone(
-                                  new Date(t.createdAt),
-                                  timezone,
-                                  "yyyy-MM-dd",
-                                ) === formattedDateId
-                              );
-                            })
+                            .filter((t) => isSameDayString(t.createdAt, formattedDateId))
                             .map((task) => (
                               <div
                                 key={task.id}
@@ -720,12 +687,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                                   </span>
                                   {task.deadline && (
                                     <span className="text-xs text-muted-foreground border border-border rounded px-2 py-0.5 bg-muted ml-2">
-                                      Deadline:{" "}
-                                      {(() => {
-                                        const d = new Date(task.deadline);
-                                        if (isNaN(d.getTime())) return task.deadline;
-                                        return formatInTimeZone(d, timezone, "MMM d");
-                                      })()}
+                                      Deadline: {formatDisplayDate(task.deadline, "MMM d")}
                                     </span>
                                   )}
                                 </div>
@@ -745,17 +707,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                                 </div>
                               </div>
                             ))}
-                          {tasks.filter((t) => {
-                            const { timezone } = useSettingsStore.getState();
-                            if (!t.createdAt) return false;
-                            return (
-                              formatInTimeZone(
-                                new Date(t.createdAt),
-                                timezone,
-                                "yyyy-MM-dd",
-                              ) === formattedDateId
-                            );
-                          }).length === 0 && (
+                          {tasks.filter((t) => isSameDayString(t.createdAt, formattedDateId)).length === 0 && (
                               <div className="text-muted-foreground text-sm italic py-2">
                                 No tasks created on this date.
                               </div>
@@ -774,21 +726,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                       Tasks to be completed
                     </h2>
                     <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
-                      {
-                        tasks.filter((t) => {
-                          const { timezone } = useSettingsStore.getState();
-                          if (!t.deadline) return false;
-                          const d = new Date(t.deadline);
-                          if (isNaN(d.getTime())) return false;
-                          return (
-                            formatInTimeZone(
-                              d,
-                              timezone,
-                              "yyyy-MM-dd",
-                            ) === formattedDateId
-                          );
-                        }).length
-                      }
+                      {tasks.filter((t) => isSameDayString(t.deadline, formattedDateId)).length}
                     </span>
                     <div className="flex-1" />
                     <button className="text-muted-foreground group-hover:text-foreground transition-colors p-1">
@@ -803,19 +741,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                   {isTasksFinishedOpen && (
                     <div className="flex flex-col gap-2 mb-4">
                       {tasks
-                            .filter((t) => {
-                              const { timezone } = useSettingsStore.getState();
-                              if (!t.deadline) return false;
-                              const d = new Date(t.deadline);
-                              if (isNaN(d.getTime())) return false;
-                              return (
-                                formatInTimeZone(
-                                  d,
-                                  timezone,
-                                  "yyyy-MM-dd",
-                                ) === formattedDateId
-                              );
-                            })
+                            .filter((t) => isSameDayString(t.deadline, formattedDateId))
                             .map((task) => (
                               <div
                                 key={task.id}
@@ -846,12 +772,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                                     {task.title}
                                   </span>
                                   <span className="text-xs text-muted-foreground border border-border rounded px-2 py-0.5 bg-muted ml-2">
-                                    Deadline:{" "}
-                                    {(() => {
-                                      const d = new Date(task.deadline);
-                                      if (isNaN(d.getTime())) return task.deadline;
-                                      return formatInTimeZone(d, timezone, "MMM d");
-                                    })()}
+                                    Deadline: {formatDisplayDate(task.deadline, "MMM d")}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -870,19 +791,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                                 </div>
                               </div>
                             ))}
-                          {tasks.filter((t) => {
-                            const { timezone } = useSettingsStore.getState();
-                            if (!t.deadline) return false;
-                            const d = new Date(t.deadline);
-                            if (isNaN(d.getTime())) return false;
-                            return (
-                              formatInTimeZone(
-                                d,
-                                timezone,
-                                "yyyy-MM-dd",
-                              ) === formattedDateId
-                            );
-                          }).length === 0 && (
+                          {tasks.filter((t) => isSameDayString(t.deadline, formattedDateId)).length === 0 && (
                               <div className="text-muted-foreground text-sm italic py-2">
                                 No tasks with deadline on this date.
                               </div>
@@ -910,9 +819,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                 <button
                   className="p-1 hover:text-foreground"
                   onClick={() => {
-                    const newDate = new Date(selectedDate);
-                    newDate.setMonth(newDate.getMonth() - 1);
-                    setSelectedDate(newDate);
+                    setSelectedDate(changeZonedMonth(selectedDate, -1, timezone));
                   }}
                 >
                   <CaretLeft size={16} />
@@ -921,40 +828,32 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                   <div className="relative flex items-center group">
                     <select
                       className="absolute inset-0 opacity-0 cursor-pointer"
-                      value={selectedDate.getMonth()}
+                      value={getZonedMonth(selectedDate, timezone)}
                       onChange={(e) => {
-                        const newDate = new Date(selectedDate);
-                        newDate.setMonth(parseInt(e.target.value));
-                        setSelectedDate(newDate);
+                        setSelectedDate(setZonedMonth(selectedDate, parseInt(e.target.value), timezone));
                       }}
                     >
-                      {Array.from({ length: 12 }).map((_, i) => (
+                      {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m, i) => (
                         <option key={i} value={i}>
-                          {new Date(0, i).toLocaleString("default", {
-                            month: "short",
-                          })}
+                          {m}
                         </option>
                       ))}
                     </select>
                     <span className="cursor-pointer group-hover:text-foreground">
-                      {selectedDate.toLocaleString("default", {
-                        month: "short",
-                      })}{" "}
+                      {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][getZonedMonth(selectedDate, timezone)]}{" "}
                       <CaretDown size={12} className="inline ml-1" />
                     </span>
                   </div>
                   <div className="relative flex items-center group">
                     <select
                       className="absolute inset-0 opacity-0 cursor-pointer"
-                      value={selectedDate.getFullYear()}
+                      value={getZonedYear(selectedDate, timezone)}
                       onChange={(e) => {
-                        const newDate = new Date(selectedDate);
-                        newDate.setFullYear(parseInt(e.target.value));
-                        setSelectedDate(newDate);
+                        setSelectedDate(setZonedYear(selectedDate, parseInt(e.target.value), timezone));
                       }}
                     >
                       {Array.from({ length: 10 }).map((_, i) => {
-                        const year = new Date().getFullYear() - 5 + i;
+                        const year = getZonedYear(new Date(), timezone) - 5 + i;
                         return (
                           <option key={year} value={year}>
                             {year}
@@ -963,7 +862,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                       })}
                     </select>
                     <span className="cursor-pointer group-hover:text-foreground">
-                      {selectedDate.getFullYear()}{" "}
+                      {getZonedYear(selectedDate, timezone)}{" "}
                       <CaretDown size={12} className="inline ml-1" />
                     </span>
                   </div>
@@ -971,9 +870,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                 <button
                   className="p-1 hover:text-foreground"
                   onClick={() => {
-                    const newDate = new Date(selectedDate);
-                    newDate.setMonth(newDate.getMonth() + 1);
-                    setSelectedDate(newDate);
+                    setSelectedDate(changeZonedMonth(selectedDate, 1, timezone));
                   }}
                 >
                   <CaretRight size={16} />

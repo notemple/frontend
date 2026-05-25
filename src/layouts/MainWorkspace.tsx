@@ -7,11 +7,36 @@ import { NotempleEditor } from '@/src/components/editor/NotempleEditor';
 import { DailyNotesPage } from '@/src/components/DailyNotesPage';
 import { TasksPage } from '@/src/components/TasksPage';
 import { cn } from '@/src/lib/utils';
-import { Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, CaretDown, FileText, Folder as FolderIcon, Sun, Moon, Monitor } from '@phosphor-icons/react';
+import { Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, CaretDown, FileText, Folder as FolderIcon, Sun, Moon, Monitor, Clock } from '@phosphor-icons/react';
 
 export const MainWorkspace = () => {
   const { panes, activePaneId, toggleRightSidebar, appearance, setAppearance, isRightSidebarOpen } = useUiStore();
   const { toggleSidebar } = useUiStore();
+
+  const [dateTime, setDateTime] = React.useState(() => {
+    const now = new Date();
+    const dd = String(now.getDate()).padStart(2, '0');
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const yy = String(now.getFullYear()).slice(-2);
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    return `${dd}/${mm}/${yy} , ${hh}:${min}`;
+  });
+
+  React.useEffect(() => {
+    const updateDateTime = () => {
+      const now = new Date();
+      const dd = String(now.getDate()).padStart(2, '0');
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const yy = String(now.getFullYear()).slice(-2);
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      setDateTime(`${dd}/${mm}/${yy} , ${hh}:${min}`);
+    };
+
+    const interval = setInterval(updateDateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const activePane = panes.find(p => p?.id === activePaneId) || panes[0];
   const activeTabId = activePane?.activeTabId;
@@ -41,13 +66,18 @@ export const MainWorkspace = () => {
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-background relative pt-0 z-10 w-full border-l border-border">
       <div className="h-14 w-full flex items-center justify-between px-6 shrink-0 bg-background border-b border-border z-20">
-        <div className="flex-1 flex items-center">
+        <div className="flex-1 flex items-center gap-3">
           <button
             onClick={toggleSidebar}
-            className="p-1.5 text-muted-foreground/80 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/20 border border-transparent transition-all mr-3 flex items-center justify-center rounded-md"
+            className="p-1.5 text-muted-foreground/80 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/20 border border-transparent transition-all flex items-center justify-center rounded-md cursor-pointer"
           >
             <SidebarIcon size={18} />
           </button>
+          
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted/40 hover:bg-muted/70 border border-border/80 text-[11px] font-medium text-muted-foreground/90 shadow-sm transition-all duration-200 select-none group hover:border-border">
+            <Clock size={13} className="text-muted-foreground/60 group-hover:text-rose-500 dark:group-hover:text-rose-400 transition-colors duration-200" />
+            <span className="font-mono tracking-wide leading-none">{dateTime}</span>
+          </div>
         </div>
         <div className="text-[13px] font-medium text-muted-foreground flex-1 text-center font-sans tracking-wide">
           {headerText}

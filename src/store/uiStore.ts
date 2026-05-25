@@ -30,6 +30,8 @@ interface UiState {
 
   selectedDailyNoteDate: Date;
   setSelectedDailyNoteDate: (date: Date) => void;
+  isDailyNoteFullView: boolean;
+  setDailyNoteFullView: (isOpen: boolean) => void;
 }
 
 const DEFAULT_PANE_ID = 'pane-main';
@@ -52,6 +54,8 @@ export const useUiStore = create<UiState>((set, get) => ({
 
   selectedDailyNoteDate: new Date(),
   setSelectedDailyNoteDate: (selectedDailyNoteDate) => set({ selectedDailyNoteDate }),
+  isDailyNoteFullView: false,
+  setDailyNoteFullView: (isDailyNoteFullView) => set({ isDailyNoteFullView }),
 
   panes: [{ id: DEFAULT_PANE_ID, tabs: ['section-daily-notes'], activeTabId: 'section-daily-notes' }],
   activePaneId: DEFAULT_PANE_ID,

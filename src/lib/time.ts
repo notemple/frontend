@@ -1,11 +1,9 @@
-import { 
-  formatDistanceToNow, 
-  startOfWeek, 
-  eachDayOfInterval, 
-  addDays, 
+import {
+  formatDistanceToNow,
+  startOfWeek,
+  eachDayOfInterval,
+  addDays,
   subDays,
-  addMonths,
-  subMonths
 } from 'date-fns';
 import { formatInTimeZone, toDate } from 'date-fns-tz';
 import { useSettingsStore } from '../store/settingsStore';
@@ -140,7 +138,7 @@ export const setZonedMonth = (date: Date, monthIndex: number, timezone: string):
   const hh = formatInTimeZone(date, timezone, 'HH');
   const mm = formatInTimeZone(date, timezone, 'mm');
   const ss = formatInTimeZone(date, timezone, 'ss');
-  
+
   const isoStr = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T${hh}:${mm}:${ss}`;
   return toDate(isoStr, { timeZone: timezone });
 };
@@ -151,7 +149,7 @@ export const setZonedYear = (date: Date, year: number, timezone: string): Date =
   const hh = formatInTimeZone(date, timezone, 'HH');
   const mm = formatInTimeZone(date, timezone, 'mm');
   const ss = formatInTimeZone(date, timezone, 'ss');
-  
+
   const isoStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T${hh}:${mm}:${ss}`;
   return toDate(isoStr, { timeZone: timezone });
 };
@@ -161,7 +159,7 @@ export const changeZonedMonth = (date: Date, offset: number, timezone: string): 
   const currentMonth = getZonedMonth(date, timezone);
   let targetMonth = currentMonth + offset;
   let targetYear = getZonedYear(date, timezone);
-  
+
   while (targetMonth < 0) {
     targetMonth += 12;
     targetYear -= 1;
@@ -170,13 +168,13 @@ export const changeZonedMonth = (date: Date, offset: number, timezone: string): 
     targetMonth -= 12;
     targetYear += 1;
   }
-  
+
   // Cap at 28 days to prevent monthly offset overflow bugs during quick prev/next clicks
   const day = Math.min(getZonedDate(date, timezone), 28);
   const hh = formatInTimeZone(date, timezone, 'HH');
   const mm = formatInTimeZone(date, timezone, 'mm');
   const ss = formatInTimeZone(date, timezone, 'ss');
-  
+
   const isoStr = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}T${hh}:${mm}:${ss}`;
   return toDate(isoStr, { timeZone: timezone });
 };

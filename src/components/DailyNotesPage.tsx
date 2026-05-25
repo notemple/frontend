@@ -311,12 +311,18 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
   const [view, setView] = useState<"Month" | "Week" | "Day">("Day");
   const { timezone, weekStartDay } = useSettingsStore();
 
-  const { selectedDailyNoteDate: selectedDate, setSelectedDailyNoteDate: setSelectedDate, setActiveTab, openDocument } = useUiStore();
+  const { 
+    selectedDailyNoteDate: selectedDate, 
+    setSelectedDailyNoteDate: setSelectedDate, 
+    setActiveTab, 
+    openDocument,
+    isDailyNoteFullView: isFullEditorOpen,
+    setDailyNoteFullView: setIsFullEditorOpen
+  } = useUiStore();
   const [isCalendarOpen, setIsCalendarOpen] = useState(true);
   const [isCreatedTodayOpen, setIsCreatedTodayOpen] = useState(true);
   const [isTasksCreatedOpen, setIsTasksCreatedOpen] = useState(true);
   const [isTasksFinishedOpen, setIsTasksFinishedOpen] = useState(true);
-  const [isFullEditorOpen, setIsFullEditorOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
   const tasks = useTaskStore(state => state.tasks) || [];
@@ -601,6 +607,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                 documentId={documentId}
                 paneId={paneId}
                 isDailyNote={true}
+                isMinimized={true}
               />
             </div>
           )}

@@ -19,7 +19,9 @@ import {
   CaretDown,
   CaretRight,
   Folder as FolderIcon,
-  CheckSquare
+  CheckSquare,
+  PencilSimple,
+  Tag
 } from '@phosphor-icons/react';
 
 // Optimized item for individual documents inside the sidebar list.
@@ -29,11 +31,17 @@ const SidebarDocumentItem = ({
   docId,
   isOpen,
   isActive,
+  isRenaming = false,
+  onRenameComplete,
+  onRenameCancel,
   onClick
 }: {
   docId: string;
   isOpen: boolean;
   isActive: boolean;
+  isRenaming?: boolean;
+  onRenameComplete?: (newTitle: string) => void;
+  onRenameCancel?: () => void;
   onClick: () => void;
 }) => {
   const docSelector = React.useCallback(
@@ -45,7 +53,62 @@ const SidebarDocumentItem = ({
   );
   const doc = useDocumentStore(useShallow(docSelector));
 
+  const [tempTitle, setTempTitle] = useState(doc?.title || '');
+  const originalTitleRef = React.useRef(doc?.title || '');
+
+  // Keep track of original title when renaming starts so we can revert on Escape
+  useEffect(() => {
+    if (isRenaming && doc) {
+      originalTitleRef.current = doc.title || '';
+      setTempTitle(doc.title || '');
+    }
+  }, [isRenaming]);
+
+  useEffect(() => {
+    if (doc && doc.title !== tempTitle) {
+      setTempTitle(doc.title || '');
+    }
+  }, [doc?.title]);
+
   if (!doc) return null;
+
+  if (isRenaming) {
+    return (
+      <div 
+        className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-muted border border-border w-full shrink-0"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="shrink-0 text-muted-foreground">
+          {doc.type ? getIconForType(doc.type) : <FileText size={16} />}
+        </div>
+        <input
+          autoFocus
+          value={tempTitle}
+          onChange={(e) => {
+            const val = e.target.value;
+            setTempTitle(val);
+            useDocumentStore.getState().updateDocument(docId, { title: val });
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              const finalTitle = tempTitle.trim() ? tempTitle : (originalTitleRef.current || 'Untitled');
+              useDocumentStore.getState().updateDocument(docId, { title: finalTitle });
+              if (onRenameComplete) onRenameComplete(finalTitle);
+            } else if (e.key === 'Escape') {
+              useDocumentStore.getState().updateDocument(docId, { title: originalTitleRef.current });
+              if (onRenameCancel) onRenameCancel();
+            }
+          }}
+          onBlur={() => {
+            const finalTitle = tempTitle.trim() ? tempTitle : (originalTitleRef.current || 'Untitled');
+            useDocumentStore.getState().updateDocument(docId, { title: finalTitle });
+            if (onRenameComplete) onRenameComplete(finalTitle);
+          }}
+          className="bg-transparent border-none outline-none text-xs text-foreground w-full font-medium py-0.5"
+        />
+      </div>
+    );
+  }
 
   return (
     <SidebarItem
@@ -58,15 +121,95 @@ const SidebarDocumentItem = ({
   );
 };
 
+const SidebarFolderItem = ({
+  folderId,
+  folderName,
+  isOpen,
+  isRenaming = false,
+  onRenameComplete,
+  onRenameCancel,
+  onClick,
+  rightElement
+}: {
+  folderId: string;
+  folderName: string;
+  isOpen: boolean;
+  isRenaming?: boolean;
+  onRenameComplete?: (newName: string) => void;
+  onRenameCancel?: () => void;
+  onClick: () => void;
+  rightElement?: React.ReactNode;
+}) => {
+  const [tempName, setTempName] = useState(folderName);
+  const originalNameRef = React.useRef(folderName);
+
+  useEffect(() => {
+    if (isRenaming) {
+      originalNameRef.current = folderName;
+      setTempName(folderName);
+    }
+  }, [isRenaming, folderName]);
+
+  if (isRenaming) {
+    return (
+      <div 
+        className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-muted border border-border w-full shrink-0"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="shrink-0 text-muted-foreground">
+          <FolderIcon size={16} className="text-amber-500/80 dark:text-amber-400/80" />
+        </div>
+        <input
+          autoFocus
+          value={tempName}
+          onChange={(e) => {
+            const val = e.target.value;
+            setTempName(val);
+            useDocumentStore.getState().updateFolder(folderId, val);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              const finalName = tempName.trim() ? tempName : (originalNameRef.current || 'New Folder');
+              useDocumentStore.getState().updateFolder(folderId, finalName);
+              if (onRenameComplete) onRenameComplete(finalName);
+            } else if (e.key === 'Escape') {
+              useDocumentStore.getState().updateFolder(folderId, originalNameRef.current);
+              if (onRenameCancel) onRenameCancel();
+            }
+          }}
+          onBlur={() => {
+            const finalName = tempName.trim() ? tempName : (originalNameRef.current || 'New Folder');
+            useDocumentStore.getState().updateFolder(folderId, finalName);
+            if (onRenameComplete) onRenameComplete(finalName);
+          }}
+          className="bg-transparent border-none outline-none text-xs text-foreground w-full font-medium py-0.5"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <SidebarItem
+      icon={<FolderIcon size={16} className="text-amber-500/80 dark:text-amber-400/80" />}
+      label={folderName}
+      isOpen={isOpen}
+      onClick={onClick}
+      rightElement={rightElement}
+    />
+  );
+};
+
 // Optimized context menu component to isolate right-click re-renders.
 // It selects ONLY the specific document's isFavorite field to avoid global re-renders.
 const SidebarContextMenu = ({
   contextMenu,
   handleFavoriteToggle,
+  handleRename,
   handleDelete
 }: {
   contextMenu: { x: number, y: number, id: string, type: 'document' | 'folder' };
   handleFavoriteToggle: () => void;
+  handleRename: () => void;
   handleDelete: () => void;
 }) => {
   const isFavoriteSelector = React.useCallback(
@@ -77,21 +220,30 @@ const SidebarContextMenu = ({
 
   return (
     <div
-      className="fixed z-50 bg-background neu-panel rounded-md py-1 min-w-[140px]"
+      className="fixed z-50 bg-background neu-panel rounded-md py-1 min-w-[140px] shadow-2xl border border-border"
       style={{ top: contextMenu.y, left: contextMenu.x }}
       onClick={(e) => e.stopPropagation()}
     >
       {contextMenu.type === 'document' && (
         <button
-          className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted flex items-center gap-2 transition-colors"
+          className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted flex items-center gap-2 transition-colors cursor-pointer"
           onClick={handleFavoriteToggle}
         >
           <Star size={14} weight={isFavorite ? "fill" : "regular"} className={isFavorite ? "text-yellow-400" : ""} />
           {isFavorite ? 'Unfavorite' : 'Favorite'}
         </button>
       )}
+      {(contextMenu.type === 'document' || contextMenu.type === 'folder') && (
+        <button
+          className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted flex items-center gap-2 transition-colors cursor-pointer"
+          onClick={handleRename}
+        >
+          <PencilSimple size={14} className="text-muted-foreground" />
+          Rename
+        </button>
+      )}
       <button
-        className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-muted flex items-center gap-2 transition-colors"
+        className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-muted flex items-center gap-2 transition-colors cursor-pointer border-t border-border"
         onClick={handleDelete}
       >
         <Trash size={14} />
@@ -111,7 +263,10 @@ const FolderDocumentsList = ({
   handleContextMenu,
   draggedItem,
   setDraggedItem,
-  moveDocument
+  moveDocument,
+  renamingDocId,
+  onRenameComplete,
+  onRenameCancel
 }: {
   folderId: string;
   isOpen: boolean;
@@ -121,6 +276,9 @@ const FolderDocumentsList = ({
   draggedItem: any;
   setDraggedItem: any;
   moveDocument: any;
+  renamingDocId: string | null;
+  onRenameComplete: (docId: string, newTitle: string) => void;
+  onRenameCancel: () => void;
 }) => {
   const docIdsSelector = React.useCallback(
     (state: any) => state.documentOrder.filter((id: string) => state.documents[id]?.folderId === folderId),
@@ -149,12 +307,18 @@ const FolderDocumentsList = ({
             }
             setDraggedItem(null);
           }}
-          onContextMenu={(e) => { handleContextMenu(e, docId, 'document'); }}
+          onContextMenu={(e) => {
+            e.stopPropagation();
+            handleContextMenu(e, docId, 'document');
+          }}
         >
           <SidebarDocumentItem
             docId={docId}
             isOpen={isOpen}
             isActive={isDocActive(docId)}
+            isRenaming={renamingDocId === docId}
+            onRenameComplete={(newTitle) => onRenameComplete(docId, newTitle)}
+            onRenameCancel={onRenameCancel}
             onClick={() => handleDocClick(docId)}
           />
         </div>
@@ -210,11 +374,13 @@ export const Sidebar = () => {
 
   // Store static references to actions so they never trigger extra re-renders.
   const createFolder = useDocumentStore(state => state.createFolder);
+  const updateFolder = useDocumentStore(state => state.updateFolder);
   const deleteFolder = useDocumentStore(state => state.deleteFolder);
   const moveDocument = useDocumentStore(state => state.moveDocument);
   const moveFolder = useDocumentStore(state => state.moveFolder);
   const deleteDocument = useDocumentStore(state => state.deleteDocument);
   const updateDocument = useDocumentStore(state => state.updateDocument);
+  const addDocument = useDocumentStore(state => state.addDocument);
 
   const activePane = panes.find(p => p?.id === activePaneId);
   const activeDocId = activePane?.activeTabId || null;
@@ -222,6 +388,8 @@ export const Sidebar = () => {
   const isDocActive = (docId: string) => activeDocId === docId;
 
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, id: string, type: 'document' | 'folder' } | null>(null);
+  const [renamingDocId, setRenamingDocId] = useState<string | null>(null);
+  const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
   const [draggedItem, setDraggedItem] = useState<{ id: string, type: 'document' | 'folder' } | null>(null);
   const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(() => new Set(['section-favorites', 'section-folders', 'section-uncategorized', ...folderOrder]));
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -249,7 +417,16 @@ export const Sidebar = () => {
   };
 
   const handleNewNoteClick = () => {
-    openDocument('new-note');
+    const newId = `doc-${crypto.randomUUID()}`;
+    addDocument({
+      id: newId,
+      title: '',
+      content: '',
+      type: 'page',
+      tags: [],
+      updatedAt: new Date().toISOString()
+    });
+    openDocument(newId);
   };
 
   const handleContextMenu = (e: React.MouseEvent, id: string, type: 'document' | 'folder') => {
@@ -276,6 +453,23 @@ export const Sidebar = () => {
       updateDocument(contextMenu.id, { isFavorite: !doc.isFavorite });
     }
     setContextMenu(null);
+  };
+
+  const handleRenameTrigger = () => {
+    if (!contextMenu || !contextMenu.id) return;
+    if (contextMenu.type === 'document') {
+      setRenamingDocId(contextMenu.id);
+    } else if (contextMenu.type === 'folder') {
+      setRenamingFolderId(contextMenu.id);
+    }
+    setContextMenu(null);
+  };
+
+  const handleRenameComplete = (docId: string, newTitle: string) => {
+    if (newTitle.trim()) {
+      updateDocument(docId, { title: newTitle });
+    }
+    setRenamingDocId(null);
   };
 
   const handleDelete = () => {
@@ -335,6 +529,7 @@ export const Sidebar = () => {
           <SidebarItem icon={<Sparkle size={16} className="text-purple-500/90 dark:text-purple-400/90" />} label="Ask AI" isOpen={isSidebarOpen} />
           <SidebarItem icon={<CalendarBlank size={16} className="text-emerald-500/90 dark:text-emerald-400/90" />} label="Daily Notes" isOpen={isSidebarOpen} highlight={isDocActive('section-daily-notes')} onClick={() => handleDocClick('section-daily-notes')} customHighlightClass="text-emerald-700 dark:text-emerald-200 bg-emerald-50/80 dark:bg-emerald-950/25 border-emerald-200/60 dark:border-emerald-900/40" />
           <SidebarItem icon={<CheckSquare size={16} className="text-blue-500/90 dark:text-blue-400/90" />} label="Tasks" isOpen={isSidebarOpen} highlight={isDocActive('section-tasks')} onClick={() => handleDocClick('section-tasks')} customHighlightClass="text-blue-600 dark:text-blue-200 bg-blue-50/80 dark:bg-blue-950/25 border-blue-200/60 dark:border-blue-900/40" />
+          <SidebarItem icon={<Tag size={16} className="text-purple-500/90 dark:text-purple-400/90" />} label="Tags" isOpen={isSidebarOpen} highlight={isDocActive('section-tags')} onClick={() => handleDocClick('section-tags')} customHighlightClass="text-purple-600 dark:text-purple-200 bg-purple-50/80 dark:bg-purple-950/25 border-purple-200/60 dark:border-purple-900/40" />
         </div>
 
         {/* Favorites Section */}
@@ -367,11 +562,21 @@ export const Sidebar = () => {
               >
                 <div className="max-h-[320px] overflow-y-auto no-scrollbar">
                   {favoriteDocIds.map(docId => (
-                    <div id={`sidebar-fav-${docId}`} key={`fav-${docId}`} onContextMenu={(e) => handleContextMenu(e, docId, 'document')}>
+                    <div 
+                      id={`sidebar-fav-${docId}`} 
+                      key={`fav-${docId}`} 
+                      onContextMenu={(e) => {
+                        e.stopPropagation();
+                        handleContextMenu(e, docId, 'document');
+                      }}
+                    >
                       <SidebarDocumentItem
                         docId={docId}
                         isOpen={isSidebarOpen}
                         isActive={isDocActive(docId)}
+                        isRenaming={renamingDocId === docId}
+                        onRenameComplete={(newTitle) => handleRenameComplete(docId, newTitle)}
+                        onRenameCancel={() => setRenamingDocId(null)}
                         onClick={() => handleDocClick(docId)}
                       />
                     </div>
@@ -447,10 +652,13 @@ export const Sidebar = () => {
                         }}
                         onContextMenu={(e) => handleContextMenu(e, folder.id, 'folder')}
                       >
-                        <SidebarItem
-                          icon={<FolderIcon size={16} className="text-amber-500/80 dark:text-amber-400/80" />}
-                          label={folder.name}
+                        <SidebarFolderItem
+                          folderId={folder.id}
+                          folderName={folder.name}
                           isOpen={isSidebarOpen}
+                          isRenaming={renamingFolderId === folder.id}
+                          onRenameComplete={() => setRenamingFolderId(null)}
+                          onRenameCancel={() => setRenamingFolderId(null)}
                           onClick={() => toggleFolderCollapse(folder.id)}
                           rightElement={
                             <div className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded transition-colors duration-200">
@@ -478,6 +686,9 @@ export const Sidebar = () => {
                                 draggedItem={draggedItem}
                                 setDraggedItem={setDraggedItem}
                                 moveDocument={moveDocument}
+                                renamingDocId={renamingDocId}
+                                onRenameComplete={handleRenameComplete}
+                                onRenameCancel={() => setRenamingDocId(null)}
                               />
                             </motion.div>
                           )}
@@ -549,12 +760,18 @@ export const Sidebar = () => {
                         }
                         setDraggedItem(null);
                       }}
-                      onContextMenu={(e) => handleContextMenu(e, docId, 'document')}
+                      onContextMenu={(e) => {
+                        e.stopPropagation();
+                        handleContextMenu(e, docId, 'document');
+                      }}
                     >
                       <SidebarDocumentItem
                         docId={docId}
                         isOpen={isSidebarOpen}
                         isActive={isDocActive(docId)}
+                        isRenaming={renamingDocId === docId}
+                        onRenameComplete={(newTitle) => handleRenameComplete(docId, newTitle)}
+                        onRenameCancel={() => setRenamingDocId(null)}
                         onClick={() => handleDocClick(docId)}
                       />
                     </div>
@@ -579,6 +796,7 @@ export const Sidebar = () => {
         <SidebarContextMenu
           contextMenu={contextMenu}
           handleFavoriteToggle={handleFavoriteToggle}
+          handleRename={handleRenameTrigger}
           handleDelete={handleDelete}
         />
       )}

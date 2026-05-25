@@ -41,7 +41,75 @@ export const RootLayout = () => {
   }, [appearance]);
 
   useEffect(() => {
-    // openDocument('new-note');
+    if (typeof window === 'undefined') return;
+
+    // Synchronize UI store from the URL hash
+    const handleHashChange = () => {
+      const hash = window.location.hash.substring(1);
+      if (hash) {
+        const isFull = hash.endsWith('/full');
+        const docId = isFull ? hash.replace('/full', '') : hash;
+        
+        const store = useUiStore.getState();
+        if (store.isDailyNoteFullView !== isFull) {
+          store.setDailyNoteFullView(isFull);
+        }
+        
+        const activePane = store.panes.find(p => p.id === store.activePaneId) || store.panes[0];
+        if (activePane && activePane.activeTabId !== docId) {
+          store.openDocument(docId);
+        }
+      } else {
+        // Fallback default state tracking
+        const store = useUiStore.getState();
+        const activePane = store.panes.find(p => p.id === store.activePaneId) || store.panes[0];
+        const docId = activePane?.activeTabId || 'section-daily-notes';
+        window.history.replaceState({ docId, isFullView: false }, '', `#${docId}`);
+      }
+    };
+
+    // Initialize tracking on initial page load
+    handleHashChange();
+
+    // Listen to native browser Back and Forward button events
+    const handlePopState = (event: PopStateEvent) => {
+      if (event.state) {
+        const { docId, isFullView } = event.state;
+        const store = useUiStore.getState();
+        
+        if (store.isDailyNoteFullView !== isFullView) {
+          store.setDailyNoteFullView(isFullView);
+        }
+        
+        const activePane = store.panes.find(p => p.id === store.activePaneId) || store.panes[0];
+        if (activePane && activePane.activeTabId !== docId) {
+          store.openDocument(docId);
+        }
+      } else {
+        handleHashChange();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    // Subscribe to UI store updates to push new browser history entries
+    const unsubscribe = useUiStore.subscribe(
+      (state) => {
+        const activePane = state.panes.find(p => p.id === state.activePaneId) || state.panes[0];
+        const docId = activePane?.activeTabId || 'section-daily-notes';
+        const isFull = state.isDailyNoteFullView;
+        const hash = isFull ? `#${docId}/full` : `#${docId}`;
+        
+        if (window.location.hash !== hash) {
+          window.history.pushState({ docId, isFullView: isFull }, '', hash);
+        }
+      }
+    );
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      unsubscribe();
+    };
   }, []);
 
   return (

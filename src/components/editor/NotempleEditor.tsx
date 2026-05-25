@@ -43,8 +43,19 @@ const allExistingTagsSelector = (state: any) => {
   return cachedAllExistingTags;
 };
 
-export const NotempleEditor = ({ documentId, paneId, isDailyNote, onClosePopup }: { documentId: string, paneId?: string, isDailyNote?: boolean, onClosePopup?: () => void }) => {
-  const isNew = documentId === 'new-note';
+export const NotempleEditor = ({ 
+  documentId, 
+  paneId, 
+  isDailyNote, 
+  isMinimized = false, 
+  onClosePopup 
+}: { 
+  documentId: string; 
+  paneId?: string; 
+  isDailyNote?: boolean; 
+  isMinimized?: boolean; 
+  onClosePopup?: () => void; 
+}) => {
   const addDocument = useDocumentStore(state => state.addDocument);
   const updateDocument = useDocumentStore(state => state.updateDocument);
   const { setActiveTab, openDocument, setSelectedDailyNoteDate } = useUiStore();
@@ -68,9 +79,9 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote, onClosePopup }
   const documentSelector = useCallback(
     (state: any) => {
       const d = state.documents[documentId];
-      if (isNew || (!d && documentId !== 'new-note')) {
+      if (!d) {
         return {
-          id: isNew ? 'new-note' : documentId,
+          id: documentId,
           title: '',
           content: '',
           type: 'page',
@@ -80,7 +91,7 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote, onClosePopup }
       }
       return d;
     },
-    [documentId, isNew]
+    [documentId]
   );
   const document = useDocumentStore(useShallow(documentSelector));
 
@@ -105,10 +116,12 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote, onClosePopup }
 
   useEffect(() => {
     if (document) {
-      setTitle(document.title || '');
+      if (document.title !== title) {
+        setTitle(document.title || '');
+      }
       setTags(document.tags || []);
     }
-  }, [document?.id]);
+  }, [document?.id, document?.title, title]);
 
   const extensions = useMemo(() => [
     StarterKit.configure({
@@ -216,34 +229,13 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote, onClosePopup }
       }
     },
     onUpdate: ({ editor }) => {
-      if (!isNew) {
-        if (debouncedUpdateRef.current) {
-          clearTimeout(debouncedUpdateRef.current);
-        }
-        debouncedUpdateRef.current = setTimeout(() => {
-          updateDocument(documentId, { content: editor.getHTML() });
-          debouncedUpdateRef.current = null;
-        }, 750);
-      } else if (editor.getHTML() !== '<p></p>' && editor.getHTML() !== '') {
-        if (debouncedUpdateRef.current) {
-          clearTimeout(debouncedUpdateRef.current);
-        }
-        debouncedUpdateRef.current = setTimeout(() => {
-          const newId = `doc-${crypto.randomUUID()}`;
-          addDocument({
-            id: newId,
-            title: title || 'Untitled',
-            content: editor.getHTML(),
-            type: 'page',
-            tags,
-            updatedAt: new Date().toISOString()
-          });
-          if (paneId) {
-            setActiveTab(newId, paneId);
-          }
-          debouncedUpdateRef.current = null;
-        }, 500);
+      if (debouncedUpdateRef.current) {
+        clearTimeout(debouncedUpdateRef.current);
       }
+      debouncedUpdateRef.current = setTimeout(() => {
+        updateDocument(documentId, { content: editor.getHTML() });
+        debouncedUpdateRef.current = null;
+      }, 750);
     }
   });
 
@@ -256,53 +248,20 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote, onClosePopup }
         if (editor && !editor.isDestroyed) {
           const html = editor.getHTML();
           if (html !== '<p></p>' && html !== '') {
-            if (!isNew) {
-              useDocumentStore.getState().updateDocument(documentId, { content: html });
-            } else {
-              const newId = `doc-${crypto.randomUUID()}`;
-              useDocumentStore.getState().addDocument({
-                id: newId,
-                title: title || 'Untitled',
-                content: html,
-                type: 'page',
-                tags,
-                updatedAt: new Date().toISOString()
-              });
-              if (paneId) {
-                useUiStore.getState().setActiveTab(newId, paneId);
-              }
-            }
+            useDocumentStore.getState().updateDocument(documentId, { content: html });
           }
         }
       }
     };
-  }, [documentId, isNew, title, tags, editor, paneId]);
+  }, [documentId, editor]);
 
   useEffect(() => {
     const handleStyleChange = (e: CustomEvent) => {
-      // Only apply if this editor is focused (simple approximation: using local state, but we should verify focus if multiple editors exist)
-      // Assuming single active editor capturing the event for simplicity in this layout
-      if (!isNew) {
-        updateDocument(documentId, e.detail);
-      } else {
-        const newId = `doc-${crypto.randomUUID()}`;
-        addDocument({
-          id: newId,
-          title: title || 'Untitled',
-          content: editor?.getHTML() || '',
-          type: 'page',
-          tags: tags,
-          updatedAt: new Date().toISOString(),
-          ...e.detail
-        });
-        if (paneId) {
-          setActiveTab(newId, paneId);
-        }
-      }
+      updateDocument(documentId, e.detail);
     };
     window.addEventListener('doc-style-change', handleStyleChange as EventListener);
     return () => window.removeEventListener('doc-style-change', handleStyleChange as EventListener);
-  }, [documentId, isNew, title, tags, editor, paneId]);
+  }, [documentId, updateDocument]);
 
   // Dynamically update Tiptap editor class attributes when document style changes
   useEffect(() => {
@@ -331,45 +290,14 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote, onClosePopup }
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
-
-    if (isNew && newTitle.trim()) {
-      const newId = `doc-${crypto.randomUUID()}`;
-      addDocument({
-        id: newId,
-        title: newTitle,
-        content: editor?.getHTML() || '',
-        type: 'page',
-        tags,
-        updatedAt: new Date().toISOString()
-      });
-      if (paneId) {
-        setActiveTab(newId, paneId);
-      }
-    } else if (!isNew) {
-      updateDocument(documentId, { title: newTitle });
-    }
+    updateDocument(documentId, { title: newTitle });
   };
 
   const handleAddTag = (tag: string) => {
     if (!tags.includes(tag)) {
       const newTags = [...tags, tag];
       setTags(newTags);
-      if (!isNew) {
-        updateDocument(documentId, { tags: newTags });
-      } else {
-        const newId = `doc-${crypto.randomUUID()}`;
-        addDocument({
-          id: newId,
-          title: title || 'Untitled',
-          content: editor?.getHTML() || '',
-          type: 'page',
-          tags: newTags,
-          updatedAt: new Date().toISOString()
-        });
-        if (paneId) {
-          setActiveTab(newId, paneId);
-        }
-      }
+      updateDocument(documentId, { tags: newTags });
     }
     setShowTagsDropdown(false);
   };
@@ -398,7 +326,10 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote, onClosePopup }
   return (
     <div
       className={cn(
-        "w-full h-full overflow-y-auto no-scrollbar flex flex-col relative",
+        "w-full overflow-y-auto no-scrollbar flex flex-col relative",
+        isMinimized 
+          ? "h-[280px] border border-border rounded-xl bg-muted/20 hover:bg-muted/30 hover:border-muted-foreground/20 focus-within:border-rose-500/35 focus-within:bg-background transition-all duration-200" 
+          : "h-full",
         hasCustomStyle ? "p-4 sm:p-8 md:p-12 lg:p-16 transition-[padding] duration-300" : ""
       )}
       style={{
@@ -418,7 +349,7 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote, onClosePopup }
           "w-full mx-auto font-content flex flex-col shrink-0 z-10",
           hasCustomStyle
             ? "max-w-[950px] p-8 sm:p-12 md:p-16 rounded-[1.5rem] shadow-none relative border border-border min-h-[500px] md:min-h-[calc(100vh-160px)] overflow-hidden transition-[max-width,padding,border-radius,box-shadow] duration-300 ease-out"
-            : "max-w-[900px] py-16 px-12 h-full"
+            : cn("max-w-[900px] h-full", isMinimized ? "py-4 px-6" : "py-16 px-12")
         )}
         style={{
           backgroundColor: localStyle.documentColor || (hasCustomStyle ? '#faf8f5' : 'var(--background)'),
@@ -436,7 +367,7 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote, onClosePopup }
           <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} />
         )}
 
-        <div className="mb-12 px-[54px] relative z-10">
+        <div className={cn("relative z-10", isMinimized ? "mb-4 px-2" : "mb-12 px-[54px]")}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em]" style={{ color: localStyle.textColor || (hasCustomStyle ? '#4b5563' : 'var(--muted-foreground)') }}>
               <span>{document.type}</span>
@@ -511,9 +442,7 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote, onClosePopup }
                     onClick={() => {
                       const newTags = tags.filter(t => t !== tag);
                       setTags(newTags);
-                      if (!isNew) {
-                        updateDocument(documentId, { tags: newTags });
-                      }
+                      updateDocument(documentId, { tags: newTags });
                     }}
                     className="ml-1 opacity-45 hover:opacity-100 transition-colors"
                   >
@@ -595,7 +524,10 @@ export const NotempleEditor = ({ documentId, paneId, isDailyNote, onClosePopup }
         </div>
 
         <div
-          className="flex-1 notemple-editor-wrapper px-[54px] font-content text-lg relative"
+          className={cn(
+            "flex-1 notemple-editor-wrapper font-content text-lg relative",
+            isMinimized ? "px-2" : "px-[54px]"
+          )}
           style={{
             color: localStyle.textColor || undefined,
             fontFamily: localStyle.fontFamily || undefined

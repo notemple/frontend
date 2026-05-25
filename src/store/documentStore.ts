@@ -38,8 +38,11 @@ interface DocumentStore {
   addDocument: (doc: NoteDocument) => void;
   updateDocument: (id: string, updates: Partial<NoteDocument>) => void;
   deleteDocument: (id: string) => void;
+  renameTag: (oldTag: string, newTag: string) => void;
+  deleteTag: (tag: string) => void;
 
   createFolder: (name: string) => void;
+  updateFolder: (id: string, name: string) => void;
   deleteFolder: (id: string) => void;
 
   // Reordering
@@ -111,6 +114,25 @@ export const useDocumentStore = create<DocumentStore>()(
         };
       }),
 
+      renameTag: (oldTag, newTag) => set((state) => {
+        const newDocs = { ...state.documents };
+        Object.keys(newDocs).forEach(docId => {
+          if (newDocs[docId].tags?.includes(oldTag)) {
+            newDocs[docId].tags = newDocs[docId].tags.map(t => t === oldTag ? newTag : t);
+          }
+        });
+        return { documents: newDocs };
+      }),
+      deleteTag: (tag) => set((state) => {
+        const newDocs = { ...state.documents };
+        Object.keys(newDocs).forEach(docId => {
+          if (newDocs[docId].tags?.includes(tag)) {
+            newDocs[docId].tags = newDocs[docId].tags.filter(t => t !== tag);
+          }
+        });
+        return { documents: newDocs };
+      }),
+
       createFolder: (name) => set((state) => {
         const id = `folder-${crypto.randomUUID()}`;
         return {
@@ -118,6 +140,9 @@ export const useDocumentStore = create<DocumentStore>()(
           folderOrder: [...state.folderOrder, id]
         };
       }),
+      updateFolder: (id, name) => set((state) => ({
+        folders: state.folders.map(f => f?.id === id ? { ...f, name } : f)
+      })),
       deleteFolder: (id) => set((state) => {
         const newDocs = { ...state.documents };
         Object.keys(newDocs).forEach(docId => {

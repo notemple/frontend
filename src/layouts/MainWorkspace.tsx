@@ -6,8 +6,9 @@ import { TabBar } from './TabBar';
 import { NotempleEditor } from '@/src/components/editor/NotempleEditor';
 import { DailyNotesPage } from '@/src/components/DailyNotesPage';
 import { TasksPage } from '@/src/components/TasksPage';
-import { cn } from '@/src/lib/utils';
-import { Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, CaretDown, FileText, Folder as FolderIcon, Sun, Moon, Monitor, Clock } from '@phosphor-icons/react';
+import { TagsPage } from '@/src/components/TagsPage';
+import { cn, getItemColor } from '@/src/lib/utils';
+import { Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, CaretDown, FileText, Folder as FolderIcon, Sun, Moon, Monitor, Clock, ArrowLeft } from '@phosphor-icons/react';
 
 export const MainWorkspace = () => {
   const { panes, activePaneId, toggleRightSidebar, appearance, setAppearance, isRightSidebarOpen } = useUiStore();
@@ -52,6 +53,7 @@ export const MainWorkspace = () => {
       }
       if (activeTabId === 'section-daily-notes') return 'Daily notes';
       if (activeTabId === 'section-tasks') return 'Tasks';
+      if (activeTabId === 'section-tags') return 'Tags';
       if (activeTabId.startsWith('section-')) {
         const cleanId = activeTabId.replace('section-', '');
         return cleanId.charAt(0).toUpperCase() + cleanId.slice(1);
@@ -197,6 +199,8 @@ const SectionGridItem = React.memo(({
 
   if (!item) return null;
 
+  const cardColor = getItemColor(item.title || 'Untitled');
+
   return (
     <div
       onClick={() => {
@@ -206,14 +210,30 @@ const SectionGridItem = React.memo(({
           openDocument(itemId, paneId);
         }
       }}
-      className="p-6 rounded-xl bg-muted border border-border hover:border-muted-foreground/50 hover:bg-muted/80 cursor-pointer group flex flex-col gap-3 transition-colors duration-150 overflow-hidden relative"
+      className="p-6 rounded-xl border cursor-pointer group flex flex-col gap-3 transition-all duration-150 overflow-hidden relative"
+      style={{
+        backgroundColor: cardColor.bg,
+        borderColor: cardColor.border,
+      }}
     >
-      <div className="absolute inset-0 bg-gradient-to-tr from-foreground/[0.01] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      <div className="flex flex-col gap-4 relative">
-        <div className="w-10 h-10 rounded-lg bg-muted border border-border flex items-center justify-center text-muted-foreground group-hover:text-foreground transition-colors duration-300 shadow-inner">
+      <div className="absolute inset-0 bg-gradient-to-tr from-foreground/[0.01] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+      <div className="flex flex-col gap-4 relative z-10 w-full min-w-0">
+        <div 
+          className={cn(
+            "w-10 h-10 rounded-lg border flex items-center justify-center transition-colors duration-300 shadow-inner",
+            cardColor.iconText
+          )}
+          style={{
+            backgroundColor: cardColor.iconBg,
+            borderColor: cardColor.iconBorder,
+          }}
+        >
           {itemType === 'folder' ? <FolderIcon size={20} weight="duotone" /> : <FileText size={20} weight="duotone" />}
         </div>
-        <span className="font-medium text-sm truncate text-foreground/80 group-hover:text-foreground transition-colors">
+        <span className={cn(
+          "font-medium text-sm truncate transition-colors leading-none pr-1 text-foreground/80",
+          cn("group-hover:", cardColor.iconText)
+        )}>
           {item.title || 'Untitled'}
         </span>
       </div>
@@ -224,6 +244,7 @@ const SectionGridItem = React.memo(({
 SectionGridItem.displayName = 'SectionGridItem';
 
 const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: string }) => {
+  const { openDocument } = useUiStore();
   const titleSelector = useCallback(
     state => {
       if (sectionId === 'section-favorites') return 'Favorites';
@@ -270,10 +291,22 @@ const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: string 
   if (sectionId === 'section-tasks') {
     return <TasksPage paneId={paneId} />;
   }
+  if (sectionId === 'section-tags') {
+    return <TagsPage paneId={paneId} />;
+  }
 
   return (
-    <div className="p-10 h-full overflow-y-auto no-scrollbar relative min-h-full flex flex-col">
+    <div className="p-10 h-full overflow-y-auto no-scrollbar relative min-h-full flex flex-col bg-background">
       <div className="absolute inset-0 bg-gradient-to-b from-foreground/[0.01] to-transparent pointer-events-none" />
+      {sectionId.startsWith('section-folder-') && (
+        <button
+          onClick={() => openDocument('section-folders', paneId)}
+          className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/80 self-start px-3 py-1.5 rounded-lg border border-border/80 bg-muted/40 transition-all cursor-pointer shadow-sm select-none mb-6 relative z-10"
+        >
+          <ArrowLeft size={14} weight="bold" />
+          <span>All Folders</span>
+        </button>
+      )}
       <h1 className="text-4xl font-semibold mb-10 text-foreground/90 tracking-tight font-sans relative">{title}</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative">
         {items.map(itemId => (

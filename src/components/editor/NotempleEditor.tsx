@@ -165,6 +165,7 @@ export const NotempleEditor = ({
   const editor = useEditor({
     extensions,
     content: document?.content || '',
+    immediatelyRender: true,
     editorProps: {
       attributes: {
         class: cn(
@@ -342,7 +343,7 @@ export const NotempleEditor = ({
       )}
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.98, y: 10 }}
+        initial={false}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 380, damping: 35 }}
         className={cn(

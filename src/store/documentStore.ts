@@ -34,12 +34,14 @@ interface DocumentStore {
   folders: Folder[];
   folderOrder: string[];
   documentOrder: string[]; // Order of root documents
+  createdTags: string[];
 
   addDocument: (doc: NoteDocument) => void;
   updateDocument: (id: string, updates: Partial<NoteDocument>) => void;
   deleteDocument: (id: string) => void;
   renameTag: (oldTag: string, newTag: string) => void;
   deleteTag: (tag: string) => void;
+  createTag: (tag: string) => void;
 
   createFolder: (name: string) => void;
   updateFolder: (id: string, name: string) => void;
@@ -62,6 +64,7 @@ export const useDocumentStore = create<DocumentStore>()(
       folders: [],
       folderOrder: [],
       documentOrder: initialDocOrder,
+      createdTags: [],
 
       addDocument: (doc) => set((state) => {
         const isUpdating = !!state.documents[doc.id];
@@ -121,7 +124,11 @@ export const useDocumentStore = create<DocumentStore>()(
             newDocs[docId].tags = newDocs[docId].tags.map(t => t === oldTag ? newTag : t);
           }
         });
-        return { documents: newDocs };
+        const updatedCreatedTags = state.createdTags.map(t => t === oldTag ? newTag : t);
+        return { 
+          documents: newDocs,
+          createdTags: updatedCreatedTags
+        };
       }),
       deleteTag: (tag) => set((state) => {
         const newDocs = { ...state.documents };
@@ -130,7 +137,18 @@ export const useDocumentStore = create<DocumentStore>()(
             newDocs[docId].tags = newDocs[docId].tags.filter(t => t !== tag);
           }
         });
-        return { documents: newDocs };
+        const updatedCreatedTags = state.createdTags.filter(t => t !== tag);
+        return { 
+          documents: newDocs,
+          createdTags: updatedCreatedTags
+        };
+      }),
+      createTag: (tag) => set((state) => {
+        const trimmed = tag.trim();
+        if (trimmed && !state.createdTags.includes(trimmed)) {
+          return { createdTags: [...state.createdTags, trimmed] };
+        }
+        return state;
       }),
 
       createFolder: (name) => set((state) => {

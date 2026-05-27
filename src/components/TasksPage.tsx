@@ -44,12 +44,14 @@ const CustomDatePicker = ({
   placeholder,
   icon,
   small,
+  onOpenChange,
 }: {
   value: string;
   onChange: (val: string) => void;
   placeholder: string;
   icon: React.ReactNode;
   small?: boolean;
+  onOpenChange?: (isOpen: boolean) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -66,22 +68,39 @@ const CustomDatePicker = ({
     return getCalendarDays(currentMonth);
   }, [currentMonth, weekStartDay]);
 
+  const onOpenChangeRef = useRef(onOpenChange);
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    onOpenChangeRef.current = onOpenChange;
+  }, [onOpenChange]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
+        onOpenChangeRef.current?.(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
   }, []);
 
   const handleDayClick = (d: Date) => {
     onChange(toUtcString(d));
     setIsOpen(false);
+    onOpenChange?.(false);
+  };
+
+  const toggleOpen = () => {
+    const nextOpen = !isOpen;
+    setIsOpen(nextOpen);
+    onOpenChange?.(nextOpen);
   };
 
   const [displayValue, setDisplayValue] = useState(value);
@@ -92,7 +111,7 @@ const CustomDatePicker = ({
   return (
     <div className="relative" ref={containerRef}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleOpen}
         className={cn(
           small
             ? "flex items-center gap-1 text-xs font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded border border-border hover:bg-muted/80"
@@ -224,6 +243,7 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
   >("Today");
   const [isTaskInputOpen, setIsTaskInputOpen] = useState(false);
   const [activeTask, setActiveTask] = useState<string | null>(null);
+  const [openDatePickerTaskId, setOpenDatePickerTaskId] = useState<string | null>(null);
 
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskList, setNewTaskList] = useState<
@@ -324,6 +344,7 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
                         width: '100%',
                         height: `${virtualRow.size}px`,
                         transform: `translateY(${virtualRow.start}px)`,
+                        zIndex: openDatePickerTaskId === task.id ? 50 : undefined,
                       }}
                     >
                       <TaskRow
@@ -331,6 +352,7 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
                         updateTask={updateTask}
                         deleteTask={deleteTask}
                         onOpen={() => setActiveTask(task.id)}
+                        onDatePickerOpenChange={(isOpen) => setOpenDatePickerTaskId(isOpen ? task.id : null)}
                       />
                     </div>
                   );
@@ -472,11 +494,13 @@ const TaskRow = React.memo(({
   updateTask,
   deleteTask,
   onOpen,
+  onDatePickerOpenChange,
 }: {
   task: Task;
   updateTask: any;
   deleteTask: (id: string) => void;
   onOpen: () => void;
+  onDatePickerOpenChange?: (isOpen: boolean) => void;
 }) => {
   const [localTitle, setLocalTitle] = useState(task.title);
 
@@ -525,7 +549,7 @@ const TaskRow = React.memo(({
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           className={cn(
-            "text-base font-sans transition-all bg-transparent border-none outline-none focus:ring-1 focus:ring-border px-2 flex-1",
+            "text-base font-sans transition-all bg-transparent border border-transparent hover:border-border/80 focus:border-border/80 focus:ring-1 focus:ring-border rounded-sm outline-none px-2 flex-1",
             task.completed
               ? "line-through text-muted-foreground/50"
               : "text-foreground font-medium",
@@ -539,6 +563,7 @@ const TaskRow = React.memo(({
             onChange={(v: string) => updateTask(task.id, { startDate: v })}
             placeholder="Start"
             icon={<CalendarBlank size={12} />}
+            onOpenChange={onDatePickerOpenChange}
           />
 
           <CustomDatePicker
@@ -547,6 +572,7 @@ const TaskRow = React.memo(({
             onChange={(v: string) => updateTask(task.id, { deadline: v })}
             placeholder="Deadline"
             icon={<Flag size={12} />}
+            onOpenChange={onDatePickerOpenChange}
           />
         </div>
       </div>

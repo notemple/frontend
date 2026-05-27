@@ -93,7 +93,7 @@ export const MainWorkspace = () => {
               className={cn(
                 "p-1.5 rounded-md transition-all duration-200 border",
                 appearance === 'light'
-                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 shadow-inner"
+                  ? "bg-amber-600 dark:bg-amber-500/10 text-white dark:text-amber-400 border-amber-600 dark:border-amber-500/20 shadow-inner"
                   : "text-muted-foreground border-transparent hover:text-amber-500 hover:bg-amber-500/5 hover:border-amber-500/10"
               )}
               title="Light Mode"
@@ -105,7 +105,7 @@ export const MainWorkspace = () => {
               className={cn(
                 "p-1.5 rounded-md transition-all duration-200 border",
                 appearance === 'dark'
-                  ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20 shadow-inner"
+                  ? "bg-indigo-600 dark:bg-indigo-500/10 text-white dark:text-indigo-300 border-indigo-600 dark:border-indigo-500/20 shadow-inner"
                   : "text-muted-foreground border-transparent hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-500/5 hover:border-indigo-500/10"
               )}
               title="Dark Mode"
@@ -117,7 +117,7 @@ export const MainWorkspace = () => {
               className={cn(
                 "p-1.5 rounded-md transition-all duration-200 border",
                 appearance === 'system'
-                  ? "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20 shadow-inner"
+                  ? "bg-teal-600 dark:bg-teal-500/10 text-white dark:text-teal-400 border-teal-600 dark:border-teal-500/20 shadow-inner"
                   : "text-muted-foreground border-transparent hover:text-teal-500 dark:hover:text-teal-400 hover:bg-teal-500/5 hover:border-teal-500/10"
               )}
               title="System Theme"
@@ -400,7 +400,7 @@ const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: string 
                 ) : (
                   <button
                     onClick={() => setIsCreatingFolder(true)}
-                    className="w-10 h-10 rounded-xl border border-purple-200/80 dark:border-purple-900/40 bg-purple-50/80 dark:bg-purple-950/25 text-purple-600 dark:text-purple-300 flex items-center justify-center hover:bg-purple-100/80 dark:hover:bg-purple-950/40 hover:text-purple-700 dark:hover:text-purple-200 transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10"
+                    className="w-10 h-10 rounded-xl border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10"
                     title="New Folder"
                   >
                     <PlusCircle size={20} weight="fill" />
@@ -412,7 +412,7 @@ const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: string 
             {sectionId.startsWith('section-folder-') && (
               <button
                 onClick={handleCreateDocumentInFolder}
-                className="w-10 h-10 rounded-xl border border-purple-200/80 dark:border-purple-900/40 bg-purple-50/80 dark:bg-purple-950/25 text-purple-600 dark:text-purple-300 flex items-center justify-center hover:bg-purple-100/80 dark:hover:bg-purple-950/40 hover:text-purple-700 dark:hover:text-purple-200 transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10"
+                className="w-10 h-10 rounded-xl border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10"
                 title="New Note in Folder"
               >
                 <PlusCircle size={20} weight="fill" />
@@ -422,7 +422,7 @@ const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: string 
             {sectionId === 'section-uncategorized' && (
               <button
                 onClick={handleCreateUncategorizedDocument}
-                className="w-10 h-10 rounded-xl border border-purple-200/80 dark:border-purple-900/40 bg-purple-50/80 dark:bg-purple-950/25 text-purple-600 dark:text-purple-300 flex items-center justify-center hover:bg-purple-100/80 dark:hover:bg-purple-950/40 hover:text-purple-700 dark:hover:text-purple-200 transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10"
+                className="w-10 h-10 rounded-xl border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10"
                 title="New Uncategorized Note"
               >
                 <PlusCircle size={20} weight="fill" />

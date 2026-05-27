@@ -41,8 +41,8 @@ export const RightSidebar = () => {
                   className={cn(
                     "px-3 py-1 text-xs font-semibold rounded-md transition-all whitespace-nowrap",
                     activeTab === tab
-                      ? "text-accent bg-white/5 border border-white/10"
-                      : "text-muted-foreground hover:text-white hover:bg-white/5 border border-transparent"
+                      ? "text-foreground bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10"
+                      : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:text-white dark:hover:bg-white/5 border border-transparent"
                   )}
                 >
                   {tab}
@@ -73,6 +73,7 @@ const StyleTab = () => {
   // Custom picker expand collapse to prevent glitches and keep selection stable
   const [showColorPickerInline, setShowColorPickerInline] = useState(false);
   const [showPaperColorPickerInline, setShowPaperColorPickerInline] = useState(false);
+  const [showPaperGradientPickerInline, setShowPaperGradientPickerInline] = useState(false);
 
   const activePane = panes.find(p => p?.id === activePaneId) || panes[0];
   const activeDocId = activePane?.activeTabId;
@@ -99,46 +100,47 @@ const StyleTab = () => {
 
   // Preset configuration
   const solidPresets = [
-    '#050505', // Deep Black Focus
-    '#1c1c1c', // Midnight Mode
-    '#0e1726', // Nocturnal Blue
-    '#18181b', // Slate Charcoal
-    '#27272a', // Grey Focus
-    '#1f2937', // Steel Blue
-    '#064e3b', // Deep Teal Focus
-    '#312e81', // Midnight Indigo
-    '#fafafa', // Minimal White
-    '#f4f1ea', // Warm Sand Paper
+    '#f8fafc', // Slate-50 (Morning Slate)
+    '#f0fdf4', // Emerald-50 (Spring Garden)
+    '#f0f9ff', // Sky-50 (Ocean Air)
+    '#09090b', // Zinc-950 (Absolute Dark)
+    '#0f172a', // Slate-900 (Deep Slate)
   ];
 
   const gradientPresets = [
-    { start: '#0f172a', end: '#3b0764', dir: 'linear-gradient(135deg, #0f172a, #3b0764)', name: 'Midnight Aurora' },
-    { start: '#09090b', end: '#064e3b', dir: 'linear-gradient(135deg, #09090b, #064e3b)', name: 'Deep Forest' },
-    { start: '#1e1b4b', end: '#4c1d95', dir: 'linear-gradient(135deg, #1e1b4b, #4c1d95)', name: 'Cosmic Royal' },
-    { start: '#38bdf8', end: '#3b82f6', dir: 'linear-gradient(135deg, #38bdf8, #3b82f6)', name: 'Ocean Mist' },
-    { start: '#fdf4ff', end: '#fbcfe8', dir: 'linear-gradient(135deg, #fdf4ff, #fbcfe8)', name: 'Pastel Orchid (Bright)' },
-    { start: '#f0fdf4', end: '#bbf7d0', dir: 'linear-gradient(135deg, #f0fdf4, #bbf7d0)', name: 'Faded Matcha (Bright)' },
-    { start: '#020617', end: '#475569', dir: 'linear-gradient(180deg, #020617, #475569)', name: 'Cinematic Slate' },
-    { start: '#2e1065', end: '#9f1239', dir: 'linear-gradient(135deg, #2e1065, #9f1239)', name: 'Blood Moon' },
+    { start: '#f8fafc', end: '#e2e8f0', dir: 'linear-gradient(135deg, #f8fafc, #e2e8f0)', name: 'Morning Mist' },
+    { start: '#f0fdf4', end: '#dcfce7', dir: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', name: 'Spring Garden' },
+    { start: '#f0f9ff', end: '#e0f2fe', dir: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)', name: 'Ocean Air' },
+    { start: '#09090b', end: '#18181b', dir: 'linear-gradient(135deg, #09090b, #18181b)', name: 'Absolute Dark' },
+    { start: '#0f172a', end: '#1e293b', dir: 'linear-gradient(135deg, #0f172a, #1e293b)', name: 'Deep Slate' },
   ];
 
   const paperPresets = [
     { name: 'Float (None)', value: undefined },
-    { name: 'Minimal White', value: '#ffffff' },
-    { name: 'Onyx Black', value: '#111827' },
-    { name: 'Warm Ivory', value: '#faf8f5' },
-    { name: 'Soft Sand', value: '#f4f1ea' },
-    { name: 'Midnight Blue', value: '#0f172a' },
-    { name: 'Deep Focus', value: '#09090b' },
+    { name: 'Pure White', value: '#ffffff' },
+    
+    // Complementary Dark Solids
+    { name: 'Obsidian Black', value: '#121214' },
+    { name: 'Slate Shadow', value: '#1e293b' },
+    { name: 'Midnight Indigo', value: '#1a1740' },
+    { name: 'Deep Forest', value: '#07241c' },
+  ];
+
+  const paperGradientPresets = [
+    { start: '#ffffff', end: '#fafaf6', dir: 'linear-gradient(135deg, #ffffff, #fafaf6)', name: 'Silk Cream' },
+    { start: '#ffffff', end: '#edf7f2', dir: 'linear-gradient(135deg, #ffffff, #edf7f2)', name: 'Spring Garden Silk' },
+    { start: '#ffffff', end: '#ebf5fc', dir: 'linear-gradient(135deg, #ffffff, #ebf5fc)', name: 'Ocean Air Silk' },
+    
+    // Complementary Dark Gradients
+    { start: '#18181b', end: '#09090b', dir: 'linear-gradient(135deg, #18181b, #09090b)', name: 'Absolute Dark Silk' },
+    { start: '#1e293b', end: '#0f172a', dir: 'linear-gradient(135deg, #1e293b, #0f172a)', name: 'Deep Slate Silk' },
+    { start: '#1f1b40', end: '#100e26', dir: 'linear-gradient(135deg, #1f1b40, #100e26)', name: 'Cosmic Indigo Silk' },
   ];
 
   const textPresets = [
     { name: 'Auto', value: undefined },
     { name: 'Pure White', value: '#ffffff' },
-    { name: 'Soft Silver', value: '#e2e8f0' },
-    { name: 'Charcoal Black', value: '#111827' },
-    { name: 'Slate Gray', value: '#475569' },
-    { name: 'Muted Taupe', value: '#78716c' },
+    { name: 'Charcoal Black', value: '#000000' },
   ];
 
   const currentType = document.backdropType || 'none';
@@ -146,6 +148,11 @@ const StyleTab = () => {
   const currentStart = document.backdropGradientStart || '#a3f4c5';
   const currentEnd = document.backdropGradientEnd || '#ffbbbb';
   const currentDir = document.backdropGradientDirection || '180deg';
+
+  const paperType = document.documentColorType || 'solid';
+  const paperStart = document.documentGradientStart || '#ffffff';
+  const paperEnd = document.documentGradientEnd || '#f1f5f9';
+  const paperDir = document.documentGradientDirection || '135deg';
 
   // Master style update that ensures background, helper start/end, and type sync properly
   const setBackdropType = (type: 'none' | 'solid' | 'gradient') => {
@@ -175,6 +182,30 @@ const StyleTab = () => {
         backdropGradientEnd: end,
         backdropGradientDirection: dir,
         backdropColor: cssSpec,
+      });
+    }
+  };
+
+  const setPaperType = (type: 'solid' | 'gradient') => {
+    if (type === 'solid') {
+      const initialSolid = document.documentColor && !document.documentColor.includes('gradient')
+        ? document.documentColor
+        : '#ffffff';
+      updateDocument(document.id, {
+        documentColorType: 'solid',
+        documentColor: initialSolid,
+      });
+    } else if (type === 'gradient') {
+      const start = document.documentGradientStart || '#ffffff';
+      const end = document.documentGradientEnd || '#f1f5f9';
+      const dir = document.documentGradientDirection || '135deg';
+      const cssSpec = `linear-gradient(${dir}, ${start}, ${end})`;
+      updateDocument(document.id, {
+        documentColorType: 'gradient',
+        documentGradientStart: start,
+        documentGradientEnd: end,
+        documentGradientDirection: dir,
+        documentColor: cssSpec,
       });
     }
   };
@@ -219,6 +250,34 @@ const StyleTab = () => {
     });
   };
 
+  const handlePaperGradientPresetSelect = (preset: typeof paperGradientPresets[0]) => {
+    updateDocument(document.id, {
+      documentColorType: 'gradient',
+      documentGradientStart: preset.start,
+      documentGradientEnd: preset.end,
+      documentGradientDirection: '135deg',
+      documentColor: `linear-gradient(135deg, ${preset.start}, ${preset.end})`,
+    });
+  };
+
+  const handlePaperGradientCustomUpdate = (updates: { start?: string; end?: string; dir?: string }) => {
+    const nextStart = updates.start !== undefined ? updates.start : paperStart;
+    const nextEnd = updates.end !== undefined ? updates.end : paperEnd;
+    const nextDir = updates.dir !== undefined ? updates.dir : paperDir;
+
+    const cssSpec = nextDir === 'radial'
+      ? `radial-gradient(circle, ${nextStart}, ${nextEnd})`
+      : `linear-gradient(${nextDir}, ${nextStart}, ${nextEnd})`;
+
+    updateDocument(document.id, {
+      documentGradientStart: nextStart,
+      documentGradientEnd: nextEnd,
+      documentGradientDirection: nextDir,
+      documentColor: cssSpec,
+      documentColorType: 'gradient'
+    });
+  };
+
   const handleResetAll = () => {
     updateDocument(document.id, {
       backdropType: 'none',
@@ -228,23 +287,28 @@ const StyleTab = () => {
       backdropGradientEnd: undefined,
       backdropGradientDirection: undefined,
       documentColor: undefined,
+      documentColorType: 'solid',
+      documentGradientStart: undefined,
+      documentGradientEnd: undefined,
+      documentGradientDirection: undefined,
       textColor: undefined
     });
     setShowColorPickerInline(false);
     setShowPaperColorPickerInline(false);
+    setShowPaperGradientPickerInline(false);
   };
 
   return (
     <div className="space-y-5">
       {/* Title */}
-      <div className="flex items-center justify-between border-b border-white/5 pb-3">
+      <div className="flex items-center justify-between border-b border-black/10 dark:border-white/5 pb-3">
         <span className="text-xs font-semibold text-foreground tracking-tight flex items-center gap-1.5 font-mono">
           <PaintBrush size={14} className="text-accent" />
           Page Theme
         </span>
         <button
           onClick={handleResetAll}
-          className="text-[10px] font-mono text-muted-foreground hover:text-white flex items-center gap-1 hover:bg-white/5 border border-white/10 px-2 py-0.5 rounded transition-colors"
+          className="text-[10px] font-mono text-muted-foreground hover:text-foreground dark:hover:text-white flex items-center gap-1 hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 px-2 py-0.5 rounded transition-colors cursor-pointer"
           title="Reset Style"
         >
           <ArrowCounterClockwise size={10} />
@@ -257,15 +321,15 @@ const StyleTab = () => {
         <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Backdrop</span>
 
         {/* Segmented Control Selector for Types - Matches mockup precisely */}
-        <div className="grid grid-cols-4 bg-black/40 border border-white/5 p-1 rounded-xl">
+        <div className="grid grid-cols-3 bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/5 p-1 rounded-xl">
           {/* None/Disabled */}
           <button
             onClick={() => setBackdropType('none')}
             className={cn(
-              "py-2 flex items-center justify-center rounded-lg transition-all text-xs relative group-hover:bg-white/5",
+              "py-2 flex items-center justify-center rounded-lg transition-all text-xs relative group-hover:bg-black/5 dark:group-hover:bg-white/5 cursor-pointer",
               currentType === 'none'
-                ? "bg-white/10 text-white shadow-sm border border-white/5 font-semibold"
-                : "text-muted-foreground hover:text-white"
+                ? "bg-white dark:bg-white/10 text-foreground dark:text-white shadow-sm border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
             title="No Backdrop"
           >
@@ -280,10 +344,10 @@ const StyleTab = () => {
           <button
             onClick={() => setBackdropType('solid')}
             className={cn(
-              "py-2 flex items-center justify-center rounded-lg transition-all text-xs",
+              "py-2 flex items-center justify-center rounded-lg transition-all text-xs cursor-pointer",
               currentType === 'solid'
-                ? "bg-white/10 text-white shadow-sm border border-white/5 font-semibold"
-                : "text-muted-foreground hover:text-white"
+                ? "bg-white dark:bg-white/10 text-foreground dark:text-white shadow-sm border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
             title="Solid Backdrop"
           >
@@ -294,53 +358,18 @@ const StyleTab = () => {
           <button
             onClick={() => setBackdropType('gradient')}
             className={cn(
-              "py-2 flex items-center justify-center rounded-lg transition-all text-xs",
+              "py-2 flex items-center justify-center rounded-lg transition-all text-xs cursor-pointer",
               currentType === 'gradient'
-                ? "bg-white/10 text-white shadow-sm border border-white/5 font-semibold"
-                : "text-muted-foreground hover:text-white"
+                ? "bg-white dark:bg-white/10 text-foreground dark:text-white shadow-sm border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
             title="Gradient Backdrop"
           >
             <div className="w-3.5 h-3.5 rounded-sm border border-current bg-gradient-to-tr from-muted-foreground to-foreground opacity-90" />
           </button>
-
-          {/* Image (Mock representation) */}
-          <button
-            className="py-2 flex items-center justify-center rounded-lg transition-all text-xs text-muted-foreground/30 cursor-not-allowed"
-            title="Image Backdrop"
-            disabled
-          >
-            <Image size={15} />
-          </button>
         </div>
 
-        {/* Faded vs Immersive styling toggles - Matches mockup */}
-        {currentType !== 'none' && (
-          <div className="grid grid-cols-2 bg-black/25 border border-white/5 p-0.5 rounded-lg text-xs gap-1">
-            <button
-              onClick={() => setBackdropStyleMode('immersive')}
-              className={cn(
-                "py-1 rounded-md transition-all font-mono text-[11px]",
-                currentStyle === 'immersive'
-                  ? "bg-white/5 text-white shadow-sm border border-white/5 font-semibold"
-                  : "text-muted-foreground hover:text-white"
-              )}
-            >
-              Immersive
-            </button>
-            <button
-              onClick={() => setBackdropStyleMode('faded')}
-              className={cn(
-                "py-1 rounded-md transition-all font-mono text-[11px]",
-                currentStyle === 'faded'
-                  ? "bg-white/5 text-white shadow-sm border border-white/5 font-semibold"
-                  : "text-white/90 bg-black/10 hover:text-white"
-              )}
-            >
-              Faded
-            </button>
-          </div>
-        )}
+
 
         {/* Type Dependent Swatches Grid */}
         {currentType === 'solid' && (
@@ -356,12 +385,27 @@ const StyleTab = () => {
                       setShowColorPickerInline(false);
                     }}
                     className={cn(
-                      "w-8 h-8 rounded-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center shadow-md",
-                      isSelected ? "border-accent ring-2 ring-accent/30 scale-105" : "border-white/10 hover:border-white/35"
+                      "w-8 h-8 rounded-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                      isSelected ? "scale-105" : ""
                     )}
-                    style={{ backgroundColor: color }}
+                    style={{ 
+                      backgroundColor: color,
+                      boxShadow: isSelected 
+                        ? `0 0 0 2px var(--background), 0 0 0 4px ${color}` 
+                        : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
+                    }}
                   >
-                    {isSelected && <Check size={12} className="text-white drop-shadow font-bold" />}
+                    {isSelected && (
+                      <Check
+                        size={12}
+                        className={cn(
+                          "font-bold drop-shadow z-10",
+                          color === '#fafafa' || color === '#f4f1ea'
+                            ? "text-slate-800 dark:text-slate-200"
+                            : "text-white"
+                        )}
+                      />
+                    )}
                   </button>
                 );
               })}
@@ -370,9 +414,14 @@ const StyleTab = () => {
               <button
                 onClick={() => setShowColorPickerInline(!showColorPickerInline)}
                 className={cn(
-                  "w-8 h-8 rounded-full border transition-all duration-200 shrink-0 flex items-center justify-center relative overflow-hidden group shadow-lg justify-self-center",
-                  showColorPickerInline ? "border-accent ring-2 ring-accent/30 scale-105" : "border-white/10 hover:border-white/30"
+                  "w-8 h-8 rounded-full border transition-all duration-200 shrink-0 flex items-center justify-center relative overflow-hidden group justify-self-center cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                  showColorPickerInline ? "scale-105" : ""
                 )}
+                style={{
+                  boxShadow: showColorPickerInline 
+                    ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6' 
+                    : '0 0 0 2px var(--background), 0 0 0 4px var(--foreground)'
+                }}
               >
                 <div className="absolute inset-0 bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 opacity-90 group-hover:opacity-100" />
                 <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow" />
@@ -393,7 +442,7 @@ const StyleTab = () => {
                   <span className="text-accent text-[10px] uppercase font-bold">{document.backdropColor}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg border border-white/10 relative overflow-hidden shrink-0 shadow-lg" style={{ backgroundColor: document.backdropColor || '#ffffff' }} />
+                  <div className="w-10 h-10 rounded-lg border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: document.backdropColor || '#ffffff' }} />
                   <input
                     type="color"
                     value={document.backdropColor || '#ffffff'}
@@ -421,13 +470,28 @@ const StyleTab = () => {
                     key={idx}
                     onClick={() => handleGradientPresetSelect(preset)}
                     className={cn(
-                      "w-8 h-8 rounded-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center shadow-md",
-                      isSelected ? "border-accent ring-2 ring-accent/30 scale-105" : "border-white/10 hover:border-white/35"
+                      "w-8 h-8 rounded-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                      isSelected ? "scale-105" : ""
                     )}
-                    style={{ background: preset.dir }}
+                    style={{ 
+                      background: preset.dir,
+                      boxShadow: isSelected 
+                        ? `0 0 0 2px var(--background), 0 0 0 4px ${preset.start}` 
+                        : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
+                    }}
                     title={preset.name}
                   >
-                    {isSelected && <Check size={12} className="text-white drop-shadow font-bold" />}
+                    {isSelected && (
+                      <Check
+                        size={12}
+                        className={cn(
+                          "font-bold drop-shadow z-10",
+                          preset.start === '#fdf4ff' || preset.start === '#f0fdf4'
+                            ? "text-slate-800 dark:text-slate-200"
+                            : "text-white"
+                        )}
+                      />
+                    )}
                   </button>
                 );
               })}
@@ -436,9 +500,14 @@ const StyleTab = () => {
               <button
                 onClick={() => setShowColorPickerInline(!showColorPickerInline)}
                 className={cn(
-                  "w-8 h-8 rounded-full border transition-all duration-200 shrink-0 flex items-center justify-center relative overflow-hidden group shadow-lg justify-self-center",
-                  showColorPickerInline ? "border-accent ring-2 ring-accent/30 scale-105" : "border-white/10 hover:border-white/30"
+                  "w-8 h-8 rounded-full border transition-all duration-200 shrink-0 flex items-center justify-center relative overflow-hidden group justify-self-center cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                  showColorPickerInline ? "scale-105" : ""
                 )}
+                style={{
+                  boxShadow: showColorPickerInline 
+                    ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6' 
+                    : '0 0 0 2px var(--background), 0 0 0 4px var(--foreground)'
+                }}
               >
                 <div className="absolute inset-0 bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 opacity-90 group-hover:opacity-100" />
                 <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow" />
@@ -447,9 +516,9 @@ const StyleTab = () => {
 
             {/* Custom inputs from Mockup 3 for Start/End color styling */}
             {showColorPickerInline && (
-              <div className="space-y-4 p-3 bg-black/40 border border-white/5 rounded-xl font-mono text-[11px] transition-all">
+              <div className="space-y-4 p-3 bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/5 rounded-xl font-mono text-[11px] transition-all">
                 {/* Start Color picker */}
-                <div className="space-y-2 pb-2.5 border-b border-white/5">
+                <div className="space-y-2 pb-2.5 border-b border-black/10 dark:border-white/5">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground flex items-center gap-1.5">
                       <div className="w-2 h-2 rounded-full bg-accent" />
@@ -458,7 +527,7 @@ const StyleTab = () => {
                     <span className="text-accent text-[10px] uppercase font-bold">{currentStart}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg border border-white/10 relative overflow-hidden shrink-0 shadow-lg" style={{ backgroundColor: currentStart }} />
+                    <div className="w-10 h-10 rounded-lg border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: currentStart }} />
                     <input
                       type="color"
                       value={currentStart}
@@ -469,7 +538,7 @@ const StyleTab = () => {
                 </div>
 
                 {/* End Color picker */}
-                <div className="space-y-2 pb-2.5 border-b border-white/5">
+                <div className="space-y-2 pb-2.5 border-b border-black/10 dark:border-white/5">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground flex items-center gap-1.5">
                       <div className="w-2 h-2 rounded-full bg-pink-400" />
@@ -478,7 +547,7 @@ const StyleTab = () => {
                     <span className="text-pink-400 text-[10px] uppercase font-bold">{currentEnd}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg border border-white/10 relative overflow-hidden shrink-0 shadow-lg" style={{ backgroundColor: currentEnd }} />
+                    <div className="w-10 h-10 rounded-lg border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: currentEnd }} />
                     <input
                       type="color"
                       value={currentEnd}
@@ -494,13 +563,13 @@ const StyleTab = () => {
                   <select
                     value={currentDir}
                     onChange={(e) => handleGradientCustomUpdate({ dir: e.target.value })}
-                    className="flex-1 max-w-[124px] bg-black/40 border border-white/10 rounded-lg text-white/95 px-2.5 py-1 text-[11px] outline-none hover:border-white/20 transition-all font-mono"
+                    className="flex-1 max-w-[124px] bg-white dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-lg text-foreground dark:text-white/95 px-2.5 py-1 text-[11px] outline-none hover:border-black/20 dark:hover:border-white/20 transition-all font-mono"
                   >
-                    <option className="bg-neutral-900" value="180deg">Top to Bottom</option>
-                    <option className="bg-neutral-900" value="90deg">Left to Right</option>
-                    <option className="bg-neutral-900" value="45deg">Diagonal Up</option>
-                    <option className="bg-neutral-900" value="135deg">Diagonal Down</option>
-                    <option className="bg-neutral-900" value="radial">Radial Circle</option>
+                    <option className="bg-neutral-100 dark:bg-neutral-900" value="180deg">Top to Bottom</option>
+                    <option className="bg-neutral-100 dark:bg-neutral-900" value="90deg">Left to Right</option>
+                    <option className="bg-neutral-100 dark:bg-neutral-900" value="45deg">Diagonal Up</option>
+                    <option className="bg-neutral-100 dark:bg-neutral-900" value="135deg">Diagonal Down</option>
+                    <option className="bg-neutral-100 dark:bg-neutral-900" value="radial">Radial Circle</option>
                   </select>
                 </div>
               </div>
@@ -510,95 +579,261 @@ const StyleTab = () => {
       </div>
 
       {/* Paper and text parameters */}
-      <div className="space-y-4 pt-1 border-t border-white/5">
+      <div className="space-y-4 pt-1 border-t border-black/10 dark:border-white/5">
         <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Paper & Text</span>
+        
+        {/* Segmented Control Selector for Document Color Type */}
+        <div className="grid grid-cols-2 bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/5 p-1 rounded-xl">
+          {/* Solid */}
+          <button
+            onClick={() => setPaperType('solid')}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-lg transition-all text-xs cursor-pointer font-mono",
+              paperType === 'solid'
+                ? "bg-white dark:bg-white/10 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+          >
+            Solid
+          </button>
+
+          {/* Gradient */}
+          <button
+            onClick={() => setPaperType('gradient')}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-lg transition-all text-xs cursor-pointer font-mono",
+              paperType === 'gradient'
+                ? "bg-white dark:bg-white/10 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+          >
+            Gradient
+          </button>
+        </div>
+
         <div className="space-y-3.5">
-          {/* Paper Presets */}
+          {/* Paper Solid vs Gradient Swatches Panel */}
           <div className="space-y-1.5">
             <span className="text-[10px] text-muted-foreground font-mono">Document Color</span>
-            <div className="flex flex-wrap gap-1.5 items-center">
-              {paperPresets.map((swatch, idx) => {
-                const isSelected = document.documentColor === swatch.value;
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      updateDocument(document.id, { documentColor: swatch.value });
-                      if (swatch.value === undefined) {
-                        setShowPaperColorPickerInline(false);
-                      }
-                    }}
-                    className={cn(
-                      "w-6 h-6 rounded-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden bg-white/5",
-                      isSelected ? "border-accent ring-2 ring-accent/20 scale-105" : "border-white/15 hover:border-white/30"
-                    )}
-                    style={swatch.value ? { backgroundColor: swatch.value } : undefined}
-                    title={swatch.name}
-                  >
-                    {!swatch.value && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="w-[18px] h-[1px] bg-red-500 rotate-45 transform origin-center" />
-                      </div>
-                    )}
-                    {isSelected && (
-                      <Check
-                        size={10}
+            
+            {paperType === 'solid' && (
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-3.5 items-center pt-1">
+                  {paperPresets.map((swatch, idx) => {
+                    const isSelected = document.documentColor === swatch.value;
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          updateDocument(document.id, { documentColor: swatch.value, documentColorType: 'solid' });
+                          if (swatch.value === undefined) {
+                            setShowPaperColorPickerInline(false);
+                          }
+                        }}
                         className={cn(
-                          "font-bold drop-shadow z-10",
-                          !swatch.value || swatch.value === '#ffffff'
-                            ? "text-slate-850"
-                            : "text-white"
+                          "w-7 h-7 rounded-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden bg-white/5 cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                          isSelected ? "scale-105" : ""
                         )}
-                      />
+                        style={{
+                          background: swatch.value || undefined,
+                          boxShadow: isSelected 
+                            ? `0 0 0 2px var(--background), 0 0 0 4px ${swatch.value || '#94a3b8'}` 
+                            : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
+                        }}
+                        title={swatch.name}
+                      >
+                        {!swatch.value && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="w-[20px] h-[1px] bg-red-500 rotate-45 transform origin-center" />
+                          </div>
+                        )}
+                        {isSelected && (
+                          <Check
+                            size={11}
+                            className={cn(
+                              "font-bold drop-shadow z-10",
+                              !swatch.value || swatch.value === '#ffffff' || swatch.value === '#fcfaf7' || swatch.value === '#f1f5f9'
+                                ? "text-slate-800 dark:text-slate-200"
+                                : "text-white"
+                            )}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+
+                  {/* Rainbow selector for custom document color */}
+                  <button
+                    onClick={() => setShowPaperColorPickerInline(!showPaperColorPickerInline)}
+                    className={cn(
+                      "w-7 h-7 rounded-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden group cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                      showPaperColorPickerInline ? "scale-105" : ""
                     )}
+                    style={{
+                      boxShadow: showPaperColorPickerInline 
+                        ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6' 
+                        : '0 0 0 2px var(--background), 0 0 0 4px var(--foreground)'
+                    }}
+                    title="Custom Paper Color"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 opacity-90 group-hover:opacity-100" />
+                    <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow" />
                   </button>
-                );
-              })}
+                </div>
 
-              {/* Rainbow selector for custom document color */}
-              <button
-                onClick={() => setShowPaperColorPickerInline(!showPaperColorPickerInline)}
-                className={cn(
-                  "w-6 h-6 rounded-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden group shadow-lg",
-                  showPaperColorPickerInline ? "border-accent ring-2 ring-accent/20 scale-105" : "border-white/15 hover:border-white/30"
+                {/* Custom inline paper color picker panel */}
+                {showPaperColorPickerInline && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="p-3 bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/5 rounded-xl space-y-2.5 overflow-hidden font-mono text-[11px] mt-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Custom Paper Color:</span>
+                      <span className="text-accent text-[10px] uppercase font-bold">{document.documentColor || '#ffffff'}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg border border-black dark:border-white relative overflow-hidden shrink-0" style={{ background: document.documentColor || '#ffffff' }} />
+                      <input
+                        type="color"
+                        value={document.documentColor || '#ffffff'}
+                        onChange={(e) => updateDocument(document.id, { documentColor: e.target.value, documentColorType: 'solid' })}
+                        className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded overflow-hidden"
+                      />
+                    </div>
+                  </motion.div>
                 )}
-                title="Custom Paper Color"
-              >
-                <div className="absolute inset-0 bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 opacity-90 group-hover:opacity-100" />
-                <CaretDown size={10} className="text-white relative z-10 font-bold drop-shadow" />
-              </button>
-            </div>
+              </div>
+            )}
 
-            {/* Custom inline paper color picker panel */}
-            {showPaperColorPickerInline && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className="p-3 bg-black/40 border border-white/5 rounded-xl space-y-2.5 overflow-hidden font-mono text-[11px] mt-2"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Custom Paper Color:</span>
-                  <span className="text-accent text-[10px] uppercase font-bold">{document.documentColor || '#ffffff'}</span>
+            {paperType === 'gradient' && (
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-3.5 items-center pt-1">
+                  {paperGradientPresets.map((swatch, idx) => {
+                    const isSelected = paperStart.toLowerCase() === swatch.start.toLowerCase() &&
+                      paperEnd.toLowerCase() === swatch.end.toLowerCase();
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          handlePaperGradientPresetSelect(swatch);
+                        }}
+                        className={cn(
+                          "w-7 h-7 rounded-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                          isSelected ? "scale-105" : ""
+                        )}
+                        style={{ 
+                          background: swatch.dir,
+                          boxShadow: isSelected 
+                            ? `0 0 0 2px var(--background), 0 0 0 4px ${swatch.start}` 
+                            : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
+                        }}
+                        title={swatch.name}
+                      >
+                        {isSelected && (
+                          <Check
+                            size={11}
+                            className={cn(
+                              "font-bold drop-shadow z-10",
+                              swatch.start === '#ffffff'
+                                ? "text-slate-800 dark:text-slate-200"
+                                : "text-white"
+                            )}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+
+                  {/* Rainbow arrow circle inline picker toggle for gradient */}
+                  <button
+                    onClick={() => setShowPaperGradientPickerInline(!showPaperGradientPickerInline)}
+                    className={cn(
+                      "w-7 h-7 rounded-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden group cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                      showPaperGradientPickerInline ? "scale-105" : ""
+                    )}
+                    style={{
+                      boxShadow: showPaperGradientPickerInline 
+                        ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6' 
+                        : '0 0 0 2px var(--background), 0 0 0 4px var(--foreground)'
+                    }}
+                    title="Custom Paper Gradient"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 opacity-90 group-hover:opacity-100" />
+                    <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow" />
+                  </button>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg border border-white/10 relative overflow-hidden shrink-0 shadow-lg" style={{ backgroundColor: document.documentColor || '#ffffff' }} />
-                  <input
-                    type="color"
-                    value={document.documentColor || '#ffffff'}
-                    onChange={(e) => updateDocument(document.id, { documentColor: e.target.value })}
-                    className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded overflow-hidden"
-                  />
-                </div>
-              </motion.div>
+
+                {/* Custom paper gradient picker inputs */}
+                {showPaperGradientPickerInline && (
+                  <div className="space-y-4 p-3 bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/5 rounded-xl font-mono text-[11px] transition-all">
+                    {/* Start Color picker */}
+                    <div className="space-y-2 pb-2.5 border-b border-black/10 dark:border-white/5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full bg-accent" />
+                          Start Color
+                        </span>
+                        <span className="text-accent text-[10px] uppercase font-bold">{paperStart}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: paperStart }} />
+                        <input
+                          type="color"
+                          value={paperStart}
+                          onChange={(e) => handlePaperGradientCustomUpdate({ start: e.target.value })}
+                          className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded overflow-hidden"
+                        />
+                      </div>
+                    </div>
+
+                    {/* End Color picker */}
+                    <div className="space-y-2 pb-2.5 border-b border-black/10 dark:border-white/5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full bg-pink-400" />
+                          End Color
+                        </span>
+                        <span className="text-pink-400 text-[10px] uppercase font-bold">{paperEnd}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: paperEnd }} />
+                        <input
+                          type="color"
+                          value={paperEnd}
+                          onChange={(e) => handlePaperGradientCustomUpdate({ end: e.target.value })}
+                          className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded overflow-hidden"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Direction picker */}
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-muted-foreground">Direction</span>
+                      <select
+                        value={paperDir}
+                        onChange={(e) => handlePaperGradientCustomUpdate({ dir: e.target.value })}
+                        className="flex-1 max-w-[124px] bg-white dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-lg text-foreground dark:text-white/95 px-2.5 py-1 text-[11px] outline-none hover:border-black/20 dark:hover:border-white/20 transition-all font-mono"
+                      >
+                        <option value="180deg">Top to Bottom</option>
+                        <option value="90deg">Left to Right</option>
+                        <option value="45deg">Diagonal Up</option>
+                        <option value="135deg">Diagonal Down</option>
+                        <option value="radial">Radial Circle</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
           {/* Text Color presets */}
           <div className="space-y-1.5">
             <span className="text-[10px] text-muted-foreground font-mono">Text Color</span>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-3.5">
               {textPresets.map((swatch, idx) => {
                 const isSelected = document.textColor === swatch.value;
                 return (
@@ -606,24 +841,29 @@ const StyleTab = () => {
                     key={idx}
                     onClick={() => updateDocument(document.id, { textColor: swatch.value })}
                     className={cn(
-                      "w-6 h-6 rounded-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden bg-white/5",
-                      isSelected ? "border-accent ring-2 ring-accent/20 scale-105" : "border-white/15 hover:border-white/30"
+                      "w-7 h-7 rounded-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden bg-white/5 cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                      isSelected ? "scale-105" : ""
                     )}
-                    style={swatch.value ? { backgroundColor: swatch.value } : undefined}
+                    style={{
+                      backgroundColor: swatch.value || undefined,
+                      boxShadow: isSelected 
+                        ? `0 0 0 2px var(--background), 0 0 0 4px ${swatch.value || '#94a3b8'}` 
+                        : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
+                    }}
                     title={swatch.name}
                   >
                     {!swatch.value && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="w-[18px] h-[1px] bg-red-500 rotate-45 transform origin-center" />
+                        <div className="w-[20px] h-[1px] bg-red-500 rotate-45 transform origin-center" />
                       </div>
                     )}
                     {isSelected && (
                       <Check
-                        size={10}
+                        size={11}
                         className={cn(
                           "font-bold drop-shadow z-10",
                           !swatch.value || swatch.value === '#ffffff'
-                            ? "text-slate-850"
+                            ? "text-slate-800 dark:text-slate-200"
                             : "text-white"
                         )}
                       />
@@ -636,9 +876,9 @@ const StyleTab = () => {
         </div>
       </div>
 
-      <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl">
-        <p className="text-[10px] text-muted-foreground/80 leading-relaxed font-mono">
-          <strong>Tip:</strong> Immersive mode outputs beautiful high-vibrancy backdrops. Use faded mode for sweet, low-contrast pastel visual layouts.
+      <div className="p-3 bg-black/5 dark:bg-white/[0.02] border border-black/10 dark:border-white/5 rounded-xl">
+        <p className="text-[10px] text-muted-foreground leading-relaxed font-mono">
+          <strong>Tip:</strong> Create sophisticated document styles. Combine gradients for backdrops and documents to achieve stunning custom visual templates.
         </p>
       </div>
     </div>

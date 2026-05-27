@@ -64,7 +64,7 @@ const CreatedTodayItem = ({ docId, paneId }: { docId: string; paneId: string }) 
       className="neu-flat border border-border p-4 rounded-xl flex flex-col gap-3 group relative shadow-none min-h-[120px] cursor-pointer hover:bg-muted transition-colors"
     >
       <div className="flex items-center gap-2">
-        <span className="bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium border">
+        <span className="bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-400 border border-blue-300 dark:border-blue-500/30 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium border">
           <FileText size={12} weight="fill" /> Page
         </span>
       </div>
@@ -76,7 +76,7 @@ const CreatedTodayItem = ({ docId, paneId }: { docId: string; paneId: string }) 
           {doc.tags.map((tag) => (
             <span
               key={tag}
-              className="bg-emerald-500/10 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 dark:border-emerald-900/30 text-[10px] px-2 py-0.5 rounded border"
+              className="bg-emerald-100 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-900/30 text-[10px] px-2 py-0.5 rounded border"
             >
               {tag}
             </span>
@@ -105,8 +105,8 @@ const MonthViewItem = ({ docId, onClick }: { docId: string; onClick: () => void 
       className="p-4 rounded-xl border border-border bg-muted hover:bg-muted/80 transition-colors duration-150 cursor-pointer group flex flex-col gap-4 min-h-[260px]"
     >
       <div className="flex items-center gap-2 mb-1">
-        <span className="text-[10px] pr-2 font-medium text-blue-600 dark:text-blue-400 bg-blue-500/10 dark:bg-blue-500/20 py-0.5 rounded border border-blue-500/20 dark:border-blue-500/30 flex items-center gap-1 w-fit whitespace-nowrap border">
-          <div className="bg-blue-500/10 dark:bg-blue-500/20 p-1 rounded-sm ml-0.5 border border-blue-500/20 dark:border-blue-500/30">
+        <span className="text-[10px] pr-2 font-medium text-blue-800 dark:text-blue-400 bg-blue-100 dark:bg-blue-500/20 py-0.5 rounded border border-blue-300 dark:border-blue-500/30 flex items-center gap-1 w-fit whitespace-nowrap border">
+          <div className="bg-blue-200/50 dark:bg-blue-500/20 p-1 rounded-sm ml-0.5 border border-blue-300 dark:border-blue-500/30">
             <CalendarBlank size={12} weight="fill" />
           </div>{" "}
           Daily Note
@@ -124,7 +124,7 @@ const MonthViewItem = ({ docId, onClick }: { docId: string; onClick: () => void 
         {doc.title && (
           <div className="flex items-center gap-2 mb-2">
             <div className="flex items-center gap-2 text-sm font-bold text-foreground overflow-hidden text-ellipsis whitespace-nowrap">
-              <div className="bg-rose-500/15 text-rose-600 dark:text-rose-400 p-1.5 rounded border border-rose-500/20">
+              <div className="bg-rose-200/80 text-rose-900 dark:text-rose-400 p-1.5 rounded border border-rose-400 dark:border-rose-300">
                 <FileText size={12} weight="fill" />
               </div>
               {doc.title}
@@ -238,7 +238,7 @@ const WeekViewItem = ({ date, formattedId, setView, setSelectedDate, onOpenFullE
             {formatDisplayDate(date.toISOString(), "EEEE")}
           </span>
           {isMockToday && (
-            <span className="bg-rose-500/10 text-rose-600 dark:text-rose-300 text-xs px-2 py-0.5 rounded font-medium border border-rose-500/20">
+            <span className="bg-rose-200 text-rose-900 dark:text-rose-300 text-xs px-2 py-0.5 rounded font-medium border border-rose-400/80 dark:border-rose-300">
               Today
             </span>
           )}
@@ -277,7 +277,7 @@ const WeekViewItem = ({ date, formattedId, setView, setSelectedDate, onOpenFullE
           {doc.title && (
             <div className="flex items-center justify-between pt-1">
               <div className="flex items-center gap-3">
-                <div className="bg-rose-500/15 text-rose-600 dark:text-rose-400 p-1.5 rounded-lg border border-rose-500/20">
+                <div className="bg-rose-200/80 text-rose-900 dark:text-rose-400 p-1.5 rounded-lg border border-rose-400 dark:border-rose-300">
                   <FileText size={16} weight="fill" />
                 </div>
                 <span className="text-foreground font-bold">
@@ -379,7 +379,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
             "p-1 cursor-pointer hover:bg-muted flex items-center justify-center aspect-square relative transition-colors text-sm",
             !isSelectedMonth ? "text-muted-foreground/30" : "text-foreground",
             isSelected
-              ? "bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30 dark:border-rose-500/20 shadow-[0_0_12px_rgba(244,63,94,0.15)] hover:bg-rose-500/30 font-bold"
+              ? "bg-rose-200/90 dark:bg-rose-500/20 text-rose-900 dark:text-rose-300 border border-rose-400 dark:border-rose-500/20 shadow-[0_0_12px_rgba(244,63,94,0.15)] hover:bg-rose-300 dark:hover:bg-rose-500/30 font-bold"
               : "",
           )}
           style={{ borderRadius: isSelected ? "9999px" : undefined }}
@@ -431,15 +431,15 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
               ] as const).map(({ name: v, color }) => {
                 const schemeClasses = {
                   purple: {
-                    active: "bg-purple-500/10 text-purple-600 dark:text-purple-300 ring-1 ring-purple-500/20 font-semibold shadow-inner",
+                    active: "bg-purple-700 dark:bg-purple-500/10 text-white dark:text-purple-300 ring-1 ring-purple-700 dark:ring-purple-500/20 font-semibold shadow-inner",
                     inactive: "text-muted-foreground hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-500/5",
                   },
                   sky: {
-                    active: "bg-sky-500/10 text-sky-600 dark:text-sky-300 ring-1 ring-sky-500/20 font-semibold shadow-inner",
+                    active: "bg-sky-700 dark:bg-sky-500/10 text-white dark:text-sky-300 ring-1 ring-sky-700 dark:ring-sky-500/20 font-semibold shadow-inner",
                     inactive: "text-muted-foreground hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-500/5",
                   },
                   amber: {
-                    active: "bg-amber-500/10 text-amber-600 dark:text-amber-300 ring-1 ring-amber-500/20 font-semibold shadow-inner",
+                    active: "bg-amber-700 dark:bg-amber-500/10 text-white dark:text-amber-300 ring-1 ring-amber-700 dark:ring-amber-500/20 font-semibold shadow-inner",
                     inactive: "text-muted-foreground hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-500/5",
                   },
                 }[color];
@@ -497,8 +497,8 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                 className={cn(
                   "transition-all p-2 rounded-lg border",
                   isCalendarOpen
-                    ? "bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20 shadow-inner"
-                    : "border-transparent text-muted-foreground hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/5",
+                    ? "bg-rose-200/90 text-rose-900 dark:bg-rose-500/10 dark:text-rose-300 border-rose-400 shadow-inner hover:bg-rose-300"
+                    : "border-transparent text-muted-foreground hover:text-rose-800 dark:hover:text-rose-400 hover:bg-rose-500/5",
                 )}
               >
                 <CalendarBlank size={16} />
@@ -519,7 +519,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                     className={cn(
                       "px-4 py-1 rounded-full transition-all text-[13px] font-medium border duration-300",
                       isSelected
-                        ? "bg-cyan-500/10 text-cyan-600 dark:text-cyan-300 border-cyan-500/20 shadow-sm"
+                        ? "bg-cyan-100 text-cyan-800 dark:bg-cyan-500/10 dark:text-cyan-300 border-cyan-300 shadow-sm hover:bg-cyan-200"
                         : "text-muted-foreground hover:text-foreground border-transparent hover:bg-muted/50",
                     )}
                   >

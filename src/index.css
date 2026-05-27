@@ -32,16 +32,16 @@
   }
 
   html.light {
-    --background: #ffffff; /* Pristine pure white backdrop */
-    --foreground: #09090b;
+    --background: #f5f4f0; /* Soft warm parchment white, extremely easy on the eyes */
+    --foreground: #1a1917; /* Warm stone charcoal black, avoiding high-contrast eye strain */
     
-    --muted: #f1f1f4; /* Contrastful light matte gray for containers */
-    --muted-foreground: #4b5563; /* Slate-600 for highly legible dark text */
+    --muted: #ebeae6; /* Soft warm stone container backdrop */
+    --muted-foreground: #504f4d; /* Warm slate legible text */
     
-    --border: #d1d5db; /* High-contrast Gray-300 borders */
+    --border: #e2e1dd; /* Soft warm stone borders */
     
-    --accent: #0f172a; /* Deep slate slate-900 */
-    --accent-foreground: #ffffff;
+    --accent: #1a1917; 
+    --accent-foreground: #f5f4f0;
   }
 }
 

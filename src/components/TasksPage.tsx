@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useTaskStore, type Task } from "@/src/store/taskStore";
 import { useSettingsStore } from "@/src/store/settingsStore";
 import { cn } from "@/src/lib/utils";
@@ -17,6 +18,9 @@ import {
   Target,
   ArrowCircleRight,
   Trash,
+  CircleDashed,
+  Clock,
+  CheckCircle,
 } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "motion/react";
 import { NotempleEditor } from "./editor/NotempleEditor";
@@ -74,6 +78,8 @@ const CustomDatePicker = ({
   }, [onOpenChange]);
 
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (
         containerRef.current &&
@@ -89,7 +95,7 @@ const CustomDatePicker = ({
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("touchstart", handleClickOutside);
     };
-  }, []);
+  }, [isOpen]);
 
   const handleDayClick = (d: Date) => {
     onChange(toUtcString(d));
@@ -231,6 +237,128 @@ const CustomDatePicker = ({
   );
 };
 
+const STATUS_OPTIONS = [
+  {
+    value: "open",
+    label: "Open",
+    color: "bg-sky-100 hover:bg-sky-200/80 dark:bg-sky-500/10 text-sky-800 dark:text-sky-300 border-sky-400/80 dark:border-sky-500/20",
+    icon: CircleDashed,
+  },
+  {
+    value: "in progress",
+    label: "In Progress",
+    color: "bg-amber-100 hover:bg-amber-200/80 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-400/80 dark:border-amber-500/20",
+    icon: Clock,
+  },
+  {
+    value: "done",
+    label: "Done",
+    color: "bg-emerald-100 hover:bg-emerald-200/80 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-400/80 dark:border-emerald-500/20",
+    icon: CheckCircle,
+  },
+] as const;
+
+const CustomStatusPicker = ({
+  status,
+  onChange,
+  onOpenChange,
+}: {
+  status: "open" | "in progress" | "done";
+  onChange: (val: "open" | "in progress" | "done") => void;
+  onOpenChange?: (isOpen: boolean) => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const onOpenChangeRef = useRef(onOpenChange);
+  useEffect(() => {
+    onOpenChangeRef.current = onOpenChange;
+  }, [onOpenChange]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+        onOpenChangeRef.current?.(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const toggleOpen = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    e?.preventDefault();
+    const nextOpen = !isOpen;
+    setIsOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  };
+
+  const currentOption = STATUS_OPTIONS.find((o) => o.value === status) || STATUS_OPTIONS[0];
+  const Icon = currentOption.icon;
+
+  return (
+    <div className="relative font-sans animate-none" ref={containerRef}>
+      <button
+        type="button"
+        onClick={toggleOpen}
+        className={cn(
+          "flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded border transition-all duration-150 hover:opacity-90 shadow-sm cursor-pointer",
+          currentOption.color,
+        )}
+      >
+        <Icon size={12} weight="bold" /> {currentOption.label}
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 5 }}
+            className="absolute top-full right-0 mt-1.5 w-32 bg-background border border-border rounded-xl shadow-2xl p-1 z-[60] flex flex-col gap-0.5 origin-top-right font-sans"
+          >
+            {STATUS_OPTIONS.map((option) => {
+              const OptIcon = option.icon;
+              const isSelected = option.value === status;
+              return (
+                <button
+                  type="button"
+                  key={option.value}
+                  className={cn(
+                    "flex items-center gap-2 w-full text-xs font-semibold px-3 py-2 rounded-lg text-left transition-colors cursor-pointer",
+                    isSelected
+                      ? option.color
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChange(option.value);
+                    setIsOpen(false);
+                    onOpenChange?.(false);
+                  }}
+                >
+                  <OptIcon size={14} weight={isSelected ? "bold" : "regular"} />
+                  {option.label}
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 export const TasksPage = ({ paneId }: { paneId: string }) => {
   const tasks = useTaskStore(state => state.tasks) || [];
   const addTask = useTaskStore(state => state.addTask);
@@ -290,7 +418,7 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
         <div className="flex items-center gap-4 mb-2">
           <button
             onClick={() => setIsTaskInputOpen(true)}
-            className="w-10 h-10 rounded-xl border border-purple-200/80 dark:border-purple-900/40 bg-purple-50/80 dark:bg-purple-950/25 text-purple-600 dark:text-purple-300 flex items-center justify-center hover:bg-purple-100/80 dark:hover:bg-purple-950/40 hover:text-purple-700 dark:hover:text-purple-200 transition-all shadow-sm hover:scale-105 active:scale-95"
+            className="w-10 h-10 rounded-xl border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer"
           >
             <PlusCircle size={20} weight="fill" />
           </button>
@@ -423,7 +551,7 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
                 </div>
                 <button
                   onClick={handleCreateTask}
-                  className="bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/20 shadow-sm text-[13px] font-bold px-5 py-2 rounded-xl transition-all"
+                  className="bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-500/10 dark:hover:bg-purple-500/20 dark:text-purple-300 border border-purple-600 dark:border-purple-500/20 shadow-sm text-[13px] font-bold px-5 py-2 rounded-xl transition-all cursor-pointer"
                 >
                   Create Task
                 </button>
@@ -455,15 +583,15 @@ const TabButton = ({
 }) => {
   const schemeClasses = {
     amber: {
-      active: "bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/30 dark:border-amber-500/20 shadow-inner",
+      active: "bg-amber-200/90 dark:bg-amber-500/10 text-amber-900 dark:text-amber-300 border-amber-500/80 dark:border-amber-500/20 shadow-inner hover:bg-amber-300/70 dark:hover:bg-amber-500/20",
       indicator: "bg-amber-500 dark:bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.5)]"
     },
     sky: {
-      active: "bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/30 dark:border-sky-500/20 shadow-inner",
+      active: "bg-sky-200/90 dark:bg-sky-500/10 text-sky-900 dark:text-sky-300 border-sky-500/80 dark:border-sky-500/20 shadow-inner hover:bg-sky-300/70 dark:hover:bg-sky-500/20",
       indicator: "bg-sky-500 dark:bg-sky-400 shadow-[0_0_8px_rgba(14,165,233,0.5)]"
     },
     purple: {
-      active: "bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/30 dark:border-purple-500/20 shadow-inner",
+      active: "bg-purple-200/90 dark:bg-purple-500/10 text-purple-900 dark:text-purple-300 border-purple-500/80 dark:border-purple-500/20 shadow-inner hover:bg-purple-300/70 dark:hover:bg-purple-500/20",
       indicator: "bg-purple-500 dark:bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.5)]"
     }
   }[colorScheme];
@@ -572,6 +700,12 @@ const TaskRow = React.memo(({
             onChange={(v: string) => updateTask(task.id, { deadline: v })}
             placeholder="Deadline"
             icon={<Flag size={12} />}
+            onOpenChange={onDatePickerOpenChange}
+          />
+
+          <CustomStatusPicker
+            status={task.status || (task.completed ? "done" : "open")}
+            onChange={(s: "open" | "in progress" | "done") => updateTask(task.id, { status: s })}
             onOpenChange={onDatePickerOpenChange}
           />
         </div>

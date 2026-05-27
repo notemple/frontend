@@ -22,6 +22,10 @@ export interface NoteDocument {
   backdropGradientEnd?: string;
   backdropGradientDirection?: string;
   documentColor?: string;
+  documentColorType?: 'solid' | 'gradient';
+  documentGradientStart?: string;
+  documentGradientEnd?: string;
+  documentGradientDirection?: string;
   textColor?: string;
   color?: string;
   fontFamily?: string;

@@ -114,6 +114,57 @@ export const NotempleEditor = ({
     textColor: document?.textColor
   };
 
+  const hasCustomStyle = !!(localStyle.backdropColor || localStyle.documentColor || localStyle.textColor);
+
+  // Smart dynamic text color contrast resolver
+  const activeTextColor = useMemo(() => {
+    if (localStyle.textColor) return localStyle.textColor;
+    if (!hasCustomStyle) return 'var(--foreground)';
+    if (!localStyle.documentColor) return '#111827'; // Default light beige paper
+
+    const clean = localStyle.documentColor.toLowerCase();
+    
+    // Check if it's a gradient
+    if (clean.includes('gradient')) {
+      // If it contains dark colors/gradients, it is dark paper
+      if (
+        clean.includes('#09090b') || clean.includes('#18181b') ||
+        clean.includes('#1c1c1e') || clean.includes('#0f172a') ||
+        clean.includes('#1a1740') || clean.includes('#121214') ||
+        clean.includes('#1e293b') || clean.includes('#1f1b40') ||
+        clean.includes('#0b2e24') || clean.includes('#041410') ||
+        clean.includes('#300f4f') || clean.includes('#18052b') ||
+        clean.includes('#420d0d') || clean.includes('#1f0404') ||
+        clean.includes('#07241c') || clean.includes('#24053e') ||
+        clean.includes('#2d0505')
+      ) {
+        return '#ffffff';
+      }
+      return '#111827';
+    }
+    
+    // Check solid hex brightness
+    if (clean.startsWith('#')) {
+      const hex = clean.substring(1);
+      if (hex.length === 3 || hex.length === 6) {
+        const r = parseInt(hex.length === 3 ? hex[0] + hex[0] : hex.substring(0, 2), 16);
+        const g = parseInt(hex.length === 3 ? hex[1] + hex[1] : hex.substring(2, 4), 16);
+        const b = parseInt(hex.length === 3 ? hex[2] + hex[2] : hex.substring(4, 6), 16);
+        const brightness = Math.sqrt(0.299 * r * r + 0.587 * g * g + 0.114 * b * b);
+        return brightness < 130 ? '#ffffff' : '#111827';
+      }
+    }
+    
+    return '#111827';
+  }, [localStyle.textColor, localStyle.documentColor, hasCustomStyle]);
+
+  // Derived muted color
+  const activeMutedColor = useMemo(() => {
+    if (localStyle.textColor) return localStyle.textColor;
+    if (!hasCustomStyle) return 'var(--muted-foreground)';
+    return activeTextColor === '#ffffff' ? '#9ca3af' : '#4b5563';
+  }, [localStyle.textColor, activeTextColor, hasCustomStyle]);
+
   useEffect(() => {
     if (document) {
       if (document.title !== title) {
@@ -175,7 +226,7 @@ export const NotempleEditor = ({
             : 'text-foreground prose-headings:text-foreground hover:prose-a:text-foreground prose-a:text-muted-foreground prose-strong:text-foreground prose-code:text-foreground prose-ol:text-foreground prose-ul:text-foreground prose-p:text-foreground/95'
         ),
         style: (localStyle.backdropColor || localStyle.textColor || localStyle.documentColor)
-          ? `color: ${localStyle.textColor || 'inherit'}; --tw-prose-body: ${localStyle.textColor || 'inherit'}; --tw-prose-headings: ${localStyle.textColor || 'inherit'}; --tw-prose-bold: ${localStyle.textColor || 'inherit'}; --tw-prose-links: ${localStyle.textColor || 'inherit'}; --tw-prose-quotes: ${localStyle.textColor || 'inherit'}; --tw-prose-code: ${localStyle.textColor || 'inherit'};`
+          ? `color: ${activeTextColor}; --tw-prose-body: ${activeTextColor}; --tw-prose-headings: ${activeTextColor}; --tw-prose-bold: ${activeTextColor}; --tw-prose-links: ${activeTextColor}; --tw-prose-quotes: ${activeTextColor}; --tw-prose-code: ${activeTextColor};`
           : ''
       },
       handleDrop: (view, event, slice, moved) => {
@@ -278,13 +329,13 @@ export const NotempleEditor = ({
                 : 'text-foreground prose-headings:text-foreground hover:prose-a:text-foreground prose-a:text-muted-foreground prose-strong:text-foreground prose-code:text-foreground prose-ol:text-foreground prose-ul:text-foreground prose-p:text-foreground/95'
             ),
             style: hasStyle
-              ? `color: ${localStyle.textColor || 'inherit'}; --tw-prose-body: ${localStyle.textColor || 'inherit'}; --tw-prose-headings: ${localStyle.textColor || 'inherit'}; --tw-prose-bold: ${localStyle.textColor || 'inherit'}; --tw-prose-links: ${localStyle.textColor || 'inherit'}; --tw-prose-quotes: ${localStyle.textColor || 'inherit'}; --tw-prose-code: ${localStyle.textColor || 'inherit'};`
+              ? `color: ${activeTextColor}; --tw-prose-body: ${activeTextColor}; --tw-prose-headings: ${activeTextColor}; --tw-prose-bold: ${activeTextColor}; --tw-prose-links: ${activeTextColor}; --tw-prose-quotes: ${activeTextColor}; --tw-prose-code: ${activeTextColor};`
               : ''
           }
         }
       });
     }
-  }, [editor, localStyle.backdropColor, localStyle.textColor, localStyle.documentColor]);
+  }, [editor, localStyle.backdropColor, localStyle.textColor, localStyle.documentColor, activeTextColor]);
 
 
 
@@ -322,7 +373,7 @@ export const NotempleEditor = ({
 
   if (!document) return <div className="p-8 text-muted-foreground">Document not found.</div>;
 
-  const hasCustomStyle = !!(localStyle.backdropColor || localStyle.documentColor || localStyle.textColor);
+
 
   return (
     <div
@@ -353,15 +404,15 @@ export const NotempleEditor = ({
             : cn("max-w-[900px] h-full", isMinimized ? "py-4 px-6" : "py-16 px-12")
         )}
         style={{
-          backgroundColor: localStyle.documentColor || (hasCustomStyle ? '#faf8f5' : 'var(--background)'),
-          color: localStyle.textColor || (hasCustomStyle ? '#111827' : 'var(--foreground)'),
+          background: localStyle.documentColor || (hasCustomStyle ? '#faf8f5' : 'var(--background)'),
+          color: activeTextColor,
           fontFamily: localStyle.fontFamily || undefined,
-          ['--tw-prose-body' as any]: localStyle.textColor || (hasCustomStyle ? '#111827' : 'var(--tw-prose-body)'),
-          ['--tw-prose-headings' as any]: localStyle.textColor || (hasCustomStyle ? '#111827' : 'var(--tw-prose-headings)'),
-          ['--tw-prose-links' as any]: localStyle.textColor || (hasCustomStyle ? '#111827' : 'var(--tw-prose-links)'),
-          ['--tw-prose-bold' as any]: localStyle.textColor || (hasCustomStyle ? '#111827' : 'var(--tw-prose-bold)'),
-          ['--tw-prose-quotes' as any]: localStyle.textColor || (hasCustomStyle ? '#111827' : 'var(--tw-prose-quotes)'),
-          ['--tw-prose-code' as any]: localStyle.textColor || (hasCustomStyle ? '#111827' : 'var(--tw-prose-code)'),
+          ['--tw-prose-body' as any]: activeTextColor,
+          ['--tw-prose-headings' as any]: activeTextColor,
+          ['--tw-prose-links' as any]: activeTextColor,
+          ['--tw-prose-bold' as any]: activeTextColor,
+          ['--tw-prose-quotes' as any]: activeTextColor,
+          ['--tw-prose-code' as any]: activeTextColor,
         }}
       >
         {hasCustomStyle && (
@@ -370,7 +421,7 @@ export const NotempleEditor = ({
 
         <div className={cn("relative z-10", isMinimized ? "mb-4 px-2" : "mb-12 px-[54px]")}>
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em]" style={{ color: localStyle.textColor || (hasCustomStyle ? '#4b5563' : 'var(--muted-foreground)') }}>
+            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em]" style={{ color: activeMutedColor }}>
               <span>{document.type}</span>
               <span>/</span>
               <span>{formatDisplayDate(document.updatedAt, "MMM d, yyyy")}</span>
@@ -392,11 +443,11 @@ export const NotempleEditor = ({
             {hasCustomStyle && (
               <div
                 className="w-7 h-7 rounded-lg border flex items-center justify-center shrink-0 opacity-40 hover:opacity-100 transition-opacity cursor-pointer shadow-sm"
-                style={{ borderColor: localStyle.textColor || '#111827' }}
+                style={{ borderColor: activeTextColor }}
               >
                 <div
                   className="w-3 h-3 rounded bg-current"
-                  style={{ backgroundColor: localStyle.textColor || '#111827' }}
+                  style={{ backgroundColor: activeTextColor }}
                 />
               </div>
             )}
@@ -407,7 +458,7 @@ export const NotempleEditor = ({
                 placeholder="Untitled Document"
                 className="text-5xl w-full font-medium font-content tracking-tight outline-none border-none bg-transparent pb-4 placeholder:placeholder-opacity-20"
                 style={{
-                  color: localStyle.textColor || (hasCustomStyle ? '#111827' : 'var(--foreground)'),
+                  color: activeTextColor,
                 }}
               />
             )}
@@ -416,12 +467,12 @@ export const NotempleEditor = ({
           <div className="mt-4 flex flex-wrap items-center gap-2 relative group/tags font-sans">
             {tags.map(tag => {
               const colors = [
-                { bg: "rgba(244,63,94,0.08)", border: "rgba(244,63,94,0.18)", text: "text-rose-600 dark:text-rose-300" },
-                { bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.18)", text: "text-amber-600 dark:text-amber-300" },
-                { bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.18)", text: "text-emerald-600 dark:text-emerald-300" },
-                { bg: "rgba(14,165,233,0.08)", border: "rgba(14,165,233,0.18)", text: "text-sky-600 dark:text-sky-300" },
-                { bg: "rgba(139,92,246,0.08)", border: "rgba(139,92,246,0.18)", text: "text-purple-600 dark:text-purple-300" },
-                { bg: "rgba(236,72,153,0.08)", border: "rgba(236,72,153,0.18)", text: "text-pink-600 dark:text-pink-300" }
+                { bg: "rgba(244,63,94,0.12)", border: "rgba(244,63,94,0.30)", text: "text-rose-700 dark:text-rose-300" },
+                { bg: "rgba(245,158,11,0.14)", border: "rgba(245,158,11,0.32)", text: "text-amber-800 dark:text-amber-300" },
+                { bg: "rgba(16,185,129,0.12)", border: "rgba(16,185,129,0.30)", text: "text-emerald-700 dark:text-emerald-300" },
+                { bg: "rgba(14,165,233,0.12)", border: "rgba(14,165,233,0.30)", text: "text-sky-700 dark:text-sky-300" },
+                { bg: "rgba(139,92,246,0.12)", border: "rgba(139,92,246,0.30)", text: "text-purple-700 dark:text-purple-300" },
+                { bg: "rgba(236,72,153,0.12)", border: "rgba(236,72,153,0.30)", text: "text-pink-700 dark:text-pink-300" }
               ];
               let hash = 0;
               for (let i = 0; i < tag.length; i++) {
@@ -458,8 +509,8 @@ export const NotempleEditor = ({
                   onClick={() => setShowTagsDropdown(!showTagsDropdown)}
                   className="flex items-center gap-1 bg-transparent border border-dashed text-xs px-3 py-1 transition-all font-mono"
                   style={{
-                    borderColor: hasCustomStyle ? 'rgba(0,0,0,0.2)' : 'var(--border)',
-                    color: localStyle.textColor || (hasCustomStyle ? '#6b7280' : 'var(--muted-foreground)')
+                    borderColor: hasCustomStyle ? (activeTextColor === '#ffffff' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)') : 'var(--border)',
+                    color: activeMutedColor
                   }}
                 >
                   <Tag size={12} />
@@ -473,8 +524,8 @@ export const NotempleEditor = ({
                     showTagsDropdown ? "opacity-100" : "opacity-0 group-hover/tags:opacity-100"
                   )}
                   style={{
-                    borderColor: hasCustomStyle ? 'rgba(0,0,0,0.2)' : 'var(--border)',
-                    color: localStyle.textColor || (hasCustomStyle ? '#6b7280' : 'var(--muted-foreground)')
+                    borderColor: hasCustomStyle ? (activeTextColor === '#ffffff' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)') : 'var(--border)',
+                    color: activeMutedColor
                   }}
                   title="Add Tag"
                 >
@@ -530,7 +581,7 @@ export const NotempleEditor = ({
             isMinimized ? "px-2" : "px-[54px]"
           )}
           style={{
-            color: localStyle.textColor || undefined,
+            color: activeTextColor,
             fontFamily: localStyle.fontFamily || undefined
           }}
         >

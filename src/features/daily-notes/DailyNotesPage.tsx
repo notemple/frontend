@@ -186,6 +186,27 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
 
   return (
     <div className="flex w-full h-full text-foreground bg-workspace overflow-hidden relative">
+      {/* Layered background radial gradients for butter-smooth color transitions */}
+      <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
+        <motion.div
+          className="absolute inset-0 bg-[radial-gradient(circle_at_75%_25%,rgba(168,85,247,0.06),transparent_60%)]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: view === "Month" ? 1 : 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        />
+        <motion.div
+          className="absolute inset-0 bg-[radial-gradient(circle_at_75%_25%,rgba(14,165,233,0.06),transparent_60%)]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: view === "Week" ? 1 : 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        />
+        <motion.div
+          className="absolute inset-0 bg-[radial-gradient(circle_at_75%_25%,rgba(245,158,11,0.06),transparent_60%)]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: view === "Day" ? 1 : 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        />
+      </div>
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar relative min-h-full">
         <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.01] to-transparent pointer-events-none" />
@@ -213,21 +234,27 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                   amber: "var(--active-tab-amber)",
                 }[color];
 
+                const activeTextColors = {
+                  purple: "text-purple-700 dark:text-purple-400 font-bold border-purple-200/30 dark:border-purple-500/10 shadow-[0_2px_10px_rgba(168,85,247,0.08)]",
+                  sky: "text-sky-700 dark:text-sky-400 font-bold border-sky-200/30 dark:border-sky-500/10 shadow-[0_2px_10px_rgba(14,165,233,0.08)]",
+                  amber: "text-amber-700 dark:text-amber-400 font-bold border-amber-200/30 dark:border-amber-500/10 shadow-[0_2px_10px_rgba(245,158,11,0.08)]",
+                }[color];
+
                 return (
                   <button
                     key={v}
                     onClick={() => setView(v as any)}
                     className={cn(
-                      "relative px-4 py-1.5 text-[13px] font-semibold rounded-lg transition-colors border border-transparent outline-none cursor-pointer",
+                      "relative px-4 py-1.5 text-[13px] font-semibold rounded-lg transition-all duration-300 border border-transparent outline-none cursor-pointer",
                       view === v
-                        ? "text-foreground"
+                        ? activeTextColors
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                     )}
                   >
                     {view === v && (
                       <motion.div
                         layoutId="activeDailyNotesViewBg"
-                        className="absolute inset-0 rounded-lg -z-10"
+                        className="absolute inset-0 rounded-lg -z-10 border"
                         style={{ backgroundColor: colorVars }}
                         transition={{ type: "spring", stiffness: 380, damping: 30 }}
                       />
@@ -312,355 +339,371 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
 
         {/* Content container */}
         <div className="px-8 pb-20 max-w-[900px] mx-auto w-full pt-10">
-          {view === "Month" ? (
-            <MonthViewPane
-              selectedDate={selectedDate}
-              setView={setView}
-              setSelectedDate={setSelectedDate}
-            />
-          ) : view === "Week" ? (
-            <div className="flex flex-col gap-12">
-              {Array.from({ length: 7 }).map((_, i) => {
-                const date = addDaysInTimezone(selectedDate, i, timezone);
-                const formattedId = formatInTimeZone(date, timezone, "yyyy-MM-dd");
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={view}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
+            >
+              {view === "Month" ? (
+                <MonthViewPane
+                  selectedDate={selectedDate}
+                  setView={setView}
+                  setSelectedDate={setSelectedDate}
+                />
+              ) : view === "Week" ? (
+                <div className="flex flex-col gap-12">
+                  {Array.from({ length: 7 }).map((_, i) => {
+                    const date = addDaysInTimezone(selectedDate, i, timezone);
+                    const formattedId = formatInTimeZone(date, timezone, "yyyy-MM-dd");
 
-                return (
-                  <WeekViewItem
-                    key={formattedId}
-                    date={date}
-                    formattedId={formattedId}
-                    setView={setView}
-                    setSelectedDate={setSelectedDate}
-                    onOpenFullEditor={(noteId) => {
-                      const dateStr = noteId.replace("daily-note-", "");
-                      const parsedDate = toDate(`${dateStr}T00:00:00`, { timeZone: timezone });
-                      setSelectedDate(parsedDate);
-                      setIsFullEditorOpen(true);
-                    }}
-                  />
-                );
-              })}
-            </div>
-          ) : (
-            <div className="flex flex-col gap-1 mb-8">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-rose-500 dark:text-rose-400 font-medium">
-                    {formatDisplayDate(selectedDate.toISOString(), "EEEE")}
-                  </span>
-                  {getZonedDate(selectedDate, timezone) === 17 && getZonedMonth(selectedDate, timezone) === 4 && (
-                    <span className="bg-rose-500/10 text-rose-600 dark:text-rose-300 text-xs px-2 py-0.5 rounded font-medium border border-rose-500/20">
-                      Today
-                    </span>
-                  )}
+                    return (
+                      <WeekViewItem
+                        key={formattedId}
+                        date={date}
+                        formattedId={formattedId}
+                        setView={setView}
+                        setSelectedDate={setSelectedDate}
+                        onOpenFullEditor={(noteId) => {
+                          const dateStr = noteId.replace("daily-note-", "");
+                          const parsedDate = toDate(`${dateStr}T00:00:00`, { timeZone: timezone });
+                          setSelectedDate(parsedDate);
+                          setIsFullEditorOpen(true);
+                        }}
+                      />
+                    );
+                  })}
                 </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <button
-                    onClick={() => setIsFullEditorOpen(true)}
-                    className="p-1 hover:text-foreground transition-colors cursor-pointer"
-                    title="Open in full editor"
-                  >
-                    <ArrowsOutSimple size={14} />
-                  </button>
-                  <button className="p-1 hover:text-foreground transition-colors">
-                    <DotsThree size={16} weight="bold" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-baseline gap-4 mt-2">
-                <h1 className="text-5xl font-bold tracking-tight">
-                  {formatDisplayDate(selectedDate.toISOString(), "MMMM d, yyyy")}
-                </h1>
-                <span className="text-muted-foreground font-medium text-lg">
-                  Week 20
-                </span>
-              </div>
-              <div className="text-foreground mt-4 mb-2 text-sm font-medium">
-                Daily note
-              </div>
-
-              {/* Use the NotempleEditor */}
-              <NotempleEditor
-                key={documentId}
-                documentId={documentId}
-                paneId={paneId}
-                isDailyNote={true}
-                isMinimized={true}
-              />
-            </div>
-          )}
-
-          {view === "Day" && (
-            <>
-              <div className="w-full h-px bg-border my-6" />
-
-              {/* Objects Section */}
-              <div className="flex flex-col gap-6">
-                {/* Created Today */}
-                <div>
-                  <div
-                    className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-lg transition-colors group"
-                    onClick={() => setIsCreatedTodayOpen(!isCreatedTodayOpen)}
-                  >
-                    <h2 className="text-sm font-medium text-foreground">
-                      Created Today
-                    </h2>
-                    <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
-                      {createdTodayCount}
-                    </span>
-                    <div className="flex-1" />
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                      <button className="p-1 hover:text-foreground transition-colors">
-                        <CalendarBlank size={14} />
-                      </button>
-                      <button className="p-1 hover:text-foreground transition-colors">
-                        {isCreatedTodayOpen ? (
-                          <CaretUp size={14} />
-                        ) : (
-                          <CaretDown size={14} />
+              ) : (
+                <>
+                  <div className="flex flex-col gap-1 mb-8">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-rose-500 dark:text-rose-400 font-medium">
+                          {formatDisplayDate(selectedDate.toISOString(), "EEEE")}
+                        </span>
+                        {getZonedDate(selectedDate, timezone) === 17 && getZonedMonth(selectedDate, timezone) === 4 && (
+                          <span className="bg-rose-500/10 text-rose-600 dark:text-rose-300 text-xs px-2 py-0.5 rounded font-medium border border-rose-500/20">
+                            Today
+                          </span>
                         )}
-                      </button>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <button
+                          onClick={() => setIsFullEditorOpen(true)}
+                          className="p-1 hover:text-foreground transition-colors cursor-pointer"
+                          title="Open in full editor"
+                        >
+                          <ArrowsOutSimple size={14} />
+                        </button>
+                        <button className="p-1 hover:text-foreground transition-colors">
+                          <DotsThree size={16} weight="bold" />
+                        </button>
+                      </div>
                     </div>
+
+                    <div className="flex items-baseline gap-4 mt-2">
+                      <h1 className="text-5xl font-bold tracking-tight">
+                        {formatDisplayDate(selectedDate.toISOString(), "MMMM d, yyyy")}
+                      </h1>
+                      <span className="text-muted-foreground font-medium text-lg">
+                        Week 20
+                      </span>
+                    </div>
+                    <div className="text-foreground mt-4 mb-2 text-sm font-medium">
+                      Daily note
+                    </div>
+
+                    {/* Use the NotempleEditor */}
+                    <NotempleEditor
+                      key={documentId}
+                      documentId={documentId}
+                      paneId={paneId}
+                      isDailyNote={true}
+                      isMinimized={true}
+                    />
                   </div>
 
-                  {isCreatedTodayOpen && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
-                      {objectsCreatedTodayIds.length === 0 && (
-                        <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-xl">
-                          No other documents created today.
+                  <div className="w-full h-px bg-border my-6" />
+
+                  {/* Objects Section */}
+                  <div className="flex flex-col gap-6">
+                    {/* Created Today */}
+                    <div>
+                      <div
+                        className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-lg transition-colors group"
+                        onClick={() => setIsCreatedTodayOpen(!isCreatedTodayOpen)}
+                      >
+                        <h2 className="text-sm font-medium text-foreground">
+                          Created Today
+                        </h2>
+                        <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
+                          {createdTodayCount}
+                        </span>
+                        <div className="flex-1" />
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <button className="p-1 hover:text-foreground transition-colors">
+                            <CalendarBlank size={14} />
+                          </button>
+                          <button className="p-1 hover:text-foreground transition-colors">
+                            {isCreatedTodayOpen ? (
+                              <CaretUp size={14} />
+                            ) : (
+                              <CaretDown size={14} />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      {isCreatedTodayOpen && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+                          {objectsCreatedTodayIds.length === 0 && (
+                            <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-xl">
+                              No other documents created today.
+                            </div>
+                          )}
+                          {objectsCreatedTodayIds.map((id) => (
+                            <CreatedTodayItem
+                              key={id}
+                              docId={id}
+                              paneId={paneId}
+                            />
+                          ))}
                         </div>
                       )}
-                      {objectsCreatedTodayIds.map((id) => (
-                        <CreatedTodayItem
-                          key={id}
-                          docId={id}
-                          paneId={paneId}
-                        />
-                      ))}
                     </div>
-                  )}
-                </div>
 
-                {/* Updated Today */}
-                <div>
-                  <div
-                    className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-lg transition-colors group"
-                    onClick={() => setIsUpdatedTodayOpen(!isUpdatedTodayOpen)}
-                  >
-                    <h2 className="text-sm font-medium text-foreground">
-                      Updated Today
-                    </h2>
-                    <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
-                      {updatedTodayCount}
-                    </span>
-                    <div className="flex-1" />
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                      <button className="p-1 hover:text-foreground transition-colors">
-                        <CalendarBlank size={14} />
-                      </button>
-                      <button className="p-1 hover:text-foreground transition-colors">
-                        {isUpdatedTodayOpen ? (
-                          <CaretUp size={14} />
-                        ) : (
-                          <CaretDown size={14} />
-                        )}
-                      </button>
-                    </div>
-                  </div>
+                    {/* Updated Today */}
+                    <div>
+                      <div
+                        className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-lg transition-colors group"
+                        onClick={() => setIsUpdatedTodayOpen(!isUpdatedTodayOpen)}
+                      >
+                        <h2 className="text-sm font-medium text-foreground">
+                          Updated Today
+                        </h2>
+                        <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
+                          {objectsUpdatedTodayIds.length}
+                        </span>
+                        <div className="flex-1" />
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <button className="p-1 hover:text-foreground transition-colors">
+                            <CalendarBlank size={14} />
+                          </button>
+                          <button className="p-1 hover:text-foreground transition-colors">
+                            {isUpdatedTodayOpen ? (
+                              <CaretUp size={14} />
+                            ) : (
+                              <CaretDown size={14} />
+                            )}
+                          </button>
+                        </div>
+                      </div>
 
-                  {isUpdatedTodayOpen && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
-                      {objectsUpdatedTodayIds.length === 0 && (
-                        <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-xl">
-                          No other documents updated today.
+                      {isUpdatedTodayOpen && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+                          {objectsUpdatedTodayIds.length === 0 && (
+                            <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-xl">
+                              No other documents updated today.
+                            </div>
+                          )}
+                          {objectsUpdatedTodayIds.map((id) => (
+                            <CreatedTodayItem
+                              key={id}
+                              docId={id}
+                              paneId={paneId}
+                            />
+                          ))}
                         </div>
                       )}
-                      {objectsUpdatedTodayIds.map((id) => (
-                        <CreatedTodayItem
-                          key={id}
-                          docId={id}
-                          paneId={paneId}
-                        />
-                      ))}
                     </div>
-                  )}
-                </div>
-              </div>
 
-              <div className="flex flex-col mt-10 gap-6">
-                {/* Tasks Created Today */}
-                <div className="flex flex-col">
-                  <div
-                    className="flex items-center gap-2 mb-2 cursor-pointer group select-none py-1 -mx-2 px-2 hover:bg-muted rounded-lg transition-colors"
-                    onClick={() => setIsTasksCreatedOpen(!isTasksCreatedOpen)}
-                  >
-                    <h2 className="text-sm font-medium text-foreground">
-                      Today's tasks (Created)
-                    </h2>
-                    <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
-                      {tasks.filter((t) => isSameDayString(t.createdAt, formattedDateId)).length}
-                    </span>
-                    <div className="flex-1" />
-                    <button className="text-muted-foreground group-hover:text-foreground transition-colors p-1">
-                      {isTasksCreatedOpen ? (
-                        <CaretUp size={14} />
-                      ) : (
-                        <CaretDown size={14} />
-                      )}
-                    </button>
-                  </div>
+                    {/* Tasks Created Today */}
+                    <div>
+                      <div
+                        className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-lg transition-colors group"
+                        onClick={() => setIsTasksCreatedOpen(!isTasksCreatedOpen)}
+                      >
+                        <h2 className="text-sm font-medium text-foreground">
+                          Tasks Created Today
+                        </h2>
+                        <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
+                          {tasks.filter((t) => isSameDayString(t.createdAt, formattedDateId)).length}
+                        </span>
+                        <div className="flex-1" />
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <button className="p-1 hover:text-foreground transition-colors">
+                            <CalendarBlank size={14} />
+                          </button>
+                          <button className="p-1 hover:text-foreground transition-colors">
+                            {isTasksCreatedOpen ? (
+                              <CaretUp size={14} />
+                            ) : (
+                              <CaretDown size={14} />
+                            )}
+                          </button>
+                        </div>
+                      </div>
 
-                  {isTasksCreatedOpen && (
-                    <div className="flex flex-col gap-2 mb-4">
-                      {tasks
-                        .filter((t) => isSameDayString(t.createdAt, formattedDateId))
-                        .map((task) => (
-                          <div
-                            key={task.id}
-                            className="flex items-center justify-between group relative hover:bg-muted pl-2 pr-2 py-1 -mx-2 rounded transition-colors"
-                          >
-                            <div className="flex items-center gap-3">
+                      {isTasksCreatedOpen && (
+                        <div className="flex flex-col gap-2 mb-4">
+                          {tasks
+                            .filter((t) => isSameDayString(t.createdAt, formattedDateId))
+                            .map((task) => (
                               <div
-                                className={cn(
-                                  "w-5 h-5 shrink-0 rounded-[4px] border transition-colors flex items-center justify-center cursor-pointer min-w-[20px]",
-                                  task.completed
-                                    ? "bg-purple-500 border-purple-500 text-white"
-                                    : "border-border hover:border-muted-foreground",
-                                )}
-                                onClick={() =>
-                                  updateTask(task.id, {
-                                    completed: !task.completed,
-                                  })
-                                }
-                              />
-                              <span
-                                className={cn(
-                                  "text-sm font-medium transition-colors",
-                                  task.completed
-                                    ? "line-through text-muted-foreground"
-                                    : "text-foreground",
-                                )}
+                                key={task.id}
+                                className="flex items-center justify-between group relative hover:bg-muted pl-2 pr-2 py-1 -mx-2 rounded transition-colors"
                               >
-                                {task.title}
-                              </span>
-                              {task.deadline && (
-                                <span className="text-xs text-muted-foreground border border-border rounded px-2 py-0.5 bg-muted ml-2">
-                                  Deadline: {formatDisplayDate(task.deadline, "MMM d")}
-                                </span>
-                              )}
+                                <div className="flex items-center gap-3">
+                                  <div
+                                    className={cn(
+                                      "w-5 h-5 shrink-0 rounded-sm border transition-colors flex items-center justify-center cursor-pointer min-w-[20px]",
+                                      task.completed
+                                        ? "bg-purple-500 border-purple-500 text-white"
+                                        : "border-border hover:border-muted-foreground",
+                                    )}
+                                    onClick={() =>
+                                      updateTask(task.id, {
+                                        completed: !task.completed,
+                                      })
+                                    }
+                                  />
+                                  <span
+                                    className={cn(
+                                      "text-sm font-medium transition-colors",
+                                      task.completed
+                                        ? "line-through text-muted-foreground"
+                                        : "text-foreground",
+                                    )}
+                                  >
+                                    {task.title}
+                                  </span>
+                                  {task.deadline && (
+                                    <span className="text-xs text-muted-foreground border border-border rounded px-2 py-0.5 bg-muted ml-2">
+                                      Deadline: {formatDisplayDate(task.deadline, "MMM d")}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    onClick={() => deleteTask(task.id)}
+                                    className="text-muted-foreground hover:text-red-400 transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
+                                  >
+                                    <Trash size={16} />
+                                  </button>
+                                  <button
+                                    onClick={() => setEditingTaskId(task.id)}
+                                    className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
+                                  >
+                                    <ArrowCircleRight size={16} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          {tasks.filter((t) => isSameDayString(t.createdAt, formattedDateId)).length === 0 && (
+                            <div className="text-muted-foreground text-sm italic py-2">
+                              No tasks created on this date.
                             </div>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button
-                                onClick={() => deleteTask(task.id)}
-                                className="text-muted-foreground hover:text-red-400 transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
-                              >
-                                <Trash size={16} />
-                              </button>
-                              <button
-                                onClick={() => setEditingTaskId(task.id)}
-                                className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
-                              >
-                                <ArrowCircleRight size={16} />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      {tasks.filter((t) => isSameDayString(t.createdAt, formattedDateId)).length === 0 && (
-                        <div className="text-muted-foreground text-sm italic py-2">
-                          No tasks created on this date.
+                          )}
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
 
-                {/* Tasks to be Completed */}
-                <div className="flex flex-col">
-                  <div
-                    className="flex items-center gap-2 mb-2 cursor-pointer group select-none py-1 -mx-2 px-2 hover:bg-muted rounded-lg transition-colors"
-                    onClick={() => setIsTasksFinishedOpen(!isTasksFinishedOpen)}
-                  >
-                    <h2 className="text-sm font-medium text-foreground">
-                      Tasks to be completed
-                    </h2>
-                    <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
-                      {tasks.filter((t) => isSameDayString(t.deadline, formattedDateId)).length}
-                    </span>
-                    <div className="flex-1" />
-                    <button className="text-muted-foreground group-hover:text-foreground transition-colors p-1">
-                      {isTasksFinishedOpen ? (
-                        <CaretUp size={14} />
-                      ) : (
-                        <CaretDown size={14} />
-                      )}
-                    </button>
-                  </div>
+                    {/* Tasks Finished Today */}
+                    <div>
+                      <div
+                        className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-lg transition-colors group"
+                        onClick={() => setIsTasksFinishedOpen(!isTasksFinishedOpen)}
+                      >
+                        <h2 className="text-sm font-medium text-foreground">
+                          Tasks with Deadline Today
+                        </h2>
+                        <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
+                          {tasks.filter((t) => isSameDayString(t.deadline, formattedDateId)).length}
+                        </span>
+                        <div className="flex-1" />
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <button className="p-1 hover:text-foreground transition-colors">
+                            <CalendarBlank size={14} />
+                          </button>
+                          <button className="p-1 hover:text-foreground transition-colors">
+                            {isTasksFinishedOpen ? (
+                              <CaretUp size={14} />
+                            ) : (
+                              <CaretDown size={14} />
+                            )}
+                          </button>
+                        </div>
+                      </div>
 
-                  {isTasksFinishedOpen && (
-                    <div className="flex flex-col gap-2 mb-4">
-                      {tasks
-                        .filter((t) => isSameDayString(t.deadline, formattedDateId))
-                        .map((task) => (
-                          <div
-                            key={task.id}
-                            className="flex items-center justify-between group relative hover:bg-muted pl-2 pr-2 py-1 -mx-2 rounded transition-colors"
-                          >
-                            <div className="flex items-center gap-3">
+                      {isTasksFinishedOpen && (
+                        <div className="flex flex-col gap-2 mb-4">
+                          {tasks
+                            .filter((t) => isSameDayString(t.deadline, formattedDateId))
+                            .map((task) => (
                               <div
-                                className={cn(
-                                  "w-5 h-5 shrink-0 rounded-sm border transition-colors flex items-center justify-center cursor-pointer min-w-[20px]",
-                                  task.completed
-                                    ? "bg-purple-500 border-purple-500 text-white"
-                                    : "border-border hover:border-muted-foreground",
-                                )}
-                                onClick={() =>
-                                  updateTask(task.id, {
-                                    completed: !task.completed,
-                                  })
-                                }
-                              />
-                              <span
-                                className={cn(
-                                  "text-sm font-medium transition-colors",
-                                  task.completed
-                                    ? "line-through text-muted-foreground"
-                                    : "text-foreground",
-                                )}
+                                key={task.id}
+                                className="flex items-center justify-between group relative hover:bg-muted pl-2 pr-2 py-1 -mx-2 rounded transition-colors"
                               >
-                                {task.title}
-                              </span>
-                              <span className="text-xs text-muted-foreground border border-border rounded px-2 py-0.5 bg-muted ml-2">
-                                Deadline: {formatDisplayDate(task.deadline, "MMM d")}
-                              </span>
+                                <div className="flex items-center gap-3">
+                                  <div
+                                    className={cn(
+                                      "w-5 h-5 shrink-0 rounded-sm border transition-colors flex items-center justify-center cursor-pointer min-w-[20px]",
+                                      task.completed
+                                        ? "bg-purple-500 border-purple-500 text-white"
+                                        : "border-border hover:border-muted-foreground",
+                                    )}
+                                    onClick={() =>
+                                      updateTask(task.id, {
+                                        completed: !task.completed,
+                                      })
+                                    }
+                                  />
+                                  <span
+                                    className={cn(
+                                      "text-sm font-medium transition-colors",
+                                      task.completed
+                                        ? "line-through text-muted-foreground"
+                                        : "text-foreground",
+                                    )}
+                                  >
+                                    {task.title}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground border border-border rounded px-2 py-0.5 bg-muted ml-2">
+                                    Deadline: {formatDisplayDate(task.deadline, "MMM d")}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    onClick={() => deleteTask(task.id)}
+                                    className="text-muted-foreground hover:text-red-400 transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
+                                  >
+                                    <Trash size={16} />
+                                  </button>
+                                  <button
+                                    onClick={() => setEditingTaskId(task.id)}
+                                    className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
+                                  >
+                                    <ArrowCircleRight size={16} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          {tasks.filter((t) => isSameDayString(t.deadline, formattedDateId)).length === 0 && (
+                            <div className="text-muted-foreground text-sm italic py-2">
+                              No tasks with deadline on this date.
                             </div>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button
-                                onClick={() => deleteTask(task.id)}
-                                className="text-muted-foreground hover:text-red-400 transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
-                              >
-                                <Trash size={16} />
-                              </button>
-                              <button
-                                onClick={() => setEditingTaskId(task.id)}
-                                className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
-                              >
-                                <ArrowCircleRight size={16} />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      {tasks.filter((t) => isSameDayString(t.deadline, formattedDateId)).length === 0 && (
-                        <div className="text-muted-foreground text-sm italic py-2">
-                          No tasks with deadline on this date.
+                          )}
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 

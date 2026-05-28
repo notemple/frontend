@@ -15,7 +15,8 @@ const docsListSelector = (state: any) => {
   }
   lastDocuments = state.documents;
   cachedDocsList = Object.values(state.documents)
-    .map((doc: any) => doc ? { id: doc.id, title: doc.title } : null)
+    .filter((doc: any) => doc && !doc.isDeleted)
+    .map((doc: any) => ({ id: doc.id, title: doc.title || 'Untitled' }))
     .filter(Boolean);
   return cachedDocsList;
 };

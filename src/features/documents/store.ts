@@ -28,6 +28,14 @@ interface DocumentStore {
   updateFolder: (id: string, name: string) => Promise<void>;
   deleteFolder: (id: string) => Promise<void>;
 
+  // Trash operations
+  restoreDocument: (id: string) => Promise<void>;
+  permanentlyDeleteDocument: (id: string) => Promise<void>;
+  restoreFolder: (id: string) => Promise<void>;
+  permanentlyDeleteFolder: (id: string) => Promise<void>;
+  restoreAllDocumentsAndFolders: () => Promise<void>;
+  permanentlyDeleteAllDocumentsAndFolders: () => Promise<void>;
+
   // Reordering
   moveDocument: (docId: string, targetFolderId: string | null, targetIndex: number) => Promise<void>;
   moveFolder: (folderId: string, targetIndex: number) => Promise<void>;
@@ -156,17 +164,20 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
   },
 
   deleteDocument: async (id) => {
-    const newDocs = { ...get().documents };
-    delete newDocs[id];
-    const newOrder = get().documentOrder.filter(docId => docId !== id);
+    const doc = get().documents[id];
+    if (!doc) return;
+
+    const updatedDoc: NoteDocument = {
+      ...doc,
+      isDeleted: true,
+      deletedAt: new Date().toISOString()
+    };
 
     set({
-      documents: newDocs,
-      documentOrder: newOrder
+      documents: { ...get().documents, [id]: updatedDoc }
     });
 
-    await documentService.deleteDocument(id);
-    await documentService.setMetadata("documentOrder", newOrder);
+    await documentService.saveDocument(updatedDoc);
   },
 
   renameTag: async (oldTag, newTag) => {
@@ -271,6 +282,15 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
   },
 
   deleteFolder: async (id) => {
+    const folder = get().folders.find(f => f.id === id);
+    if (!folder) return;
+
+    const updatedFolder: Folder = {
+      ...folder,
+      isDeleted: true,
+      deletedAt: new Date().toISOString()
+    };
+
     const newDocs = { ...get().documents };
     const docsToSave: NoteDocument[] = [];
 
@@ -278,32 +298,22 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       if (newDocs[docId].folderId === id) {
         newDocs[docId] = {
           ...newDocs[docId],
-          folderId: null,
-          updatedAt: new Date().toISOString()
+          isDeleted: true,
+          deletedAt: new Date().toISOString()
         };
         docsToSave.push(newDocs[docId]);
       }
     });
 
-    const newFolderColors = { ...get().folderColors };
-    delete newFolderColors[id];
-
-    const newFolders = get().folders.filter(f => f?.id !== id);
-    const newOrder = get().folderOrder.filter(fId => fId !== id);
-
     set({
-      folders: newFolders,
-      folderOrder: newOrder,
-      documents: newDocs,
-      folderColors: newFolderColors
+      folders: get().folders.map(f => f.id === id ? updatedFolder : f),
+      documents: newDocs
     });
 
-    await documentService.deleteFolder(id);
+    await documentService.saveFolder(updatedFolder);
     for (const doc of docsToSave) {
       await documentService.saveDocument(doc);
     }
-    await documentService.setMetadata("folderOrder", newOrder);
-    await documentService.setMetadata("folderColors", newFolderColors);
   },
 
   moveDocument: async (docId, targetFolderId, targetIndex) => {
@@ -359,5 +369,196 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
   setDocumentOrder: async (order) => {
     set({ documentOrder: order });
     await documentService.setMetadata("documentOrder", order);
+  },
+
+  restoreDocument: async (id) => {
+    const doc = get().documents[id];
+    if (!doc) return;
+
+    const updatedDoc: NoteDocument = {
+      ...doc,
+      isDeleted: false,
+      deletedAt: undefined
+    };
+
+    // If it was in a deleted folder, reset its folderId to null (uncategorized)
+    const folder = doc.folderId ? get().folders.find(f => f.id === doc.folderId) : null;
+    if (folder?.isDeleted) {
+      updatedDoc.folderId = null;
+    }
+
+    set({
+      documents: { ...get().documents, [id]: updatedDoc }
+    });
+
+    await documentService.saveDocument(updatedDoc);
+  },
+
+  permanentlyDeleteDocument: async (id) => {
+    const newDocs = { ...get().documents };
+    delete newDocs[id];
+    const newOrder = get().documentOrder.filter(docId => docId !== id);
+
+    set({
+      documents: newDocs,
+      documentOrder: newOrder
+    });
+
+    await documentService.deleteDocument(id);
+    await documentService.setMetadata("documentOrder", newOrder);
+  },
+
+  restoreFolder: async (id) => {
+    const folder = get().folders.find(f => f.id === id);
+    if (!folder) return;
+
+    const updatedFolder: Folder = {
+      ...folder,
+      isDeleted: false,
+      deletedAt: undefined
+    };
+
+    // Also restore all soft-deleted documents inside this folder
+    const newDocs = { ...get().documents };
+    const docsToSave: NoteDocument[] = [];
+    Object.keys(newDocs).forEach(docId => {
+      if (newDocs[docId].folderId === id && newDocs[docId].isDeleted) {
+        newDocs[docId] = {
+          ...newDocs[docId],
+          isDeleted: false,
+          deletedAt: undefined
+        };
+        docsToSave.push(newDocs[docId]);
+      }
+    });
+
+    set({
+      folders: get().folders.map(f => f.id === id ? updatedFolder : f),
+      documents: newDocs
+    });
+
+    await documentService.saveFolder(updatedFolder);
+    for (const doc of docsToSave) {
+      await documentService.saveDocument(doc);
+    }
+  },
+
+  permanentlyDeleteFolder: async (id) => {
+    const newFolders = get().folders.filter(f => f.id !== id);
+    const newOrder = get().folderOrder.filter(fId => fId !== id);
+
+    // Also permanently delete all documents inside this folder
+    const newDocs = { ...get().documents };
+    const docIdsToDelete: string[] = [];
+    Object.keys(newDocs).forEach(docId => {
+      if (newDocs[docId].folderId === id) {
+        docIdsToDelete.push(docId);
+        delete newDocs[docId];
+      }
+    });
+
+    const newDocOrder = get().documentOrder.filter(docId => !docIdsToDelete.includes(docId));
+
+    set({
+      folders: newFolders,
+      folderOrder: newOrder,
+      documents: newDocs,
+      documentOrder: newDocOrder
+    });
+
+    await documentService.deleteFolder(id);
+    await documentService.setMetadata("folderOrder", newOrder);
+    await documentService.setMetadata("documentOrder", newDocOrder);
+    for (const docId of docIdsToDelete) {
+      await documentService.deleteDocument(docId);
+    }
+  },
+
+  restoreAllDocumentsAndFolders: async () => {
+    const newDocs = { ...get().documents };
+    const docsToSave: NoteDocument[] = [];
+    const foldersToSave: Folder[] = [];
+
+    // Restore folders
+    const newFolders = get().folders.map(f => {
+      if (f.isDeleted) {
+        const updated = { ...f, isDeleted: false, deletedAt: undefined };
+        foldersToSave.push(updated);
+        return updated;
+      }
+      return f;
+    });
+
+    // Restore documents
+    Object.keys(newDocs).forEach(docId => {
+      if (newDocs[docId].isDeleted) {
+        const updated = { ...newDocs[docId], isDeleted: false, deletedAt: undefined };
+        // If its folder was deleted and NOT restored in this batch, reset its folderId to null
+        if (updated.folderId) {
+          const folder = get().folders.find(f => f.id === updated.folderId);
+          if (folder?.isDeleted && !foldersToSave.find(f => f.id === updated.folderId)) {
+            updated.folderId = null;
+          }
+        }
+        newDocs[docId] = updated;
+        docsToSave.push(updated);
+      }
+    });
+
+    set({
+      folders: newFolders,
+      documents: newDocs
+    });
+
+    for (const f of foldersToSave) {
+      await documentService.saveFolder(f);
+    }
+    for (const doc of docsToSave) {
+      await documentService.saveDocument(doc);
+    }
+  },
+
+  permanentlyDeleteAllDocumentsAndFolders: async () => {
+    const deletedDocIds: string[] = [];
+    const deletedFolderIds: string[] = [];
+
+    // Filter out active folders
+    const newFolders = get().folders.filter(f => {
+      if (f.isDeleted) {
+        deletedFolderIds.push(f.id);
+        return false;
+      }
+      return true;
+    });
+
+    const newFolderOrder = get().folderOrder.filter(id => !deletedFolderIds.includes(id));
+
+    // Filter out active documents
+    const newDocs = { ...get().documents };
+    Object.keys(newDocs).forEach(docId => {
+      if (newDocs[docId].isDeleted || (newDocs[docId].folderId && deletedFolderIds.includes(newDocs[docId].folderId!))) {
+        deletedDocIds.push(docId);
+        delete newDocs[docId];
+      }
+    });
+
+    const newDocOrder = get().documentOrder.filter(id => !deletedDocIds.includes(id));
+
+    set({
+      folders: newFolders,
+      folderOrder: newFolderOrder,
+      documents: newDocs,
+      documentOrder: newDocOrder
+    });
+
+    await documentService.setMetadata("folderOrder", newFolderOrder);
+    await documentService.setMetadata("documentOrder", newDocOrder);
+
+    for (const folderId of deletedFolderIds) {
+      await documentService.deleteFolder(folderId);
+    }
+    for (const docId of deletedDocIds) {
+      await documentService.deleteDocument(docId);
+    }
   }
 }));

@@ -23,11 +23,15 @@ export interface NoteDocument {
   fontFamily?: string;
   folderId?: string | null;
   isFavorite?: boolean;
+  isDeleted?: boolean;
+  deletedAt?: string;
 }
 
 export interface Folder {
   id: string;
   name: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
 }
 
 export interface Task {
@@ -39,4 +43,6 @@ export interface Task {
   deadline?: string;
   createdAt: string;
   status?: 'open' | 'in progress' | 'done';
+  isDeleted?: boolean;
+  deletedAt?: string;
 }

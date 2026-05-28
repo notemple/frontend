@@ -31,29 +31,29 @@
 
 @layer base {
   :root, html.dark {
-    --background: #09090b; /* Very dark zinc, soft and deep */
+    --background: #050505; /* Smooth rich deep black */
     --foreground: #fafafa;
     
-    --workspace-bg: #09090b;
-    --card-bg: #18181b;
-    --card-border: #27272a;
+    --workspace-bg: #050505;
+    --card-bg: #121212;
+    --card-border: #1a1a1a;
     
-    --muted: #18181b;
+    --muted: #121212;
     --muted-foreground: #a1a1aa;
     --body-text: #e4e4e7;
     
-    --border: #27272a;
+    --border: #1a1a1a;
     
     --accent: #e4e4e7;
-    --accent-foreground: #09090b;
+    --accent-foreground: #050505;
     
-    --background-topbar: #09090b;
-    --background-calendar: #09090b;
-    --border-calendar: #27272a;
+    --background-topbar: #050505;
+    --background-calendar: #050505;
+    --border-calendar: #1a1a1a;
     
-    --task-row-bg: #18181b;
-    --task-row-border: #27272a;
-    --task-row-hover-bg: rgba(24, 24, 27, 0.8);
+    --task-row-bg: #121212;
+    --task-row-border: #1a1a1a;
+    --task-row-hover-bg: rgba(18, 18, 18, 0.8);
 
     --pink-orchid: #CDB4DB;
     --pastel-petal: #FFC8DD;
@@ -132,6 +132,36 @@
     overflow: hidden;
   }
 
+  /* Smooth theme transitions and global shadow disable to ensure 60fps hardware-accelerated animations with no jittering, stuttering, or lagging */
+  body,
+  .bg-background,
+  .bg-workspace,
+  .bg-card,
+  .bg-muted,
+  .border,
+  .border-border,
+  .text-foreground,
+  .text-muted-foreground,
+  .shadow,
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xl,
+  .shadow-sm-sm,
+  .shadow-sm-none,
+  .shadow-sm-inner,
+  .shadow-inner,
+  .glass,
+  .glass-panel,
+  .neu-flat,
+  .neu-panel {
+    box-shadow: none !important;
+    transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+                color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -152,7 +182,7 @@
   .glass {
     background: var(--muted);
     border: 1px solid var(--border);
-    box-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.08);
+    box-shadow: none;
   }
   .glass-light {
     background: var(--background);
@@ -161,7 +191,7 @@
   .glass-panel {
     background: var(--background);
     border: 1px solid var(--border);
-    box-shadow-sm: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 4px 16px rgba(0, 0, 0, 0.08);
+    box-shadow: none;
   }
 
   .no-scrollbar::-webkit-scrollbar {
@@ -173,7 +203,7 @@
   }
   
   .ambient-glow {
-    box-shadow-sm: 0 0 16px 2px rgba(255, 255, 255, 0.01);
+    box-shadow: none;
   }
 
   .will-change-transform {
@@ -225,7 +255,7 @@
   background-color: transparent;
   border: none;
   border-radius: 0.125rem;
-  box-shadow-sm: none;
+  box-shadow: none;
 }
 .tippy-box[data-theme~='slash-command'] .tippy-content {
   padding: 0;

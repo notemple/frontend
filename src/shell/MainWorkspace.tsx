@@ -152,14 +152,25 @@ export const MainWorkspace = () => {
               )}
               <div className="flex-1 flex flex-col min-w-[300px] overflow-hidden relative">
                 <TabBar paneId={pane.id} />
-                <div className="flex-1 overflow-hidden bg-workspace">
-                  {pane.activeTabId?.startsWith('section-') ? (
-                    <SectionPage paneId={pane.id} sectionId={pane.activeTabId} />
-                  ) : pane.activeTabId ? (
-                    <NotempleEditor key={`${pane.id}-${pane.activeTabId}`} paneId={pane.id} documentId={pane.activeTabId} />
-                  ) : (
-                    <EmptyPaneState />
-                  )}
+                <div className="flex-1 overflow-hidden bg-workspace relative">
+                  <AnimatePresence>
+                    <motion.div
+                      key={pane.activeTabId || 'empty'}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15, ease: "easeInOut" }}
+                      className="absolute inset-0 w-full h-full flex flex-col overflow-hidden"
+                    >
+                      {pane.activeTabId?.startsWith('section-') ? (
+                        <SectionPage paneId={pane.id} sectionId={pane.activeTabId} />
+                      ) : pane.activeTabId ? (
+                        <NotempleEditor key={`${pane.id}-${pane.activeTabId}`} paneId={pane.id} documentId={pane.activeTabId} />
+                      ) : (
+                        <EmptyPaneState />
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
               </div>
             </React.Fragment>

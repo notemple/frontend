@@ -67,7 +67,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
   const [isTasksFinishedOpen, setIsTasksFinishedOpen] = useState(true);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
-  const tasks = useTaskStore(state => state.tasks) || [];
+  const tasks = useTaskStore(useShallow(state => state.tasks.filter(t => !t.isDeleted))) || [];
   const updateTask = useTaskStore(state => state.updateTask);
   const deleteTask = useTaskStore(state => state.deleteTask);
 
@@ -84,7 +84,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
       const order = state.documentOrder || [];
       return order.filter((id: string) => {
         const doc = state.documents[id];
-        if (!doc) return false;
+        if (!doc || doc.isDeleted) return false;
         if (doc.id.startsWith("daily-note-")) return false;
         return isSameDayString(doc.createdAt, formattedDateId);
       });
@@ -99,7 +99,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
       const order = state.documentOrder || [];
       return order.filter((id: string) => {
         const doc = state.documents[id];
-        if (!doc) return false;
+        if (!doc || doc.isDeleted) return false;
         if (doc.id.startsWith("daily-note-")) return false;
         return isSameDayString(doc.createdAt, formattedDateId);
       }).length;
@@ -114,7 +114,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
       const order = state.documentOrder || [];
       return order.filter((id: string) => {
         const doc = state.documents[id];
-        if (!doc) return false;
+        if (!doc || doc.isDeleted) return false;
         if (doc.id.startsWith("daily-note-")) return false;
         return (
           isSameDayString(doc.updatedAt, formattedDateId) &&
@@ -132,7 +132,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
       const order = state.documentOrder || [];
       return order.filter((id: string) => {
         const doc = state.documents[id];
-        if (!doc) return false;
+        if (!doc || doc.isDeleted) return false;
         if (doc.id.startsWith("daily-note-")) return false;
         return (
           isSameDayString(doc.updatedAt, formattedDateId) &&

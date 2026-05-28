@@ -11,6 +11,12 @@ interface TaskStore {
   addTask: (task: Omit<Task, 'id' | 'createdAt'>) => Promise<void>;
   updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
+
+  // Trash operations
+  restoreTask: (id: string) => Promise<void>;
+  permanentlyDeleteTask: (id: string) => Promise<void>;
+  restoreAllTasks: () => Promise<void>;
+  permanentlyDeleteAllTasks: () => Promise<void>;
 }
 
 export const useTaskStore = create<TaskStore>((set, get) => ({
@@ -64,9 +70,74 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   },
 
   deleteTask: async (id) => {
+    const task = get().tasks.find(t => t.id === id);
+    if (!task) return;
+
+    const updatedTask: Task = {
+      ...task,
+      isDeleted: true,
+      deletedAt: new Date().toISOString()
+    };
+
+    set({
+      tasks: get().tasks.map(t => t.id === id ? updatedTask : t)
+    });
+    await taskService.saveTask(updatedTask);
+  },
+
+  restoreTask: async (id) => {
+    const task = get().tasks.find(t => t.id === id);
+    if (!task) return;
+
+    const updatedTask: Task = {
+      ...task,
+      isDeleted: false,
+      deletedAt: undefined
+    };
+
+    set({
+      tasks: get().tasks.map(t => t.id === id ? updatedTask : t)
+    });
+    await taskService.saveTask(updatedTask);
+  },
+
+  permanentlyDeleteTask: async (id) => {
     set({
       tasks: get().tasks.filter(t => t.id !== id)
     });
     await taskService.deleteTask(id);
+  },
+
+  restoreAllTasks: async () => {
+    const tasksToSave: Task[] = [];
+    const newTasks = get().tasks.map(t => {
+      if (t.isDeleted) {
+        const updated = { ...t, isDeleted: false, deletedAt: undefined };
+        tasksToSave.push(updated);
+        return updated;
+      }
+      return t;
+    });
+
+    set({ tasks: newTasks });
+    for (const t of tasksToSave) {
+      await taskService.saveTask(t);
+    }
+  },
+
+  permanentlyDeleteAllTasks: async () => {
+    const deletedTaskIds: string[] = [];
+    const newTasks = get().tasks.filter(t => {
+      if (t.isDeleted) {
+        deletedTaskIds.push(t.id);
+        return false;
+      }
+      return true;
+    });
+
+    set({ tasks: newTasks });
+    for (const id of deletedTaskIds) {
+      await taskService.deleteTask(id);
+    }
   }
 }));

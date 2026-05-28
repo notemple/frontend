@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { createPortal } from "react-dom";
 import { useTaskStore, type Task } from "@/features/tasks/store";
 import { useSettingsStore } from "@/features/settings/store";
+import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/shared/lib/utils";
 import {
   PlusCircle,
@@ -44,7 +45,6 @@ import {
 // Remove old mock time import comments
 
 import { TaskEditorModal } from "./components/TaskEditorModal";
-import { useVirtual } from "react-virtual";
 import { CustomDatePicker } from "./components/CustomDatePicker";
 import { TaskRow } from "./components/TaskRow";
 import { KanbanCard } from "./components/KanbanCard";
@@ -173,7 +173,7 @@ export const CustomStatusPicker = ({
 };
 
 export const TasksPage = ({ paneId }: { paneId: string }) => {
-  const tasks = useTaskStore(state => state.tasks) || [];
+  const tasks = useTaskStore(useShallow(state => state.tasks.filter(t => !t.isDeleted))) || [];
   const addTask = useTaskStore(state => state.addTask);
   const updateTask = useTaskStore(state => state.updateTask);
   const deleteTask = useTaskStore(state => state.deleteTask);
@@ -213,12 +213,6 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
     });
   }, [tasks, activeTab]);
 
-  const rowVirtualizer = useVirtual({
-    size: filteredTasks.length,
-    parentRef,
-    estimateSize: useCallback(() => 50, []), // 38px height + 12px gap spacing
-    overscan: 5,
-  });
 
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
@@ -330,43 +324,34 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
 
         {viewMode === "list" ? (
           <div className="flex flex-col relative before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent w-full">
-            <div className="flex flex-col pl-8 w-full">
-              <div
-                style={{
-                  height: `${rowVirtualizer.totalSize}px`,
-                  width: '100%',
-                  position: 'relative',
-                }}
-              >
-                <AnimatePresence>
-                  {rowVirtualizer.virtualItems.map((virtualRow) => {
-                    const task = filteredTasks[virtualRow.index];
-                    if (!task) return null;
-                    return (
-                      <div
-                        key={task.id}
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          height: `${virtualRow.size}px`,
-                          transform: `translateY(${virtualRow.start}px)`,
-                          zIndex: openDatePickerTaskId === task.id ? 50 : undefined,
-                        }}
-                      >
-                        <TaskRow
-                          task={task}
-                          updateTask={updateTask}
-                          deleteTask={deleteTask}
-                          onOpen={() => setActiveTask(task.id)}
-                          onDatePickerOpenChange={(isOpen) => setOpenDatePickerTaskId(isOpen ? task.id : null)}
-                        />
-                      </div>
-                    );
-                  })}
-                </AnimatePresence>
-              </div>
+            <div className="flex flex-col pl-8 w-full gap-3">
+              <AnimatePresence initial={false} mode="popLayout">
+                {filteredTasks.map((task) => (
+                  <motion.div
+                    key={task.id}
+                    layout
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 38
+                    }}
+                    style={{
+                      zIndex: openDatePickerTaskId === task.id ? 50 : undefined,
+                    }}
+                  >
+                    <TaskRow
+                      task={task}
+                      updateTask={updateTask}
+                      deleteTask={deleteTask}
+                      onOpen={() => setActiveTask(task.id)}
+                      onDatePickerOpenChange={(isOpen) => setOpenDatePickerTaskId(isOpen ? task.id : null)}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
               {filteredTasks.length === 0 && (
                 <div className="text-muted-foreground text-sm italic py-4">
                   No tasks in this list.

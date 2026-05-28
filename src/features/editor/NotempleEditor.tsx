@@ -362,11 +362,9 @@ export const NotempleEditor = ({
       // Only set content if the editor's current HTML doesn't match the incoming document's content.
       // This prevents cursor loss when transitioning from a 'new-note' to a saved note while typing.
       if (editor.getHTML() !== (document?.content || '<p></p>') && editor.getHTML() !== (document?.content || '')) {
-        setTimeout(() => {
-          if (!editor.isDestroyed) {
-            editor.commands.setContent(document?.content || '');
-          }
-        }, 0);
+        if (!editor.isDestroyed) {
+          editor.commands.setContent(document?.content || '');
+        }
       }
       prevDocIdRef.current = documentId;
     }
@@ -405,7 +403,7 @@ export const NotempleEditor = ({
             : cn("max-w-[900px] h-full", isMinimized ? "py-4 px-6" : "py-16 px-12")
         )}
         style={{
-          background: localStyle.documentColor || (hasCustomStyle ? '#faf8f5' : 'var(--background)'),
+          background: localStyle.documentColor || (hasCustomStyle ? '#faf8f5' : 'transparent'),
           color: activeTextColor,
           fontFamily: localStyle.fontFamily || undefined,
           ['--tw-prose-body' as any]: activeTextColor,

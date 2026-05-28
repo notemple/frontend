@@ -204,7 +204,7 @@ const FolderDocumentsList = ({
   onRenameCancel: () => void;
 }) => {
   const docIdsSelector = React.useCallback(
-    (state: any) => state.documentOrder.filter((id: string) => state.documents[id]?.folderId === folderId),
+    (state: any) => state.documentOrder.filter((id: string) => state.documents[id]?.folderId === folderId && !state.documents[id]?.isDeleted),
     [folderId]
   );
   const docIds = useDocumentStore(useShallow(docIdsSelector));
@@ -250,7 +250,7 @@ const FolderDocumentsList = ({
   );
 };
 
-const foldersSelector = (state: any) => state.folders;
+const foldersSelector = (state: any) => state.folders.filter((f: any) => f && !f.isDeleted);
 const folderOrderSelector = (state: any) => state.folderOrder;
 const documentOrderSelector = (state: any) => state.documentOrder;
 
@@ -264,7 +264,7 @@ const favoriteDocIdsSelector = (state: any) => {
   }
   lastDocumentOrderFav = state.documentOrder;
   lastDocumentsFav = state.documents;
-  cachedFavoriteDocIds = state.documentOrder.filter((id: string) => state.documents[id]?.isFavorite);
+  cachedFavoriteDocIds = state.documentOrder.filter((id: string) => state.documents[id]?.isFavorite && !state.documents[id]?.isDeleted);
   return cachedFavoriteDocIds;
 };
 
@@ -280,7 +280,7 @@ const uncategorizedDocIdsSelector = (state: any) => {
   lastDocumentsUncat = state.documents;
   cachedUncategorizedDocIds = state.documentOrder.filter((id: string) => {
     const doc = state.documents[id];
-    return doc && !doc.folderId && !id.startsWith('daily-note-') && !id.startsWith('task-');
+    return doc && !doc.folderId && !doc.isDeleted && !id.startsWith('daily-note-') && !id.startsWith('task-');
   });
   return cachedUncategorizedDocIds;
 };
@@ -710,7 +710,15 @@ export const Sidebar = () => {
 
       {/* Bottom Actions */}
       <div className="pt-4 mt-auto space-y-[2px] min-w-0 flex-shrink-0">
-        <SidebarItem icon={<Trash size={16} className="text-red-500/70 dark:text-red-400/70" />} label="Trash" isOpen={isSidebarOpen} />
+        <SidebarItem
+          icon={<Trash size={16} className={isDocActive('section-trash') ? "text-current" : "text-red-500/70 dark:text-red-400/70"} />}
+          label="Trash"
+          isOpen={isSidebarOpen}
+          highlight={isDocActive('section-trash')}
+          onClick={() => handleDocClick('section-trash')}
+          activeBgClass="bg-red-500/10 dark:bg-red-500/5 border-red-500/20 dark:border-red-500/10 border shadow-sm-sm"
+          activeTextClass="!text-red-600 dark:!text-red-400 font-semibold"
+        />
         <SidebarItem icon={<Gear size={16} className="text-slate-500/70 dark:text-slate-400/70" />} label="Settings" isOpen={isSidebarOpen} onClick={() => setIsSettingsOpen(true)} />
       </div>
 

@@ -5,9 +5,11 @@ export interface SettingsStore {
   timezone: string;
   timeFormat: '12h' | '24h';
   weekStartDay: 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 for Sunday, 1 for Monday
+  roundness: 'rounded-md' | 'rounded-none';
   setTimezone: (timezone: string) => void;
   setTimeFormat: (format: '12h' | '24h') => void;
   setWeekStartDay: (day: 0 | 1 | 2 | 3 | 4 | 5 | 6) => void;
+  setRoundness: (roundness: 'rounded-md' | 'rounded-none') => void;
 }
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -16,9 +18,11 @@ export const useSettingsStore = create<SettingsStore>()(
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
       timeFormat: '12h',
       weekStartDay: 0,
+      roundness: 'rounded-md',
       setTimezone: (timezone) => set({ timezone }),
       setTimeFormat: (timeFormat) => set({ timeFormat }),
       setWeekStartDay: (day) => set({ weekStartDay: day }),
+      setRoundness: (roundness) => set({ roundness }),
     }),
     {
       name: 'settings-storage',

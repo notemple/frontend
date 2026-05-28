@@ -5,7 +5,16 @@ import { useSettingsStore } from '@/features/settings/store';
 import { formatDisplayDateTime, useIsMounted } from '@/shared/lib/time';
 
 export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
-  const { timezone, timeFormat, weekStartDay, setTimezone, setTimeFormat, setWeekStartDay } = useSettingsStore();
+  const { 
+    timezone, 
+    timeFormat, 
+    weekStartDay, 
+    roundness,
+    setTimezone, 
+    setTimeFormat, 
+    setWeekStartDay,
+    setRoundness
+  } = useSettingsStore();
   const mounted = useIsMounted();
 
   // Simple list of timezones
@@ -40,7 +49,7 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-card  z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/30 dark:bg-black/50 z-50 flex items-center justify-center p-4"
             onClick={onClose}
           >
             <motion.div
@@ -48,25 +57,26 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={e => e.stopPropagation()}
-              className="bg-[#1a1a1a] border border-white/10 rounded-sm-sm w-full max-w-md shadow-sm-sm overflow-hidden"
+              className="bg-card border border-border rounded-sm w-full max-w-md shadow-sm overflow-hidden font-sans"
             >
-              <div className="flex items-center justify-between p-4 border-b border-white/10 bg-[#222]">
+              <div className="flex items-center justify-between p-4 border-b border-border bg-muted/20">
                 <h2 className="font-bold text-lg text-foreground">Preferences</h2>
-                <button onClick={onClose} className="p-1 hover:bg-muted/40 rounded-sm-full transition-colors">
+                <button onClick={onClose} className="p-1 hover:bg-muted/50 rounded-full transition-colors cursor-pointer text-muted-foreground hover:text-foreground">
                   <X size={20} />
                 </button>
               </div>
 
               <div className="p-6 flex flex-col gap-6">
+                {/* Timezone */}
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-foreground">Timezone</label>
+                  <label className="text-sm font-semibold text-foreground">Timezone</label>
                   <select
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
-                    className="bg-[#222] border border-white/10 rounded-sm-sm px-3 py-2 text-sm text-foreground outline-none focus:border-[#f7aae0] transition-colors"
+                    className="bg-background border border-border rounded-sm px-3 py-2 text-sm text-foreground outline-none focus:border-accent/40 transition-colors w-full cursor-pointer focus:ring-1 focus:ring-accent font-sans"
                   >
                     {timezones.map(tz => (
-                      <option key={tz} value={tz}>{tz}</option>
+                      <option key={tz} value={tz} className="bg-card text-foreground">{tz}</option>
                     ))}
                   </select>
                   {mounted && (
@@ -74,17 +84,18 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
                   )}
                 </div>
 
+                {/* Time Format */}
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-foreground">Time Format</label>
-                  <div className="flex bg-[#222] p-1 rounded-sm-sm border border-white/10">
+                  <label className="text-sm font-semibold text-foreground">Time Format</label>
+                  <div className="flex bg-muted/40 p-1 rounded-sm border border-border">
                     <button
-                      className={`flex-1 text-sm py-1.5 rounded-sm-sm font-medium transition-colors ${timeFormat === '12h' ? 'bg-[#333] text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                      className={`flex-1 text-sm py-1.5 rounded-sm font-medium transition-all select-none cursor-pointer border ${timeFormat === '12h' ? 'bg-card text-foreground border-border/80 shadow-sm' : 'text-muted-foreground border-transparent hover:text-foreground'}`}
                       onClick={() => setTimeFormat('12h')}
                     >
                       12-Hour
                     </button>
                     <button
-                      className={`flex-1 text-sm py-1.5 rounded-sm-sm font-medium transition-colors ${timeFormat === '24h' ? 'bg-[#333] text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                      className={`flex-1 text-sm py-1.5 rounded-sm font-medium transition-all select-none cursor-pointer border ${timeFormat === '24h' ? 'bg-card text-foreground border-border/80 shadow-sm' : 'text-muted-foreground border-transparent hover:text-foreground'}`}
                       onClick={() => setTimeFormat('24h')}
                     >
                       24-Hour
@@ -92,21 +103,41 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
                   </div>
                 </div>
 
+                {/* Week Start Day */}
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-foreground">Week Start Day</label>
+                  <label className="text-sm font-semibold text-foreground">Week Start Day</label>
                   <select
                     value={weekStartDay.toString()}
                     onChange={(e) => setWeekStartDay(parseInt(e.target.value) as any)}
-                    className="bg-[#222] border border-white/10 rounded-sm-sm px-3 py-2 text-sm text-foreground outline-none focus:border-[#f7aae0] transition-colors"
+                    className="bg-background border border-border rounded-sm px-3 py-2 text-sm text-foreground outline-none focus:border-accent/40 transition-colors w-full cursor-pointer focus:ring-1 focus:ring-accent font-sans"
                   >
-                    <option value="0">Sunday</option>
-                    <option value="1">Monday</option>
-                    <option value="2">Tuesday</option>
-                    <option value="3">Wednesday</option>
-                    <option value="4">Thursday</option>
-                    <option value="5">Friday</option>
-                    <option value="6">Saturday</option>
+                    <option value="0" className="bg-card text-foreground">Sunday</option>
+                    <option value="1" className="bg-card text-foreground">Monday</option>
+                    <option value="2" className="bg-card text-foreground">Tuesday</option>
+                    <option value="3" className="bg-card text-foreground">Wednesday</option>
+                    <option value="4" className="bg-card text-foreground">Thursday</option>
+                    <option value="5" className="bg-card text-foreground">Friday</option>
+                    <option value="6" className="bg-card text-foreground">Saturday</option>
                   </select>
+                </div>
+
+                {/* Border Roundness Settings */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-foreground">Border Roundness</label>
+                  <div className="flex bg-muted/40 p-1 rounded-sm border border-border">
+                    <button
+                      className={`flex-1 text-sm py-1.5 rounded-sm font-medium transition-all select-none cursor-pointer border ${roundness === 'rounded-md' ? 'bg-card text-foreground border-border/80 shadow-sm' : 'text-muted-foreground border-transparent hover:text-foreground'}`}
+                      onClick={() => setRoundness('rounded-md')}
+                    >
+                      Rounded (Medium)
+                    </button>
+                    <button
+                      className={`flex-1 text-sm py-1.5 rounded-sm font-medium transition-all select-none cursor-pointer border ${roundness === 'rounded-none' ? 'bg-card text-foreground border-border/80 shadow-sm' : 'text-muted-foreground border-transparent hover:text-foreground'}`}
+                      onClick={() => setRoundness('rounded-none')}
+                    >
+                      Sharp (None)
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>

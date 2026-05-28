@@ -14,35 +14,28 @@ import { motion, AnimatePresence } from 'motion/react';
 import { SectionPage } from "@/features/documents/SectionPage";
 import { SectionGridItem } from "@/features/documents/components/SectionGridItem";
 import { EmptyPaneState } from "@/features/documents/components/EmptyPaneState";
+import { useSettingsStore } from '@/features/settings/store';
+import { formatDisplayDateTime } from '@/shared/lib/time';
 
 export const MainWorkspace = () => {
   const { panes, activePaneId, toggleRightSidebar, appearance, setAppearance, isRightSidebarOpen } = useUiStore();
   const { toggleSidebar } = useUiStore();
+  const { timezone, timeFormat } = useSettingsStore();
 
   const [dateTime, setDateTime] = React.useState(() => {
-    const now = new Date();
-    const dd = String(now.getDate()).padStart(2, '0');
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const yy = String(now.getFullYear()).slice(-2);
-    const hh = String(now.getHours()).padStart(2, '0');
-    const min = String(now.getMinutes()).padStart(2, '0');
-    return `${dd}/${mm}/${yy} , ${hh}:${min}`;
+    return formatDisplayDateTime(new Date().toISOString());
   });
 
   React.useEffect(() => {
     const updateDateTime = () => {
-      const now = new Date();
-      const dd = String(now.getDate()).padStart(2, '0');
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const yy = String(now.getFullYear()).slice(-2);
-      const hh = String(now.getHours()).padStart(2, '0');
-      const min = String(now.getMinutes()).padStart(2, '0');
-      setDateTime(`${dd}/${mm}/${yy} , ${hh}:${min}`);
+      setDateTime(formatDisplayDateTime(new Date().toISOString()));
     };
+
+    updateDateTime(); // Update immediately on mount or dependency change
 
     const interval = setInterval(updateDateTime, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [timezone, timeFormat]);
 
   const activePane = panes.find(p => p?.id === activePaneId) || panes[0];
   const activeTabId = activePane?.activeTabId;

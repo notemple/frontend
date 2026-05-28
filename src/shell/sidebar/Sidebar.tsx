@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { gsap } from 'gsap';
 import { useUiStore } from '@/shared/store/uiStore';
 import { useDocumentStore } from '@/features/documents/store';
 import { useShallow } from 'zustand/react/shallow';
@@ -272,6 +273,49 @@ let lastDocumentOrderUncat: any = null;
 let lastDocumentsUncat: any = null;
 let cachedUncategorizedDocIds: string[] = [];
 
+const GSAPAccordion = ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInitial = useRef(true);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      if (isInitial.current) {
+        gsap.set(containerRef.current, {
+          height: isOpen ? "auto" : 0,
+          opacity: isOpen ? 1 : 0
+        });
+        isInitial.current = false;
+      } else {
+        gsap.killTweensOf(containerRef.current);
+        if (isOpen) {
+          gsap.fromTo(containerRef.current,
+            { height: 0, opacity: 0 },
+            { 
+              height: "auto", 
+              opacity: 1, 
+              duration: 0.22, 
+              ease: "power2.out"
+            }
+          );
+        } else {
+          gsap.to(containerRef.current, {
+            height: 0,
+            opacity: 0,
+            duration: 0.18,
+            ease: "power2.inOut"
+          });
+        }
+      }
+    }
+  }, [isOpen]);
+
+  return (
+    <div ref={containerRef} className="overflow-hidden">
+      {children}
+    </div>
+  );
+};
+
 const uncategorizedDocIdsSelector = (state: any) => {
   if (state.documentOrder === lastDocumentOrderUncat && state.documents === lastDocumentsUncat) {
     return cachedUncategorizedDocIds;
@@ -286,7 +330,38 @@ const uncategorizedDocIdsSelector = (state: any) => {
 };
 
 export const Sidebar = () => {
-  const { isSidebarOpen, toggleSidebar, openDocument, panes, activePaneId } = useUiStore();
+  const { isSidebarOpen, toggleSidebar, openDocument, panes, activePaneId } = useUiStore(
+    useShallow((state) => ({
+      isSidebarOpen: state.isSidebarOpen,
+      toggleSidebar: state.toggleSidebar,
+      openDocument: state.openDocument,
+      panes: state.panes,
+      activePaneId: state.activePaneId,
+    }))
+  );
+
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const isInitialMount = useRef(true);
+
+  useEffect(() => {
+    if (sidebarRef.current) {
+      if (isInitialMount.current) {
+        gsap.set(sidebarRef.current, {
+          width: isSidebarOpen ? 260 : 64,
+          padding: isSidebarOpen ? "24px" : "24px 8px"
+        });
+        isInitialMount.current = false;
+      } else {
+        gsap.killTweensOf(sidebarRef.current);
+        gsap.to(sidebarRef.current, {
+          width: isSidebarOpen ? 260 : 64,
+          padding: isSidebarOpen ? "24px" : "24px 8px",
+          duration: 0.22,
+          ease: "power3.out"
+        });
+      }
+    }
+  }, [isSidebarOpen]);
 
   // Stable selector references
   const folders = useDocumentStore(useShallow(foldersSelector));
@@ -335,6 +410,19 @@ export const Sidebar = () => {
     window.addEventListener('click', handleClick);
     return () => window.removeEventListener('click', handleClick);
   }, []);
+
+  // Track folder creation to automatically uncollapse the parent Folders section
+  const prevFolderCountRef = useRef(folderOrder.length);
+  useEffect(() => {
+    if (folderOrder.length > prevFolderCountRef.current) {
+      setCollapsedFolders(prev => {
+        const next = new Set(prev);
+        next.delete('section-folders');
+        return next;
+      });
+    }
+    prevFolderCountRef.current = folderOrder.length;
+  }, [folderOrder.length]);
 
   const handleDocClick = (id: string) => {
     openDocument(id);
@@ -408,19 +496,12 @@ export const Sidebar = () => {
 
   return (
     <div
-      className={cn(
-        "h-full flex flex-col border-r border-border bg-muted relative shrink-0 overflow-y-auto no-scrollbar group/sidebar z-30 shadow-sm-none transition-all duration-250 ease-out will-change-[width,padding]",
-        isSidebarOpen ? "w-[260px] p-6" : "w-16 py-6 px-2"
-      )}
+      ref={sidebarRef}
+      className="h-full flex flex-col border-r border-border bg-muted relative shrink-0 overflow-y-auto no-scrollbar group/sidebar z-30 shadow-sm-none"
     >
       <div className="flex items-center justify-between mb-8 shrink-0 relative z-10 px-1 h-8">
-        <AnimatePresence mode="popLayout">
           {isSidebarOpen ? (
-            <motion.button
-              key="opened-header"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
+            <button
               className="flex items-center gap-2.5 px-2 hover:bg-muted py-1.5 rounded-sm-sm w-full text-left transition-all whitespace-nowrap overflow-hidden group/personal"
             >
               <div className="w-5 h-5 bg-muted flex items-center justify-center text-foreground font-bold text-[10px] shrink-0 rounded-sm-sm border border-border shadow-sm-sm group-hover/personal:bg-muted/80 transition-all">
@@ -428,32 +509,27 @@ export const Sidebar = () => {
               </div>
               <span className="font-semibold tracking-tight text-[13px] flex-1 truncate text-foreground">{"Personal Space"}</span>
               <CaretDown size={12} className="text-muted-foreground mr-2 group-hover/personal:text-foreground" />
-            </motion.button>
+            </button>
           ) : (
-            <motion.div
-              key="closed-header"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               className="w-full flex justify-center py-1.5"
             >
               <div className="w-6 h-6 bg-muted flex items-center justify-center text-foreground font-bold text-xs shrink-0 rounded-sm-sm border border-border shadow-sm-sm">
                 N
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
       </div>
 
       <div className="flex-1 space-y-6 min-w-0">
         {/* Core Actions */}
         <div className="space-y-[2px]">
-          <SidebarItem icon={<Plus size={16} className={isDocActive('new-note') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="New Note" isOpen={isSidebarOpen} highlight={isDocActive('new-note')} onClick={handleNewNoteClick} activeBgClass="bg-blush-pop/70 dark:bg-blush-pop/20 border-blush-pop/50 dark:border-blush-pop/30 border shadow-sm-sm" activeTextClass="!text-black dark:!text-white font-semibold" />
+          <SidebarItem icon={<Plus size={16} className={isDocActive('new-note') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="New Note" isOpen={isSidebarOpen} highlight={isDocActive('new-note')} onClick={handleNewNoteClick} activeBgClass="bg-blush-pop/70 dark:bg-blush-pop/20 border-blush-pop/50 dark:border-blush-pop/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
           <SidebarItem icon={<MagnifyingGlass size={16} className="text-sky-500/80 dark:text-sky-400/80" />} label="Search" isOpen={isSidebarOpen} />
           <SidebarItem icon={<Sparkle size={16} className="text-purple-500/90 dark:text-purple-400/90" />} label="Ask AI" isOpen={isSidebarOpen} />
-          <SidebarItem icon={<CalendarBlank size={16} className={isDocActive('section-daily-notes') ? "text-current" : "text-emerald-500/90 dark:text-emerald-400/90"} />} label="Daily Notes" isOpen={isSidebarOpen} highlight={isDocActive('section-daily-notes')} onClick={() => handleDocClick('section-daily-notes')} activeBgClass="bg-icy-blue/70 dark:bg-icy-blue/20 border-icy-blue/50 dark:border-icy-blue/30 border shadow-sm-sm" activeTextClass="!text-black dark:!text-white font-semibold" />
-          <SidebarItem icon={<CheckSquare size={16} className={isDocActive('section-tasks') ? "text-current" : "text-blue-500/90 dark:text-blue-400/90"} />} label="Tasks" isOpen={isSidebarOpen} highlight={isDocActive('section-tasks')} onClick={() => handleDocClick('section-tasks')} activeBgClass="bg-sky-blue/70 dark:bg-sky-blue/20 border-sky-blue/50 dark:border-sky-blue/30 border shadow-sm-sm" activeTextClass="!text-black dark:!text-white font-semibold" />
-          <SidebarItem icon={<Tag size={16} className={isDocActive('section-tags') ? "text-current" : "text-purple-500/90 dark:text-purple-400/90"} />} label="Tags" isOpen={isSidebarOpen} highlight={isDocActive('section-tags')} onClick={() => handleDocClick('section-tags')} activeBgClass="bg-pink-orchid/70 dark:bg-pink-orchid/20 border-pink-orchid/50 dark:border-pink-orchid/30 border shadow-sm-sm" activeTextClass="!text-black dark:!text-white font-semibold" />
+          <SidebarItem icon={<CalendarBlank size={16} className={isDocActive('section-daily-notes') ? "text-current" : "text-emerald-500/90 dark:text-emerald-400/90"} />} label="Daily Notes" isOpen={isSidebarOpen} highlight={isDocActive('section-daily-notes')} onClick={() => handleDocClick('section-daily-notes')} activeBgClass="bg-icy-blue/70 dark:bg-icy-blue/20 border-icy-blue/50 dark:border-icy-blue/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+          <SidebarItem icon={<CheckSquare size={16} className={isDocActive('section-tasks') ? "text-current" : "text-blue-500/90 dark:text-blue-400/90"} />} label="Tasks" isOpen={isSidebarOpen} highlight={isDocActive('section-tasks')} onClick={() => handleDocClick('section-tasks')} activeBgClass="bg-sky-blue/70 dark:bg-sky-blue/20 border-sky-blue/50 dark:border-sky-blue/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+          <SidebarItem icon={<Tag size={16} className={isDocActive('section-tags') ? "text-current" : "text-purple-500/90 dark:text-purple-400/90"} />} label="Tags" isOpen={isSidebarOpen} highlight={isDocActive('section-tags')} onClick={() => handleDocClick('section-tags')} activeBgClass="bg-pink-orchid/70 dark:bg-pink-orchid/20 border-pink-orchid/50 dark:border-pink-orchid/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
         </div>
 
         {/* Favorites Section */}
@@ -474,41 +550,30 @@ export const Sidebar = () => {
               </button>
             </div>
           )}
-          <AnimatePresence>
-            {!collapsedFolders.has('section-favorites') && (
-              <motion.div
-                key="favorites-list"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className="overflow-hidden"
-              >
-                <div className="max-h-[320px] overflow-y-auto no-scrollbar">
-                  {favoriteDocIds.map(docId => (
-                    <div
-                      id={`sidebar-fav-${docId}`}
-                      key={`fav-${docId}`}
-                      onContextMenu={(e) => {
-                        e.stopPropagation();
-                        handleContextMenu(e, docId, 'document');
-                      }}
-                    >
-                      <SidebarDocumentItem
-                        docId={docId}
-                        isOpen={isSidebarOpen}
-                        isActive={isDocActive(docId)}
-                        isRenaming={renamingDocId === docId}
-                        onRenameComplete={(newTitle) => handleRenameComplete(docId, newTitle)}
-                        onRenameCancel={() => setRenamingDocId(null)}
-                        onClick={() => handleDocClick(docId)}
-                      />
-                    </div>
-                  ))}
+          <GSAPAccordion isOpen={!collapsedFolders.has('section-favorites')}>
+            <div className="max-h-[320px] overflow-y-auto no-scrollbar">
+              {favoriteDocIds.map(docId => (
+                <div
+                  id={`sidebar-fav-${docId}`}
+                  key={`fav-${docId}`}
+                  onContextMenu={(e) => {
+                    e.stopPropagation();
+                    handleContextMenu(e, docId, 'document');
+                  }}
+                >
+                  <SidebarDocumentItem
+                    docId={docId}
+                    isOpen={isSidebarOpen}
+                    isActive={isDocActive(docId)}
+                    isRenaming={renamingDocId === docId}
+                    onRenameComplete={(newTitle) => handleRenameComplete(docId, newTitle)}
+                    onRenameCancel={() => setRenamingDocId(null)}
+                    onClick={() => handleDocClick(docId)}
+                  />
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              ))}
+            </div>
+          </GSAPAccordion>
         </div>
 
         {/* Folders Section */}
@@ -539,92 +604,86 @@ export const Sidebar = () => {
             </div>
           )}
 
-          <AnimatePresence>
-            {!collapsedFolders.has('section-folders') && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className="overflow-hidden"
-              >
-                <div className="max-h-[320px] overflow-y-auto no-scrollbar">
-                  {folderOrder.map((folderId, index) => {
-                    const folder = folders.find(f => f?.id === folderId);
-                    if (!folder) return null;
+          <GSAPAccordion isOpen={!collapsedFolders.has('section-folders')}>
+            <div className="max-h-[320px] overflow-y-auto no-scrollbar">
+              {folderOrder.map((folderId, index) => {
+                const folder = folders.find(f => f?.id === folderId);
+                if (!folder) return null;
 
-                    return (
-                      <div
-                        key={folder.id}
-                        className="space-y-[2px]"
-                        draggable
-                        onDragStart={(e) => {
-                          e.stopPropagation();
-                          setDraggedItem({ id: folder.id, type: 'folder' });
-                        }}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          if (!draggedItem) return;
-                          if (draggedItem.type === 'document') {
-                            const folderDocCount = useDocumentStore.getState().documentOrder.filter(id => useDocumentStore.getState().documents[id]?.folderId === folder.id).length;
-                            moveDocument(draggedItem.id, folder.id, folderDocCount);
-                          } else if (draggedItem.type === 'folder' && draggedItem.id !== folder.id) {
-                            moveFolder(draggedItem.id, index);
-                          }
-                          setDraggedItem(null);
-                        }}
-                        onContextMenu={(e) => handleContextMenu(e, folder.id, 'folder')}
-                      >
-                        <SidebarFolderItem
-                          folderId={folder.id}
-                          folderName={folder.name}
-                          isOpen={isSidebarOpen}
-                          isRenaming={renamingFolderId === folder.id}
-                          onRenameComplete={() => setRenamingFolderId(null)}
-                          onRenameCancel={() => setRenamingFolderId(null)}
-                          onClick={() => toggleFolderCollapse(folder.id)}
-                          folderColor={getFolderHexColor(folder.id, folderColors)}
-                          rightElement={
-                            <div className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200">
-                              {!collapsedFolders.has(folder.id) ? <CaretDown size={14} /> : <CaretRight size={14} />}
-                            </div>
-                          }
-                        />
-                        {/* Render documents inside folder */}
-                        <AnimatePresence>
-                          {!collapsedFolders.has(folder.id) && (
-                            <motion.div
-                              key={`folder-list-${folder.id}`}
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.2, ease: "easeOut" }}
-                              className="overflow-hidden"
-                            >
-                              <FolderDocumentsList
-                                folderId={folder.id}
-                                isOpen={isSidebarOpen}
-                                isDocActive={isDocActive}
-                                handleDocClick={handleDocClick}
-                                handleContextMenu={handleContextMenu}
-                                draggedItem={draggedItem}
-                                setDraggedItem={setDraggedItem}
-                                moveDocument={moveDocument}
-                                renamingDocId={renamingDocId}
-                                onRenameComplete={handleRenameComplete}
-                                onRenameCancel={() => setRenamingDocId(null)}
-                              />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                return (
+                  <div
+                    key={folder.id}
+                    className="space-y-[2px]"
+                    draggable
+                    onDragStart={(e) => {
+                      e.stopPropagation();
+                      setDraggedItem({ id: folder.id, type: 'folder' });
+                    }}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (!draggedItem) return;
+                      if (draggedItem.type === 'document') {
+                        const folderDocCount = useDocumentStore.getState().documentOrder.filter(id => useDocumentStore.getState().documents[id]?.folderId === folder.id).length;
+                        moveDocument(draggedItem.id, folder.id, folderDocCount);
+                      } else if (draggedItem.type === 'folder' && draggedItem.id !== folder.id) {
+                        moveFolder(draggedItem.id, index);
+                      }
+                      setDraggedItem(null);
+                    }}
+                    onContextMenu={(e) => handleContextMenu(e, folder.id, 'folder')}
+                  >
+                    <SidebarFolderItem
+                      folderId={folder.id}
+                      folderName={folder.name}
+                      isOpen={isSidebarOpen}
+                      isRenaming={renamingFolderId === folder.id}
+                      onRenameComplete={() => setRenamingFolderId(null)}
+                      onRenameCancel={() => setRenamingFolderId(null)}
+                      onClick={() => handleDocClick(`section-folder-${folder.id}`)}
+                      highlight={isDocActive(`section-folder-${folder.id}`)}
+                      folderColor={getFolderHexColor(folder.id, folderColors)}
+                      rightElement={
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFolderCollapse(folder.id);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.stopPropagation();
+                              toggleFolderCollapse(folder.id);
+                            }
+                          }}
+                          className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200 cursor-pointer"
+                        >
+                          {!collapsedFolders.has(folder.id) ? <CaretDown size={14} /> : <CaretRight size={14} />}
+                        </div>
+                      }
+                    />
+                    {/* Render documents inside folder with smooth transition */}
+                    <GSAPAccordion isOpen={!collapsedFolders.has(folder.id)}>
+                      <FolderDocumentsList
+                        folderId={folder.id}
+                        isOpen={isSidebarOpen}
+                        isDocActive={isDocActive}
+                        handleDocClick={handleDocClick}
+                        handleContextMenu={handleContextMenu}
+                        draggedItem={draggedItem}
+                        setDraggedItem={setDraggedItem}
+                        moveDocument={moveDocument}
+                        renamingDocId={renamingDocId}
+                        onRenameComplete={handleRenameComplete}
+                        onRenameCancel={() => setRenamingDocId(null)}
+                      />
+                    </GSAPAccordion>
+                  </div>
+                );
+              })}
+            </div>
+          </GSAPAccordion>
         </div>
 
         {/* Root Documents (Recents or not in a folder) */}
@@ -655,56 +714,45 @@ export const Sidebar = () => {
               </button>
             </div>
           )}
-          <AnimatePresence>
-            {!collapsedFolders.has('section-uncategorized') && (
-              <motion.div
-                key="uncategorized-list"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className="overflow-hidden"
-              >
-                <div className="max-h-[320px] overflow-y-auto no-scrollbar">
-                  {uncategorizedDocIds.map((docId) => (
-                    <div
-                      id={`sidebar-doc-${docId}`}
-                      key={docId}
-                      draggable
-                      onDragStart={(e) => {
-                        e.stopPropagation();
-                        setDraggedItem({ id: docId, type: 'document' });
-                      }}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (draggedItem?.type === 'document' && draggedItem.id !== docId) {
-                          const targetIndex = uncategorizedDocIds.indexOf(docId);
-                          moveDocument(draggedItem.id, null, targetIndex);
-                        }
-                        setDraggedItem(null);
-                      }}
-                      onContextMenu={(e) => {
-                        e.stopPropagation();
-                        handleContextMenu(e, docId, 'document');
-                      }}
-                    >
-                      <SidebarDocumentItem
-                        docId={docId}
-                        isOpen={isSidebarOpen}
-                        isActive={isDocActive(docId)}
-                        isRenaming={renamingDocId === docId}
-                        onRenameComplete={(newTitle) => handleRenameComplete(docId, newTitle)}
-                        onRenameCancel={() => setRenamingDocId(null)}
-                        onClick={() => handleDocClick(docId)}
-                      />
-                    </div>
-                  ))}
+          <GSAPAccordion isOpen={!collapsedFolders.has('section-uncategorized')}>
+            <div className="max-h-[320px] overflow-y-auto no-scrollbar">
+              {uncategorizedDocIds.map((docId) => (
+                <div
+                  id={`sidebar-doc-${docId}`}
+                  key={docId}
+                  draggable
+                  onDragStart={(e) => {
+                    e.stopPropagation();
+                    setDraggedItem({ id: docId, type: 'document' });
+                  }}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (draggedItem?.type === 'document' && draggedItem.id !== docId) {
+                      const targetIndex = uncategorizedDocIds.indexOf(docId);
+                      moveDocument(draggedItem.id, null, targetIndex);
+                    }
+                    setDraggedItem(null);
+                  }}
+                  onContextMenu={(e) => {
+                    e.stopPropagation();
+                    handleContextMenu(e, docId, 'document');
+                  }}
+                >
+                  <SidebarDocumentItem
+                    docId={docId}
+                    isOpen={isSidebarOpen}
+                    isActive={isDocActive(docId)}
+                    isRenaming={renamingDocId === docId}
+                    onRenameComplete={(newTitle) => handleRenameComplete(docId, newTitle)}
+                    onRenameCancel={( ) => setRenamingDocId(null)}
+                    onClick={() => handleDocClick(docId)}
+                  />
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              ))}
+            </div>
+          </GSAPAccordion>
         </div>
       </div>
 
@@ -716,7 +764,7 @@ export const Sidebar = () => {
           isOpen={isSidebarOpen}
           highlight={isDocActive('section-trash')}
           onClick={() => handleDocClick('section-trash')}
-          activeBgClass="bg-red-500/10 dark:bg-red-500/5 border-red-500/20 dark:border-red-500/10 border shadow-sm-sm"
+          activeBgClass="bg-red-500/10 dark:bg-red-500/5 border-red-500/20 dark:border-red-500/10 border"
           activeTextClass="!text-red-600 dark:!text-red-400 font-semibold"
         />
         <SidebarItem icon={<Gear size={16} className="text-slate-500/70 dark:text-slate-400/70" />} label="Settings" isOpen={isSidebarOpen} onClick={() => setIsSettingsOpen(true)} />

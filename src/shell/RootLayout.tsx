@@ -4,9 +4,15 @@ import { MainWorkspace } from './MainWorkspace';
 import { RightSidebar } from './right-sidebar/RightSidebar';
 import { CommandPalette } from "@/shared/ui/CommandPalette";
 import { useUiStore } from '@/shared/store/uiStore';
+import { useShallow } from 'zustand/react/shallow';
 
 export const RootLayout = () => {
-  const { openDocument, appearance } = useUiStore();
+  const { openDocument, appearance } = useUiStore(
+    useShallow((state) => ({
+      openDocument: state.openDocument,
+      appearance: state.appearance,
+    }))
+  );
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -113,7 +119,10 @@ export const RootLayout = () => {
   }, []);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background font-sans text-foreground relative">
+    <div className="flex h-screen w-full overflow-hidden bg-transparent font-sans text-foreground relative z-0">
+      {/* Persistent Global Background Layer */}
+      <div className="global-ambient-bg" />
+
       <Sidebar />
       <MainWorkspace />
       <RightSidebar />

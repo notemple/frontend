@@ -3,6 +3,7 @@ import { X, CaretDown, Check, Circle, Clock, CheckCircle, CalendarBlank, Flag } 
 import { motion, AnimatePresence } from "motion/react";
 import { NotempleEditor } from "@/features/editor/NotempleEditor";
 import { useTaskStore } from "@/features/tasks/store";
+import { useShallow } from 'zustand/react/shallow';
 import { cn } from "@/shared/lib/utils";
 import { CustomDatePicker } from "./CustomDatePicker";
 
@@ -13,10 +14,12 @@ export const TaskEditorModal = ({
   taskId: string | null;
   onClose: () => void;
 }) => {
-  const { tasks, updateTask } = useTaskStore();
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
-  const task = tasks.find((t) => t?.id === taskId);
+  const task = useTaskStore(
+    useShallow((state) => state.tasks.find((t) => t?.id === taskId))
+  );
+  const updateTask = useTaskStore((state) => state.updateTask);
   const currentStatus = task?.status || 'open';
 
   const statusConfig = {

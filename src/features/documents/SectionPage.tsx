@@ -15,8 +15,10 @@ import { useShallow } from 'zustand/react/shallow';
 import { SectionGridItem } from './components/SectionGridItem';
 import { ColorPicker } from '@/shared/ui/ColorPicker';
 
+const EMPTY_ARRAY: any[] = [];
+
 export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: string }) => {
-  const { openDocument } = useUiStore();
+  const openDocument = useUiStore(state => state.openDocument);
   const createFolder = useDocumentStore(state => state.createFolder);
   const addDocument = useDocumentStore(state => state.addDocument);
   const folderColors = useDocumentStore(state => state.folderColors) || {};
@@ -98,29 +100,29 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
   );
   const title = useDocumentStore(titleSelector);
 
-  const itemsSelector = useCallback(
-    state => {
-      if (sectionId === 'section-favorites') {
-        return state.documentOrder.filter(id => state.documents[id]?.isFavorite);
-      }
-      if (sectionId === 'section-folders') {
-        return state.folders.filter(Boolean).map(f => f.id);
-      }
-      if (sectionId.startsWith('section-folder-')) {
-        const folderId = sectionId.replace('section-folder-', '');
-        return state.documentOrder.filter(id => state.documents[id]?.folderId === folderId);
-      }
-      if (sectionId === 'section-uncategorized') {
-        return state.documentOrder.filter(id => {
-          const doc = state.documents[id];
-          return doc && !doc.folderId && !id.startsWith('daily-note-') && !id.startsWith('task-');
-        });
-      }
-      return [];
-    },
-    [sectionId]
-  );
-  const items = useDocumentStore(useShallow(itemsSelector));
+  const documentOrder = useDocumentStore(useShallow((state: any) => state.documentOrder || EMPTY_ARRAY));
+  const documents = useDocumentStore(useShallow((state: any) => state.documents));
+  const folders = useDocumentStore(useShallow((state: any) => state.folders || EMPTY_ARRAY));
+
+  const items = React.useMemo(() => {
+    if (sectionId === 'section-favorites') {
+      return documentOrder.filter(id => documents[id]?.isFavorite && !documents[id]?.isDeleted);
+    }
+    if (sectionId === 'section-folders') {
+      return folders.filter(Boolean).filter((f: any) => !f.isDeleted).map(f => f.id);
+    }
+    if (sectionId.startsWith('section-folder-')) {
+      const folderId = sectionId.replace('section-folder-', '');
+      return documentOrder.filter(id => documents[id]?.folderId === folderId && !documents[id]?.isDeleted);
+    }
+    if (sectionId === 'section-uncategorized') {
+      return documentOrder.filter(id => {
+        const doc = documents[id];
+        return doc && !doc.folderId && !doc.isDeleted && !id.startsWith('daily-note-') && !id.startsWith('task-');
+      });
+    }
+    return EMPTY_ARRAY;
+  }, [sectionId, documentOrder, documents, folders]);
 
   if (sectionId === 'section-daily-notes') {
     return <DailyNotesPage paneId={paneId} />;
@@ -136,9 +138,11 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
   }
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto no-scrollbar relative w-full items-center p-8 bg-workspace">
+    <div className="flex flex-col h-full overflow-y-auto no-scrollbar relative w-full items-center p-8 bg-transparent">
       <div className="absolute inset-0 bg-gradient-to-b from-foreground/[0.01] to-transparent pointer-events-none" />
-      <div className="w-full max-w-[1200px] mx-auto flex flex-col gap-10 pt-8 flex-1">
+      <div
+        className="w-full max-w-[1200px] mx-auto flex flex-col gap-10 pt-8 flex-1"
+      >
         <div className="flex flex-col gap-4">
           {sectionId.startsWith('section-folder-') && (
             <button

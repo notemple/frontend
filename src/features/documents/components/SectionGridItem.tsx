@@ -26,7 +26,7 @@ export const SectionGridItem = React.memo(({
   folderColors?: Record<string, string>;
   onFolderContextMenu?: (e: React.MouseEvent, folderId: string) => void;
 }) => {
-  const { openDocument } = useUiStore();
+  const openDocument = useUiStore(state => state.openDocument);
 
   const detailsSelector = useCallback(
     (state: any) => {

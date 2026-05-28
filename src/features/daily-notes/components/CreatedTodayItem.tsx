@@ -22,7 +22,7 @@ export const CreatedTodayItem = ({ docId, paneId }: { docId: string; paneId: str
     [docId]
   );
   const doc = useDocumentStore(useShallow(docSelector));
-  const { setActiveTab } = useUiStore();
+  const setActiveTab = useUiStore((state) => state.setActiveTab);
 
   if (!doc) return null;
 

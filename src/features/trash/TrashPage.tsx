@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { useDocumentStore } from '@/features/documents/store';
 import { useTaskStore } from '@/features/tasks/store';
 import { formatDisplayDate } from '@/shared/lib/time';
 import { cn } from '@/shared/lib/utils';
+import { useShallow } from 'zustand/react/shallow';
 import { 
   Trash, 
   ArrowCounterClockwise, 
@@ -21,29 +23,98 @@ export const TrashPage = ({ paneId }: { paneId: string }) => {
   const [showConfirmEmpty, setShowConfirmEmpty] = useState(false);
 
   // Zustand Store States and Actions
-  const { 
-    documents, 
-    folders,
+  const deletedDocIds = useDocumentStore(
+    useShallow((state) =>
+      Object.values(state.documents)
+        .filter((doc: any) => doc && doc.isDeleted)
+        .map((doc: any) => doc.id)
+    )
+  );
+
+  const deletedFolderIds = useDocumentStore(
+    useShallow((state) =>
+      state.folders
+        .filter((f: any) => f.isDeleted)
+        .map((f: any) => f.id)
+    )
+  );
+
+  const deletedTaskIds = useTaskStore(
+    useShallow((state) =>
+      state.tasks
+        .filter((t: any) => t.isDeleted)
+        .map((t: any) => t.id)
+    )
+  );
+
+  const documents = useDocumentStore(useShallow((state) => state.documents));
+  const folders = useDocumentStore(useShallow((state) => state.folders));
+  const tasks = useTaskStore(useShallow((state) => state.tasks));
+
+  const deletedDocs = React.useMemo(() => {
+    return deletedDocIds
+      .map(id => documents[id])
+      .filter(Boolean)
+      .map((doc: any) => ({
+        id: doc.id,
+        title: doc.title,
+        deletedAt: doc.deletedAt,
+      }));
+  }, [deletedDocIds, documents]);
+
+  const deletedFolders = React.useMemo(() => {
+    return deletedFolderIds
+      .map(id => folders.find((f: any) => f?.id === id))
+      .filter(Boolean)
+      .map((f: any) => ({
+        id: f.id,
+        name: f.name,
+        deletedAt: f.deletedAt,
+      }));
+  }, [deletedFolderIds, folders]);
+
+  const deletedTasks = React.useMemo(() => {
+    return deletedTaskIds
+      .map(id => tasks.find((t: any) => t?.id === id))
+      .filter(Boolean)
+      .map((t: any) => ({
+        id: t.id,
+        title: t.title,
+        deletedAt: t.deletedAt,
+      }));
+  }, [deletedTaskIds, tasks]);
+
+  const {
     restoreDocument,
     permanentlyDeleteDocument,
     restoreFolder,
     permanentlyDeleteFolder,
     restoreAllDocumentsAndFolders,
-    permanentlyDeleteAllDocumentsAndFolders
-  } = useDocumentStore();
+    permanentlyDeleteAllDocumentsAndFolders,
+  } = useDocumentStore(
+    useShallow((state) => ({
+      restoreDocument: state.restoreDocument,
+      permanentlyDeleteDocument: state.permanentlyDeleteDocument,
+      restoreFolder: state.restoreFolder,
+      permanentlyDeleteFolder: state.permanentlyDeleteFolder,
+      restoreAllDocumentsAndFolders: state.restoreAllDocumentsAndFolders,
+      permanentlyDeleteAllDocumentsAndFolders: state.permanentlyDeleteAllDocumentsAndFolders,
+    }))
+  );
 
-  const { 
-    tasks,
+  const {
     restoreTask,
     permanentlyDeleteTask,
     restoreAllTasks,
-    permanentlyDeleteAllTasks
-  } = useTaskStore();
-
-  // Filter Deleted Items
-  const deletedDocs = Object.values(documents).filter(doc => doc.isDeleted);
-  const deletedFolders = folders.filter(f => f.isDeleted);
-  const deletedTasks = tasks.filter(t => t.isDeleted);
+    permanentlyDeleteAllTasks,
+  } = useTaskStore(
+    useShallow((state) => ({
+      restoreTask: state.restoreTask,
+      permanentlyDeleteTask: state.permanentlyDeleteTask,
+      restoreAllTasks: state.restoreAllTasks,
+      permanentlyDeleteAllTasks: state.permanentlyDeleteAllTasks,
+    }))
+  );
 
   // Group All Items for Display
   const allDeletedItems = [
@@ -103,10 +174,12 @@ export const TrashPage = ({ paneId }: { paneId: string }) => {
   const isEmpty = allDeletedItems.length === 0;
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto no-scrollbar relative w-full items-center p-8 bg-workspace font-sans">
+    <div className="flex flex-col h-full overflow-y-auto no-scrollbar relative w-full items-center p-8 bg-transparent font-sans">
       <div className="absolute inset-0 bg-gradient-to-b from-foreground/[0.01] to-transparent pointer-events-none" />
       
-      <div className="w-full max-w-[1000px] mx-auto flex flex-col gap-8 pt-6 flex-1">
+      <div
+        className="w-full max-w-[1000px] mx-auto flex flex-col gap-8 pt-6 flex-1"
+      >
         {/* Header Block */}
         <div className="flex items-center justify-between border-b border-border pb-6 flex-wrap gap-4">
           <div className="flex flex-col gap-1.5">

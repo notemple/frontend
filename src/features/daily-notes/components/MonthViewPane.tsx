@@ -19,7 +19,7 @@ export const MonthViewPane = ({ selectedDate, setView, setSelectedDate }: {
   setView: (v: "Day" | "Week" | "Month") => void;
   setSelectedDate: (d: Date) => void;
 }) => {
-  const { timezone } = useSettingsStore();
+  const timezone = useSettingsStore((state) => state.timezone);
 
   const monthDocIdsSelector = useCallback(
     (state: any) => {

@@ -25,7 +25,12 @@ export const CommandPalette = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const { addPane, openDocument } = useUiStore();
+  const { addPane, openDocument } = useUiStore(
+    useShallow((state) => ({
+      addPane: state.addPane,
+      openDocument: state.openDocument,
+    }))
+  );
   const parentRef = useRef<HTMLDivElement>(null);
   
   // Stable outer selector wrapped in useShallow

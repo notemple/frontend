@@ -19,7 +19,12 @@ import { cn } from '@/shared/lib/utils';
 import { getRelativeTimeString } from '@/shared/lib/time';
 
 export const RightSidebar = () => {
-  const { isRightSidebarOpen, toggleRightSidebar } = useUiStore();
+  const { isRightSidebarOpen, toggleRightSidebar } = useUiStore(
+    useShallow((state) => ({
+      isRightSidebarOpen: state.isRightSidebarOpen,
+      toggleRightSidebar: state.toggleRightSidebar,
+    }))
+  );
   const [activeTab, setActiveTab] = useState('Style');
 
   const tabs = ['Style', 'Info'];
@@ -67,7 +72,12 @@ export const RightSidebar = () => {
 };
 
 const StyleTab = () => {
-  const { panes, activePaneId } = useUiStore();
+  const { panes, activePaneId } = useUiStore(
+    useShallow((state) => ({
+      panes: state.panes,
+      activePaneId: state.activePaneId,
+    }))
+  );
   const updateDocument = useDocumentStore(state => state.updateDocument);
 
   // Custom picker expand collapse to prevent glitches and keep selection stable
@@ -886,7 +896,12 @@ const StyleTab = () => {
 };
 
 const InfoTab = () => {
-  const { panes, activePaneId } = useUiStore();
+  const { panes, activePaneId } = useUiStore(
+    useShallow((state) => ({
+      panes: state.panes,
+      activePaneId: state.activePaneId,
+    }))
+  );
   const updateDocument = useDocumentStore(state => state.updateDocument);
   const [subTab, setSubTab] = useState('Page Info');
 

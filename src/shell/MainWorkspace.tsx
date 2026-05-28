@@ -11,16 +11,20 @@ import { cn, getItemColor, getFolderStyle, getFolderHexColor, } from '@/shared/l
 import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
 import { Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, CaretDown, FileText, Folder, Sun, Moon, Monitor, Clock, ArrowLeft, PlusCircle, Check, X, Plus, Trash } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'motion/react';
+import { gsap } from 'gsap';
 import { SectionPage } from "@/features/documents/SectionPage";
 import { SectionGridItem } from "@/features/documents/components/SectionGridItem";
 import { EmptyPaneState } from "@/features/documents/components/EmptyPaneState";
 import { useSettingsStore } from '@/features/settings/store';
 import { formatDisplayDateTime } from '@/shared/lib/time';
 
-export const MainWorkspace = () => {
-  const { panes, activePaneId, toggleRightSidebar, appearance, setAppearance, isRightSidebarOpen } = useUiStore();
-  const { toggleSidebar } = useUiStore();
-  const { timezone, timeFormat } = useSettingsStore();
+export const ClockWidget = () => {
+  const { timezone, timeFormat } = useSettingsStore(
+    useShallow((state) => ({
+      timezone: state.timezone,
+      timeFormat: state.timeFormat,
+    }))
+  );
 
   const [dateTime, setDateTime] = React.useState(() => {
     return formatDisplayDateTime(new Date().toISOString());
@@ -36,6 +40,56 @@ export const MainWorkspace = () => {
     const interval = setInterval(updateDateTime, 1000);
     return () => clearInterval(interval);
   }, [timezone, timeFormat]);
+
+  return (
+    <div className="flex items-center gap-2 px-3 py-1 rounded-sm-full bg-muted/40 hover:bg-muted/70 border border-border/80 text-[11px] font-medium text-muted-foreground/90 shadow-sm-sm transition-all duration-200 select-none group hover:border-border">
+      <Clock size={13} className="text-muted-foreground/60 group-hover:text-rose-500 dark:group-hover:text-rose-400 transition-colors duration-200" />
+      <span className="font-mono tracking-wide leading-none">{dateTime}</span>
+    </div>
+  );
+};
+
+const GSAPPageWrapper = ({ children, activeTabId }: { children: React.ReactNode; activeTabId: string }) => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (containerRef.current) {
+      gsap.killTweensOf(containerRef.current);
+      gsap.fromTo(containerRef.current,
+        { opacity: 0.2, y: 10 },
+        { 
+          opacity: 1, 
+          y: 0, 
+          duration: 0.28, 
+          ease: "power3.out"
+        }
+      );
+    }
+  }, [activeTabId]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="absolute inset-0 flex flex-col overflow-hidden bg-workspace"
+    >
+      {children}
+    </div>
+  );
+};
+
+export const MainWorkspace = () => {
+  const { panes, activePaneId, toggleRightSidebar, appearance, setAppearance, isRightSidebarOpen, toggleSidebar } = useUiStore(
+    useShallow((state) => ({
+      panes: state.panes,
+      activePaneId: state.activePaneId,
+      toggleRightSidebar: state.toggleRightSidebar,
+      appearance: state.appearance,
+      setAppearance: state.setAppearance,
+      isRightSidebarOpen: state.isRightSidebarOpen,
+      toggleSidebar: state.toggleSidebar,
+    }))
+  );
+
 
   const activePane = panes.find(p => p?.id === activePaneId) || panes[0];
   const activeTabId = activePane?.activeTabId;
@@ -64,7 +118,7 @@ export const MainWorkspace = () => {
   const headerText = useDocumentStore(useShallow(headerTextSelector));
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-workspace relative pt-0 z-10 w-full border-l border-border">
+    <div className="flex-1 flex flex-col overflow-hidden bg-transparent relative pt-0 z-10 w-full border-l border-border">
       <div className="h-14 w-full flex items-center justify-between px-6 shrink-0 bg-[image:var(--background-topbar)] dark:bg-background border-b border-border z-20">
         <div className="flex-1 flex items-center gap-3">
           <button
@@ -74,10 +128,7 @@ export const MainWorkspace = () => {
             <SidebarIcon size={18} />
           </button>
           
-          <div className="flex items-center gap-2 px-3 py-1 rounded-sm-full bg-muted/40 hover:bg-muted/70 border border-border/80 text-[11px] font-medium text-muted-foreground/90 shadow-sm-sm transition-all duration-200 select-none group hover:border-border">
-            <Clock size={13} className="text-muted-foreground/60 group-hover:text-rose-500 dark:group-hover:text-rose-400 transition-colors duration-200" />
-            <span className="font-mono tracking-wide leading-none">{dateTime}</span>
-          </div>
+          <ClockWidget />
         </div>
         <div className="text-[13px] font-medium text-muted-foreground flex-1 text-center font-sans tracking-wide">
           {headerText}
@@ -152,25 +203,16 @@ export const MainWorkspace = () => {
               )}
               <div className="flex-1 flex flex-col min-w-[300px] overflow-hidden relative">
                 <TabBar paneId={pane.id} />
-                <div className="flex-1 overflow-hidden bg-workspace relative">
-                  <AnimatePresence>
-                    <motion.div
-                      key={pane.activeTabId || 'empty'}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.15, ease: "easeInOut" }}
-                      className="absolute inset-0 w-full h-full flex flex-col overflow-hidden"
-                    >
-                      {pane.activeTabId?.startsWith('section-') ? (
-                        <SectionPage paneId={pane.id} sectionId={pane.activeTabId} />
-                      ) : pane.activeTabId ? (
-                        <NotempleEditor key={`${pane.id}-${pane.activeTabId}`} paneId={pane.id} documentId={pane.activeTabId} />
-                      ) : (
-                        <EmptyPaneState />
-                      )}
-                    </motion.div>
-                  </AnimatePresence>
+                <div className="flex-1 overflow-hidden bg-transparent relative">
+                  <GSAPPageWrapper activeTabId={pane.activeTabId || 'empty'}>
+                    {pane.activeTabId?.startsWith('section-') ? (
+                      <SectionPage paneId={pane.id} sectionId={pane.activeTabId} />
+                    ) : pane.activeTabId ? (
+                      <NotempleEditor key={`${pane.id}-${pane.activeTabId}`} paneId={pane.id} documentId={pane.activeTabId} />
+                    ) : (
+                      <EmptyPaneState />
+                    )}
+                  </GSAPPageWrapper>
                 </div>
               </div>
             </React.Fragment>

@@ -40,6 +40,7 @@
     "dexie": "^4.4.3",
     "framer-motion": "^12.40.0",
     "framer-motion-lib": "^1.0.1",
+    "gsap": "^3.15.0",
     "lowlight": "^3.3.0",
     "phosphor-react": "^1.4.1",
     "react": "^19.2.6",

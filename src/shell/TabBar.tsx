@@ -24,7 +24,12 @@ import { CSS } from '@dnd-kit/utilities';
 
 const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: string, isActive: boolean }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: tabId });
-  const { setActiveTab, closeDocument } = useUiStore();
+  const { setActiveTab, closeDocument } = useUiStore(
+    useShallow((state) => ({
+      setActiveTab: state.setActiveTab,
+      closeDocument: state.closeDocument,
+    }))
+  );
 
   // Target-selected document title and type to prevent any keystroke/typing re-renders!
   const docSelector = useCallback(
@@ -82,7 +87,13 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
 };
 
 export const TabBar = ({ paneId }: { paneId: string }) => {
-  const { panes, activePaneId, setActivePane } = useUiStore();
+  const { panes, activePaneId, setActivePane } = useUiStore(
+    useShallow((state) => ({
+      panes: state.panes,
+      activePaneId: state.activePaneId,
+      setActivePane: state.setActivePane,
+    }))
+  );
 
   const pane = panes.find(p => p?.id === paneId);
   if (!pane) return null;

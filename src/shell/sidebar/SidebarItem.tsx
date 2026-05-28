@@ -41,17 +41,13 @@ export const SidebarItem = ({
     >
       {highlight && (
         <motion.div
-          layoutId="activeSidebarItemBg"
-          className={cn("absolute inset-0 rounded-sm-sm -z-10", activeBgClass)}
-          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+          layoutId="activeSidebarHighlight"
+          className={cn("absolute inset-0 rounded-sm-sm -z-0 border", activeBgClass)}
+          transition={{ type: "spring", stiffness: 380, damping: 32 }}
         />
       )}
       {highlight && (
-        <motion.div
-          layoutId="activeSidebarItemIndicator"
-          className="absolute left-0 top-1.5 bottom-1.5 w-[2px] bg-current rounded-sm-r-full shadow-sm-sm z-10"
-          transition={{ type: "spring", stiffness: 380, damping: 30 }}
-        />
+        <div className="absolute left-0 top-1.5 bottom-1.5 w-[2px] bg-current rounded-sm-r-full z-10" />
       )}
       <div
         className={cn(

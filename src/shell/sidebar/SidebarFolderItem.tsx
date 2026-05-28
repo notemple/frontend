@@ -20,6 +20,7 @@ export const SidebarFolderItem = ({
   onClick,
   rightElement,
   folderColor,
+  highlight = false,
 }: {
   folderId: string;
   folderName: string;
@@ -30,6 +31,7 @@ export const SidebarFolderItem = ({
   onClick: () => void;
   rightElement?: React.ReactNode;
   folderColor?: string | null;
+  highlight?: boolean;
 }) => {
   const [tempName, setTempName] = useState(folderName);
   const originalNameRef = React.useRef(folderName);
@@ -96,6 +98,7 @@ export const SidebarFolderItem = ({
       icon={<Folder size={16} className={iconClassName} style={iconStyle} />}
       label={folderName}
       isOpen={isOpen}
+      highlight={highlight}
       onClick={onClick}
       rightElement={rightElement}
     />

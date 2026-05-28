@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useDocumentStore } from '@/features/documents/store';
 import { useUiStore } from '@/shared/store/uiStore';
+import { useShallow } from 'zustand/react/shallow'; // Refreshed HMR import
 import { 
   Tag as TagIcon, 
   ArrowLeft, 
@@ -19,15 +20,15 @@ import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
 import { formatDisplayDate } from '@/shared/lib/time';
 
 export const TagsPage = ({ paneId }: { paneId: string }) => {
-  const documents = useDocumentStore(state => state.documents);
   const renameTag = useDocumentStore(state => state.renameTag);
   const deleteTag = useDocumentStore(state => state.deleteTag);
   const addDocument = useDocumentStore(state => state.addDocument);
   const createdTags = useDocumentStore(state => state.createdTags);
   const createTag = useDocumentStore(state => state.createTag);
-  const tagColors = useDocumentStore(state => state.tagColors) || {};
+  const tagColors = useDocumentStore(state => state.tagColors || {});
   const setTagColor = useDocumentStore(state => state.setTagColor);
-  const { openDocument } = useUiStore();
+  const documents = useDocumentStore(state => state.documents);
+  const openDocument = useUiStore((state) => state.openDocument);
 
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; tag: string } | null>(null);
@@ -44,6 +45,26 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
     return () => window.removeEventListener('click', handleClose);
   }, []);
 
+  // Compute stable document tags list
+  const docTagsList = useMemo(() => {
+    return Object.values(documents)
+      .filter((doc: any) => doc && !doc.isDeleted)
+      .map((doc: any) => doc.tags || []);
+  }, [documents]);
+
+  // Compute filtered documents
+  const filteredDocuments = useMemo(() => {
+    if (!selectedTag) return [];
+    return Object.values(documents)
+      .filter((doc: any) => doc && !doc.isDeleted && doc.tags?.includes(selectedTag))
+      .map((doc: any) => ({
+        id: doc.id,
+        title: doc.title,
+        updatedAt: doc.updatedAt,
+      }))
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+  }, [documents, selectedTag]);
+
   // Compute all unique tags across all documents and their counts
   const tagsWithCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -54,8 +75,8 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
       }
     });
     // Add document tags and calculate counts
-    Object.values(documents).forEach(doc => {
-      (doc as any).tags?.forEach(tag => {
+    docTagsList.forEach(tags => {
+      tags.forEach(tag => {
         if (tag && tag.trim()) {
           counts[tag] = (counts[tag] || 0) + 1;
         }
@@ -64,15 +85,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
     return Object.entries(counts)
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
-  }, [documents, createdTags]);
-
-  // Compute documents belonging to the currently selected tag
-  const filteredDocuments = useMemo(() => {
-    if (!selectedTag) return [];
-    return Object.values(documents).filter(doc => 
-      (doc as any).tags?.includes(selectedTag)
-    ).sort((a, b) => new Date((b as any).updatedAt).getTime() - new Date((a as any).updatedAt).getTime());
-  }, [documents, selectedTag]);
+  }, [docTagsList, createdTags]);
 
   const handleCreateTagSubmit = () => {
     const trimmed = newTagName.trim();
@@ -134,19 +147,13 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto no-scrollbar relative w-full items-center p-8 bg-background">
+    <div className="flex flex-col h-full overflow-y-auto no-scrollbar relative w-full items-center p-8 bg-transparent">
       <div className="absolute inset-0 bg-gradient-to-b from-foreground/[0.01] to-transparent pointer-events-none" />
       
       <div className="w-full max-w-[1200px] mx-auto flex flex-col gap-10 pt-8 flex-1">
-        <AnimatePresence mode="wait">
           {!selectedTag ? (
             // GRID OF ALL TAGS
-            <motion.div
-              key="tags-grid-view"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
+            <div
               className="flex-1 flex flex-col"
             >
               <div className="flex items-center gap-4 mb-10 relative">
@@ -279,15 +286,10 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
                   })}
                 </div>
               )}
-            </motion.div>
+            </div>
           ) : (
             // FILTERED DOCUMENTS VIEW FOR SELECTED TAG
-            <motion.div
-              key="tag-details-view"
-              initial={{ opacity: 0, x: 15 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -15 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
+            <div
               className="flex-1 flex flex-col"
             >
               <div className="flex flex-col gap-6 mb-8 relative">
@@ -379,9 +381,8 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
                   })}
                 </div>
               )}
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
       </div>
 
       {/* Tags Page Context Menu */}

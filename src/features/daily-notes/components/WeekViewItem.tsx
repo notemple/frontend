@@ -20,7 +20,7 @@ export const WeekViewItem = ({ date, formattedId, setView, setSelectedDate, onOp
   setSelectedDate: (d: Date) => void;
   onOpenFullEditor: (id: string) => void;
 }) => {
-  const { timezone } = useSettingsStore();
+  const timezone = useSettingsStore((state) => state.timezone);
   const did = `daily-note-${formattedId}`;
   const docSelector = useCallback(
     (state: any) => {

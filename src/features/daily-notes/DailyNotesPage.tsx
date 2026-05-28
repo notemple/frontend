@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
   CaretLeft,
   CaretRight,
@@ -20,6 +20,7 @@ import { useUiStore } from "@/shared/store/uiStore";
 import { useTaskStore } from "@/features/tasks/store";
 import { NotempleEditor } from "@/features/editor/NotempleEditor";
 import { motion, AnimatePresence } from "motion/react";
+import { gsap } from "gsap";
 import { useSettingsStore } from "@/features/settings/store";
 import { formatInTimeZone, toDate } from "date-fns-tz";
 import { TaskEditorModal } from "@/features/tasks/components/TaskEditorModal";
@@ -39,18 +40,24 @@ import {
   getMonthDateInTimezone,
 } from "@/shared/lib/time";
 import { useShallow } from 'zustand/react/shallow';
-import { useCallback } from 'react';
 import { CreatedTodayItem } from "./components/CreatedTodayItem";
 import { MonthViewItem } from "./components/MonthViewItem";
 import { MonthViewPane } from "./components/MonthViewPane";
 import { WeekViewItem } from "./components/WeekViewItem";
+
+const EMPTY_ARRAY: any[] = [];
 
 // ==========================================
 // OPTIMIZED SUB-COMPONENTS FOR PERFORMANCE
 // ==========================================
 export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
   const [view, setView] = useState<"Month" | "Week" | "Day">("Day");
-  const { timezone, weekStartDay } = useSettingsStore();
+  const { timezone, weekStartDay } = useSettingsStore(
+    useShallow((state) => ({
+      timezone: state.timezone,
+      weekStartDay: state.weekStartDay,
+    }))
+  );
 
   const { 
     selectedDailyNoteDate: selectedDate, 
@@ -59,7 +66,16 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
     openDocument,
     isDailyNoteFullView: isFullEditorOpen,
     setDailyNoteFullView: setIsFullEditorOpen
-  } = useUiStore();
+  } = useUiStore(
+    useShallow((state) => ({
+      selectedDailyNoteDate: state.selectedDailyNoteDate,
+      setSelectedDailyNoteDate: state.setSelectedDailyNoteDate,
+      setActiveTab: state.setActiveTab,
+      openDocument: state.openDocument,
+      isDailyNoteFullView: state.isDailyNoteFullView,
+      setDailyNoteFullView: state.setDailyNoteFullView,
+    }))
+  );
   const [isCalendarOpen, setIsCalendarOpen] = useState(true);
   const [isCreatedTodayOpen, setIsCreatedTodayOpen] = useState(true);
   const [isUpdatedTodayOpen, setIsUpdatedTodayOpen] = useState(true);
@@ -67,7 +83,18 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
   const [isTasksFinishedOpen, setIsTasksFinishedOpen] = useState(true);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
-  const tasks = useTaskStore(useShallow(state => state.tasks.filter(t => !t.isDeleted))) || [];
+  const calendarGridRef = useRef<HTMLDivElement>(null);
+
+  const zonedMonthYearKey = `${getZonedMonth(selectedDate, timezone)}-${getZonedYear(selectedDate, timezone)}`;
+  useEffect(() => {
+    if (calendarGridRef.current) {
+      gsap.fromTo(calendarGridRef.current,
+        { opacity: 0.4, y: 5 },
+        { opacity: 1, y: 0, duration: 0.22, ease: "power2.out" }
+      );
+    }
+  }, [zonedMonthYearKey]);
+
   const updateTask = useTaskStore(state => state.updateTask);
   const deleteTask = useTaskStore(state => state.deleteTask);
 
@@ -78,71 +105,59 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
   );
   const documentId = `daily-note-${formattedDateId}`;
 
-  // Optimized selector to get only the IDs of non-daily note documents created today
-  const createdTodayIdsSelector = useCallback(
-    (state: any) => {
-      const order = state.documentOrder || [];
-      return order.filter((id: string) => {
-        const doc = state.documents[id];
-        if (!doc || doc.isDeleted) return false;
-        if (doc.id.startsWith("daily-note-")) return false;
-        return isSameDayString(doc.createdAt, formattedDateId);
-      });
-    },
-    [formattedDateId]
-  );
-  const objectsCreatedTodayIds = useDocumentStore(useShallow(createdTodayIdsSelector));
+  const tasks = useTaskStore(useShallow((state: any) => state.tasks || EMPTY_ARRAY));
 
-  // Optimized selector for count of documents created today to avoid unnecessary re-renders
-  const createdTodayCountSelector = useCallback(
-    (state: any) => {
-      const order = state.documentOrder || [];
-      return order.filter((id: string) => {
-        const doc = state.documents[id];
-        if (!doc || doc.isDeleted) return false;
-        if (doc.id.startsWith("daily-note-")) return false;
-        return isSameDayString(doc.createdAt, formattedDateId);
-      }).length;
-    },
-    [formattedDateId]
-  );
-  const createdTodayCount = useDocumentStore(createdTodayCountSelector);
+  const tasksCreatedToday = useMemo(() => {
+    return tasks
+      .filter((t: any) => !t.isDeleted && isSameDayString(t.createdAt, formattedDateId))
+      .map((t: any) => ({
+        id: t.id,
+        title: t.title,
+        completed: t.completed,
+        createdAt: t.createdAt,
+        deadline: t.deadline,
+      }));
+  }, [tasks, formattedDateId]);
 
-  // Optimized selector to get only the IDs of non-daily note documents updated today (but not created today)
-  const updatedTodayIdsSelector = useCallback(
-    (state: any) => {
-      const order = state.documentOrder || [];
-      return order.filter((id: string) => {
-        const doc = state.documents[id];
-        if (!doc || doc.isDeleted) return false;
-        if (doc.id.startsWith("daily-note-")) return false;
-        return (
-          isSameDayString(doc.updatedAt, formattedDateId) &&
-          !isSameDayString(doc.createdAt, formattedDateId)
-        );
-      });
-    },
-    [formattedDateId]
-  );
-  const objectsUpdatedTodayIds = useDocumentStore(useShallow(updatedTodayIdsSelector));
+  const tasksDeadlineToday = useMemo(() => {
+    return tasks
+      .filter((t: any) => !t.isDeleted && isSameDayString(t.deadline, formattedDateId))
+      .map((t: any) => ({
+        id: t.id,
+        title: t.title,
+        completed: t.completed,
+        createdAt: t.createdAt,
+        deadline: t.deadline,
+      }));
+  }, [tasks, formattedDateId]);
 
-  // Optimized selector for count of documents updated today to avoid unnecessary re-renders
-  const updatedTodayCountSelector = useCallback(
-    (state: any) => {
-      const order = state.documentOrder || [];
-      return order.filter((id: string) => {
-        const doc = state.documents[id];
-        if (!doc || doc.isDeleted) return false;
-        if (doc.id.startsWith("daily-note-")) return false;
-        return (
-          isSameDayString(doc.updatedAt, formattedDateId) &&
-          !isSameDayString(doc.createdAt, formattedDateId)
-        );
-      }).length;
-    },
-    [formattedDateId]
-  );
-  const updatedTodayCount = useDocumentStore(updatedTodayCountSelector);
+  const documentOrder = useDocumentStore(useShallow((state: any) => state.documentOrder || EMPTY_ARRAY));
+  const documents = useDocumentStore(useShallow((state: any) => state.documents));
+
+  const objectsCreatedTodayIds = useMemo(() => {
+    return documentOrder.filter((id: string) => {
+      const doc = documents[id];
+      if (!doc || doc.isDeleted) return false;
+      if (doc.id.startsWith("daily-note-")) return false;
+      return isSameDayString(doc.createdAt, formattedDateId);
+    });
+  }, [documentOrder, documents, formattedDateId]);
+
+  const createdTodayCount = objectsCreatedTodayIds.length;
+
+  const objectsUpdatedTodayIds = useMemo(() => {
+    return documentOrder.filter((id: string) => {
+      const doc = documents[id];
+      if (!doc || doc.isDeleted) return false;
+      if (doc.id.startsWith("daily-note-")) return false;
+      return (
+        isSameDayString(doc.updatedAt, formattedDateId) &&
+        !isSameDayString(doc.createdAt, formattedDateId)
+      );
+    });
+  }, [documentOrder, documents, formattedDateId]);
+
+  const updatedTodayCount = objectsUpdatedTodayIds.length;
 
   const renderDays = () => {
     const calendarDays = getCalendarDays(selectedDate);
@@ -154,15 +169,19 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
           key={i}
           onClick={() => setSelectedDate(d)}
           className={cn(
-            "p-1 cursor-pointer hover:bg-muted flex items-center justify-center aspect-square relative transition-colors text-sm",
+            "p-1 cursor-pointer hover:bg-muted flex items-center justify-center aspect-square relative transition-colors text-sm rounded-full select-none",
             !isSelectedMonth ? "text-muted-foreground/30" : "text-foreground",
-            isSelected
-              ? "bg-rose-200/90 dark:bg-rose-500/20 text-rose-900 dark:text-rose-300 border border-rose-400 dark:border-rose-500/20 shadow-sm-sm hover:bg-rose-300 dark:hover:bg-rose-500/30 font-bold"
-              : "",
+            isSelected ? "text-rose-950 dark:text-rose-300 font-bold" : ""
           )}
-          style={{ borderRadius: isSelected ? "9999px" : undefined }}
         >
-          {getZonedDate(d, timezone)}
+          {isSelected && (
+            <motion.div
+              layoutId="activeCalendarDay"
+              className="absolute inset-0 rounded-full bg-rose-200/90 dark:bg-rose-500/20 border border-rose-300 dark:border-rose-500/30 -z-10"
+              transition={{ type: "spring", stiffness: 380, damping: 30 }}
+            />
+          )}
+          <span className="relative z-10">{getZonedDate(d, timezone)}</span>
         </div>
       );
     });
@@ -185,30 +204,11 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
   }
 
   return (
-    <div className="flex w-full h-full text-foreground bg-workspace overflow-hidden relative">
-      {/* Layered background radial gradients for butter-smooth color transitions */}
-      <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
-        <motion.div
-          className="absolute inset-0 bg-[radial-gradient(circle_at_75%_25%,rgba(168,85,247,0.06),transparent_60%)]"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: view === "Month" ? 1 : 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-        />
-        <motion.div
-          className="absolute inset-0 bg-[radial-gradient(circle_at_75%_25%,rgba(14,165,233,0.06),transparent_60%)]"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: view === "Week" ? 1 : 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-        />
-        <motion.div
-          className="absolute inset-0 bg-[radial-gradient(circle_at_75%_25%,rgba(245,158,11,0.06),transparent_60%)]"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: view === "Day" ? 1 : 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-        />
-      </div>
+    <div className="flex w-full h-full text-foreground bg-transparent overflow-hidden relative">
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar relative min-h-full">
+      <div
+        className="flex-1 flex flex-col overflow-y-auto no-scrollbar relative min-h-full"
+      >
         <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.01] to-transparent pointer-events-none" />
 
         {/* Top Bar Navigation */}
@@ -323,13 +323,20 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                       setSelectedDate(setZonedMonth(selectedDate, i, timezone));
                     }}
                     className={cn(
-                      "px-4 py-1 rounded-sm-full transition-all text-[13px] font-medium border duration-300",
+                      "relative px-4 py-1 text-[13px] font-semibold transition-all duration-300 border border-transparent outline-none cursor-pointer rounded-sm-full",
                       isSelected
-                        ? "bg-cyan-700 text-white dark:bg-cyan-500/10 dark:text-cyan-300 border-cyan-700 dark:border-cyan-500/20 shadow-sm-sm hover:bg-cyan-800"
-                        : "text-muted-foreground hover:text-foreground border-transparent hover:bg-muted/50",
+                        ? "text-cyan-750 dark:text-cyan-400 font-bold border-cyan-200/30 dark:border-cyan-500/10"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                     )}
                   >
-                    {formatDisplayDate(date.toISOString(), "MMM")}
+                    {isSelected && (
+                      <motion.div
+                        layoutId="activeMonthTabBg"
+                        className="absolute inset-0 rounded-sm-full -z-10 border bg-cyan-500/10 dark:bg-cyan-500/10 dark:border-cyan-500/20"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    <span className="relative z-10">{formatDisplayDate(date.toISOString(), "MMM")}</span>
                   </button>
                 );
               })}
@@ -342,10 +349,10 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
           <AnimatePresence mode="wait">
             <motion.div
               key={view}
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.15, ease: [0.2, 0.8, 0.2, 1] }}
             >
               {view === "Month" ? (
                 <MonthViewPane
@@ -377,181 +384,187 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                   })}
                 </div>
               ) : (
-                <>
-                  <div className="flex flex-col gap-1 mb-8">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-rose-500 dark:text-rose-400 font-medium">
-                          {formatDisplayDate(selectedDate.toISOString(), "EEEE")}
-                        </span>
-                        {isSameDayInTimezone(selectedDate, new Date(), timezone) && (
-                          <span className="bg-rose-500/10 text-rose-600 dark:text-rose-300 text-xs px-2 py-0.5 rounded-sm font-medium border border-rose-500/20">
-                            Today
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={formattedDateId}
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.14, ease: [0.2, 0.8, 0.2, 1] }}
+                    className="w-full flex flex-col"
+                  >
+                    <div className="flex flex-col gap-1 mb-8">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="text-rose-500 dark:text-rose-400 font-medium">
+                            {formatDisplayDate(selectedDate.toISOString(), "EEEE")}
                           </span>
+                          {isSameDayInTimezone(selectedDate, new Date(), timezone) && (
+                            <span className="bg-rose-500/10 text-rose-600 dark:text-rose-300 text-xs px-2 py-0.5 rounded-sm font-medium border border-rose-500/20">
+                              Today
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <button
+                            onClick={() => setIsFullEditorOpen(true)}
+                            className="p-1 hover:text-foreground transition-colors cursor-pointer"
+                            title="Open in full editor"
+                          >
+                            <ArrowsOutSimple size={14} />
+                          </button>
+                          <button className="p-1 hover:text-foreground transition-colors">
+                            <DotsThree size={16} weight="bold" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex items-baseline gap-4 mt-2">
+                        <h1 className="text-5xl font-bold tracking-tight">
+                          {formatDisplayDate(selectedDate.toISOString(), "MMMM d, yyyy")}
+                        </h1>
+                        <span className="text-muted-foreground font-medium text-lg">
+                          Week 20
+                        </span>
+                      </div>
+                      <div className="text-foreground mt-4 mb-2 text-sm font-medium">
+                        Daily note
+                      </div>
+
+                      {/* Use the NotempleEditor */}
+                      <NotempleEditor
+                        key={documentId}
+                        documentId={documentId}
+                        paneId={paneId}
+                        isDailyNote={true}
+                        isMinimized={true}
+                      />
+                    </div>
+
+                    <div className="w-full h-px bg-border my-6" />
+
+                    {/* Objects Section */}
+                    <div className="flex flex-col gap-6">
+                      {/* Created Today */}
+                      <div>
+                        <div
+                          className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-sm-sm transition-colors group"
+                          onClick={() => setIsCreatedTodayOpen(!isCreatedTodayOpen)}
+                        >
+                          <h2 className="text-sm font-medium text-foreground">
+                            Created Today
+                          </h2>
+                          <span className="bg-muted text-muted-foreground text-xs px-2 rounded-sm-full font-medium">
+                            {createdTodayCount}
+                          </span>
+                          <div className="flex-1" />
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <button className="p-1 hover:text-foreground transition-colors">
+                              <CalendarBlank size={14} />
+                            </button>
+                            <button className="p-1 hover:text-foreground transition-colors">
+                              {isCreatedTodayOpen ? (
+                                <CaretUp size={14} />
+                              ) : (
+                                <CaretDown size={14} />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        {isCreatedTodayOpen && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+                            {objectsCreatedTodayIds.length === 0 && (
+                              <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-sm-sm">
+                                No other documents created today.
+                              </div>
+                            )}
+                            {objectsCreatedTodayIds.map((id) => (
+                              <CreatedTodayItem
+                                key={id}
+                                docId={id}
+                                paneId={paneId}
+                              />
+                            ))}
+                          </div>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <button
-                          onClick={() => setIsFullEditorOpen(true)}
-                          className="p-1 hover:text-foreground transition-colors cursor-pointer"
-                          title="Open in full editor"
+
+                      {/* Updated Today */}
+                      <div>
+                        <div
+                          className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-sm-sm transition-colors group"
+                          onClick={() => setIsUpdatedTodayOpen(!isUpdatedTodayOpen)}
                         >
-                          <ArrowsOutSimple size={14} />
-                        </button>
-                        <button className="p-1 hover:text-foreground transition-colors">
-                          <DotsThree size={16} weight="bold" />
-                        </button>
-                      </div>
-                    </div>
+                          <h2 className="text-sm font-medium text-foreground">
+                            Updated Today
+                          </h2>
+                          <span className="bg-muted text-muted-foreground text-xs px-2 rounded-sm-full font-medium">
+                            {objectsUpdatedTodayIds.length}
+                          </span>
+                          <div className="flex-1" />
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <button className="p-1 hover:text-foreground transition-colors">
+                              <CalendarBlank size={14} />
+                            </button>
+                            <button className="p-1 hover:text-foreground transition-colors">
+                              {isUpdatedTodayOpen ? (
+                                <CaretUp size={14} />
+                              ) : (
+                                <CaretDown size={14} />
+                              )}
+                            </button>
+                          </div>
+                        </div>
 
-                    <div className="flex items-baseline gap-4 mt-2">
-                      <h1 className="text-5xl font-bold tracking-tight">
-                        {formatDisplayDate(selectedDate.toISOString(), "MMMM d, yyyy")}
-                      </h1>
-                      <span className="text-muted-foreground font-medium text-lg">
-                        Week 20
-                      </span>
-                    </div>
-                    <div className="text-foreground mt-4 mb-2 text-sm font-medium">
-                      Daily note
-                    </div>
-
-                    {/* Use the NotempleEditor */}
-                    <NotempleEditor
-                      key={documentId}
-                      documentId={documentId}
-                      paneId={paneId}
-                      isDailyNote={true}
-                      isMinimized={true}
-                    />
-                  </div>
-
-                  <div className="w-full h-px bg-border my-6" />
-
-                  {/* Objects Section */}
-                  <div className="flex flex-col gap-6">
-                    {/* Created Today */}
-                    <div>
-                      <div
-                        className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-sm-sm transition-colors group"
-                        onClick={() => setIsCreatedTodayOpen(!isCreatedTodayOpen)}
-                      >
-                        <h2 className="text-sm font-medium text-foreground">
-                          Created Today
-                        </h2>
-                        <span className="bg-muted text-muted-foreground text-xs px-2 rounded-sm-full font-medium">
-                          {createdTodayCount}
-                        </span>
-                        <div className="flex-1" />
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <button className="p-1 hover:text-foreground transition-colors">
-                            <CalendarBlank size={14} />
-                          </button>
-                          <button className="p-1 hover:text-foreground transition-colors">
-                            {isCreatedTodayOpen ? (
-                              <CaretUp size={14} />
-                            ) : (
-                              <CaretDown size={14} />
+                        {isUpdatedTodayOpen && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+                            {objectsUpdatedTodayIds.length === 0 && (
+                              <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-sm-sm">
+                                No other documents updated today.
+                              </div>
                             )}
-                          </button>
-                        </div>
+                            {objectsUpdatedTodayIds.map((id) => (
+                              <CreatedTodayItem
+                                key={id}
+                                docId={id}
+                                paneId={paneId}
+                              />
+                            ))}
+                          </div>
+                        )}
                       </div>
 
-                      {isCreatedTodayOpen && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
-                          {objectsCreatedTodayIds.length === 0 && (
-                            <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-sm-sm">
-                              No other documents created today.
-                            </div>
-                          )}
-                          {objectsCreatedTodayIds.map((id) => (
-                            <CreatedTodayItem
-                              key={id}
-                              docId={id}
-                              paneId={paneId}
-                            />
-                          ))}
+                      {/* Tasks Created Today */}
+                      <div>
+                        <div
+                          className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-sm-sm transition-colors group"
+                          onClick={() => setIsTasksCreatedOpen(!isTasksCreatedOpen)}
+                        >
+                          <h2 className="text-sm font-medium text-foreground">
+                            Tasks Created Today
+                          </h2>
+                          <span className="bg-muted text-muted-foreground text-xs px-2 rounded-sm-full font-medium">
+                            {tasksCreatedToday.length}
+                          </span>
+                          <div className="flex-1" />
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <button className="p-1 hover:text-foreground transition-colors">
+                              <CalendarBlank size={14} />
+                            </button>
+                            <button className="p-1 hover:text-foreground transition-colors">
+                              {isTasksCreatedOpen ? (
+                                <CaretUp size={14} />
+                              ) : (
+                                <CaretDown size={14} />
+                              )}
+                            </button>
+                          </div>
                         </div>
-                      )}
-                    </div>
 
-                    {/* Updated Today */}
-                    <div>
-                      <div
-                        className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-sm-sm transition-colors group"
-                        onClick={() => setIsUpdatedTodayOpen(!isUpdatedTodayOpen)}
-                      >
-                        <h2 className="text-sm font-medium text-foreground">
-                          Updated Today
-                        </h2>
-                        <span className="bg-muted text-muted-foreground text-xs px-2 rounded-sm-full font-medium">
-                          {objectsUpdatedTodayIds.length}
-                        </span>
-                        <div className="flex-1" />
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <button className="p-1 hover:text-foreground transition-colors">
-                            <CalendarBlank size={14} />
-                          </button>
-                          <button className="p-1 hover:text-foreground transition-colors">
-                            {isUpdatedTodayOpen ? (
-                              <CaretUp size={14} />
-                            ) : (
-                              <CaretDown size={14} />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-
-                      {isUpdatedTodayOpen && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
-                          {objectsUpdatedTodayIds.length === 0 && (
-                            <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-sm-sm">
-                              No other documents updated today.
-                            </div>
-                          )}
-                          {objectsUpdatedTodayIds.map((id) => (
-                            <CreatedTodayItem
-                              key={id}
-                              docId={id}
-                              paneId={paneId}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Tasks Created Today */}
-                    <div>
-                      <div
-                        className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-sm-sm transition-colors group"
-                        onClick={() => setIsTasksCreatedOpen(!isTasksCreatedOpen)}
-                      >
-                        <h2 className="text-sm font-medium text-foreground">
-                          Tasks Created Today
-                        </h2>
-                        <span className="bg-muted text-muted-foreground text-xs px-2 rounded-sm-full font-medium">
-                          {tasks.filter((t) => isSameDayString(t.createdAt, formattedDateId)).length}
-                        </span>
-                        <div className="flex-1" />
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <button className="p-1 hover:text-foreground transition-colors">
-                            <CalendarBlank size={14} />
-                          </button>
-                          <button className="p-1 hover:text-foreground transition-colors">
-                            {isTasksCreatedOpen ? (
-                              <CaretUp size={14} />
-                            ) : (
-                              <CaretDown size={14} />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-
-                      {isTasksCreatedOpen && (
-                        <div className="flex flex-col gap-2 mb-4">
-                          {tasks
-                            .filter((t) => isSameDayString(t.createdAt, formattedDateId))
-                            .map((task) => (
+                        {isTasksCreatedOpen && (
+                          <div className="flex flex-col gap-2 mb-4">
+                            {tasksCreatedToday.map((task) => (
                               <div
                                 key={task.id}
                                 className="flex items-center justify-between group relative hover:bg-muted pl-2 pr-2 py-1 -mx-2 rounded-sm transition-colors"
@@ -602,47 +615,45 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                                 </div>
                               </div>
                             ))}
-                          {tasks.filter((t) => isSameDayString(t.createdAt, formattedDateId)).length === 0 && (
-                            <div className="text-muted-foreground text-sm italic py-2">
-                              No tasks created on this date.
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Tasks Finished Today */}
-                    <div>
-                      <div
-                        className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-sm-sm transition-colors group"
-                        onClick={() => setIsTasksFinishedOpen(!isTasksFinishedOpen)}
-                      >
-                        <h2 className="text-sm font-medium text-foreground">
-                          Tasks with Deadline Today
-                        </h2>
-                        <span className="bg-muted text-muted-foreground text-xs px-2 rounded-sm-full font-medium">
-                          {tasks.filter((t) => isSameDayString(t.deadline, formattedDateId)).length}
-                        </span>
-                        <div className="flex-1" />
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <button className="p-1 hover:text-foreground transition-colors">
-                            <CalendarBlank size={14} />
-                          </button>
-                          <button className="p-1 hover:text-foreground transition-colors">
-                            {isTasksFinishedOpen ? (
-                              <CaretUp size={14} />
-                            ) : (
-                              <CaretDown size={14} />
+                            {tasksCreatedToday.length === 0 && (
+                              <div className="text-muted-foreground text-sm italic py-2">
+                                No tasks created on this date.
+                              </div>
                             )}
-                          </button>
-                        </div>
+                          </div>
+                        )}
                       </div>
 
-                      {isTasksFinishedOpen && (
-                        <div className="flex flex-col gap-2 mb-4">
-                          {tasks
-                            .filter((t) => isSameDayString(t.deadline, formattedDateId))
-                            .map((task) => (
+                      {/* Tasks Finished Today */}
+                      <div>
+                        <div
+                          className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-sm-sm transition-colors group"
+                          onClick={() => setIsTasksFinishedOpen(!isTasksFinishedOpen)}
+                        >
+                          <h2 className="text-sm font-medium text-foreground">
+                            Tasks with Deadline Today
+                          </h2>
+                          <span className="bg-muted text-muted-foreground text-xs px-2 rounded-sm-full font-medium">
+                            {tasksDeadlineToday.length}
+                          </span>
+                          <div className="flex-1" />
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <button className="p-1 hover:text-foreground transition-colors">
+                              <CalendarBlank size={14} />
+                            </button>
+                            <button className="p-1 hover:text-foreground transition-colors">
+                              {isTasksFinishedOpen ? (
+                                <CaretUp size={14} />
+                              ) : (
+                                <CaretDown size={14} />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        {isTasksFinishedOpen && (
+                          <div className="flex flex-col gap-2 mb-4">
+                            {tasksDeadlineToday.map((task) => (
                               <div
                                 key={task.id}
                                 className="flex items-center justify-between group relative hover:bg-muted pl-2 pr-2 py-1 -mx-2 rounded-sm transition-colors"
@@ -691,16 +702,17 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                                 </div>
                               </div>
                             ))}
-                          {tasks.filter((t) => isSameDayString(t.deadline, formattedDateId)).length === 0 && (
-                            <div className="text-muted-foreground text-sm italic py-2">
-                              No tasks with deadline on this date.
-                            </div>
-                          )}
-                        </div>
-                      )}
+                            {tasksDeadlineToday.length === 0 && (
+                              <div className="text-muted-foreground text-sm italic py-2">
+                                No tasks with deadline on this date.
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </>
+                  </motion.div>
+                </AnimatePresence>
               )}
             </motion.div>
           </AnimatePresence>
@@ -714,6 +726,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 300, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
             className="border-l border-[var(--border-calendar)] bg-[var(--background-calendar)] shrink-0 flex flex-col p-4 overflow-hidden"
           >
             <div className="w-67">
@@ -790,12 +803,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                   ))}
               </div>
 
-              <div className="grid grid-cols-7 gap-1 text-center font-medium w-full">
-                {(() => {
-                  // Dynamically import time utility or assume it is available (since we imported getCalendarDays from time.ts, wait we didn't import it in DailyNotesPage)
-                  // I need to import getCalendarDays first. See next edits.
-                  return null;
-                })()}
+              <div ref={calendarGridRef} className="grid grid-cols-7 gap-1 text-center font-medium w-full">
                 {renderDays()}
               </div>
             </div>

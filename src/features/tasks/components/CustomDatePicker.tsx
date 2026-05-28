@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { getCalendarDays, changeZonedMonth, isSameMonthInTimezone, isSameDayInTimezone, getZonedDate } from '@/shared/lib/time';
 import { MagnifyingGlass, CaretLeft, Target, CaretRight } from '@phosphor-icons/react';
 import { useSettingsStore } from '@/features/settings/store';
+import { useShallow } from 'zustand/react/shallow';
 
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
@@ -32,7 +33,12 @@ export const CustomDatePicker = ({
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { timezone, weekStartDay } = useSettingsStore();
+  const { timezone, weekStartDay } = useSettingsStore(
+    useShallow((state) => ({
+      timezone: state.timezone,
+      weekStartDay: state.weekStartDay,
+    }))
+  );
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const getDayNames = () => {

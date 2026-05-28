@@ -132,7 +132,6 @@
     overflow: hidden;
   }
 
-  /* Smooth theme transitions and global shadow disable to ensure 60fps hardware-accelerated animations with no jittering, stuttering, or lagging */
   body,
   .bg-background,
   .bg-workspace,
@@ -157,9 +156,12 @@
   .neu-flat,
   .neu-panel {
     box-shadow: none !important;
-    transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
-                border-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
-                color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Smooth hardware-efficient sidebar transitions */
+  .sidebar-transition {
+    transition: width 180ms cubic-bezier(0.2, 0.8, 0.2, 1), padding 180ms cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    will-change: width, padding;
   }
 
   ::-webkit-scrollbar {
@@ -211,6 +213,26 @@
   }
   .translate-z-0 {
     transform: translateZ(0);
+  }
+
+  /* Persistent Global App Background Shell */
+  .global-ambient-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--background);
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+
+
+  /* Safe transition override to prevent expensive full-page layout repaints (replaces transition: all) */
+  .transition-all,
+  [class*="transition-all"] {
+    transition-property: color, background-color, border-color, opacity, transform !important;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition-duration: 150ms !important;
   }
 }
 

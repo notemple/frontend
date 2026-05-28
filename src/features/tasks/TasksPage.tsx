@@ -257,8 +257,10 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
   };
 
   return (
-    <div ref={parentRef} className="flex flex-col h-full overflow-y-auto no-scrollbar relative w-full items-center p-8 bg-workspace">
-      <div className="w-full max-w-[1200px] mx-auto flex flex-col gap-6 pt-6">
+    <div ref={parentRef} className="flex flex-col h-full overflow-y-auto no-scrollbar relative w-full items-center p-8 bg-transparent">
+      <div
+        className="w-full max-w-[1200px] mx-auto flex flex-col gap-6 pt-6"
+      >
         <div className="flex items-center gap-3 mb-1">
           <button
             onClick={() => setIsTaskInputOpen(true)}
@@ -530,8 +532,7 @@ const TabButton = ({
       )}
     >
       {active && (
-        <motion.div
-          layoutId="task-tab-indicator"
+        <div
           className={cn("absolute -bottom-[17px] left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-sm-full", schemeClasses.indicator)}
         />
       )}

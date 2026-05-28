@@ -28,22 +28,34 @@ import { formatDisplayDate } from '@/shared/lib/time';
 const EMPTY_TAGS: string[] = [];
 
 let lastDocumentsTags: any = null;
+let lastCreatedTags: any = null;
 let cachedAllExistingTags: string[] = [];
 
 const allExistingTagsSelector = (state: any) => {
-  if (state.documents === lastDocumentsTags) {
+  if (state.documents === lastDocumentsTags && state.createdTags === lastCreatedTags) {
     return cachedAllExistingTags;
   }
   lastDocumentsTags = state.documents;
+  lastCreatedTags = state.createdTags;
   const set = new Set<string>();
-  Object.values(state.documents).forEach((doc: any) => {
-    doc.tags?.forEach((tag: string) => set.add(tag));
+  
+  // 1. Add user-created tags (from Tags page)
+  state.createdTags?.forEach((tag: string) => {
+    if (tag && tag.trim()) set.add(tag);
   });
+
+  // 2. Add tags already assigned to documents
+  Object.values(state.documents).forEach((doc: any) => {
+    doc.tags?.forEach((tag: string) => {
+      if (tag && tag.trim()) set.add(tag);
+    });
+  });
+
   cachedAllExistingTags = Array.from(set);
   return cachedAllExistingTags;
 };
 
-export const NotempleEditor = ({ 
+export const NotempleEditor = React.memo(({ 
   documentId, 
   paneId, 
   isDailyNote, 
@@ -58,8 +70,14 @@ export const NotempleEditor = ({
 }) => {
   const addDocument = useDocumentStore(state => state.addDocument);
   const updateDocument = useDocumentStore(state => state.updateDocument);
-  const { setActiveTab, openDocument, setSelectedDailyNoteDate } = useUiStore();
-  const { timezone } = useSettingsStore();
+  const { setActiveTab, openDocument, setSelectedDailyNoteDate } = useUiStore(
+    useShallow((state) => ({
+      setActiveTab: state.setActiveTab,
+      openDocument: state.openDocument,
+      setSelectedDailyNoteDate: state.setSelectedDailyNoteDate,
+    }))
+  );
+  const timezone = useSettingsStore(state => state.timezone);
 
   const handleBackToDailyNotes = () => {
     if (onClosePopup) {
@@ -101,6 +119,18 @@ export const NotempleEditor = ({
   const [title, setTitle] = useState(document?.title || '');
   const [tags, setTags] = useState<string[]>(document?.tags || []);
   const [showTagsDropdown, setShowTagsDropdown] = useState(false);
+  const tagsDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showTagsDropdown) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (tagsDropdownRef.current && !tagsDropdownRef.current.contains(e.target as Node)) {
+        setShowTagsDropdown(false);
+      }
+    };
+    window.addEventListener('mousedown', handleClickOutside);
+    return () => window.removeEventListener('mousedown', handleClickOutside);
+  }, [showTagsDropdown]);
 
   const localStyle = {
     color: document?.color || '#ffffff',
@@ -392,14 +422,11 @@ export const NotempleEditor = ({
         <div className="absolute inset-0 bg-white/85 pointer-events-none z-0" style={{ transition: 'background-color 0.15s ease' }} />
       )}
 
-      <motion.div
-        initial={false}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 380, damping: 35 }}
+      <div
         className={cn(
           "w-full mx-auto font-content flex flex-col shrink-0 z-10",
           hasCustomStyle
-            ? "max-w-[950px] p-8 sm:p-12 md:p-16 rounded-sm-sm shadow-sm-none relative border border-border min-h-[500px] md:min-h-[calc(100vh-160px)] overflow-hidden transition-[max-width,padding,border-radius,box-shadow-sm] duration-300 ease-out"
+            ? "max-w-[950px] p-8 sm:p-12 md:p-16 rounded-sm-sm shadow-sm-none relative border border-border min-h-[500px] md:min-h-[calc(100vh-160px)] overflow-hidden"
             : cn("max-w-[900px] h-full", isMinimized ? "py-4 px-6" : "py-16 px-12")
         )}
         style={{
@@ -492,7 +519,7 @@ export const NotempleEditor = ({
                 </span>
               );
             })}
-            <div className="relative">
+            <div className="relative" ref={tagsDropdownRef}>
               {tags.length === 0 ? (
                 <button
                   onClick={() => setShowTagsDropdown(!showTagsDropdown)}
@@ -523,19 +550,29 @@ export const NotempleEditor = ({
               )}
               {showTagsDropdown && (
                 <div className="absolute top-full left-0 mt-2 w-56 bg-background border border-border shadow-sm-sm z-50 overflow-hidden text-sans text-foreground">
-                  <div className="max-h-40 overflow-y-auto no-scrollbar">
+                  <div className="max-h-40 overflow-y-auto no-scrollbar p-2.5 flex flex-col gap-1.5">
                     {allExistingTags.filter(t => !tags.includes(t)).length === 0 && (
                       <div className="px-3 py-2 text-xs text-muted-foreground/60">No existing tags.</div>
                     )}
-                    {allExistingTags.filter(t => !tags.includes(t)).map(tag => (
-                      <button
-                        key={tag}
-                        onClick={() => handleAddTag(tag)}
-                        className="w-full text-left px-3 py-2 text-xs text-foreground/80 hover:bg-muted hover:text-foreground transition-colors"
-                      >
-                        {tag}
-                      </button>
-                    ))}
+                    {allExistingTags.filter(t => !tags.includes(t)).map(tag => {
+                      const tagStyle = getTagStyle(tag, tagColors);
+                      return (
+                        <button
+                          key={tag}
+                          onClick={() => handleAddTag(tag)}
+                          className="tag-element w-full text-left px-2.5 py-1.5 text-xs transition-colors cursor-pointer flex items-center gap-2 border rounded-sm-sm hover:brightness-95 dark:hover:brightness-110 select-none"
+                          style={{
+                            backgroundColor: 'var(--tag-bg)',
+                            color: 'var(--tag-text)',
+                            borderColor: 'var(--tag-border)',
+                            ...tagStyle
+                          }}
+                        >
+                          <Tag size={12} weight="fill" className="opacity-75 text-[color:var(--tag-text)]" />
+                          <span className="font-semibold truncate">{tag}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                   <div className="p-2 box-border border-t border-border bg-muted/50">
                     <input
@@ -548,11 +585,6 @@ export const NotempleEditor = ({
                           handleAddTag(e.currentTarget.value.trim());
                           e.currentTarget.value = '';
                         } else if (e.key === 'Escape') {
-                          setShowTagsDropdown(false);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        if (!e.relatedTarget) {
                           setShowTagsDropdown(false);
                         }
                       }}
@@ -615,7 +647,7 @@ export const NotempleEditor = ({
           )}
           <EditorContent editor={editor} />
         </div>
-      </motion.div>
+      </div>
     </div>
   );
-};
+});

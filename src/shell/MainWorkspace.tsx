@@ -76,12 +76,12 @@ export const MainWorkspace = () => {
         <div className="flex-1 flex items-center gap-3">
           <button
             onClick={toggleSidebar}
-            className="p-1.5 text-muted-foreground/80 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/20 border border-transparent transition-all flex items-center justify-center rounded-md cursor-pointer"
+            className="p-1.5 text-muted-foreground/80 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/20 border border-transparent transition-all flex items-center justify-center rounded-sm-sm cursor-pointer"
           >
             <SidebarIcon size={18} />
           </button>
           
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted/40 hover:bg-muted/70 border border-border/80 text-[11px] font-medium text-muted-foreground/90 shadow-sm transition-all duration-200 select-none group hover:border-border">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-sm-full bg-muted/40 hover:bg-muted/70 border border-border/80 text-[11px] font-medium text-muted-foreground/90 shadow-sm-sm transition-all duration-200 select-none group hover:border-border">
             <Clock size={13} className="text-muted-foreground/60 group-hover:text-rose-500 dark:group-hover:text-rose-400 transition-colors duration-200" />
             <span className="font-mono tracking-wide leading-none">{dateTime}</span>
           </div>
@@ -91,13 +91,13 @@ export const MainWorkspace = () => {
         </div>
         <div className="flex items-center gap-4 flex-1 justify-end">
           {/* Inline Theme Segmented Control */}
-          <div className="flex items-center bg-muted p-0.5 rounded-lg border border-border">
+          <div className="flex items-center bg-muted p-0.5 rounded-sm-sm border border-border">
             <button
               onClick={() => setAppearance('light')}
               className={cn(
-                "p-1.5 rounded-md transition-all duration-200 border",
+                "p-1.5 rounded-sm-sm transition-all duration-200 border",
                 appearance === 'light'
-                  ? "bg-blush-pop/70 dark:bg-blush-pop/20 text-foreground dark:text-blush-pop border-blush-pop/50 dark:border-blush-pop/30 shadow-sm font-semibold"
+                  ? "bg-blush-pop/70 dark:bg-blush-pop/20 text-foreground dark:text-blush-pop border-blush-pop/50 dark:border-blush-pop/30 shadow-sm-sm font-semibold"
                   : "text-muted-foreground border-transparent hover:text-foreground hover:bg-blush-pop/10 dark:hover:text-blush-pop dark:hover:bg-blush-pop/5 dark:hover:border-blush-pop/10"
               )}
               title="Light Mode"
@@ -107,9 +107,9 @@ export const MainWorkspace = () => {
             <button
               onClick={() => setAppearance('dark')}
               className={cn(
-                "p-1.5 rounded-md transition-all duration-200 border",
+                "p-1.5 rounded-sm-sm transition-all duration-200 border",
                 appearance === 'dark'
-                  ? "bg-icy-blue/70 dark:bg-icy-blue/20 text-foreground dark:text-icy-blue border-icy-blue/50 dark:border-icy-blue/30 shadow-sm font-semibold"
+                  ? "bg-icy-blue/70 dark:bg-icy-blue/20 text-foreground dark:text-icy-blue border-icy-blue/50 dark:border-icy-blue/30 shadow-sm-sm font-semibold"
                   : "text-muted-foreground border-transparent hover:text-foreground hover:bg-icy-blue/10 dark:hover:text-icy-blue dark:hover:bg-icy-blue/5 dark:hover:border-icy-blue/10"
               )}
               title="Dark Mode"
@@ -119,9 +119,9 @@ export const MainWorkspace = () => {
             <button
               onClick={() => setAppearance('system')}
               className={cn(
-                "p-1.5 rounded-md transition-all duration-200 border",
+                "p-1.5 rounded-sm-sm transition-all duration-200 border",
                 appearance === 'system'
-                  ? "bg-pink-orchid/70 dark:bg-pink-orchid/20 text-foreground dark:text-pink-orchid border-pink-orchid/50 dark:border-pink-orchid/30 shadow-sm font-semibold"
+                  ? "bg-pink-orchid/70 dark:bg-pink-orchid/20 text-foreground dark:text-pink-orchid border-pink-orchid/50 dark:border-pink-orchid/30 shadow-sm-sm font-semibold"
                   : "text-muted-foreground border-transparent hover:text-foreground hover:bg-pink-orchid/10 dark:hover:text-pink-orchid dark:hover:bg-pink-orchid/5 dark:hover:border-pink-orchid/10"
               )}
               title="System Theme"
@@ -131,18 +131,18 @@ export const MainWorkspace = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground rounded shadow-sm border border-border">
+            <div className="w-6 h-6 bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground rounded-sm shadow-sm-sm border border-border">
               N
             </div>
-            <button className="flex items-center gap-1.5 h-6 px-3 rounded shadow-sm transition-all text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted border border-border bg-muted/40">
+            <button className="flex items-center gap-1.5 h-6 px-3 rounded-sm shadow-sm-sm transition-all text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted border border-border bg-muted/40">
               <ShareFat size={12} weight="fill" />
               Share
             </button>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
-            <button className="hover:text-foreground transition-colors p-1.5 rounded-md hover:bg-muted"><Bell size={18} /></button>
-            <button className="hover:text-foreground transition-colors p-1.5 rounded-md hover:bg-muted"><ClockCounterClockwise size={18} /></button>
-            <button className={cn("transition-all duration-200 flex items-center gap-1.5 p-1.5 px-2.5 rounded-md border", isRightSidebarOpen ? "bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/20 shadow-inner font-semibold" : "text-muted-foreground/80 border-transparent hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-500/5 hover:border-sky-500/10")} onClick={toggleRightSidebar}>
+            <button className="hover:text-foreground transition-colors p-1.5 rounded-sm-sm hover:bg-muted"><Bell size={18} /></button>
+            <button className="hover:text-foreground transition-colors p-1.5 rounded-sm-sm hover:bg-muted"><ClockCounterClockwise size={18} /></button>
+            <button className={cn("transition-all duration-200 flex items-center gap-1.5 p-1.5 px-2.5 rounded-sm-sm border", isRightSidebarOpen ? "bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/20 shadow-sm-inner font-semibold" : "text-muted-foreground/80 border-transparent hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-500/5 hover:border-sky-500/10")} onClick={toggleRightSidebar}>
               <Layout size={18} />
               <CaretDown size={12} className="opacity-50" />
             </button>

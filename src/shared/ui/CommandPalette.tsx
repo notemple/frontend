@@ -93,14 +93,14 @@ export const CommandPalette = () => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-black/60 z-50 pointer-events-auto"
+            className="fixed inset-0 bg-card z-50 pointer-events-auto"
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.97, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: 10 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="fixed top-[15%] left-1/2 -translate-x-1/2 w-full max-w-2xl bg-background border border-border shadow-2xl z-50 flex flex-col overflow-hidden rounded-2xl"
+            className="fixed top-[15%] left-1/2 -translate-x-1/2 w-full max-w-2xl bg-background border border-border shadow-sm-sm z-50 flex flex-col overflow-hidden rounded-sm-sm"
           >
             <div className="flex items-center px-4 border-b border-border relative">
               <MagnifyingGlass size={22} className="text-muted-foreground mr-3" />
@@ -121,7 +121,7 @@ export const CommandPalette = () => {
               <div className="text-xs font-semibold px-3 py-2 text-muted-foreground mb-1 uppercase tracking-wider font-mono">Commands</div>
               <button
                 onClick={allItems[0].action}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] text-left transition-colors duration-100 group ${selectedIndex === 0 ? 'bg-muted text-foreground font-semibold shadow-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-sm-sm text-[13px] text-left transition-colors duration-100 group ${selectedIndex === 0 ? 'bg-muted text-foreground font-semibold shadow-sm-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
               >
                 <div className="flex items-center">
                   {React.cloneElement(allItems[0].icon, { className: selectedIndex === 0 ? 'text-foreground mr-3' : 'text-muted-foreground mr-3' })}
@@ -157,7 +157,7 @@ export const CommandPalette = () => {
                             height: `${virtualRow.size}px`,
                             transform: `translateY(${virtualRow.start}px)`,
                           }}
-                          className={`flex items-center justify-between px-3 py-2 rounded-xl text-[13px] text-left transition-colors duration-100 group ${isSelected ? 'bg-muted text-foreground font-semibold shadow-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                          className={`flex items-center justify-between px-3 py-2 rounded-sm-sm text-[13px] text-left transition-colors duration-100 group ${isSelected ? 'bg-muted text-foreground font-semibold shadow-sm-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
                         >
                           <div className="flex items-center">
                             {React.cloneElement(allItems[itemIndex].icon, { className: isSelected ? 'text-foreground mr-3' : 'text-muted-foreground mr-3' })}

@@ -125,7 +125,7 @@ export const CustomStatusPicker = ({
         type="button"
         onClick={toggleOpen}
         className={cn(
-          "flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded border transition-all duration-150 hover:opacity-90 shadow-sm cursor-pointer",
+          "flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-sm border transition-all duration-150 hover:opacity-90 shadow-sm-sm cursor-pointer",
           currentOption.color,
         )}
       >
@@ -138,7 +138,7 @@ export const CustomStatusPicker = ({
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 5 }}
-            className="absolute top-full right-0 mt-1.5 w-32 bg-background border border-border rounded-xl shadow-2xl p-1 z-[60] flex flex-col gap-0.5 origin-top-right font-sans"
+            className="absolute top-full right-0 mt-1.5 w-32 bg-background border border-border rounded-sm-sm shadow-sm-sm p-1 z-[60] flex flex-col gap-0.5 origin-top-right font-sans"
           >
             {STATUS_OPTIONS.map((option) => {
               const OptIcon = option.icon;
@@ -148,7 +148,7 @@ export const CustomStatusPicker = ({
                   type="button"
                   key={option.value}
                   className={cn(
-                    "flex items-center gap-2 w-full text-xs font-semibold px-3 py-2 rounded-lg text-left transition-colors cursor-pointer",
+                    "flex items-center gap-2 w-full text-xs font-semibold px-3 py-2 rounded-sm-sm text-left transition-colors cursor-pointer",
                     isSelected
                       ? option.color
                       : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -268,11 +268,11 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
         <div className="flex items-center gap-3 mb-1">
           <button
             onClick={() => setIsTaskInputOpen(true)}
-            className="w-10 h-10 rounded-xl border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer"
+            className="w-10 h-10 rounded-sm-sm border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm-sm hover:scale-105 active:scale-95 cursor-pointer"
           >
             <PlusCircle size={20} weight="fill" />
           </button>
-          <h1 className="text-4xl font-bold tracking-tight text-foreground mb-0 drop-shadow-sm font-sans">Tasks</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-foreground mb-0 drop-shadow-sm-sm font-sans">Tasks</h1>
         </div>
 
         <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
@@ -300,13 +300,13 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
             />
           </div>
 
-          <div className="flex items-center gap-1 bg-muted/60 p-0.5 rounded-lg border border-border/85 shadow-sm">
+          <div className="flex items-center gap-1 bg-muted/60 p-0.5 rounded-sm-sm border border-border/85 shadow-sm-sm">
             <button
               onClick={() => setViewMode("list")}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all duration-200 cursor-pointer select-none",
+                "flex items-center gap-1.5 px-3 py-1 rounded-sm-sm text-xs font-semibold transition-all duration-200 cursor-pointer select-none",
                 viewMode === "list"
-                  ? "bg-background text-foreground shadow-sm border border-border/40 font-bold"
+                  ? "bg-background text-foreground shadow-sm-sm border border-border/40 font-bold"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
               )}
             >
@@ -316,9 +316,9 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
             <button
               onClick={() => setViewMode("kanban")}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all duration-200 cursor-pointer select-none",
+                "flex items-center gap-1.5 px-3 py-1 rounded-sm-sm text-xs font-semibold transition-all duration-200 cursor-pointer select-none",
                 viewMode === "kanban"
-                  ? "bg-background text-foreground shadow-sm border border-border/40 font-bold"
+                  ? "bg-background text-foreground shadow-sm-sm border border-border/40 font-bold"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
               )}
             >
@@ -441,19 +441,19 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
                initial={{ opacity: 0 }}
                animate={{ opacity: 1 }}
                exit={{ opacity: 0 }}
-               className="fixed inset-0 bg-black/60 z-40"
+               className="fixed inset-0 bg-card z-40"
               onClick={() => setIsTaskInputOpen(false)}
             />
             <motion.div
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-background border border-border rounded-2xl p-6 shadow-2xl z-50 flex flex-col gap-6"
+              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-background border border-border rounded-sm-sm p-6 shadow-sm-sm z-50 flex flex-col gap-6"
             >
               <div className="flex items-center justify-between">
                 <div className="text-xs uppercase tracking-widest font-mono text-muted-foreground/50">Create Task</div>
                 <button
-                  className="p-1 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  className="p-1 rounded-sm-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                   onClick={() => setIsTaskInputOpen(false)}
                 >
                   <X size={16} />
@@ -489,7 +489,7 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
                 </div>
                 <button
                   onClick={handleCreateTask}
-                  className="bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-500/10 dark:hover:bg-purple-500/20 dark:text-purple-300 border border-purple-600 dark:border-purple-500/20 shadow-sm text-[13px] font-bold px-5 py-2 rounded-xl transition-all cursor-pointer"
+                  className="bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-500/10 dark:hover:bg-purple-500/20 dark:text-purple-300 border border-purple-600 dark:border-purple-500/20 shadow-sm-sm text-[13px] font-bold px-5 py-2 rounded-sm-sm transition-all cursor-pointer"
                 >
                   Create Task
                 </button>
@@ -521,16 +521,16 @@ const TabButton = ({
 }) => {
   const schemeClasses = {
     amber: {
-      active: "bg-blush-pop/70 dark:bg-blush-pop/20 text-foreground dark:text-blush-pop border-blush-pop/50 dark:border-blush-pop/30 shadow-sm border font-semibold hover:bg-blush-pop/80 dark:hover:bg-blush-pop/35",
-      indicator: "bg-blush-pop dark:bg-blush-pop shadow-[0_0_8px_rgba(255,175,204,0.5)]"
+      active: "bg-blush-pop/70 dark:bg-blush-pop/20 text-foreground dark:text-blush-pop border-blush-pop/50 dark:border-blush-pop/30 shadow-sm-sm border font-semibold hover:bg-blush-pop/80 dark:hover:bg-blush-pop/35",
+      indicator: "bg-blush-pop dark:bg-blush-pop shadow-sm-sm"
     },
     sky: {
-      active: "bg-sky-blue/70 dark:bg-sky-blue/20 text-foreground dark:text-sky-blue border-sky-blue/50 dark:border-sky-blue/30 shadow-sm border font-semibold hover:bg-sky-blue/80 dark:hover:bg-sky-blue/35",
-      indicator: "bg-sky-blue dark:bg-sky-blue shadow-[0_0_8px_rgba(162,210,255,0.5)]"
+      active: "bg-sky-blue/70 dark:bg-sky-blue/20 text-foreground dark:text-sky-blue border-sky-blue/50 dark:border-sky-blue/30 shadow-sm-sm border font-semibold hover:bg-sky-blue/80 dark:hover:bg-sky-blue/35",
+      indicator: "bg-sky-blue dark:bg-sky-blue shadow-sm-sm"
     },
     purple: {
-      active: "bg-pink-orchid/70 dark:bg-pink-orchid/20 text-foreground dark:text-pink-orchid border-pink-orchid/50 dark:border-pink-orchid/30 shadow-sm border font-semibold hover:bg-pink-orchid/80 dark:hover:bg-pink-orchid/35",
-      indicator: "bg-pink-orchid dark:bg-pink-orchid shadow-[0_0_8px_rgba(205,180,219,0.5)]"
+      active: "bg-pink-orchid/70 dark:bg-pink-orchid/20 text-foreground dark:text-pink-orchid border-pink-orchid/50 dark:border-pink-orchid/30 shadow-sm-sm border font-semibold hover:bg-pink-orchid/80 dark:hover:bg-pink-orchid/35",
+      indicator: "bg-pink-orchid dark:bg-pink-orchid shadow-sm-sm"
     }
   }[colorScheme];
 
@@ -538,7 +538,7 @@ const TabButton = ({
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-all duration-250 ease-out shadow-sm outline-none relative hover:border-muted-foreground/30 cursor-pointer",
+        "flex items-center gap-2 px-4 py-2 rounded-sm-sm border text-sm font-medium transition-all duration-250 ease-out shadow-sm-sm outline-none relative hover:border-muted-foreground/30 cursor-pointer",
         active
           ? schemeClasses.active
           : "bg-transparent text-muted-foreground border-border hover:bg-muted hover:text-foreground",
@@ -547,7 +547,7 @@ const TabButton = ({
       {active && (
         <motion.div
           layoutId="task-tab-indicator"
-          className={cn("absolute -bottom-[17px] left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full", schemeClasses.indicator)}
+          className={cn("absolute -bottom-[17px] left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-sm-full", schemeClasses.indicator)}
         />
       )}
       {icon} {label}

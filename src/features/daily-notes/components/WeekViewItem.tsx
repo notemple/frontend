@@ -31,7 +31,7 @@ export const WeekViewItem = ({ date, formattedId, setView, setSelectedDate, onOp
   );
   const doc = useDocumentStore(useShallow(docSelector));
 
-  const isMockToday = getZonedDate(date, timezone) === 17 && getZonedMonth(date, timezone) === 4;
+  const isToday = isSameDayInTimezone(date, new Date(), timezone);
 
   return (
     <div className="flex flex-col gap-1">
@@ -40,8 +40,8 @@ export const WeekViewItem = ({ date, formattedId, setView, setSelectedDate, onOp
           <span className="text-rose-500 dark:text-rose-400 font-medium">
             {formatDisplayDate(date.toISOString(), "EEEE")}
           </span>
-          {isMockToday && (
-            <span className="bg-rose-200 text-rose-900 dark:text-rose-300 text-xs px-2 py-0.5 rounded font-medium border border-rose-400/80 dark:border-rose-300">
+          {isToday && (
+            <span className="bg-rose-200 text-rose-900 dark:text-rose-300 text-xs px-2 py-0.5 rounded-sm font-medium border border-rose-400/80 dark:border-rose-300">
               Today
             </span>
           )}
@@ -80,14 +80,14 @@ export const WeekViewItem = ({ date, formattedId, setView, setSelectedDate, onOp
           {doc.title && (
             <div className="flex items-center justify-between pt-1">
               <div className="flex items-center gap-3">
-                <div className="bg-rose-200/80 text-rose-900 dark:text-rose-400 p-1.5 rounded-lg border border-rose-400 dark:border-rose-300">
+                <div className="bg-rose-200/80 text-rose-900 dark:text-rose-400 p-1.5 rounded-sm-sm border border-rose-400 dark:border-rose-300">
                   <FileText size={16} weight="fill" />
                 </div>
                 <span className="text-foreground font-bold">
                   {doc.title}
                 </span>
               </div>
-              <button className="p-1.5 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground border border-border transition-colors">
+              <button className="p-1.5 rounded-sm-full bg-muted hover:bg-muted/80 text-muted-foreground border border-border transition-colors">
                 <DotsThree size={16} />
               </button>
             </div>

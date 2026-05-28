@@ -55,12 +55,12 @@ export const TaskEditorModal = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/20 z-50 flex items-center justify-center p-4"
           onClick={onClose}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-background border border-border rounded-2xl w-full max-w-2xl h-[70vh] flex flex-col overflow-hidden relative"
+            className="bg-background border border-border rounded-sm-sm w-full max-w-2xl h-[70vh] flex flex-col overflow-hidden relative"
           >
             <div className="w-full flex items-center justify-between p-4 border-b border-border font-bold text-sm text-foreground bg-muted relative z-20">
               <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -73,7 +73,7 @@ export const TaskEditorModal = ({
                     <button
                       onClick={() => setShowStatusDropdown(!showStatusDropdown)}
                       className={cn(
-                        "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border cursor-pointer select-none transition-all shadow-sm active:scale-95",
+                        "flex items-center gap-1.5 px-2.5 py-1 rounded-sm-full text-xs font-semibold border cursor-pointer select-none transition-all shadow-sm-sm active:scale-95",
                         statusConfig[currentStatus].bg
                       )}
                     >
@@ -88,7 +88,7 @@ export const TaskEditorModal = ({
                           className="fixed inset-0 z-40" 
                           onClick={() => setShowStatusDropdown(false)} 
                         />
-                        <div className="absolute left-0 mt-1.5 z-50 bg-background rounded-lg border border-border py-1 min-w-[130px] shadow-xl neu-panel flex flex-col">
+                        <div className="absolute left-0 mt-1.5 z-50 bg-background rounded-sm-sm border border-border py-1 min-w-[130px] shadow-sm-sm neu-panel flex flex-col">
                           {(['open', 'in progress', 'done'] as const).map((status) => (
                             <button
                               key={status}
@@ -118,7 +118,7 @@ export const TaskEditorModal = ({
 
               <button
                 onClick={onClose}
-                className="p-1 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground shrink-0"
+                className="p-1 hover:bg-muted rounded-sm-full transition-colors text-muted-foreground hover:text-foreground shrink-0"
               >
                 <X size={18} />
               </button>
@@ -129,7 +129,7 @@ export const TaskEditorModal = ({
                 <div className="flex items-center gap-2 text-muted-foreground/80 font-medium">
                   <Clock size={14} className="text-muted-foreground/60" />
                   <span>Created:</span>
-                  <span className="font-semibold text-foreground bg-muted px-2 py-0.5 rounded border border-border/80 shadow-inner">
+                  <span className="font-semibold text-foreground bg-muted px-2 py-0.5 rounded-sm border border-border/80 shadow-sm-inner">
                     {task.createdAt ? new Date(task.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' }) : 'Unknown'}
                   </span>
                 </div>

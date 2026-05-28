@@ -42,8 +42,8 @@ export const KanbanColumn = ({
     <div
       ref={setNodeRef}
       className={cn(
-        "flex flex-col flex-1 min-w-[280px] bg-card/45 dark:bg-muted/15 border border-border/80 rounded-xl p-4 transition-all duration-150 relative min-h-[500px] select-none",
-        isOver && "bg-muted/20 border-purple-500/30 scale-[1.01] shadow-md"
+        "flex flex-col flex-1 min-w-[280px] bg-card/45 dark:bg-muted/15 border border-border/80 rounded-sm-sm p-4 transition-all duration-150 relative min-h-[500px] select-none",
+        isOver && "bg-muted/20 border-purple-500/30 scale-[1.01] shadow-sm-sm"
       )}
     >
       <div className="flex items-center justify-between mb-4 pb-2 border-b border-border/60">
@@ -53,7 +53,7 @@ export const KanbanColumn = ({
           </span>
           <span className="font-sans font-bold text-sm text-foreground">{title}</span>
         </div>
-        <span className={cn("text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border", badgeClass)}>
+        <span className={cn("text-[10px] font-mono font-bold px-2 py-0.5 rounded-sm-full border", badgeClass)}>
           {tasks.length}
         </span>
       </div>
@@ -72,7 +72,7 @@ export const KanbanColumn = ({
         ))}
         
         {tasks.length === 0 && (
-          <div className="flex-1 flex items-center justify-center border-2 border-dashed border-border/40 rounded-lg p-6 min-h-[120px] transition-colors duration-150">
+          <div className="flex-1 flex items-center justify-center border-2 border-dashed border-border/40 rounded-sm-sm p-6 min-h-[120px] transition-colors duration-150">
             <span className="text-xs text-muted-foreground/60 italic font-medium font-sans">
               Drop tasks here
             </span>

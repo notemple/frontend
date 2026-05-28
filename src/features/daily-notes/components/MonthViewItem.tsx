@@ -28,11 +28,11 @@ export const MonthViewItem = ({ docId, onClick }: { docId: string; onClick: () =
   return (
     <div
       onClick={onClick}
-      className="p-4 rounded-xl border border-border bg-muted hover:bg-muted/80 transition-colors duration-150 cursor-pointer group flex flex-col gap-4 min-h-[260px]"
+      className="p-4 rounded-sm-sm border border-border bg-muted hover:bg-muted/80 transition-colors duration-150 cursor-pointer group flex flex-col gap-4 min-h-[260px]"
     >
       <div className="flex items-center gap-2 mb-1">
-        <span className="text-[10px] pr-2 font-medium text-blue-800 dark:text-blue-400 bg-blue-100 dark:bg-blue-500/20 py-0.5 rounded border border-blue-300 dark:border-blue-500/30 flex items-center gap-1 w-fit whitespace-nowrap border">
-          <div className="bg-blue-200/50 dark:bg-blue-500/20 p-1 rounded-sm ml-0.5 border border-blue-300 dark:border-blue-500/30">
+        <span className="text-[10px] pr-2 font-medium text-blue-800 dark:text-blue-400 bg-blue-100 dark:bg-blue-500/20 py-0.5 rounded-sm border border-blue-300 dark:border-blue-500/30 flex items-center gap-1 w-fit whitespace-nowrap border">
+          <div className="bg-blue-200/50 dark:bg-blue-500/20 p-1 rounded-sm-sm ml-0.5 border border-blue-300 dark:border-blue-500/30">
             <CalendarBlank size={12} weight="fill" />
           </div>{" "}
           Daily Note
@@ -46,11 +46,11 @@ export const MonthViewItem = ({ docId, onClick }: { docId: string; onClick: () =
           return formatDisplayDate(docDate.toISOString(), "MMMM d, yyyy");
         })()}
       </h3>
-      <div className="flex-1 bg-background group-hover:bg-muted/40 rounded-lg p-5 transition-colors border border-border overflow-hidden flex flex-col min-h-[140px]">
+      <div className="flex-1 bg-background group-hover:bg-muted/40 rounded-sm-sm p-5 transition-colors border border-border overflow-hidden flex flex-col min-h-[140px]">
         {doc.title && (
           <div className="flex items-center gap-2 mb-2">
             <div className="flex items-center gap-2 text-sm font-bold text-foreground overflow-hidden text-ellipsis whitespace-nowrap">
-              <div className="bg-rose-200/80 text-rose-900 dark:text-rose-400 p-1.5 rounded border border-rose-400 dark:border-rose-300">
+              <div className="bg-rose-200/80 text-rose-900 dark:text-rose-400 p-1.5 rounded-sm border border-rose-400 dark:border-rose-300">
                 <FileText size={12} weight="fill" />
               </div>
               {doc.title}

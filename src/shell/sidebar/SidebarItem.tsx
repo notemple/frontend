@@ -16,7 +16,7 @@ export const SidebarItem = ({
   highlight,
   onClick,
   rightElement,
-  activeBgClass = "bg-muted border border-border shadow-sm",
+  activeBgClass = "bg-muted border border-border shadow-sm-sm",
   activeTextClass = "!text-black dark:!text-foreground font-semibold"
 }: {
   icon?: React.ReactNode,
@@ -32,7 +32,7 @@ export const SidebarItem = ({
     <button
       onClick={onClick}
       className={cn(
-        "relative flex items-center gap-3 w-full px-2 py-1.5 text-[13px] outline-none group/item rounded-md transition-all duration-100 ease-out active:scale-[0.98] border border-transparent cursor-pointer",
+        "relative flex items-center gap-3 w-full px-2 py-1.5 text-[13px] outline-none group/item rounded-sm-sm transition-all duration-100 ease-out active:scale-[0.98] border border-transparent cursor-pointer",
         !isOpen && "justify-center px-0 items-center",
         highlight
           ? activeTextClass
@@ -42,14 +42,14 @@ export const SidebarItem = ({
       {highlight && (
         <motion.div
           layoutId="activeSidebarItemBg"
-          className={cn("absolute inset-0 rounded-md -z-10", activeBgClass)}
+          className={cn("absolute inset-0 rounded-sm-sm -z-10", activeBgClass)}
           transition={{ type: "spring", stiffness: 380, damping: 30 }}
         />
       )}
       {highlight && (
         <motion.div
           layoutId="activeSidebarItemIndicator"
-          className="absolute left-0 top-1.5 bottom-1.5 w-[2px] bg-current rounded-r-full shadow-[0_0_4px_currentColor] z-10"
+          className="absolute left-0 top-1.5 bottom-1.5 w-[2px] bg-current rounded-sm-r-full shadow-sm-sm z-10"
           transition={{ type: "spring", stiffness: 380, damping: 30 }}
         />
       )}

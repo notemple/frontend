@@ -37,6 +37,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.2.1",
     "date-fns-tz": "^3.2.0",
+    "dexie": "^4.4.3",
     "framer-motion": "^12.40.0",
     "framer-motion-lib": "^1.0.1",
     "lowlight": "^3.3.0",

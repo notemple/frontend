@@ -157,7 +157,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
             "p-1 cursor-pointer hover:bg-muted flex items-center justify-center aspect-square relative transition-colors text-sm",
             !isSelectedMonth ? "text-muted-foreground/30" : "text-foreground",
             isSelected
-              ? "bg-rose-200/90 dark:bg-rose-500/20 text-rose-900 dark:text-rose-300 border border-rose-400 dark:border-rose-500/20 shadow-[0_0_12px_rgba(244,63,94,0.15)] hover:bg-rose-300 dark:hover:bg-rose-500/30 font-bold"
+              ? "bg-rose-200/90 dark:bg-rose-500/20 text-rose-900 dark:text-rose-300 border border-rose-400 dark:border-rose-500/20 shadow-sm-sm hover:bg-rose-300 dark:hover:bg-rose-500/30 font-bold"
               : "",
           )}
           style={{ borderRadius: isSelected ? "9999px" : undefined }}
@@ -222,7 +222,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-1 bg-muted p-1 rounded-xl border border-border">
+            <div className="flex items-center gap-1 bg-muted p-1 rounded-sm-sm border border-border">
               {([
                 { name: "Month", color: "purple" },
                 { name: "Week", color: "sky" },
@@ -235,9 +235,9 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                 }[color];
 
                 const activeTextColors = {
-                  purple: "text-purple-700 dark:text-purple-400 font-bold border-purple-200/30 dark:border-purple-500/10 shadow-[0_2px_10px_rgba(168,85,247,0.08)]",
-                  sky: "text-sky-700 dark:text-sky-400 font-bold border-sky-200/30 dark:border-sky-500/10 shadow-[0_2px_10px_rgba(14,165,233,0.08)]",
-                  amber: "text-amber-700 dark:text-amber-400 font-bold border-amber-200/30 dark:border-amber-500/10 shadow-[0_2px_10px_rgba(245,158,11,0.08)]",
+                  purple: "text-purple-700 dark:text-purple-400 font-bold border-purple-200/30 dark:border-purple-500/10 shadow-sm-sm",
+                  sky: "text-sky-700 dark:text-sky-400 font-bold border-sky-200/30 dark:border-sky-500/10 shadow-sm-sm",
+                  amber: "text-amber-700 dark:text-amber-400 font-bold border-amber-200/30 dark:border-amber-500/10 shadow-sm-sm",
                 }[color];
 
                 return (
@@ -245,7 +245,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                     key={v}
                     onClick={() => setView(v as any)}
                     className={cn(
-                      "relative px-4 py-1.5 text-[13px] font-semibold rounded-lg transition-all duration-300 border border-transparent outline-none cursor-pointer",
+                      "relative px-4 py-1.5 text-[13px] font-semibold rounded-sm-sm transition-all duration-300 border border-transparent outline-none cursor-pointer",
                       view === v
                         ? activeTextColors
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
@@ -254,7 +254,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                     {view === v && (
                       <motion.div
                         layoutId="activeDailyNotesViewBg"
-                        className="absolute inset-0 rounded-lg -z-10 border"
+                        className="absolute inset-0 rounded-sm-sm -z-10 border"
                         style={{ backgroundColor: colorVars }}
                         transition={{ type: "spring", stiffness: 380, damping: 30 }}
                       />
@@ -274,13 +274,13 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                   else
                     setSelectedDate(addDaysInTimezone(selectedDate, -1, timezone));
                 }}
-                className="flex items-center justify-center p-2 rounded-md border border-border/80 bg-card-bg/40 text-foreground/80 hover:text-foreground hover:bg-muted transition-all shadow-sm cursor-pointer"
+                className="flex items-center justify-center p-2 rounded-sm-sm border border-border/80 bg-card-bg/40 text-foreground/80 hover:text-foreground hover:bg-muted transition-all shadow-sm-sm cursor-pointer"
               >
                 <CaretLeft size={14} weight="bold" />
               </button>
               <button
                 onClick={() => setSelectedDate(new Date())}
-                className="flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded-md border border-border/80 bg-card-bg/40 text-foreground/80 hover:text-foreground hover:bg-muted transition-all shadow-sm select-none cursor-pointer"
+                className="flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded-sm-sm border border-border/80 bg-card-bg/40 text-foreground/80 hover:text-foreground hover:bg-muted transition-all shadow-sm-sm select-none cursor-pointer"
               >
                 Today
               </button>
@@ -293,7 +293,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                   else
                     setSelectedDate(addDaysInTimezone(selectedDate, 1, timezone));
                 }}
-                className="flex items-center justify-center p-2 rounded-md border border-border/80 bg-card-bg/40 text-foreground/80 hover:text-foreground hover:bg-muted transition-all shadow-sm cursor-pointer"
+                className="flex items-center justify-center p-2 rounded-sm-sm border border-border/80 bg-card-bg/40 text-foreground/80 hover:text-foreground hover:bg-muted transition-all shadow-sm-sm cursor-pointer"
               >
                 <CaretRight size={14} weight="bold" />
               </button>
@@ -301,9 +301,9 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
               <button
                 onClick={() => setIsCalendarOpen(!isCalendarOpen)}
                 className={cn(
-                  "transition-all p-2 rounded-lg border",
+                  "transition-all p-2 rounded-sm-sm border",
                   isCalendarOpen
-                    ? "bg-rose-600 border-rose-600 text-white hover:bg-rose-700 shadow-inner dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/20"
+                    ? "bg-rose-600 border-rose-600 text-white hover:bg-rose-700 shadow-sm-inner dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/20"
                     : "border-border/80 bg-card-bg/40 text-rose-700 hover:text-rose-800 hover:bg-rose-100/60 dark:border-transparent dark:bg-transparent dark:text-muted-foreground dark:hover:text-rose-400"
                 )}
               >
@@ -323,9 +323,9 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                       setSelectedDate(setZonedMonth(selectedDate, i, timezone));
                     }}
                     className={cn(
-                      "px-4 py-1 rounded-full transition-all text-[13px] font-medium border duration-300",
+                      "px-4 py-1 rounded-sm-full transition-all text-[13px] font-medium border duration-300",
                       isSelected
-                        ? "bg-cyan-700 text-white dark:bg-cyan-500/10 dark:text-cyan-300 border-cyan-700 dark:border-cyan-500/20 shadow-sm hover:bg-cyan-800"
+                        ? "bg-cyan-700 text-white dark:bg-cyan-500/10 dark:text-cyan-300 border-cyan-700 dark:border-cyan-500/20 shadow-sm-sm hover:bg-cyan-800"
                         : "text-muted-foreground hover:text-foreground border-transparent hover:bg-muted/50",
                     )}
                   >
@@ -384,8 +384,8 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                         <span className="text-rose-500 dark:text-rose-400 font-medium">
                           {formatDisplayDate(selectedDate.toISOString(), "EEEE")}
                         </span>
-                        {getZonedDate(selectedDate, timezone) === 17 && getZonedMonth(selectedDate, timezone) === 4 && (
-                          <span className="bg-rose-500/10 text-rose-600 dark:text-rose-300 text-xs px-2 py-0.5 rounded font-medium border border-rose-500/20">
+                        {isSameDayInTimezone(selectedDate, new Date(), timezone) && (
+                          <span className="bg-rose-500/10 text-rose-600 dark:text-rose-300 text-xs px-2 py-0.5 rounded-sm font-medium border border-rose-500/20">
                             Today
                           </span>
                         )}
@@ -433,13 +433,13 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                     {/* Created Today */}
                     <div>
                       <div
-                        className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-lg transition-colors group"
+                        className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-sm-sm transition-colors group"
                         onClick={() => setIsCreatedTodayOpen(!isCreatedTodayOpen)}
                       >
                         <h2 className="text-sm font-medium text-foreground">
                           Created Today
                         </h2>
-                        <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
+                        <span className="bg-muted text-muted-foreground text-xs px-2 rounded-sm-full font-medium">
                           {createdTodayCount}
                         </span>
                         <div className="flex-1" />
@@ -460,7 +460,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                       {isCreatedTodayOpen && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
                           {objectsCreatedTodayIds.length === 0 && (
-                            <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-xl">
+                            <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-sm-sm">
                               No other documents created today.
                             </div>
                           )}
@@ -478,13 +478,13 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                     {/* Updated Today */}
                     <div>
                       <div
-                        className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-lg transition-colors group"
+                        className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-sm-sm transition-colors group"
                         onClick={() => setIsUpdatedTodayOpen(!isUpdatedTodayOpen)}
                       >
                         <h2 className="text-sm font-medium text-foreground">
                           Updated Today
                         </h2>
-                        <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
+                        <span className="bg-muted text-muted-foreground text-xs px-2 rounded-sm-full font-medium">
                           {objectsUpdatedTodayIds.length}
                         </span>
                         <div className="flex-1" />
@@ -505,7 +505,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                       {isUpdatedTodayOpen && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
                           {objectsUpdatedTodayIds.length === 0 && (
-                            <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-xl">
+                            <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-sm-sm">
                               No other documents updated today.
                             </div>
                           )}
@@ -523,13 +523,13 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                     {/* Tasks Created Today */}
                     <div>
                       <div
-                        className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-lg transition-colors group"
+                        className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-sm-sm transition-colors group"
                         onClick={() => setIsTasksCreatedOpen(!isTasksCreatedOpen)}
                       >
                         <h2 className="text-sm font-medium text-foreground">
                           Tasks Created Today
                         </h2>
-                        <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
+                        <span className="bg-muted text-muted-foreground text-xs px-2 rounded-sm-full font-medium">
                           {tasks.filter((t) => isSameDayString(t.createdAt, formattedDateId)).length}
                         </span>
                         <div className="flex-1" />
@@ -554,12 +554,12 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                             .map((task) => (
                               <div
                                 key={task.id}
-                                className="flex items-center justify-between group relative hover:bg-muted pl-2 pr-2 py-1 -mx-2 rounded transition-colors"
+                                className="flex items-center justify-between group relative hover:bg-muted pl-2 pr-2 py-1 -mx-2 rounded-sm transition-colors"
                               >
                                 <div className="flex items-center gap-3">
                                   <div
                                     className={cn(
-                                      "w-5 h-5 shrink-0 rounded-sm border transition-colors flex items-center justify-center cursor-pointer min-w-[20px]",
+                                      "w-5 h-5 shrink-0 rounded-sm-sm border transition-colors flex items-center justify-center cursor-pointer min-w-[20px]",
                                       task.completed
                                         ? "bg-purple-500 border-purple-500 text-white"
                                         : "border-border hover:border-muted-foreground",
@@ -581,7 +581,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                                     {task.title}
                                   </span>
                                   {task.deadline && (
-                                    <span className="text-xs text-muted-foreground border border-border rounded px-2 py-0.5 bg-muted ml-2">
+                                    <span className="text-xs text-muted-foreground border border-border rounded-sm px-2 py-0.5 bg-muted ml-2">
                                       Deadline: {formatDisplayDate(task.deadline, "MMM d")}
                                     </span>
                                   )}
@@ -589,13 +589,13 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <button
                                     onClick={() => deleteTask(task.id)}
-                                    className="text-muted-foreground hover:text-red-400 transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
+                                    className="text-muted-foreground hover:text-red-400 transition-colors flex items-center justify-center w-6 h-6 rounded-sm-full hover:bg-muted"
                                   >
                                     <Trash size={16} />
                                   </button>
                                   <button
                                     onClick={() => setEditingTaskId(task.id)}
-                                    className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
+                                    className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 rounded-sm-full hover:bg-muted"
                                   >
                                     <ArrowCircleRight size={16} />
                                   </button>
@@ -614,13 +614,13 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                     {/* Tasks Finished Today */}
                     <div>
                       <div
-                        className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-lg transition-colors group"
+                        className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-sm-sm transition-colors group"
                         onClick={() => setIsTasksFinishedOpen(!isTasksFinishedOpen)}
                       >
                         <h2 className="text-sm font-medium text-foreground">
                           Tasks with Deadline Today
                         </h2>
-                        <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
+                        <span className="bg-muted text-muted-foreground text-xs px-2 rounded-sm-full font-medium">
                           {tasks.filter((t) => isSameDayString(t.deadline, formattedDateId)).length}
                         </span>
                         <div className="flex-1" />
@@ -645,12 +645,12 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                             .map((task) => (
                               <div
                                 key={task.id}
-                                className="flex items-center justify-between group relative hover:bg-muted pl-2 pr-2 py-1 -mx-2 rounded transition-colors"
+                                className="flex items-center justify-between group relative hover:bg-muted pl-2 pr-2 py-1 -mx-2 rounded-sm transition-colors"
                               >
                                 <div className="flex items-center gap-3">
                                   <div
                                     className={cn(
-                                      "w-5 h-5 shrink-0 rounded-sm border transition-colors flex items-center justify-center cursor-pointer min-w-[20px]",
+                                      "w-5 h-5 shrink-0 rounded-sm-sm border transition-colors flex items-center justify-center cursor-pointer min-w-[20px]",
                                       task.completed
                                         ? "bg-purple-500 border-purple-500 text-white"
                                         : "border-border hover:border-muted-foreground",
@@ -671,20 +671,20 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                                   >
                                     {task.title}
                                   </span>
-                                  <span className="text-xs text-muted-foreground border border-border rounded px-2 py-0.5 bg-muted ml-2">
+                                  <span className="text-xs text-muted-foreground border border-border rounded-sm px-2 py-0.5 bg-muted ml-2">
                                     Deadline: {formatDisplayDate(task.deadline, "MMM d")}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <button
                                     onClick={() => deleteTask(task.id)}
-                                    className="text-muted-foreground hover:text-red-400 transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
+                                    className="text-muted-foreground hover:text-red-400 transition-colors flex items-center justify-center w-6 h-6 rounded-sm-full hover:bg-muted"
                                   >
                                     <Trash size={16} />
                                   </button>
                                   <button
                                     onClick={() => setEditingTaskId(task.id)}
-                                    className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 rounded-full hover:bg-muted"
+                                    className="text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 rounded-sm-full hover:bg-muted"
                                   >
                                     <ArrowCircleRight size={16} />
                                   </button>

@@ -19,7 +19,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             "bg-accent text-accent-foreground hover:bg-accent/90": variant === 'primary',
             "bg-border text-foreground hover:bg-border/80": variant === 'secondary',
             "hover:bg-muted text-foreground": variant === 'ghost',
-            "glass-light hover:bg-white/10 text-foreground": variant === 'glass',
+            "glass-light hover:bg-muted/40 text-foreground": variant === 'glass',
             "h-8 px-3 text-xs": size === 'sm',
             "h-9 px-4": size === 'md',
             "h-10 px-8": size === 'lg',

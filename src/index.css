@@ -105,7 +105,7 @@
 @layer base {
   * {
     border-color: var(--border);
-    border-radius: 0; /* Sharp rectangular UI requested */
+    
   }
   body {
     background-color: var(--background);
@@ -135,7 +135,7 @@
   .glass {
     background: var(--muted);
     border: 1px solid var(--border);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    box-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.08);
   }
   .glass-light {
     background: var(--background);
@@ -144,7 +144,7 @@
   .glass-panel {
     background: var(--background);
     border: 1px solid var(--border);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 4px 16px rgba(0, 0, 0, 0.08);
+    box-shadow-sm: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 4px 16px rgba(0, 0, 0, 0.08);
   }
 
   .no-scrollbar::-webkit-scrollbar {
@@ -156,7 +156,7 @@
   }
   
   .ambient-glow {
-    box-shadow: 0 0 16px 2px rgba(255, 255, 255, 0.01);
+    box-shadow-sm: 0 0 16px 2px rgba(255, 255, 255, 0.01);
   }
 
   .will-change-transform {
@@ -207,8 +207,8 @@
 .tippy-box[data-theme~='slash-command'] {
   background-color: transparent;
   border: none;
-  border-radius: 12px;
-  box-shadow: none;
+  border-radius: 0.125rem;
+  box-shadow-sm: none;
 }
 .tippy-box[data-theme~='slash-command'] .tippy-content {
   padding: 0;
@@ -250,7 +250,7 @@
   height: auto;
   margin: 1.5rem 0;
   max-width: 100%;
-  border-radius: 0.5rem;
+  border-radius: 0.125rem;
 }
 
 .tiptap blockquote {
@@ -263,7 +263,7 @@
 
 .tiptap pre {
   background: #111;
-  border-radius: 0.5rem;
+  border-radius: 0.125rem;
   color: #fff;
   font-family: var(--font-mono);
   padding: 1rem;

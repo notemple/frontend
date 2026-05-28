@@ -381,7 +381,7 @@ export const NotempleEditor = ({
       className={cn(
         "w-full overflow-y-auto no-scrollbar flex flex-col relative",
         isMinimized 
-          ? "h-[280px] border border-border rounded-xl bg-muted/20 hover:bg-muted/30 hover:border-muted-foreground/20 focus-within:border-rose-500/35 focus-within:bg-background transition-all duration-200" 
+          ? "h-[280px] border border-border rounded-sm-sm bg-muted/20 hover:bg-muted/30 hover:border-muted-foreground/20 focus-within:border-rose-500/35 focus-within:bg-background transition-all duration-200" 
           : "h-full",
         hasCustomStyle ? "p-4 sm:p-8 md:p-12 lg:p-16 transition-[padding] duration-300" : ""
       )}
@@ -401,7 +401,7 @@ export const NotempleEditor = ({
         className={cn(
           "w-full mx-auto font-content flex flex-col shrink-0 z-10",
           hasCustomStyle
-            ? "max-w-[950px] p-8 sm:p-12 md:p-16 rounded-[1.5rem] shadow-none relative border border-border min-h-[500px] md:min-h-[calc(100vh-160px)] overflow-hidden transition-[max-width,padding,border-radius,box-shadow] duration-300 ease-out"
+            ? "max-w-[950px] p-8 sm:p-12 md:p-16 rounded-sm-sm shadow-sm-none relative border border-border min-h-[500px] md:min-h-[calc(100vh-160px)] overflow-hidden transition-[max-width,padding,border-radius,box-shadow-sm] duration-300 ease-out"
             : cn("max-w-[900px] h-full", isMinimized ? "py-4 px-6" : "py-16 px-12")
         )}
         style={{
@@ -431,7 +431,7 @@ export const NotempleEditor = ({
             {documentId.startsWith('daily-note-') && !isDailyNote && (
               <button
                 onClick={handleBackToDailyNotes}
-                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg border border-border bg-muted/40 hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all cursor-pointer shadow-sm select-none"
+                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-sm-sm border border-border bg-muted/40 hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all cursor-pointer shadow-sm-sm select-none"
                 title="Back to Daily Notes view"
               >
                 <ArrowsInSimple size={14} />
@@ -443,11 +443,11 @@ export const NotempleEditor = ({
           <div className="flex items-center gap-4">
             {hasCustomStyle && (
               <div
-                className="w-7 h-7 rounded-lg border flex items-center justify-center shrink-0 opacity-40 hover:opacity-100 transition-opacity cursor-pointer shadow-sm"
+                className="w-7 h-7 rounded-sm-sm border flex items-center justify-center shrink-0 opacity-40 hover:opacity-100 transition-opacity cursor-pointer shadow-sm-sm"
                 style={{ borderColor: activeTextColor }}
               >
                 <div
-                  className="w-3 h-3 rounded bg-current"
+                  className="w-3 h-3 rounded-sm bg-current"
                   style={{ backgroundColor: activeTextColor }}
                 />
               </div>
@@ -471,7 +471,7 @@ export const NotempleEditor = ({
               return (
                 <span
                   key={tag}
-                  className="tag-element flex items-center gap-1 border text-xs px-3 py-1 transition-colors shadow-sm font-medium rounded-md"
+                  className="tag-element flex items-center gap-1 border text-xs px-3 py-1 transition-colors shadow-sm-sm font-medium rounded-sm-sm"
                   style={{
                     backgroundColor: 'var(--tag-bg)',
                     borderColor: 'var(--tag-border)',
@@ -524,7 +524,7 @@ export const NotempleEditor = ({
                 </button>
               )}
               {showTagsDropdown && (
-                <div className="absolute top-full left-0 mt-2 w-56 bg-background border border-border shadow-2xl z-50 overflow-hidden text-sans text-foreground">
+                <div className="absolute top-full left-0 mt-2 w-56 bg-background border border-border shadow-sm-sm z-50 overflow-hidden text-sans text-foreground">
                   <div className="max-h-40 overflow-y-auto no-scrollbar">
                     {allExistingTags.filter(t => !tags.includes(t)).length === 0 && (
                       <div className="px-3 py-2 text-xs text-muted-foreground/60">No existing tags.</div>
@@ -580,36 +580,36 @@ export const NotempleEditor = ({
             <BubbleMenu
               editor={editor}
               options={{ placement: 'top' }}
-              className="flex items-center gap-1 bg-background border border-border rounded-xl shadow-2xl p-1.5 font-sans"
+              className="flex items-center gap-1 bg-background border border-border rounded-sm-sm shadow-sm-sm p-1.5 font-sans"
             >
               <button
                 onClick={() => editor.chain().focus().toggleBold().run()}
-                className={cn("p-1.5 rounded-lg transition-colors", editor.isActive('bold') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
+                className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive('bold') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
               >
                 <TextB size={16} />
               </button>
               <button
                 onClick={() => editor.chain().focus().toggleItalic().run()}
-                className={cn("p-1.5 rounded-lg transition-colors", editor.isActive('italic') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
+                className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive('italic') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
               >
                 <TextItalic size={16} />
               </button>
               <button
                 onClick={() => editor.chain().focus().toggleUnderline().run()}
-                className={cn("p-1.5 rounded-lg transition-colors", editor.isActive('underline') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
+                className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive('underline') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
               >
                 <TextAUnderline size={16} />
               </button>
               <button
                 onClick={() => editor.chain().focus().toggleStrike().run()}
-                className={cn("p-1.5 rounded-lg transition-colors", editor.isActive('strike') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
+                className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive('strike') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
               >
                 <TextStrikethrough size={16} />
               </button>
               <div className="w-px h-4 bg-border mx-1" />
               <button
                 onClick={() => editor.chain().focus().toggleCode().run()}
-                className={cn("p-1.5 rounded-lg transition-colors", editor.isActive('code') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
+                className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive('code') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
               >
                 <Code size={16} />
               </button>

@@ -27,7 +27,7 @@ export const RightSidebar = () => {
   return (
     <div
       className={cn(
-        "h-full border-l border-border bg-background shrink-0 flex flex-col overflow-hidden z-20 shadow-none transition-[width,opacity] duration-250 ease-out will-change-[width,opacity]",
+        "h-full border-l border-border bg-background shrink-0 flex flex-col overflow-hidden z-20 shadow-sm-none transition-[width,opacity] duration-250 ease-out will-change-[width,opacity]",
         isRightSidebarOpen ? "w-[320px] opacity-100" : "w-0 opacity-0 pointer-events-none"
       )}
     >
@@ -39,7 +39,7 @@ export const RightSidebar = () => {
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={cn(
-                    "px-3 py-1 text-xs font-semibold rounded-md transition-all whitespace-nowrap",
+                    "px-3 py-1 text-xs font-semibold rounded-sm-sm transition-all whitespace-nowrap",
                     activeTab === tab
                       ? "text-foreground bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10"
                       : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:text-white dark:hover:bg-white/5 border border-transparent"
@@ -51,7 +51,7 @@ export const RightSidebar = () => {
             </div>
             <button
               onClick={toggleRightSidebar}
-              className="p-1 px-1.5 rounded-md text-muted-foreground/80 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-500/10 hover:border-sky-500/20 border border-transparent transition-all duration-200 shrink-0 shadow-sm"
+              className="p-1 px-1.5 rounded-sm-sm text-muted-foreground/80 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-500/10 hover:border-sky-500/20 border border-transparent transition-all duration-200 shrink-0 shadow-sm-sm"
             >
               <X size={16} />
             </button>
@@ -308,7 +308,7 @@ const StyleTab = () => {
         </span>
         <button
           onClick={handleResetAll}
-          className="text-[10px] font-mono text-muted-foreground hover:text-foreground dark:hover:text-white flex items-center gap-1 hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 px-2 py-0.5 rounded transition-colors cursor-pointer"
+          className="text-[10px] font-mono text-muted-foreground hover:text-foreground dark:hover:text-white flex items-center gap-1 hover:bg-black/5 dark:hover:bg-white/5 border border-black/10 dark:border-white/10 px-2 py-0.5 rounded-sm transition-colors cursor-pointer"
           title="Reset Style"
         >
           <ArrowCounterClockwise size={10} />
@@ -321,20 +321,20 @@ const StyleTab = () => {
         <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Backdrop</span>
 
         {/* Segmented Control Selector for Types - Matches mockup precisely */}
-        <div className="grid grid-cols-3 bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/5 p-1 rounded-xl">
+        <div className="grid grid-cols-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
           {/* None/Disabled */}
           <button
             onClick={() => setBackdropType('none')}
             className={cn(
-              "py-2 flex items-center justify-center rounded-lg transition-all text-xs relative group-hover:bg-black/5 dark:group-hover:bg-white/5 cursor-pointer",
+              "py-2 flex items-center justify-center rounded-sm-sm transition-all text-xs relative group-hover:bg-black/5 dark:group-hover:bg-white/5 cursor-pointer",
               currentType === 'none'
-                ? "bg-white dark:bg-white/10 text-foreground dark:text-white shadow-sm border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
             title="No Backdrop"
           >
             <div className="w-5 h-5 flex items-center justify-center relative">
-              <div className="border border-current w-3.5 h-3.5 rounded-sm relative">
+              <div className="border border-current w-3.5 h-3.5 rounded-sm-sm relative">
                 <div className="absolute top-1/2 left-0 right-0 border-t border-current -rotate-45 transform origin-center" />
               </div>
             </div>
@@ -344,28 +344,28 @@ const StyleTab = () => {
           <button
             onClick={() => setBackdropType('solid')}
             className={cn(
-              "py-2 flex items-center justify-center rounded-lg transition-all text-xs cursor-pointer",
+              "py-2 flex items-center justify-center rounded-sm-sm transition-all text-xs cursor-pointer",
               currentType === 'solid'
-                ? "bg-white dark:bg-white/10 text-foreground dark:text-white shadow-sm border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
             title="Solid Backdrop"
           >
-            <div className="w-3.5 h-3.5 bg-current rounded-sm border border-current" />
+            <div className="w-3.5 h-3.5 bg-current rounded-sm-sm border border-current" />
           </button>
 
           {/* Gradient */}
           <button
             onClick={() => setBackdropType('gradient')}
             className={cn(
-              "py-2 flex items-center justify-center rounded-lg transition-all text-xs cursor-pointer",
+              "py-2 flex items-center justify-center rounded-sm-sm transition-all text-xs cursor-pointer",
               currentType === 'gradient'
-                ? "bg-white dark:bg-white/10 text-foreground dark:text-white shadow-sm border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
             title="Gradient Backdrop"
           >
-            <div className="w-3.5 h-3.5 rounded-sm border border-current bg-gradient-to-tr from-muted-foreground to-foreground opacity-90" />
+            <div className="w-3.5 h-3.5 rounded-sm-sm border border-current bg-gradient-to-tr from-muted-foreground to-foreground opacity-90" />
           </button>
         </div>
 
@@ -385,7 +385,7 @@ const StyleTab = () => {
                       setShowColorPickerInline(false);
                     }}
                     className={cn(
-                      "w-8 h-8 rounded-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                      "w-8 h-8 rounded-sm-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
                       isSelected ? "scale-105" : ""
                     )}
                     style={{ 
@@ -399,7 +399,7 @@ const StyleTab = () => {
                       <Check
                         size={12}
                         className={cn(
-                          "font-bold drop-shadow z-10",
+                          "font-bold drop-shadow-sm z-10",
                           color === '#fafafa' || color === '#f4f1ea'
                             ? "text-slate-800 dark:text-slate-200"
                             : "text-white"
@@ -414,7 +414,7 @@ const StyleTab = () => {
               <button
                 onClick={() => setShowColorPickerInline(!showColorPickerInline)}
                 className={cn(
-                  "w-8 h-8 rounded-full border transition-all duration-200 shrink-0 flex items-center justify-center relative overflow-hidden group justify-self-center cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                  "w-8 h-8 rounded-sm-full border transition-all duration-200 shrink-0 flex items-center justify-center relative overflow-hidden group justify-self-center cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
                   showColorPickerInline ? "scale-105" : ""
                 )}
                 style={{
@@ -424,7 +424,7 @@ const StyleTab = () => {
                 }}
               >
                 <div className="absolute inset-0 bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 opacity-90 group-hover:opacity-100" />
-                <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow" />
+                <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow-sm" />
               </button>
             </div>
 
@@ -435,19 +435,19 @@ const StyleTab = () => {
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="p-3 bg-black/40 border border-white/5 rounded-xl space-y-2.5 overflow-hidden font-mono text-[11px]"
+                className="p-3 bg-black/20 border border-white/5 rounded-sm-sm space-y-2.5 overflow-hidden font-mono text-[11px]"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Select Custom Color:</span>
                   <span className="text-accent text-[10px] uppercase font-bold">{document.backdropColor}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: document.backdropColor || '#ffffff' }} />
+                  <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: document.backdropColor || '#ffffff' }} />
                   <input
                     type="color"
                     value={document.backdropColor || '#ffffff'}
                     onChange={(e) => handleSolidColorSelect(e.target.value)}
-                    className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded overflow-hidden"
+                    className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
                   />
                 </div>
               </motion.div>
@@ -470,7 +470,7 @@ const StyleTab = () => {
                     key={idx}
                     onClick={() => handleGradientPresetSelect(preset)}
                     className={cn(
-                      "w-8 h-8 rounded-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                      "w-8 h-8 rounded-sm-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
                       isSelected ? "scale-105" : ""
                     )}
                     style={{ 
@@ -485,7 +485,7 @@ const StyleTab = () => {
                       <Check
                         size={12}
                         className={cn(
-                          "font-bold drop-shadow z-10",
+                          "font-bold drop-shadow-sm z-10",
                           preset.start === '#fdf4ff' || preset.start === '#f0fdf4'
                             ? "text-slate-800 dark:text-slate-200"
                             : "text-white"
@@ -500,7 +500,7 @@ const StyleTab = () => {
               <button
                 onClick={() => setShowColorPickerInline(!showColorPickerInline)}
                 className={cn(
-                  "w-8 h-8 rounded-full border transition-all duration-200 shrink-0 flex items-center justify-center relative overflow-hidden group justify-self-center cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                  "w-8 h-8 rounded-sm-full border transition-all duration-200 shrink-0 flex items-center justify-center relative overflow-hidden group justify-self-center cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
                   showColorPickerInline ? "scale-105" : ""
                 )}
                 style={{
@@ -510,29 +510,29 @@ const StyleTab = () => {
                 }}
               >
                 <div className="absolute inset-0 bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 opacity-90 group-hover:opacity-100" />
-                <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow" />
+                <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow-sm" />
               </button>
             </div>
 
             {/* Custom inputs from Mockup 3 for Start/End color styling */}
             {showColorPickerInline && (
-              <div className="space-y-4 p-3 bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/5 rounded-xl font-mono text-[11px] transition-all">
+              <div className="space-y-4 p-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 rounded-sm-sm font-mono text-[11px] transition-all">
                 {/* Start Color picker */}
                 <div className="space-y-2 pb-2.5 border-b border-black/10 dark:border-white/5">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-accent" />
+                      <div className="w-2 h-2 rounded-sm-full bg-accent" />
                       Start Color
                     </span>
                     <span className="text-accent text-[10px] uppercase font-bold">{currentStart}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: currentStart }} />
+                    <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: currentStart }} />
                     <input
                       type="color"
                       value={currentStart}
                       onChange={(e) => handleGradientCustomUpdate({ start: e.target.value })}
-                      className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded overflow-hidden"
+                      className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
                     />
                   </div>
                 </div>
@@ -541,18 +541,18 @@ const StyleTab = () => {
                 <div className="space-y-2 pb-2.5 border-b border-black/10 dark:border-white/5">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-pink-400" />
+                      <div className="w-2 h-2 rounded-sm-full bg-pink-400" />
                       End Color
                     </span>
                     <span className="text-pink-400 text-[10px] uppercase font-bold">{currentEnd}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: currentEnd }} />
+                    <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: currentEnd }} />
                     <input
                       type="color"
                       value={currentEnd}
                       onChange={(e) => handleGradientCustomUpdate({ end: e.target.value })}
-                      className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded overflow-hidden"
+                      className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
                     />
                   </div>
                 </div>
@@ -563,7 +563,7 @@ const StyleTab = () => {
                   <select
                     value={currentDir}
                     onChange={(e) => handleGradientCustomUpdate({ dir: e.target.value })}
-                    className="flex-1 max-w-[124px] bg-white dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-lg text-foreground dark:text-white/95 px-2.5 py-1 text-[11px] outline-none hover:border-black/20 dark:hover:border-white/20 transition-all font-mono"
+                    className="flex-1 max-w-[124px] bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 rounded-sm-sm text-foreground dark:text-white/95 px-2.5 py-1 text-[11px] outline-none hover:border-black/20 dark:hover:border-white/20 transition-all font-mono"
                   >
                     <option className="bg-neutral-100 dark:bg-neutral-900" value="180deg">Top to Bottom</option>
                     <option className="bg-neutral-100 dark:bg-neutral-900" value="90deg">Left to Right</option>
@@ -583,14 +583,14 @@ const StyleTab = () => {
         <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Paper & Text</span>
         
         {/* Segmented Control Selector for Document Color Type */}
-        <div className="grid grid-cols-2 bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/5 p-1 rounded-xl">
+        <div className="grid grid-cols-2 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
           {/* Solid */}
           <button
             onClick={() => setPaperType('solid')}
             className={cn(
-              "py-1.5 flex items-center justify-center rounded-lg transition-all text-xs cursor-pointer font-mono",
+              "py-1.5 flex items-center justify-center rounded-sm-sm transition-all text-xs cursor-pointer font-mono",
               paperType === 'solid'
-                ? "bg-white dark:bg-white/10 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
           >
@@ -601,9 +601,9 @@ const StyleTab = () => {
           <button
             onClick={() => setPaperType('gradient')}
             className={cn(
-              "py-1.5 flex items-center justify-center rounded-lg transition-all text-xs cursor-pointer font-mono",
+              "py-1.5 flex items-center justify-center rounded-sm-sm transition-all text-xs cursor-pointer font-mono",
               paperType === 'gradient'
-                ? "bg-white dark:bg-white/10 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
           >
@@ -631,7 +631,7 @@ const StyleTab = () => {
                           }
                         }}
                         className={cn(
-                          "w-7 h-7 rounded-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden bg-white/5 cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                          "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden bg-white/5 cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
                           isSelected ? "scale-105" : ""
                         )}
                         style={{
@@ -651,7 +651,7 @@ const StyleTab = () => {
                           <Check
                             size={11}
                             className={cn(
-                              "font-bold drop-shadow z-10",
+                              "font-bold drop-shadow-sm z-10",
                               !swatch.value || swatch.value === '#ffffff' || swatch.value === '#fcfaf7' || swatch.value === '#f1f5f9'
                                 ? "text-slate-800 dark:text-slate-200"
                                 : "text-white"
@@ -666,7 +666,7 @@ const StyleTab = () => {
                   <button
                     onClick={() => setShowPaperColorPickerInline(!showPaperColorPickerInline)}
                     className={cn(
-                      "w-7 h-7 rounded-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden group cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                      "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden group cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
                       showPaperColorPickerInline ? "scale-105" : ""
                     )}
                     style={{
@@ -677,7 +677,7 @@ const StyleTab = () => {
                     title="Custom Paper Color"
                   >
                     <div className="absolute inset-0 bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 opacity-90 group-hover:opacity-100" />
-                    <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow" />
+                    <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow-sm" />
                   </button>
                 </div>
 
@@ -688,19 +688,19 @@ const StyleTab = () => {
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="p-3 bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/5 rounded-xl space-y-2.5 overflow-hidden font-mono text-[11px] mt-2"
+                    className="p-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 rounded-sm-sm space-y-2.5 overflow-hidden font-mono text-[11px] mt-2"
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Custom Paper Color:</span>
                       <span className="text-accent text-[10px] uppercase font-bold">{document.documentColor || '#ffffff'}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg border border-black dark:border-white relative overflow-hidden shrink-0" style={{ background: document.documentColor || '#ffffff' }} />
+                      <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ background: document.documentColor || '#ffffff' }} />
                       <input
                         type="color"
                         value={document.documentColor || '#ffffff'}
                         onChange={(e) => updateDocument(document.id, { documentColor: e.target.value, documentColorType: 'solid' })}
-                        className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded overflow-hidden"
+                        className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
                       />
                     </div>
                   </motion.div>
@@ -721,7 +721,7 @@ const StyleTab = () => {
                           handlePaperGradientPresetSelect(swatch);
                         }}
                         className={cn(
-                          "w-7 h-7 rounded-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                          "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
                           isSelected ? "scale-105" : ""
                         )}
                         style={{ 
@@ -736,7 +736,7 @@ const StyleTab = () => {
                           <Check
                             size={11}
                             className={cn(
-                              "font-bold drop-shadow z-10",
+                              "font-bold drop-shadow-sm z-10",
                               swatch.start === '#ffffff'
                                 ? "text-slate-800 dark:text-slate-200"
                                 : "text-white"
@@ -751,7 +751,7 @@ const StyleTab = () => {
                   <button
                     onClick={() => setShowPaperGradientPickerInline(!showPaperGradientPickerInline)}
                     className={cn(
-                      "w-7 h-7 rounded-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden group cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                      "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden group cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
                       showPaperGradientPickerInline ? "scale-105" : ""
                     )}
                     style={{
@@ -762,29 +762,29 @@ const StyleTab = () => {
                     title="Custom Paper Gradient"
                   >
                     <div className="absolute inset-0 bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 opacity-90 group-hover:opacity-100" />
-                    <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow" />
+                    <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow-sm" />
                   </button>
                 </div>
 
                 {/* Custom paper gradient picker inputs */}
                 {showPaperGradientPickerInline && (
-                  <div className="space-y-4 p-3 bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/5 rounded-xl font-mono text-[11px] transition-all">
+                  <div className="space-y-4 p-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 rounded-sm-sm font-mono text-[11px] transition-all">
                     {/* Start Color picker */}
                     <div className="space-y-2 pb-2.5 border-b border-black/10 dark:border-white/5">
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground flex items-center gap-1.5">
-                          <div className="w-2 h-2 rounded-full bg-accent" />
+                          <div className="w-2 h-2 rounded-sm-full bg-accent" />
                           Start Color
                         </span>
                         <span className="text-accent text-[10px] uppercase font-bold">{paperStart}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: paperStart }} />
+                        <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: paperStart }} />
                         <input
                           type="color"
                           value={paperStart}
                           onChange={(e) => handlePaperGradientCustomUpdate({ start: e.target.value })}
-                          className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded overflow-hidden"
+                          className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
                         />
                       </div>
                     </div>
@@ -793,18 +793,18 @@ const StyleTab = () => {
                     <div className="space-y-2 pb-2.5 border-b border-black/10 dark:border-white/5">
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground flex items-center gap-1.5">
-                          <div className="w-2 h-2 rounded-full bg-pink-400" />
+                          <div className="w-2 h-2 rounded-sm-full bg-pink-400" />
                           End Color
                         </span>
                         <span className="text-pink-400 text-[10px] uppercase font-bold">{paperEnd}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: paperEnd }} />
+                        <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: paperEnd }} />
                         <input
                           type="color"
                           value={paperEnd}
                           onChange={(e) => handlePaperGradientCustomUpdate({ end: e.target.value })}
-                          className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded overflow-hidden"
+                          className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
                         />
                       </div>
                     </div>
@@ -815,7 +815,7 @@ const StyleTab = () => {
                       <select
                         value={paperDir}
                         onChange={(e) => handlePaperGradientCustomUpdate({ dir: e.target.value })}
-                        className="flex-1 max-w-[124px] bg-white dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-lg text-foreground dark:text-white/95 px-2.5 py-1 text-[11px] outline-none hover:border-black/20 dark:hover:border-white/20 transition-all font-mono"
+                        className="flex-1 max-w-[124px] bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 rounded-sm-sm text-foreground dark:text-white/95 px-2.5 py-1 text-[11px] outline-none hover:border-black/20 dark:hover:border-white/20 transition-all font-mono"
                       >
                         <option value="180deg">Top to Bottom</option>
                         <option value="90deg">Left to Right</option>
@@ -841,7 +841,7 @@ const StyleTab = () => {
                     key={idx}
                     onClick={() => updateDocument(document.id, { textColor: swatch.value })}
                     className={cn(
-                      "w-7 h-7 rounded-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden bg-white/5 cursor-pointer shadow-sm border-black/80 dark:border-black/80",
+                      "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden bg-white/5 cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
                       isSelected ? "scale-105" : ""
                     )}
                     style={{
@@ -861,7 +861,7 @@ const StyleTab = () => {
                       <Check
                         size={11}
                         className={cn(
-                          "font-bold drop-shadow z-10",
+                          "font-bold drop-shadow-sm z-10",
                           !swatch.value || swatch.value === '#ffffff'
                             ? "text-slate-800 dark:text-slate-200"
                             : "text-white"
@@ -876,7 +876,7 @@ const StyleTab = () => {
         </div>
       </div>
 
-      <div className="p-3 bg-black/5 dark:bg-white/[0.02] border border-black/10 dark:border-white/5 rounded-xl">
+      <div className="p-3 bg-black/5 dark:bg-white/[0.02] border border-black/10 dark:border-white/5 rounded-sm-sm">
         <p className="text-[10px] text-muted-foreground leading-relaxed font-mono">
           <strong>Tip:</strong> Create sophisticated document styles. Combine gradients for backdrops and documents to achieve stunning custom visual templates.
         </p>
@@ -920,15 +920,15 @@ const InfoTab = () => {
   return (
     <div className="space-y-6">
       {/* Sub Tabs Toggle */}
-      <div className="flex bg-white/5 border border-white/10 p-1 rounded-md gap-1">
+      <div className="flex bg-white/5 border border-white/10 p-1 rounded-sm-sm gap-1">
         {['Page Info', 'Actions'].map(tab => (
           <button
             key={tab}
             onClick={() => setSubTab(tab)}
             className={cn(
-              "flex-1 py-1.5 text-xs font-semibold rounded transition-all font-mono",
+              "flex-1 py-1.5 text-xs font-semibold rounded-sm transition-all font-mono",
               subTab === tab
-                ? "bg-white/10 text-white shadow-sm border border-white/5"
+                ? "bg-muted/40 text-white shadow-sm-sm border border-white/5"
                 : "text-muted-foreground hover:text-white"
             )}
           >
@@ -944,7 +944,7 @@ const InfoTab = () => {
           <div className="space-y-4">
             <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest block">Properties</span>
 
-            <div className="space-y-3 bg-white/[0.02] border border-white/5 p-3 rounded-lg">
+            <div className="space-y-3 bg-white/[0.02] border border-white/5 p-3 rounded-sm-sm">
               {/* Created */}
               <div className="flex items-center gap-3">
                 <Calendar size={16} className="text-muted-foreground shrink-0" />
@@ -996,7 +996,7 @@ const InfoTab = () => {
                 downloadLink.click();
                 window.document.body.removeChild(downloadLink);
               }}
-              className="w-full py-2 hover:bg-white/5 border border-white/10 hover:border-white/20 text-xs text-white flex items-center justify-center gap-2 transition-all rounded"
+              className="w-full py-2 hover:bg-white/5 border border-white/10 hover:border-white/20 text-xs text-white flex items-center justify-center gap-2 transition-all rounded-sm"
             >
               Export as HTML
             </button>

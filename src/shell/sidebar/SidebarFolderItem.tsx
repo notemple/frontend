@@ -52,7 +52,7 @@ export const SidebarFolderItem = ({
   if (isRenaming) {
     return (
       <div
-        className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-muted border border-border w-full shrink-0"
+        className="flex items-center gap-2.5 px-3 py-1.5 rounded-sm-sm bg-muted border border-border w-full shrink-0"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="shrink-0 text-muted-foreground">

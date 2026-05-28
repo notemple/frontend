@@ -92,8 +92,8 @@ export const CustomDatePicker = ({
         onClick={toggleOpen}
         className={cn(
           small
-            ? "flex items-center gap-1 text-xs font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded border border-border hover:bg-muted/80"
-            : "flex items-center gap-1.5 text-sm font-medium hover:bg-muted px-2 py-1 rounded transition-colors",
+            ? "flex items-center gap-1 text-xs font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded-sm border border-border hover:bg-muted/80"
+            : "flex items-center gap-1.5 text-sm font-medium hover:bg-muted px-2 py-1 rounded-sm transition-colors",
           !small && value
             ? "text-foreground"
             : !small
@@ -110,9 +110,9 @@ export const CustomDatePicker = ({
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 5 }}
-            className="absolute top-full left-0 mt-2 w-64 bg-background border border-border rounded-xl shadow-2xl p-4 z-50 flex flex-col gap-4 origin-top-left"
+            className="absolute top-full left-0 mt-2 w-64 bg-background border border-border rounded-sm-sm shadow-sm-sm p-4 z-50 flex flex-col gap-4 origin-top-left"
           >
-            <div className="flex items-center gap-2 bg-muted border border-border rounded-lg px-2 py-1.5 focus-within:border-accent transition-colors">
+            <div className="flex items-center gap-2 bg-muted border border-border rounded-sm-sm px-2 py-1.5 focus-within:border-accent transition-colors">
               <MagnifyingGlass size={16} className="text-muted-foreground" />
               <input
                 type="text"
@@ -122,7 +122,7 @@ export const CustomDatePicker = ({
             </div>
 
             <button
-              className="flex items-center gap-2 text-sm font-bold text-foreground hover:bg-muted px-2 py-1.5 rounded-lg transition-colors"
+              className="flex items-center gap-2 text-sm font-bold text-foreground hover:bg-muted px-2 py-1.5 rounded-sm-sm transition-colors"
               onClick={() => {
                 onChange(toUtcString(new Date()));
                 setIsOpen(false);
@@ -141,13 +141,13 @@ export const CustomDatePicker = ({
                     onClick={() =>
                       setCurrentMonth(changeZonedMonth(currentMonth, -1, timezone))
                     }
-                    className="p-1 hover:bg-muted rounded"
+                    className="p-1 hover:bg-muted rounded-sm"
                   >
                     <CaretLeft size={14} />
                   </button>
                   <button
                     onClick={() => setCurrentMonth(new Date())}
-                    className="p-1 hover:bg-muted rounded"
+                    className="p-1 hover:bg-muted rounded-sm"
                   >
                     <Target size={14} />
                   </button>
@@ -155,7 +155,7 @@ export const CustomDatePicker = ({
                     onClick={() =>
                       setCurrentMonth(changeZonedMonth(currentMonth, 1, timezone))
                     }
-                    className="p-1 hover:bg-muted rounded"
+                    className="p-1 hover:bg-muted rounded-sm"
                   >
                     <CaretRight size={14} />
                   </button>
@@ -177,7 +177,7 @@ export const CustomDatePicker = ({
                       key={i}
                       onClick={() => handleDayClick(d)}
                       className={cn(
-                        "w-7 h-7 flex items-center justify-center rounded-lg hover:bg-muted transition-colors mx-auto",
+                        "w-7 h-7 flex items-center justify-center rounded-sm-sm hover:bg-muted transition-colors mx-auto",
                         !isSelectedMonth
                           ? "text-muted-foreground/30"
                           : "text-foreground",

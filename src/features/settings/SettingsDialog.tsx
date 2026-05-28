@@ -40,7 +40,7 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-card  z-50 flex items-center justify-center p-4"
             onClick={onClose}
           >
             <motion.div
@@ -48,11 +48,11 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={e => e.stopPropagation()}
-              className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden"
+              className="bg-[#1a1a1a] border border-white/10 rounded-sm-sm w-full max-w-md shadow-sm-sm overflow-hidden"
             >
               <div className="flex items-center justify-between p-4 border-b border-white/10 bg-[#222]">
                 <h2 className="font-bold text-lg text-foreground">Preferences</h2>
-                <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full transition-colors">
+                <button onClick={onClose} className="p-1 hover:bg-muted/40 rounded-sm-full transition-colors">
                   <X size={20} />
                 </button>
               </div>
@@ -63,7 +63,7 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
                   <select
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
-                    className="bg-[#222] border border-white/10 rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-[#f7aae0] transition-colors"
+                    className="bg-[#222] border border-white/10 rounded-sm-sm px-3 py-2 text-sm text-foreground outline-none focus:border-[#f7aae0] transition-colors"
                   >
                     {timezones.map(tz => (
                       <option key={tz} value={tz}>{tz}</option>
@@ -76,15 +76,15 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
 
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-foreground">Time Format</label>
-                  <div className="flex bg-[#222] p-1 rounded-lg border border-white/10">
+                  <div className="flex bg-[#222] p-1 rounded-sm-sm border border-white/10">
                     <button
-                      className={`flex-1 text-sm py-1.5 rounded-md font-medium transition-colors ${timeFormat === '12h' ? 'bg-[#333] text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                      className={`flex-1 text-sm py-1.5 rounded-sm-sm font-medium transition-colors ${timeFormat === '12h' ? 'bg-[#333] text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                       onClick={() => setTimeFormat('12h')}
                     >
                       12-Hour
                     </button>
                     <button
-                      className={`flex-1 text-sm py-1.5 rounded-md font-medium transition-colors ${timeFormat === '24h' ? 'bg-[#333] text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                      className={`flex-1 text-sm py-1.5 rounded-sm-sm font-medium transition-colors ${timeFormat === '24h' ? 'bg-[#333] text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                       onClick={() => setTimeFormat('24h')}
                     >
                       24-Hour
@@ -97,7 +97,7 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
                   <select
                     value={weekStartDay.toString()}
                     onChange={(e) => setWeekStartDay(parseInt(e.target.value) as any)}
-                    className="bg-[#222] border border-white/10 rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-[#f7aae0] transition-colors"
+                    className="bg-[#222] border border-white/10 rounded-sm-sm px-3 py-2 text-sm text-foreground outline-none focus:border-[#f7aae0] transition-colors"
                   >
                     <option value="0">Sunday</option>
                     <option value="1">Monday</option>

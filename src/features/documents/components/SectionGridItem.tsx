@@ -71,7 +71,7 @@ export const SectionGridItem = React.memo(({
         }
       }}
       onContextMenu={itemType === 'folder' && onFolderContextMenu ? (e) => onFolderContextMenu(e, itemId) : undefined}
-      className="p-6 rounded-xl border cursor-pointer group flex flex-col gap-3 transition-all duration-150 overflow-hidden relative"
+      className="p-6 rounded-sm-sm border cursor-pointer group flex flex-col gap-3 transition-all duration-150 overflow-hidden relative"
       style={{
         backgroundColor: cardBg,
         borderColor: cardBorder,
@@ -81,7 +81,7 @@ export const SectionGridItem = React.memo(({
       <div className="flex flex-col gap-4 relative z-10 w-full min-w-0">
         <div
           className={cn(
-            "w-10 h-10 rounded-lg border flex items-center justify-center transition-colors duration-300 shadow-inner",
+            "w-10 h-10 rounded-sm-sm border flex items-center justify-center transition-colors duration-300 shadow-sm-inner",
             customStyle ? 'folder-element' : iconTextClass
           )}
           style={{

@@ -29,10 +29,10 @@ export const CreatedTodayItem = ({ docId, paneId }: { docId: string; paneId: str
   return (
     <div
       onClick={() => setActiveTab(docId, paneId)}
-      className="neu-flat border border-border p-4 rounded-xl flex flex-col gap-3 group relative shadow-none min-h-[120px] cursor-pointer hover:bg-muted transition-colors"
+      className="neu-flat border border-border p-4 rounded-sm-sm flex flex-col gap-3 group relative shadow-sm-none min-h-[120px] cursor-pointer hover:bg-muted transition-colors"
     >
       <div className="flex items-center gap-2">
-        <span className="bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-400 border border-blue-300 dark:border-blue-500/30 text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium border">
+        <span className="bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-400 border border-blue-300 dark:border-blue-500/30 text-[10px] px-1.5 py-0.5 rounded-sm flex items-center gap-1 font-medium border">
           <FileText size={12} weight="fill" /> Page
         </span>
       </div>
@@ -44,7 +44,7 @@ export const CreatedTodayItem = ({ docId, paneId }: { docId: string; paneId: str
           {doc.tags.map((tag) => (
             <span
               key={tag}
-              className="bg-emerald-100 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-900/30 text-[10px] px-2 py-0.5 rounded border"
+              className="bg-emerald-100 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-900/30 text-[10px] px-2 py-0.5 rounded-sm border"
             >
               {tag}
             </span>

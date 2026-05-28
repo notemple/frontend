@@ -157,7 +157,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
                       initial={{ width: 0, opacity: 0 }}
                       animate={{ width: 240, opacity: 1 }}
                       exit={{ width: 0, opacity: 0 }}
-                      className="flex items-center gap-2 overflow-hidden bg-muted border border-border rounded-xl px-3 py-1.5 h-10 relative z-10"
+                      className="flex items-center gap-2 overflow-hidden bg-muted border border-border rounded-sm-sm px-3 py-1.5 h-10 relative z-10"
                     >
                       <input
                         autoFocus
@@ -193,7 +193,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
                   ) : (
                     <button
                       onClick={() => setIsCreatingTag(true)}
-                      className="w-10 h-10 rounded-xl border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10"
+                      className="w-10 h-10 rounded-sm-sm border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10"
                       title="New Tag"
                     >
                       <PlusCircle size={20} weight="fill" />
@@ -206,7 +206,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
 
               {tagsWithCounts.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center py-20 text-center relative">
-                  <div className="w-16 h-16 rounded-2xl bg-muted border border-border flex items-center justify-center text-muted-foreground/35 mb-4 shadow-sm">
+                  <div className="w-16 h-16 rounded-sm-sm bg-muted border border-border flex items-center justify-center text-muted-foreground/35 mb-4 shadow-sm-sm">
                     <TagIcon size={24} />
                   </div>
                   <h3 className="text-foreground/75 font-medium text-sm">No Tags Found</h3>
@@ -228,7 +228,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
                         onClick={() => !isEditing && setSelectedTag(name)}
                         onContextMenu={(e) => handleContextMenu(e, name)}
                         className={cn(
-                          "tag-element w-[160px] p-5 rounded-xl border cursor-pointer flex flex-col justify-between transition-all duration-200 min-h-[95px] relative select-none",
+                          "tag-element w-[160px] p-5 rounded-sm-sm border cursor-pointer flex flex-col justify-between transition-all duration-200 min-h-[95px] relative select-none",
                           isEditing ? "bg-muted border-border cursor-default" : "hover:bg-muted/30"
                         )}
                         style={{
@@ -253,7 +253,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
                                 else if (e.key === 'Escape') setRenamingTag(null);
                               }}
                               onBlur={() => submitRename(name)}
-                              className="bg-background border border-border rounded px-2.5 py-1.5 text-xs text-foreground font-medium outline-none focus:border-purple-500/50 transition-colors w-full"
+                              className="bg-background border border-border rounded-sm px-2.5 py-1.5 text-xs text-foreground font-medium outline-none focus:border-purple-500/50 transition-colors w-full"
                             />
                             <div className="text-[9px] font-mono text-muted-foreground/60 leading-none">
                               Press Enter to save, Esc to cancel
@@ -293,7 +293,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
               <div className="flex flex-col gap-6 mb-8 relative">
                 <button
                   onClick={() => setSelectedTag(null)}
-                  className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/80 self-start px-3 py-1.5 rounded-lg border border-border/80 bg-muted/40 transition-all cursor-pointer shadow-sm select-none"
+                  className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/80 self-start px-3 py-1.5 rounded-sm-sm border border-border/80 bg-muted/40 transition-all cursor-pointer shadow-sm-sm select-none"
                 >
                   <ArrowLeft size={14} weight="bold" />
                   <span>All Tags</span>
@@ -302,7 +302,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
                 <div className="flex items-center gap-4 mt-2">
                   <button
                     onClick={handleCreateDocumentWithTag}
-                    className="w-10 h-10 rounded-xl border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10"
+                    className="w-10 h-10 rounded-sm-sm border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10"
                     title={`New Note with tag ${selectedTag}`}
                   >
                     <PlusCircle size={20} weight="fill" />
@@ -323,7 +323,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
 
               {filteredDocuments.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center py-20 text-center relative">
-                  <div className="w-16 h-16 rounded-2xl bg-muted border border-border flex items-center justify-center text-muted-foreground/35 mb-4 shadow-sm">
+                  <div className="w-16 h-16 rounded-sm-sm bg-muted border border-border flex items-center justify-center text-muted-foreground/35 mb-4 shadow-sm-sm">
                     <FileText size={24} />
                   </div>
                   <h3 className="text-foreground/75 font-medium text-sm">No Documents Found</h3>
@@ -341,7 +341,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
                         whileHover={{ y: -3, scale: 1.01 }}
                         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                         onClick={() => openDocument((doc as any).id, paneId)}
-                        className="p-6 rounded-xl border cursor-pointer group flex flex-col justify-between min-h-[140px] transition-all duration-150 overflow-hidden relative"
+                        className="p-6 rounded-sm-sm border cursor-pointer group flex flex-col justify-between min-h-[140px] transition-all duration-150 overflow-hidden relative"
                         style={{
                           backgroundColor: docColor.bg,
                           borderColor: docColor.border,
@@ -352,7 +352,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
                         <div className="flex flex-col gap-3 relative z-10 w-full min-w-0">
                           <div 
                             className={cn(
-                              "w-10 h-10 rounded-lg border flex items-center justify-center transition-colors duration-300 shadow-inner",
+                              "w-10 h-10 rounded-sm-sm border flex items-center justify-center transition-colors duration-300 shadow-sm-inner",
                               docColor.iconText
                             )}
                             style={{
@@ -387,7 +387,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
       {/* Tags Page Context Menu */}
       {contextMenu && (
         <div
-          className="fixed z-50 bg-background rounded-md py-1 min-w-[160px] shadow-2xl border border-border neu-panel"
+          className="fixed z-50 bg-background rounded-sm-sm py-1 min-w-[160px] shadow-sm-sm border border-border neu-panel"
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -415,7 +415,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
                       setTagColor(contextMenu.tag, preset.hex);
                       setContextMenu(null);
                     }}
-                    className="w-5 h-5 rounded-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer relative flex items-center justify-center"
+                    className="w-5 h-5 rounded-sm-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer relative flex items-center justify-center"
                     style={{ backgroundColor: preset.hex }}
                     title={preset.name}
                   >
@@ -428,7 +428,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
               
               {/* Dynamic Color Picker */}
               <label 
-                className="w-5 h-5 rounded-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer flex items-center justify-center bg-gradient-to-tr from-rose-400 via-sky-400 to-amber-300 relative shadow-sm"
+                className="w-5 h-5 rounded-sm-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer flex items-center justify-center bg-gradient-to-tr from-rose-400 via-sky-400 to-amber-300 relative shadow-sm-sm"
                 title="Custom Color"
               >
                 <input
@@ -439,7 +439,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
                   }}
                   className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                 />
-                <Plus size={10} className="text-white drop-shadow-md font-bold" />
+                <Plus size={10} className="text-white drop-shadow-sm-sm font-bold" />
               </label>
             </div>
           </div>

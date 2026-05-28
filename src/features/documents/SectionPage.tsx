@@ -139,7 +139,7 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
           {sectionId.startsWith('section-folder-') && (
             <button
               onClick={() => openDocument('section-folders', paneId)}
-              className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/80 self-start px-3 py-1.5 rounded-lg border border-border/80 bg-muted/40 transition-all cursor-pointer shadow-sm select-none relative z-10"
+              className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/80 self-start px-3 py-1.5 rounded-sm-sm border border-border/80 bg-muted/40 transition-all cursor-pointer shadow-sm-sm select-none relative z-10"
             >
               <ArrowLeft size={14} weight="bold" />
               <span>All Folders</span>
@@ -155,7 +155,7 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
                     initial={{ width: 0, opacity: 0 }}
                     animate={{ width: 240, opacity: 1 }}
                     exit={{ width: 0, opacity: 0 }}
-                    className="flex items-center gap-2 overflow-hidden bg-muted border border-border rounded-xl px-3 py-1.5 h-10 relative z-10"
+                    className="flex items-center gap-2 overflow-hidden bg-muted border border-border rounded-sm-sm px-3 py-1.5 h-10 relative z-10"
                   >
                     <input
                       autoFocus
@@ -191,7 +191,7 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
                 ) : (
                   <button
                     onClick={() => setIsCreatingFolder(true)}
-                    className="w-10 h-10 rounded-xl border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10"
+                    className="w-10 h-10 rounded-sm-sm border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10"
                     title="New Folder"
                   >
                     <PlusCircle size={20} weight="fill" />
@@ -203,7 +203,7 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
             {sectionId.startsWith('section-folder-') && (
               <button
                 onClick={handleCreateDocumentInFolder}
-                className="w-10 h-10 rounded-xl border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10"
+                className="w-10 h-10 rounded-sm-sm border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10"
                 title="New Note in Folder"
               >
                 <PlusCircle size={20} weight="fill" />
@@ -213,7 +213,7 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
             {sectionId === 'section-uncategorized' && (
               <button
                 onClick={handleCreateUncategorizedDocument}
-                className="w-10 h-10 rounded-xl border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10"
+                className="w-10 h-10 rounded-sm-sm border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10"
                 title="New Uncategorized Note"
               >
                 <PlusCircle size={20} weight="fill" />
@@ -236,7 +236,7 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
           ))}
           {items.length === 0 && (
             <div className="col-span-full py-20 text-center flex flex-col items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-muted border border-border flex items-center justify-center text-muted-foreground/40">
+              <div className="w-16 h-16 rounded-sm-sm bg-muted border border-border flex items-center justify-center text-muted-foreground/40">
                 <FileText size={24} weight="light" />
               </div>
               <span className="text-muted-foreground/40 text-sm">This section is empty.</span>
@@ -248,7 +248,7 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
       {/* Folder Colour Context Menu */}
       {folderContextMenu && (
         <div
-          className="fixed z-50 bg-background rounded-md py-1 min-w-[160px] shadow-2xl border border-border neu-panel"
+          className="fixed z-50 bg-background rounded-sm-sm py-1 min-w-[160px] shadow-sm-sm border border-border neu-panel"
           style={{ top: folderContextMenu.y, left: folderContextMenu.x }}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
@@ -267,7 +267,7 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
                       setFolderColor(folderContextMenu.folderId, preset.hex);
                       setFolderContextMenu(null);
                     }}
-                    className="w-5 h-5 rounded-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer relative flex items-center justify-center"
+                    className="w-5 h-5 rounded-sm-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer relative flex items-center justify-center"
                     style={{ backgroundColor: preset.hex }}
                     title={preset.name}
                   >
@@ -280,7 +280,7 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
 
               {/* Dynamic Color Picker */}
               <label
-                className="w-5 h-5 rounded-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer flex items-center justify-center bg-gradient-to-tr from-rose-400 via-sky-400 to-amber-300 relative shadow-sm"
+                className="w-5 h-5 rounded-sm-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer flex items-center justify-center bg-gradient-to-tr from-rose-400 via-sky-400 to-amber-300 relative shadow-sm-sm"
                 title="Custom Color"
               >
                 <input
@@ -291,7 +291,7 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
                   }}
                   className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                 />
-                <Plus size={10} className="text-white drop-shadow-md font-bold" />
+                <Plus size={10} className="text-white drop-shadow-sm-sm font-bold" />
               </label>
             </div>
           </div>

@@ -77,7 +77,7 @@ const SidebarDocumentItem = ({
   if (isRenaming) {
     return (
       <div
-        className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-muted border border-border w-full shrink-0"
+        className="flex items-center gap-2.5 px-3 py-1.5 rounded-sm-sm bg-muted border border-border w-full shrink-0"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="shrink-0 text-muted-foreground">
@@ -143,7 +143,7 @@ const SidebarContextMenu = ({
 
   return (
     <div
-      className="fixed z-50 bg-background neu-panel rounded-md py-1 min-w-35 shadow-2xl border border-border"
+      className="fixed z-50 bg-background neu-panel rounded-sm-sm py-1 min-w-35 shadow-sm-sm border border-border"
       style={{ top: contextMenu.y, left: contextMenu.x }}
       onClick={(e) => e.stopPropagation()}
     >
@@ -409,7 +409,7 @@ export const Sidebar = () => {
   return (
     <div
       className={cn(
-        "h-full flex flex-col border-r border-border bg-muted relative shrink-0 overflow-y-auto no-scrollbar group/sidebar z-30 shadow-none transition-all duration-250 ease-out will-change-[width,padding]",
+        "h-full flex flex-col border-r border-border bg-muted relative shrink-0 overflow-y-auto no-scrollbar group/sidebar z-30 shadow-sm-none transition-all duration-250 ease-out will-change-[width,padding]",
         isSidebarOpen ? "w-[260px] p-6" : "w-16 py-6 px-2"
       )}
     >
@@ -421,9 +421,9 @@ export const Sidebar = () => {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              className="flex items-center gap-2.5 px-2 hover:bg-muted py-1.5 rounded-lg w-full text-left transition-all whitespace-nowrap overflow-hidden group/personal"
+              className="flex items-center gap-2.5 px-2 hover:bg-muted py-1.5 rounded-sm-sm w-full text-left transition-all whitespace-nowrap overflow-hidden group/personal"
             >
-              <div className="w-5 h-5 bg-muted flex items-center justify-center text-foreground font-bold text-[10px] shrink-0 rounded-md border border-border shadow-sm group-hover/personal:bg-muted/80 transition-all">
+              <div className="w-5 h-5 bg-muted flex items-center justify-center text-foreground font-bold text-[10px] shrink-0 rounded-sm-sm border border-border shadow-sm-sm group-hover/personal:bg-muted/80 transition-all">
                 N
               </div>
               <span className="font-semibold tracking-tight text-[13px] flex-1 truncate text-foreground">{"Personal Space"}</span>
@@ -437,7 +437,7 @@ export const Sidebar = () => {
               exit={{ opacity: 0 }}
               className="w-full flex justify-center py-1.5"
             >
-              <div className="w-6 h-6 bg-muted flex items-center justify-center text-foreground font-bold text-xs shrink-0 rounded-md border border-border shadow-sm">
+              <div className="w-6 h-6 bg-muted flex items-center justify-center text-foreground font-bold text-xs shrink-0 rounded-sm-sm border border-border shadow-sm-sm">
                 N
               </div>
             </motion.div>
@@ -448,12 +448,12 @@ export const Sidebar = () => {
       <div className="flex-1 space-y-6 min-w-0">
         {/* Core Actions */}
         <div className="space-y-[2px]">
-          <SidebarItem icon={<Plus size={16} className={isDocActive('new-note') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="New Note" isOpen={isSidebarOpen} highlight={isDocActive('new-note')} onClick={handleNewNoteClick} activeBgClass="bg-blush-pop/70 dark:bg-blush-pop/20 border-blush-pop/50 dark:border-blush-pop/30 border shadow-sm" activeTextClass="!text-black dark:!text-white font-semibold" />
+          <SidebarItem icon={<Plus size={16} className={isDocActive('new-note') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="New Note" isOpen={isSidebarOpen} highlight={isDocActive('new-note')} onClick={handleNewNoteClick} activeBgClass="bg-blush-pop/70 dark:bg-blush-pop/20 border-blush-pop/50 dark:border-blush-pop/30 border shadow-sm-sm" activeTextClass="!text-black dark:!text-white font-semibold" />
           <SidebarItem icon={<MagnifyingGlass size={16} className="text-sky-500/80 dark:text-sky-400/80" />} label="Search" isOpen={isSidebarOpen} />
           <SidebarItem icon={<Sparkle size={16} className="text-purple-500/90 dark:text-purple-400/90" />} label="Ask AI" isOpen={isSidebarOpen} />
-          <SidebarItem icon={<CalendarBlank size={16} className={isDocActive('section-daily-notes') ? "text-current" : "text-emerald-500/90 dark:text-emerald-400/90"} />} label="Daily Notes" isOpen={isSidebarOpen} highlight={isDocActive('section-daily-notes')} onClick={() => handleDocClick('section-daily-notes')} activeBgClass="bg-icy-blue/70 dark:bg-icy-blue/20 border-icy-blue/50 dark:border-icy-blue/30 border shadow-sm" activeTextClass="!text-black dark:!text-white font-semibold" />
-          <SidebarItem icon={<CheckSquare size={16} className={isDocActive('section-tasks') ? "text-current" : "text-blue-500/90 dark:text-blue-400/90"} />} label="Tasks" isOpen={isSidebarOpen} highlight={isDocActive('section-tasks')} onClick={() => handleDocClick('section-tasks')} activeBgClass="bg-sky-blue/70 dark:bg-sky-blue/20 border-sky-blue/50 dark:border-sky-blue/30 border shadow-sm" activeTextClass="!text-black dark:!text-white font-semibold" />
-          <SidebarItem icon={<Tag size={16} className={isDocActive('section-tags') ? "text-current" : "text-purple-500/90 dark:text-purple-400/90"} />} label="Tags" isOpen={isSidebarOpen} highlight={isDocActive('section-tags')} onClick={() => handleDocClick('section-tags')} activeBgClass="bg-pink-orchid/70 dark:bg-pink-orchid/20 border-pink-orchid/50 dark:border-pink-orchid/30 border shadow-sm" activeTextClass="!text-black dark:!text-white font-semibold" />
+          <SidebarItem icon={<CalendarBlank size={16} className={isDocActive('section-daily-notes') ? "text-current" : "text-emerald-500/90 dark:text-emerald-400/90"} />} label="Daily Notes" isOpen={isSidebarOpen} highlight={isDocActive('section-daily-notes')} onClick={() => handleDocClick('section-daily-notes')} activeBgClass="bg-icy-blue/70 dark:bg-icy-blue/20 border-icy-blue/50 dark:border-icy-blue/30 border shadow-sm-sm" activeTextClass="!text-black dark:!text-white font-semibold" />
+          <SidebarItem icon={<CheckSquare size={16} className={isDocActive('section-tasks') ? "text-current" : "text-blue-500/90 dark:text-blue-400/90"} />} label="Tasks" isOpen={isSidebarOpen} highlight={isDocActive('section-tasks')} onClick={() => handleDocClick('section-tasks')} activeBgClass="bg-sky-blue/70 dark:bg-sky-blue/20 border-sky-blue/50 dark:border-sky-blue/30 border shadow-sm-sm" activeTextClass="!text-black dark:!text-white font-semibold" />
+          <SidebarItem icon={<Tag size={16} className={isDocActive('section-tags') ? "text-current" : "text-purple-500/90 dark:text-purple-400/90"} />} label="Tags" isOpen={isSidebarOpen} highlight={isDocActive('section-tags')} onClick={() => handleDocClick('section-tags')} activeBgClass="bg-pink-orchid/70 dark:bg-pink-orchid/20 border-pink-orchid/50 dark:border-pink-orchid/30 border shadow-sm-sm" activeTextClass="!text-black dark:!text-white font-semibold" />
         </div>
 
         {/* Favorites Section */}
@@ -468,7 +468,7 @@ export const Sidebar = () => {
               </div>
               <button
                 onClick={() => toggleFolderCollapse('section-favorites')}
-                className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded transition-colors duration-200"
+                className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200"
               >
                 {!collapsedFolders.has('section-favorites') ? <CaretDown size={14} /> : <CaretRight size={14} />}
               </button>
@@ -524,14 +524,14 @@ export const Sidebar = () => {
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => createFolder('New Folder')}
-                  className="opacity-0 group-hover/folders:opacity-100 text-muted-foreground hover:text-foreground transition-opacity flex items-center justify-center p-0.5 hover:bg-muted/80 rounded"
+                  className="opacity-0 group-hover/folders:opacity-100 text-muted-foreground hover:text-foreground transition-opacity flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm"
                   title="New Folder"
                 >
                   <Plus size={12} weight="bold" />
                 </button>
                 <button
                   onClick={() => toggleFolderCollapse('section-folders')}
-                  className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded transition-colors duration-200"
+                  className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200"
                 >
                   {!collapsedFolders.has('section-folders') ? <CaretDown size={14} /> : <CaretRight size={14} />}
                 </button>
@@ -586,7 +586,7 @@ export const Sidebar = () => {
                           onClick={() => toggleFolderCollapse(folder.id)}
                           folderColor={getFolderHexColor(folder.id, folderColors)}
                           rightElement={
-                            <div className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded transition-colors duration-200">
+                            <div className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200">
                               {!collapsedFolders.has(folder.id) ? <CaretDown size={14} /> : <CaretRight size={14} />}
                             </div>
                           }
@@ -649,7 +649,7 @@ export const Sidebar = () => {
               </div>
               <button
                 onClick={() => toggleFolderCollapse('section-uncategorized')}
-                className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded transition-colors duration-200"
+                className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200"
               >
                 {!collapsedFolders.has('section-uncategorized') ? <CaretDown size={14} /> : <CaretRight size={14} />}
               </button>

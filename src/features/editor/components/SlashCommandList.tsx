@@ -84,11 +84,11 @@ export const SlashCommandList = forwardRef((props: SlashCommandListProps, ref) =
   }
 
   return (
-    <div className="bg-black/60 backdrop-blur-3xl border border-white/5 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.5)] p-2 flex flex-col min-w-[280px] max-h-[380px] overflow-y-auto no-scrollbar font-sans">
+    <div className="bg-card  border border-white/5 rounded-sm-sm shadow-sm-sm p-2 flex flex-col min-w-[280px] max-h-[380px] overflow-y-auto no-scrollbar font-sans">
       {menuStack.length > 0 && (
         <button
           onClick={goBack}
-          className="w-full flex items-center justify-between px-3 py-2 text-sm rounded-xl transition-all text-white/50 hover:bg-white/10 hover:text-white mb-2 border-b border-white/5 pb-2"
+          className="w-full flex items-center justify-between px-3 py-2 text-sm rounded-sm-sm transition-all text-white/50 hover:bg-muted/40 hover:text-white mb-2 border-b border-white/5 pb-2"
         >
           <div className="flex items-center gap-3">
             <CaretLeft size={16} />
@@ -108,16 +108,16 @@ export const SlashCommandList = forwardRef((props: SlashCommandListProps, ref) =
             <button
               onClick={() => selectItem(index)}
               className={`
-                w-full flex items-center justify-between px-3 py-2 text-[13px] rounded-xl transition-all duration-200 group relative overflow-hidden
-                ${index === selectedIndex ? 'text-white shadow-lg' : 'text-white/60 hover:text-white/90'}
+                w-full flex items-center justify-between px-3 py-2 text-[13px] rounded-sm-sm transition-all duration-200 group relative overflow-hidden
+                ${index === selectedIndex ? 'text-white shadow-sm-sm' : 'text-white/60 hover:text-white/90'}
               `}
             >
               {index === selectedIndex && (
-                <div className="absolute inset-0 bg-white/10 backdrop-blur-sm shadow-inner rounded-xl" />
+                <div className="absolute inset-0 bg-muted/40  shadow-sm-inner rounded-sm-sm" />
               )}
               <div className="flex items-center gap-3 relative z-10">
-                <span className={index === selectedIndex ? "text-white flex items-center justify-center w-5 h-5 shadow-sm transform scale-110 transition-transform" : "opacity-70 group-hover:opacity-100 flex items-center justify-center w-5 h-5 transition-transform group-hover:scale-105"}>{item.icon}</span>
-                <span className="font-medium tracking-tight shadow-sm">{item.title}</span>
+                <span className={index === selectedIndex ? "text-white flex items-center justify-center w-5 h-5 shadow-sm-sm transform scale-110 transition-transform" : "opacity-70 group-hover:opacity-100 flex items-center justify-center w-5 h-5 transition-transform group-hover:scale-105"}>{item.icon}</span>
+                <span className="font-medium tracking-tight shadow-sm-sm">{item.title}</span>
               </div>
               {item.submenu && (
                 <CaretRight size={14} className="opacity-40 group-hover:opacity-100 transition-opacity relative z-10" />

@@ -47,21 +47,21 @@ export const TaskRow = React.memo(({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
       transition={{ duration: 0.15 }}
-      className="flex items-center justify-between group relative bg-[var(--task-row-bg)] dark:bg-muted border border-[var(--task-row-border)] dark:border-border py-1.5 px-3 rounded-lg hover:bg-[var(--task-row-hover-bg)] dark:hover:bg-muted/80 hover:border-muted-foreground/30 transition-colors duration-150 shadow-none"
+      className="flex items-center justify-between group relative bg-[var(--task-row-bg)] dark:bg-muted border border-[var(--task-row-border)] dark:border-border py-1.5 px-3 rounded-sm-sm hover:bg-[var(--task-row-hover-bg)] dark:hover:bg-muted/80 hover:border-muted-foreground/30 transition-colors duration-150 shadow-sm-none"
     >
       <div className="absolute -left-8 top-1/2 -translate-y-1/2 w-4 h-[2px] bg-border group-hover:bg-muted-foreground group-hover:w-6 transition-all" />
 
       <div className="flex items-center gap-4 flex-1">
         <div
           className={cn(
-            "w-5 h-5 rounded-md border transition-all flex items-center justify-center cursor-pointer flex-shrink-0 shadow-sm",
+            "w-5 h-5 rounded-sm-sm border transition-all flex items-center justify-center cursor-pointer flex-shrink-0 shadow-sm-sm",
             task.completed
-              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/30 shadow-inner"
+              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/30 shadow-sm-inner"
               : "border-border hover:border-emerald-500/50 hover:bg-emerald-500/5 text-transparent",
           )}
           onClick={() => updateTask(task.id, { completed: !task.completed })}
         >
-          {task.completed && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-2 rounded-sm h-2 bg-emerald-500 dark:bg-emerald-400" />}
+          {task.completed && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-2 rounded-sm-sm h-2 bg-emerald-500 dark:bg-emerald-400" />}
         </div>
 
         <input
@@ -70,7 +70,7 @@ export const TaskRow = React.memo(({
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           className={cn(
-            "text-base font-sans transition-all bg-transparent border border-transparent hover:border-border/80 focus:border-border/80 focus:ring-1 focus:ring-border rounded-sm outline-none px-2 flex-1",
+            "text-base font-sans transition-all bg-transparent border border-transparent hover:border-border/80 focus:border-border/80 focus:ring-1 focus:ring-border rounded-sm-sm outline-none px-2 flex-1",
             task.completed
               ? "line-through text-muted-foreground/50"
               : "text-foreground font-medium",

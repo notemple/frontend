@@ -30,7 +30,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                 onChange(preset.hex);
                 if (onClose) onClose();
               }}
-              className="w-5 h-5 rounded-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer relative flex items-center justify-center"
+              className="w-5 h-5 rounded-sm-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer relative flex items-center justify-center"
               style={{ backgroundColor: preset.hex }}
               title={preset.name}
             >
@@ -43,7 +43,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
         
         {/* Dynamic Color Picker */}
         <label 
-          className="w-5 h-5 rounded-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer flex items-center justify-center bg-gradient-to-tr from-rose-400 via-sky-400 to-amber-300 relative shadow-sm"
+          className="w-5 h-5 rounded-sm-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer flex items-center justify-center bg-gradient-to-tr from-rose-400 via-sky-400 to-amber-300 relative shadow-sm-sm"
           title="Custom Color"
         >
           <input
@@ -54,7 +54,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
             }}
             className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
           />
-          <Plus size={10} className="text-white drop-shadow-md font-bold" />
+          <Plus size={10} className="text-white drop-shadow-sm-sm font-bold" />
         </label>
       </div>
     </div>

@@ -65,10 +65,10 @@ export const KanbanCard = ({
         zIndex: isDatePickerOpen ? 150 : style?.zIndex,
       }}
       className={cn(
-        "bg-card border border-card-border shadow-sm rounded-xl p-3 flex flex-col gap-3 transition-all relative group/card font-sans",
-        isOverlay && "shadow-none border-purple-500/30 bg-card rotate-[2deg] scale-[1.02] cursor-grabbing",
-        !isOverlay && isDragging && "shadow-none ring-2 ring-purple-500/20 border-purple-500/30 cursor-grabbing opacity-30",
-        !isOverlay && !isDragging && "hover:shadow-md hover:border-muted-foreground/20 cursor-grab"
+        "bg-card border border-card-border shadow-sm-sm rounded-sm-sm p-3 flex flex-col gap-3 transition-all relative group/card font-sans",
+        isOverlay && "shadow-sm-none border-purple-500/30 bg-card rotate-[2deg] scale-[1.02] cursor-grabbing",
+        !isOverlay && isDragging && "shadow-sm-none ring-2 ring-purple-500/20 border-purple-500/30 cursor-grabbing opacity-30",
+        !isOverlay && !isDragging && "hover:shadow-sm-sm hover:border-muted-foreground/20 cursor-grab"
       )}
       {...(isOverlay ? {} : attributes)}
       {...(isOverlay ? {} : listeners)}
@@ -77,9 +77,9 @@ export const KanbanCard = ({
         {/* Clickable Status Checkbox */}
         <div
           className={cn(
-            "w-4 h-4 mt-0.5 rounded border transition-all flex items-center justify-center cursor-pointer flex-shrink-0 shadow-sm",
+            "w-4 h-4 mt-0.5 rounded-sm border transition-all flex items-center justify-center cursor-pointer flex-shrink-0 shadow-sm-sm",
             task.completed
-              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/30 shadow-inner"
+              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/30 shadow-sm-inner"
               : "border-border hover:border-emerald-500/50 hover:bg-emerald-500/5 text-transparent",
           )}
           onClick={(e) => {
@@ -93,7 +93,7 @@ export const KanbanCard = ({
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="w-1.5 rounded-sm h-1.5 bg-emerald-500 dark:bg-emerald-400"
+              className="w-1.5 rounded-sm-sm h-1.5 bg-emerald-500 dark:bg-emerald-400"
             />
           )}
         </div>
@@ -107,7 +107,7 @@ export const KanbanCard = ({
           onClick={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
           className={cn(
-            "text-xs font-sans font-semibold transition-all bg-transparent border border-transparent hover:border-border/80 focus:border-border/80 focus:ring-1 focus:ring-border rounded-sm outline-none px-1 flex-1 min-w-0 py-0",
+            "text-xs font-sans font-semibold transition-all bg-transparent border border-transparent hover:border-border/80 focus:border-border/80 focus:ring-1 focus:ring-border rounded-sm-sm outline-none px-1 flex-1 min-w-0 py-0",
             task.completed
               ? "line-through text-muted-foreground/50"
               : "text-foreground font-medium",
@@ -147,7 +147,7 @@ export const KanbanCard = ({
               e.stopPropagation();
               deleteTask(task.id);
             }}
-            className="text-muted-foreground/60 hover:text-red-500 transition-colors flex items-center justify-center w-6 h-6 hover:bg-red-500/10 rounded-md cursor-pointer"
+            className="text-muted-foreground/60 hover:text-red-500 transition-colors flex items-center justify-center w-6 h-6 hover:bg-red-500/10 rounded-sm-sm cursor-pointer"
           >
             <Trash size={12} />
           </button>
@@ -156,7 +156,7 @@ export const KanbanCard = ({
               e.stopPropagation();
               onOpen();
             }}
-            className="text-muted-foreground/60 hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 hover:bg-muted rounded-md cursor-pointer"
+            className="text-muted-foreground/60 hover:text-foreground transition-colors flex items-center justify-center w-6 h-6 hover:bg-muted rounded-sm-sm cursor-pointer"
           >
             <ArrowCircleRight size={12} />
           </button>

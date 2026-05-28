@@ -10,10 +10,11 @@ import {
   FileText,
   Clock,
   PlusCircle,
+  Plus,
   Check,
   X
 } from '@phosphor-icons/react';
-import { cn, getItemColor } from '../lib/utils';
+import { cn, getItemColor, getTagStyle, getTagHexColor, TAG_COLOR_PRESETS } from '../lib/utils';
 import { formatDisplayDate } from '../lib/time';
 
 export const TagsPage = ({ paneId }: { paneId: string }) => {
@@ -23,6 +24,8 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
   const addDocument = useDocumentStore(state => state.addDocument);
   const createdTags = useDocumentStore(state => state.createdTags);
   const createTag = useDocumentStore(state => state.createTag);
+  const tagColors = useDocumentStore(state => state.tagColors) || {};
+  const setTagColor = useDocumentStore(state => state.setTagColor);
   const { openDocument } = useUiStore();
 
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -213,7 +216,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
               ) : (
                 <div className="flex flex-wrap gap-4 relative">
                   {tagsWithCounts.map(({ name, count }) => {
-                    const styleSet = getItemColor(name);
+                    const tagStyle = getTagStyle(name, tagColors);
                     const isEditing = renamingTag === name;
 
                     return (
@@ -224,12 +227,14 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
                         onClick={() => !isEditing && setSelectedTag(name)}
                         onContextMenu={(e) => handleContextMenu(e, name)}
                         className={cn(
-                          "w-[160px] p-5 rounded-xl border cursor-pointer flex flex-col justify-between transition-all duration-200 min-h-[95px] relative select-none",
+                          "tag-element w-[160px] p-5 rounded-xl border cursor-pointer flex flex-col justify-between transition-all duration-200 min-h-[95px] relative select-none",
                           isEditing ? "bg-muted border-border cursor-default" : "hover:bg-muted/30"
                         )}
                         style={{
-                          backgroundColor: isEditing ? undefined : styleSet.bg,
-                          borderColor: isEditing ? undefined : styleSet.border
+                          backgroundColor: isEditing ? undefined : 'var(--tag-bg)',
+                          borderColor: isEditing ? undefined : 'var(--tag-border)',
+                          color: isEditing ? undefined : 'var(--tag-text)',
+                          ...tagStyle
                         }}
                       >
                         {isEditing ? (
@@ -256,13 +261,13 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
                         ) : (
                           <>
                             <div className="flex items-center gap-2 mb-3 shrink-0">
-                              <TagIcon size={14} weight="fill" className={cn("opacity-75 shrink-0", styleSet.text)} />
-                              <span className="font-semibold text-sm text-foreground/80 truncate pr-2 leading-none">
+                              <TagIcon size={14} weight="fill" className="opacity-75 shrink-0 text-[color:var(--tag-text)]" />
+                              <span className="font-semibold text-sm text-[color:var(--tag-text)] truncate pr-2 leading-none">
                                 {name}
                               </span>
                             </div>
                             <div className="flex items-center justify-between shrink-0">
-                              <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground/60 font-semibold pr-1.5 leading-none">
+                              <span className="text-[11px] font-mono uppercase tracking-wider text-[color:var(--tag-text)] opacity-70 font-semibold pr-1.5 leading-none">
                                 {count} {count === 1 ? 'note' : 'notes'}
                               </span>
                             </div>
@@ -301,12 +306,17 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
                   >
                     <PlusCircle size={20} weight="fill" />
                   </button>
-                  <div className="flex items-center gap-3">
-                    <TagIcon size={28} weight="fill" className={cn(getItemColor(selectedTag || '').text)} />
-                    <h1 className="text-3xl sm:text-4xl font-semibold text-foreground/90 tracking-tight font-sans">
-                      {selectedTag}
-                    </h1>
-                  </div>
+                  {selectedTag && (() => {
+                    const tagStyle = getTagStyle(selectedTag, tagColors);
+                    return (
+                      <div className="flex items-center gap-3 tag-element" style={tagStyle}>
+                        <TagIcon size={28} weight="fill" className="text-[color:var(--tag-text)]" />
+                        <h1 className="text-3xl sm:text-4xl font-semibold text-foreground/90 tracking-tight font-sans leading-none">
+                          {selectedTag}
+                        </h1>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -376,7 +386,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
       {/* Tags Page Context Menu */}
       {contextMenu && (
         <div
-          className="fixed z-50 bg-background rounded-md py-1 min-w-[140px] shadow-2xl border border-border neu-panel"
+          className="fixed z-50 bg-background rounded-md py-1 min-w-[160px] shadow-2xl border border-border neu-panel"
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -390,6 +400,49 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
             <PencilSimple size={14} className="text-muted-foreground" />
             Rename Tag
           </button>
+
+          {/* Custom Tag Color Selection Section */}
+          <div className="border-t border-border px-4 py-2.5 flex flex-col gap-2">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider select-none leading-none">Tag Color</span>
+            <div className="grid grid-cols-5 gap-1.5 w-[140px]">
+              {TAG_COLOR_PRESETS.map((preset) => {
+                const isSelected = getTagHexColor(contextMenu.tag, tagColors).toLowerCase() === preset.hex.toLowerCase();
+                return (
+                  <button
+                    key={preset.hex}
+                    onClick={() => {
+                      setTagColor(contextMenu.tag, preset.hex);
+                      setContextMenu(null);
+                    }}
+                    className="w-5 h-5 rounded-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer relative flex items-center justify-center"
+                    style={{ backgroundColor: preset.hex }}
+                    title={preset.name}
+                  >
+                    {isSelected && (
+                      <Check size={10} weight="bold" className="text-zinc-950 font-bold" />
+                    )}
+                  </button>
+                );
+              })}
+              
+              {/* Dynamic Color Picker */}
+              <label 
+                className="w-5 h-5 rounded-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer flex items-center justify-center bg-gradient-to-tr from-rose-400 via-sky-400 to-amber-300 relative shadow-sm"
+                title="Custom Color"
+              >
+                <input
+                  type="color"
+                  value={getTagHexColor(contextMenu.tag, tagColors)}
+                  onChange={(e) => {
+                    setTagColor(contextMenu.tag, e.target.value);
+                  }}
+                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                />
+                <Plus size={10} className="text-white drop-shadow-md font-bold" />
+              </label>
+            </div>
+          </div>
+
           <button
             className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-muted flex items-center gap-2 transition-colors cursor-pointer border-t border-border"
             onClick={() => {

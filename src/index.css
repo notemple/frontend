@@ -11,6 +11,17 @@
   --color-border: var(--border);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  
+  --color-workspace: var(--workspace-bg);
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-body-text: var(--body-text);
+  
+  --color-pink-orchid: var(--pink-orchid);
+  --color-pastel-petal: var(--pastel-petal);
+  --color-blush-pop: var(--blush-pop);
+  --color-icy-blue: var(--icy-blue);
+  --color-sky-blue: var(--sky-blue);
 
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-content: "Newsreader", ui-serif, Georgia, serif;
@@ -22,26 +33,64 @@
     --background: #09090b; /* Very dark zinc, soft and deep */
     --foreground: #fafafa;
     
+    --workspace-bg: #09090b;
+    --card-bg: #18181b;
+    --card-border: #27272a;
+    
     --muted: #18181b;
     --muted-foreground: #a1a1aa;
+    --body-text: #e4e4e7;
     
     --border: #27272a;
     
     --accent: #e4e4e7;
     --accent-foreground: #09090b;
+    
+    --background-topbar: #09090b;
+    --background-calendar: #09090b;
+    --border-calendar: #27272a;
+    
+    --task-row-bg: #18181b;
+    --task-row-border: #27272a;
+    --task-row-hover-bg: rgba(24, 24, 27, 0.8);
+
+    --pink-orchid: #CDB4DB;
+    --pastel-petal: #FFC8DD;
+    --blush-pop: #FFAFCC;
+    --icy-blue: #BDE0FE;
+    --sky-blue: #A2D2FF;
   }
 
   html.light {
-    --background: #f5f4f0; /* Soft warm parchment white, extremely easy on the eyes */
-    --foreground: #1a1917; /* Warm stone charcoal black, avoiding high-contrast eye strain */
+    --background: #f3f1ee; /* Layer 1 — Global App Background: slightly warm off-white */
+    --foreground: #1e1e1c; /* Primary text */
     
-    --muted: #ebeae6; /* Soft warm stone container backdrop */
-    --muted-foreground: #504f4d; /* Warm slate legible text */
+    --workspace-bg: #f7f5f2; /* Layer 3 — Workspace Canvas Background */
+    --card-bg: #fcfbf9; /* Layer 4 — Cards / Elevated Surfaces Background */
+    --card-border: #e5dfd7; /* Layer 4 — Cards border */
     
-    --border: #e2e1dd; /* Soft warm stone borders */
+    --muted: #ebe8e4; /* Layer 2 — Sidebar Background (slightly darker than workspace) */
+
+    --pink-orchid: #CDB4DB;
+    --pastel-petal: #FFC8DD;
+    --blush-pop: #FFAFCC;
+    --icy-blue: #BDE0FE;
+    --sky-blue: #A2D2FF;
+    --muted-foreground: #7c786f; /* Secondary text */
+    --body-text: #3f3d39; /* Body text */
     
-    --accent: #1a1917; 
-    --accent-foreground: #f5f4f0;
+    --border: rgba(0,0,0,0.05); /* Border-Based Depth System: subtle structural borders */
+    
+    --accent: #1e1e1c; 
+    --accent-foreground: #fcfbf9;
+    
+    --background-topbar: linear-gradient(to bottom, rgba(252, 251, 249, 0.72), rgba(252, 251, 249, 0.45));
+    --background-calendar: rgba(0, 0, 0, 0.015);
+    --border-calendar: rgba(0, 0, 0, 0.05);
+    
+    --task-row-bg: rgba(252, 251, 249, 0.55);
+    --task-row-border: rgba(0, 0, 0, 0.06);
+    --task-row-hover-bg: rgba(252, 251, 249, 0.85);
   }
 }
 
@@ -112,7 +161,7 @@
 
 @layer base {
   .prose {
-    --tw-prose-body: var(--foreground);
+    --tw-prose-body: var(--body-text);
     --tw-prose-headings: var(--foreground);
     --tw-prose-lead: var(--muted-foreground);
     --tw-prose-links: var(--foreground);
@@ -128,7 +177,7 @@
     --tw-prose-pre-bg: var(--muted);
     --tw-prose-th-borders: var(--border);
     --tw-prose-td-borders: var(--border);
-    --tw-prose-invert-body: var(--foreground);
+    --tw-prose-invert-body: var(--body-text);
     --tw-prose-invert-headings: var(--foreground);
     --tw-prose-invert-lead: var(--muted-foreground);
     --tw-prose-invert-links: var(--foreground);
@@ -218,4 +267,16 @@
   color: inherit;
   font-size: 0.875rem;
   padding: 0;
+}
+
+.tag-element {
+  --tag-bg: var(--tag-bg-light);
+  --tag-border: var(--tag-border-light);
+  --tag-text: var(--tag-text-light);
+}
+
+.dark .tag-element, html.dark .tag-element {
+  --tag-bg: var(--tag-bg-dark);
+  --tag-border: var(--tag-border-dark);
+  --tag-text: var(--tag-text-dark);
 }

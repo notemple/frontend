@@ -392,7 +392,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
 
   if (isFullEditorOpen) {
     return (
-      <div className="flex w-full h-full text-foreground bg-background overflow-hidden relative">
+      <div className="flex w-full h-full text-foreground bg-workspace overflow-hidden relative">
         <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar relative min-h-full">
           <NotempleEditor
             key={documentId}
@@ -407,13 +407,13 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
   }
 
   return (
-    <div className="flex w-full h-full text-foreground bg-background overflow-hidden relative">
+    <div className="flex w-full h-full text-foreground bg-workspace overflow-hidden relative">
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar relative min-h-full">
         <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.01] to-transparent pointer-events-none" />
 
         {/* Top Bar Navigation */}
-        <div className="flex flex-col sticky top-0 bg-background z-20 border-b border-border">
+        <div className="flex flex-col sticky top-0 bg-[image:var(--background-topbar)] dark:bg-background z-20 border-b border-border">
           <div className="flex items-center justify-between p-4 px-8 relative">
             <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-border to-transparent pointer-events-none" />
             <div className="flex-1">
@@ -429,19 +429,10 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                 { name: "Week", color: "sky" },
                 { name: "Day", color: "amber" }
               ] as const).map(({ name: v, color }) => {
-                const schemeClasses = {
-                  purple: {
-                    active: "bg-purple-700 dark:bg-purple-500/10 text-white dark:text-purple-300 ring-1 ring-purple-700 dark:ring-purple-500/20 font-semibold shadow-inner",
-                    inactive: "text-muted-foreground hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-500/5",
-                  },
-                  sky: {
-                    active: "bg-sky-700 dark:bg-sky-500/10 text-white dark:text-sky-300 ring-1 ring-sky-700 dark:ring-sky-500/20 font-semibold shadow-inner",
-                    inactive: "text-muted-foreground hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-500/5",
-                  },
-                  amber: {
-                    active: "bg-amber-700 dark:bg-amber-500/10 text-white dark:text-amber-300 ring-1 ring-amber-700 dark:ring-amber-500/20 font-semibold shadow-inner",
-                    inactive: "text-muted-foreground hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-500/5",
-                  },
+                const schemePillClasses = {
+                  purple: "bg-pink-orchid/70 dark:bg-pink-orchid/20 border-pink-orchid/50 dark:border-pink-orchid/30 border shadow-sm",
+                  sky: "bg-icy-blue/70 dark:bg-icy-blue/20 border-icy-blue/50 dark:border-icy-blue/30 border shadow-sm",
+                  amber: "bg-pastel-petal/70 dark:bg-pastel-petal/20 border-pastel-petal/50 dark:border-pastel-petal/30 border shadow-sm",
                 }[color];
 
                 return (
@@ -449,11 +440,20 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                     key={v}
                     onClick={() => setView(v as any)}
                     className={cn(
-                      "px-4 py-1.5 text-[13px] font-medium rounded-lg transition-all",
-                      view === v ? schemeClasses.active : schemeClasses.inactive
+                      "relative px-4 py-1.5 text-[13px] font-semibold rounded-lg transition-colors border border-transparent outline-none cursor-pointer",
+                      view === v
+                        ? "text-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                     )}
                   >
-                    {v}
+                    {view === v && (
+                      <motion.div
+                        layoutId="activeDailyNotesViewBg"
+                        className={cn("absolute inset-0 rounded-lg -z-10", schemePillClasses)}
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    <span className="relative z-10">{v}</span>
                   </button>
                 );
               })}
@@ -468,16 +468,16 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                   else
                     setSelectedDate(addDaysInTimezone(selectedDate, -1, timezone));
                 }}
-                className="hover:text-foreground hover:bg-muted/80 transition-all p-2 rounded-md"
+                className="flex items-center justify-center p-2 rounded-md border border-border/80 bg-card-bg/40 text-foreground/80 hover:text-foreground hover:bg-muted transition-all shadow-sm cursor-pointer"
               >
-                <CaretLeft size={16} weight="bold" />
+                <CaretLeft size={14} weight="bold" />
               </button>
-              <span
-                className="text-[13px] font-medium text-foreground/75 cursor-pointer hover:text-foreground transition-colors"
+              <button
                 onClick={() => setSelectedDate(new Date())}
+                className="flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded-md border border-border/80 bg-card-bg/40 text-foreground/80 hover:text-foreground hover:bg-muted transition-all shadow-sm select-none cursor-pointer"
               >
                 Today
-              </span>
+              </button>
               <button
                 onClick={() => {
                   if (view === "Month")
@@ -487,9 +487,9 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                   else
                     setSelectedDate(addDaysInTimezone(selectedDate, 1, timezone));
                 }}
-                className="hover:text-foreground hover:bg-muted/80 transition-all p-2 rounded-md"
+                className="flex items-center justify-center p-2 rounded-md border border-border/80 bg-card-bg/40 text-foreground/80 hover:text-foreground hover:bg-muted transition-all shadow-sm cursor-pointer"
               >
-                <CaretRight size={16} weight="bold" />
+                <CaretRight size={14} weight="bold" />
               </button>
               <div className="w-px h-4 bg-border mx-2" />
               <button
@@ -497,8 +497,8 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                 className={cn(
                   "transition-all p-2 rounded-lg border",
                   isCalendarOpen
-                    ? "bg-rose-200/90 text-rose-900 dark:bg-rose-500/10 dark:text-rose-300 border-rose-400 shadow-inner hover:bg-rose-300"
-                    : "border-transparent text-muted-foreground hover:text-rose-800 dark:hover:text-rose-400 hover:bg-rose-500/5",
+                    ? "bg-rose-600 border-rose-600 text-white hover:bg-rose-700 shadow-inner dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/20"
+                    : "border-border/80 bg-card-bg/40 text-rose-700 hover:text-rose-800 hover:bg-rose-100/60 dark:border-transparent dark:bg-transparent dark:text-muted-foreground dark:hover:text-rose-400"
                 )}
               >
                 <CalendarBlank size={16} />
@@ -519,7 +519,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                     className={cn(
                       "px-4 py-1 rounded-full transition-all text-[13px] font-medium border duration-300",
                       isSelected
-                        ? "bg-cyan-100 text-cyan-800 dark:bg-cyan-500/10 dark:text-cyan-300 border-cyan-300 shadow-sm hover:bg-cyan-200"
+                        ? "bg-cyan-700 text-white dark:bg-cyan-500/10 dark:text-cyan-300 border-cyan-700 dark:border-cyan-500/20 shadow-sm hover:bg-cyan-800"
                         : "text-muted-foreground hover:text-foreground border-transparent hover:bg-muted/50",
                     )}
                   >
@@ -844,7 +844,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 300, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
-            className="border-l border-border bg-background shrink-0 flex flex-col p-4 overflow-hidden"
+            className="border-l border-[var(--border-calendar)] bg-[var(--background-calendar)] shrink-0 flex flex-col p-4 overflow-hidden"
           >
             <div className="w-67">
               <div className="flex items-center justify-between mb-4 text-sm font-medium text-muted-foreground w-full">

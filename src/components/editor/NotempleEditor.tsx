@@ -22,7 +22,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { Tag, TextB, TextItalic, TextStrikethrough, TextAUnderline, Code, ArrowsInSimple } from '@phosphor-icons/react';
 import { useSettingsStore } from '@/src/store/settingsStore';
 import { toDate } from 'date-fns-tz';
-import { cn } from '@/src/lib/utils';
+import { cn, getTagStyle } from '@/src/lib/utils';
 import { formatDisplayDate } from '@/src/lib/time';
 
 const EMPTY_TAGS: string[] = [];
@@ -96,6 +96,7 @@ export const NotempleEditor = ({
   const document = useDocumentStore(useShallow(documentSelector));
 
   const allExistingTags = useDocumentStore(useShallow(allExistingTagsSelector));
+  const tagColors = useDocumentStore(state => state.tagColors) || {};
 
   const [title, setTitle] = useState(document?.title || '');
   const [tags, setTags] = useState<string[]>(document?.tags || []);
@@ -466,29 +467,19 @@ export const NotempleEditor = ({
 
           <div className="mt-4 flex flex-wrap items-center gap-2 relative group/tags font-sans">
             {tags.map(tag => {
-              const colors = [
-                { bg: "rgba(244,63,94,0.12)", border: "rgba(244,63,94,0.30)", text: "text-rose-700 dark:text-rose-300" },
-                { bg: "rgba(245,158,11,0.14)", border: "rgba(245,158,11,0.32)", text: "text-amber-800 dark:text-amber-300" },
-                { bg: "rgba(16,185,129,0.12)", border: "rgba(16,185,129,0.30)", text: "text-emerald-700 dark:text-emerald-300" },
-                { bg: "rgba(14,165,233,0.12)", border: "rgba(14,165,233,0.30)", text: "text-sky-700 dark:text-sky-300" },
-                { bg: "rgba(139,92,246,0.12)", border: "rgba(139,92,246,0.30)", text: "text-purple-700 dark:text-purple-300" },
-                { bg: "rgba(236,72,153,0.12)", border: "rgba(236,72,153,0.30)", text: "text-pink-700 dark:text-pink-300" }
-              ];
-              let hash = 0;
-              for (let i = 0; i < tag.length; i++) {
-                hash = tag.charCodeAt(i) + ((hash << 5) - hash);
-              }
-              const colorSet = colors[Math.abs(hash) % colors.length];
+              const tagStyle = getTagStyle(tag, tagColors);
               return (
                 <span
                   key={tag}
-                  className={cn("flex items-center gap-1 border text-xs px-3 py-1 transition-colors shadow-sm font-medium", colorSet.text)}
+                  className="tag-element flex items-center gap-1 border text-xs px-3 py-1 transition-colors shadow-sm font-medium rounded-md"
                   style={{
-                    backgroundColor: colorSet.bg,
-                    borderColor: colorSet.border,
+                    backgroundColor: 'var(--tag-bg)',
+                    borderColor: 'var(--tag-border)',
+                    color: 'var(--tag-text)',
+                    ...tagStyle
                   }}
                 >
-                  <Tag size={12} weight="fill" className="opacity-60 text-current" />
+                  <Tag size={12} weight="fill" className="opacity-60 text-[color:var(--tag-text)]" />
                   {tag}
                   <button
                     onClick={() => {
@@ -496,7 +487,7 @@ export const NotempleEditor = ({
                       setTags(newTags);
                       updateDocument(documentId, { tags: newTags });
                     }}
-                    className="ml-1 opacity-45 hover:opacity-100 transition-colors"
+                    className="ml-1 opacity-45 hover:opacity-100 transition-colors cursor-pointer text-xs font-semibold"
                   >
                     &times;
                   </button>

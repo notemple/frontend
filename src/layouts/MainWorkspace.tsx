@@ -67,8 +67,8 @@ export const MainWorkspace = () => {
   const headerText = useDocumentStore(useShallow(headerTextSelector));
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-background relative pt-0 z-10 w-full border-l border-border">
-      <div className="h-14 w-full flex items-center justify-between px-6 shrink-0 bg-background border-b border-border z-20">
+    <div className="flex-1 flex flex-col overflow-hidden bg-workspace relative pt-0 z-10 w-full border-l border-border">
+      <div className="h-14 w-full flex items-center justify-between px-6 shrink-0 bg-[image:var(--background-topbar)] dark:bg-background border-b border-border z-20">
         <div className="flex-1 flex items-center gap-3">
           <button
             onClick={toggleSidebar}
@@ -93,8 +93,8 @@ export const MainWorkspace = () => {
               className={cn(
                 "p-1.5 rounded-md transition-all duration-200 border",
                 appearance === 'light'
-                  ? "bg-amber-600 dark:bg-amber-500/10 text-white dark:text-amber-400 border-amber-600 dark:border-amber-500/20 shadow-inner"
-                  : "text-muted-foreground border-transparent hover:text-amber-500 hover:bg-amber-500/5 hover:border-amber-500/10"
+                  ? "bg-blush-pop/70 dark:bg-blush-pop/20 text-foreground dark:text-blush-pop border-blush-pop/50 dark:border-blush-pop/30 shadow-sm font-semibold"
+                  : "text-muted-foreground border-transparent hover:text-foreground hover:bg-blush-pop/10 dark:hover:text-blush-pop dark:hover:bg-blush-pop/5 dark:hover:border-blush-pop/10"
               )}
               title="Light Mode"
             >
@@ -105,8 +105,8 @@ export const MainWorkspace = () => {
               className={cn(
                 "p-1.5 rounded-md transition-all duration-200 border",
                 appearance === 'dark'
-                  ? "bg-indigo-600 dark:bg-indigo-500/10 text-white dark:text-indigo-300 border-indigo-600 dark:border-indigo-500/20 shadow-inner"
-                  : "text-muted-foreground border-transparent hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-500/5 hover:border-indigo-500/10"
+                  ? "bg-icy-blue/70 dark:bg-icy-blue/20 text-foreground dark:text-icy-blue border-icy-blue/50 dark:border-icy-blue/30 shadow-sm font-semibold"
+                  : "text-muted-foreground border-transparent hover:text-foreground hover:bg-icy-blue/10 dark:hover:text-icy-blue dark:hover:bg-icy-blue/5 dark:hover:border-icy-blue/10"
               )}
               title="Dark Mode"
             >
@@ -117,8 +117,8 @@ export const MainWorkspace = () => {
               className={cn(
                 "p-1.5 rounded-md transition-all duration-200 border",
                 appearance === 'system'
-                  ? "bg-teal-600 dark:bg-teal-500/10 text-white dark:text-teal-400 border-teal-600 dark:border-teal-500/20 shadow-inner"
-                  : "text-muted-foreground border-transparent hover:text-teal-500 dark:hover:text-teal-400 hover:bg-teal-500/5 hover:border-teal-500/10"
+                  ? "bg-pink-orchid/70 dark:bg-pink-orchid/20 text-foreground dark:text-pink-orchid border-pink-orchid/50 dark:border-pink-orchid/30 shadow-sm font-semibold"
+                  : "text-muted-foreground border-transparent hover:text-foreground hover:bg-pink-orchid/10 dark:hover:text-pink-orchid dark:hover:bg-pink-orchid/5 dark:hover:border-pink-orchid/10"
               )}
               title="System Theme"
             >
@@ -146,7 +146,7 @@ export const MainWorkspace = () => {
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden bg-background">
+      <div className="flex-1 flex overflow-hidden bg-workspace">
         {panes.map((pane, index) => {
           return (
             <React.Fragment key={pane.id}>
@@ -155,7 +155,7 @@ export const MainWorkspace = () => {
               )}
               <div className="flex-1 flex flex-col min-w-[300px] overflow-hidden relative">
                 <TabBar paneId={pane.id} />
-                <div className="flex-1 overflow-hidden bg-background">
+                <div className="flex-1 overflow-hidden bg-workspace">
                   {pane.activeTabId?.startsWith('section-') ? (
                     <SectionPage paneId={pane.id} sectionId={pane.activeTabId} />
                   ) : pane.activeTabId ? (
@@ -341,7 +341,7 @@ const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: string 
   }
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto no-scrollbar relative w-full items-center p-8 bg-background">
+    <div className="flex flex-col h-full overflow-y-auto no-scrollbar relative w-full items-center p-8 bg-workspace">
       <div className="absolute inset-0 bg-gradient-to-b from-foreground/[0.01] to-transparent pointer-events-none" />
       <div className="w-full max-w-[1200px] mx-auto flex flex-col gap-10 pt-8 flex-1">
         <div className="flex flex-col gap-4">

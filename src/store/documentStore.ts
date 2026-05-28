@@ -39,6 +39,8 @@ interface DocumentStore {
   folderOrder: string[];
   documentOrder: string[]; // Order of root documents
   createdTags: string[];
+  tagColors: Record<string, string>;
+  setTagColor: (tag: string, color: string) => void;
 
   addDocument: (doc: NoteDocument) => void;
   updateDocument: (id: string, updates: Partial<NoteDocument>) => void;
@@ -69,6 +71,14 @@ export const useDocumentStore = create<DocumentStore>()(
       folderOrder: [],
       documentOrder: initialDocOrder,
       createdTags: [],
+      tagColors: {},
+
+      setTagColor: (tag, color) => set((state) => ({
+        tagColors: {
+          ...state.tagColors,
+          [tag]: color
+        }
+      })),
 
       addDocument: (doc) => set((state) => {
         const isUpdating = !!state.documents[doc.id];
@@ -129,9 +139,15 @@ export const useDocumentStore = create<DocumentStore>()(
           }
         });
         const updatedCreatedTags = state.createdTags.map(t => t === oldTag ? newTag : t);
+        const newTagColors = { ...state.tagColors };
+        if (newTagColors[oldTag]) {
+          newTagColors[newTag] = newTagColors[oldTag];
+          delete newTagColors[oldTag];
+        }
         return { 
           documents: newDocs,
-          createdTags: updatedCreatedTags
+          createdTags: updatedCreatedTags,
+          tagColors: newTagColors
         };
       }),
       deleteTag: (tag) => set((state) => {
@@ -142,9 +158,12 @@ export const useDocumentStore = create<DocumentStore>()(
           }
         });
         const updatedCreatedTags = state.createdTags.filter(t => t !== tag);
+        const newTagColors = { ...state.tagColors };
+        delete newTagColors[tag];
         return { 
           documents: newDocs,
-          createdTags: updatedCreatedTags
+          createdTags: updatedCreatedTags,
+          tagColors: newTagColors
         };
       }),
       createTag: (tag) => set((state) => {

@@ -74,7 +74,7 @@ const SidebarDocumentItem = ({
 
   if (isRenaming) {
     return (
-      <div 
+      <div
         className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-muted border border-border w-full shrink-0"
         onClick={(e) => e.stopPropagation()}
       >
@@ -152,7 +152,7 @@ const SidebarFolderItem = ({
 
   if (isRenaming) {
     return (
-      <div 
+      <div
         className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-muted border border-border w-full shrink-0"
         onClick={(e) => e.stopPropagation()}
       >
@@ -220,7 +220,7 @@ const SidebarContextMenu = ({
 
   return (
     <div
-      className="fixed z-50 bg-background neu-panel rounded-md py-1 min-w-[140px] shadow-2xl border border-border"
+      className="fixed z-50 bg-background neu-panel rounded-md py-1 min-w-35 shadow-2xl border border-border"
       style={{ top: contextMenu.y, left: contextMenu.x }}
       onClick={(e) => e.stopPropagation()}
     >
@@ -524,12 +524,12 @@ export const Sidebar = () => {
       <div className="flex-1 space-y-6 min-w-0">
         {/* Core Actions */}
         <div className="space-y-[2px]">
-          <SidebarItem icon={<Plus size={16} className="text-rose-500/90 dark:text-rose-400/90" />} label="New Note" isOpen={isSidebarOpen} highlight={isDocActive('new-note')} onClick={handleNewNoteClick} customHighlightClass="text-rose-800 dark:text-rose-200 bg-rose-200/80 dark:bg-rose-950/25 border-rose-400 dark:border-rose-900/40" />
+          <SidebarItem icon={<Plus size={16} className={isDocActive('new-note') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="New Note" isOpen={isSidebarOpen} highlight={isDocActive('new-note')} onClick={handleNewNoteClick} activeBgClass="bg-blush-pop/70 dark:bg-blush-pop/20 border-blush-pop/50 dark:border-blush-pop/30 border shadow-sm" activeTextClass="!text-black dark:!text-white font-semibold" />
           <SidebarItem icon={<MagnifyingGlass size={16} className="text-sky-500/80 dark:text-sky-400/80" />} label="Search" isOpen={isSidebarOpen} />
           <SidebarItem icon={<Sparkle size={16} className="text-purple-500/90 dark:text-purple-400/90" />} label="Ask AI" isOpen={isSidebarOpen} />
-          <SidebarItem icon={<CalendarBlank size={16} className="text-emerald-500/90 dark:text-emerald-400/90" />} label="Daily Notes" isOpen={isSidebarOpen} highlight={isDocActive('section-daily-notes')} onClick={() => handleDocClick('section-daily-notes')} customHighlightClass="text-emerald-900 dark:text-emerald-200 bg-emerald-200/80 dark:bg-emerald-950/25 border-emerald-400 dark:border-emerald-900/40" />
-          <SidebarItem icon={<CheckSquare size={16} className="text-blue-500/90 dark:text-blue-400/90" />} label="Tasks" isOpen={isSidebarOpen} highlight={isDocActive('section-tasks')} onClick={() => handleDocClick('section-tasks')} customHighlightClass="text-blue-800 dark:text-blue-200 bg-blue-200/80 dark:bg-blue-950/25 border-blue-400 dark:border-blue-900/40" />
-          <SidebarItem icon={<Tag size={16} className="text-purple-500/90 dark:text-purple-400/90" />} label="Tags" isOpen={isSidebarOpen} highlight={isDocActive('section-tags')} onClick={() => handleDocClick('section-tags')} customHighlightClass="text-purple-800 dark:text-purple-200 bg-purple-200/80 dark:bg-purple-950/25 border-purple-400 dark:border-purple-900/40" />
+          <SidebarItem icon={<CalendarBlank size={16} className={isDocActive('section-daily-notes') ? "text-current" : "text-emerald-500/90 dark:text-emerald-400/90"} />} label="Daily Notes" isOpen={isSidebarOpen} highlight={isDocActive('section-daily-notes')} onClick={() => handleDocClick('section-daily-notes')} activeBgClass="bg-icy-blue/70 dark:bg-icy-blue/20 border-icy-blue/50 dark:border-icy-blue/30 border shadow-sm" activeTextClass="!text-black dark:!text-white font-semibold" />
+          <SidebarItem icon={<CheckSquare size={16} className={isDocActive('section-tasks') ? "text-current" : "text-blue-500/90 dark:text-blue-400/90"} />} label="Tasks" isOpen={isSidebarOpen} highlight={isDocActive('section-tasks')} onClick={() => handleDocClick('section-tasks')} activeBgClass="bg-sky-blue/70 dark:bg-sky-blue/20 border-sky-blue/50 dark:border-sky-blue/30 border shadow-sm" activeTextClass="!text-black dark:!text-white font-semibold" />
+          <SidebarItem icon={<Tag size={16} className={isDocActive('section-tags') ? "text-current" : "text-purple-500/90 dark:text-purple-400/90"} />} label="Tags" isOpen={isSidebarOpen} highlight={isDocActive('section-tags')} onClick={() => handleDocClick('section-tags')} activeBgClass="bg-pink-orchid/70 dark:bg-pink-orchid/20 border-pink-orchid/50 dark:border-pink-orchid/30 border shadow-sm" activeTextClass="!text-black dark:!text-white font-semibold" />
         </div>
 
         {/* Favorites Section */}
@@ -562,9 +562,9 @@ export const Sidebar = () => {
               >
                 <div className="max-h-[320px] overflow-y-auto no-scrollbar">
                   {favoriteDocIds.map(docId => (
-                    <div 
-                      id={`sidebar-fav-${docId}`} 
-                      key={`fav-${docId}`} 
+                    <div
+                      id={`sidebar-fav-${docId}`}
+                      key={`fav-${docId}`}
                       onContextMenu={(e) => {
                         e.stopPropagation();
                         handleContextMenu(e, docId, 'document');
@@ -820,7 +820,8 @@ const SidebarItem = ({
   highlight,
   onClick,
   rightElement,
-  customHighlightClass
+  activeBgClass = "bg-muted border border-border shadow-sm",
+  activeTextClass = "!text-black dark:!text-foreground font-semibold"
 }: {
   icon?: React.ReactNode,
   label: string,
@@ -828,37 +829,54 @@ const SidebarItem = ({
   highlight?: boolean,
   onClick?: () => void,
   rightElement?: React.ReactNode,
-  customHighlightClass?: string
+  activeBgClass?: string,
+  activeTextClass?: string
 }) => {
   return (
     <button
       onClick={onClick}
       className={cn(
-        "relative flex items-center gap-3 w-full px-2 py-1.5 text-[13px] outline-none group/item rounded-md transition-all duration-100 ease-out active:scale-[0.98]",
+        "relative flex items-center gap-3 w-full px-2 py-1.5 text-[13px] outline-none group/item rounded-md transition-all duration-100 ease-out active:scale-[0.98] border border-transparent cursor-pointer",
         !isOpen && "justify-center px-0 items-center",
         highlight
-          ? (customHighlightClass || "text-foreground bg-muted border border-border shadow-sm font-semibold")
+          ? activeTextClass
           : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
       )}
     >
       {highlight && (
-        <div className="absolute left-0 top-1.5 bottom-1.5 w-[2px] bg-current rounded-r-full shadow-[0_0_4px_currentColor]" />
+        <motion.div
+          layoutId="activeSidebarItemBg"
+          className={cn("absolute inset-0 rounded-md -z-10", activeBgClass)}
+          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+        />
+      )}
+      {highlight && (
+        <motion.div
+          layoutId="activeSidebarItemIndicator"
+          className="absolute left-0 top-1.5 bottom-1.5 w-[2px] bg-current rounded-r-full shadow-[0_0_4px_currentColor] z-10"
+          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+        />
       )}
       <div
         className={cn(
           "shrink-0 flex items-center justify-center w-5 h-5 relative z-10 transition-transform duration-100 group-hover/item:scale-[1.05]",
-          highlight ? "text-current" : "text-muted-foreground group-hover/item:text-foreground"
+          highlight ? activeTextClass : "text-muted-foreground group-hover/item:text-foreground"
         )}
       >
         {icon}
       </div>
       <div
         className={cn(
-          "flex-1 flex items-center justify-between min-w-0 transition-all duration-200 ease-out",
+          "flex-1 flex items-center justify-between min-w-0 transition-all duration-200 ease-out relative z-10",
           isOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2 pointer-events-none w-0 h-0 overflow-hidden"
         )}
       >
-        <span className="truncate whitespace-nowrap overflow-hidden flex-1 text-left font-medium tracking-tight">
+        <span
+          className={cn(
+            "truncate whitespace-nowrap overflow-hidden flex-1 text-left font-medium tracking-tight",
+            highlight ? activeTextClass : ""
+          )}
+        >
           {label}
         </span>
         {rightElement && (

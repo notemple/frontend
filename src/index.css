@@ -59,6 +59,10 @@
     --blush-pop: #FFAFCC;
     --icy-blue: #BDE0FE;
     --sky-blue: #A2D2FF;
+
+    --active-tab-purple: color-mix(in srgb, var(--pink-orchid) 20%, transparent);
+    --active-tab-sky: color-mix(in srgb, var(--icy-blue) 20%, transparent);
+    --active-tab-amber: color-mix(in srgb, var(--pastel-petal) 20%, transparent);
   }
 
   html.light {
@@ -76,6 +80,10 @@
     --blush-pop: #FFAFCC;
     --icy-blue: #BDE0FE;
     --sky-blue: #A2D2FF;
+
+    --active-tab-purple: color-mix(in srgb, var(--pink-orchid) 70%, transparent);
+    --active-tab-sky: color-mix(in srgb, var(--icy-blue) 70%, transparent);
+    --active-tab-amber: color-mix(in srgb, var(--pastel-petal) 70%, transparent);
     --muted-foreground: #7c786f; /* Secondary text */
     --body-text: #3f3d39; /* Body text */
     
@@ -279,4 +287,12 @@
   --tag-bg: var(--tag-bg-dark);
   --tag-border: var(--tag-border-dark);
   --tag-text: var(--tag-text-dark);
+}
+
+.folder-element {
+  --folder-text: var(--folder-text-light);
+}
+
+.dark .folder-element, html.dark .folder-element {
+  --folder-text: var(--folder-text-dark);
 }

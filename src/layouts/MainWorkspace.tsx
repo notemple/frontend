@@ -7,8 +7,8 @@ import { NotempleEditor } from '@/src/components/editor/NotempleEditor';
 import { DailyNotesPage } from '@/src/components/DailyNotesPage';
 import { TasksPage } from '@/src/components/TasksPage';
 import { TagsPage } from '@/src/components/TagsPage';
-import { cn, getItemColor } from '@/src/lib/utils';
-import { Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, CaretDown, FileText, Folder as FolderIcon, Sun, Moon, Monitor, Clock, ArrowLeft, PlusCircle, Check, X } from '@phosphor-icons/react';
+import { cn, getItemColor, getFolderStyle, getFolderHexColor, TAG_COLOR_PRESETS } from '@/src/lib/utils';
+import { Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, CaretDown, FileText, Folder as FolderIcon, Sun, Moon, Monitor, Clock, ArrowLeft, PlusCircle, Check, X, Plus, Trash } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const MainWorkspace = () => {
@@ -176,11 +176,15 @@ export const MainWorkspace = () => {
 const SectionGridItem = React.memo(({
   itemId,
   itemType,
-  paneId
+  paneId,
+  folderColors,
+  onFolderContextMenu,
 }: {
   itemId: string;
   itemType: 'page' | 'folder';
   paneId: string;
+  folderColors?: Record<string, string>;
+  onFolderContextMenu?: (e: React.MouseEvent, folderId: string) => void;
 }) => {
   const { openDocument } = useUiStore();
 
@@ -200,7 +204,22 @@ const SectionGridItem = React.memo(({
 
   if (!item) return null;
 
-  const cardColor = getItemColor(item.title || 'Untitled');
+  // Resolve colour: prefer custom folder colour, fall back to hash-based default.
+  const customStyle = itemType === 'folder' ? getFolderStyle(itemId, folderColors) : null;
+  const defaultCardColor = getItemColor(item.title || 'Untitled');
+
+  const cardBg     = customStyle ? customStyle.bg     : defaultCardColor.bg;
+  const cardBorder = customStyle ? customStyle.border : defaultCardColor.border;
+  const iconBg     = customStyle ? customStyle.iconBg     : defaultCardColor.iconBg;
+  const iconBorder = customStyle ? customStyle.iconBorder : defaultCardColor.iconBorder;
+  // Icon / text class: only used when no custom colour
+  const iconTextClass = customStyle ? '' : defaultCardColor.iconText;
+
+  // CSS vars for light/dark text when custom colour is active
+  const customVars = customStyle ? {
+    '--folder-text-light': (customStyle as any)['--folder-text-light'],
+    '--folder-text-dark':  (customStyle as any)['--folder-text-dark'],
+  } as React.CSSProperties : {};
 
   return (
     <div
@@ -211,29 +230,33 @@ const SectionGridItem = React.memo(({
           openDocument(itemId, paneId);
         }
       }}
+      onContextMenu={itemType === 'folder' && onFolderContextMenu ? (e) => onFolderContextMenu(e, itemId) : undefined}
       className="p-6 rounded-xl border cursor-pointer group flex flex-col gap-3 transition-all duration-150 overflow-hidden relative"
       style={{
-        backgroundColor: cardColor.bg,
-        borderColor: cardColor.border,
+        backgroundColor: cardBg,
+        borderColor: cardBorder,
       }}
     >
       <div className="absolute inset-0 bg-gradient-to-tr from-foreground/[0.01] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       <div className="flex flex-col gap-4 relative z-10 w-full min-w-0">
-        <div 
+        <div
           className={cn(
             "w-10 h-10 rounded-lg border flex items-center justify-center transition-colors duration-300 shadow-inner",
-            cardColor.iconText
+            customStyle ? 'folder-element' : iconTextClass
           )}
           style={{
-            backgroundColor: cardColor.iconBg,
-            borderColor: cardColor.iconBorder,
+            backgroundColor: iconBg,
+            borderColor: iconBorder,
+            ...customVars,
           }}
         >
-          {itemType === 'folder' ? <FolderIcon size={20} weight="duotone" /> : <FileText size={20} weight="duotone" />}
+          {itemType === 'folder'
+            ? <FolderIcon size={20} weight="duotone" className={customStyle ? 'text-[color:var(--folder-text)]' : ''} />
+            : <FileText size={20} weight="duotone" />}
         </div>
         <span className={cn(
           "font-medium text-sm truncate transition-colors leading-none pr-1 text-foreground/80",
-          cn("group-hover:", cardColor.iconText)
+          customStyle ? '' : cn("group-hover:", iconTextClass)
         )}>
           {item.title || 'Untitled'}
         </span>
@@ -244,13 +267,35 @@ const SectionGridItem = React.memo(({
 
 SectionGridItem.displayName = 'SectionGridItem';
 
+
 const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: string }) => {
   const { openDocument } = useUiStore();
   const createFolder = useDocumentStore(state => state.createFolder);
   const addDocument = useDocumentStore(state => state.addDocument);
+  const folderColors = useDocumentStore(state => state.folderColors) || {};
+  const setFolderColor = useDocumentStore(state => state.setFolderColor);
 
   const [isCreatingFolder, setIsCreatingFolder] = React.useState(false);
   const [newFolderName, setNewFolderName] = React.useState('');
+
+  // Context menu for folder colour picking
+  const [folderContextMenu, setFolderContextMenu] = React.useState<{
+    x: number; y: number; folderId: string;
+  } | null>(null);
+
+  // Dismiss context menu on click outside
+  React.useEffect(() => {
+    if (!folderContextMenu) return;
+    const handle = () => setFolderContextMenu(null);
+    window.addEventListener('mousedown', handle);
+    return () => window.removeEventListener('mousedown', handle);
+  }, [folderContextMenu]);
+
+  const handleFolderContextMenu = (e: React.MouseEvent, folderId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFolderContextMenu({ x: e.clientX, y: e.clientY, folderId });
+  };
 
   const handleCreateFolderSubmit = () => {
     const trimmed = newFolderName.trim();
@@ -439,6 +484,8 @@ const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: string 
               itemId={itemId}
               itemType={sectionId === 'section-folders' ? 'folder' : 'page'}
               paneId={paneId}
+              folderColors={folderColors}
+              onFolderContextMenu={sectionId === 'section-folders' ? handleFolderContextMenu : undefined}
             />
           ))}
           {items.length === 0 && (
@@ -451,9 +498,85 @@ const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: string 
           )}
         </div>
       </div>
+
+      {/* Folder Colour Context Menu */}
+      {folderContextMenu && (
+        <div
+          className="fixed z-50 bg-background rounded-md py-1 min-w-[160px] shadow-2xl border border-border neu-panel"
+          style={{ top: folderContextMenu.y, left: folderContextMenu.x }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Colour Section */}
+          <div className="border-b border-border px-4 py-2.5 flex flex-col gap-2">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider select-none leading-none">Folder Color</span>
+            <div className="grid grid-cols-5 gap-1.5 w-[140px]">
+              {TAG_COLOR_PRESETS.map((preset) => {
+                const currentHex = getFolderHexColor(folderContextMenu.folderId, folderColors);
+                const isSelected = currentHex?.toLowerCase() === preset.hex.toLowerCase();
+                return (
+                  <button
+                    key={preset.hex}
+                    onClick={() => {
+                      setFolderColor(folderContextMenu.folderId, preset.hex);
+                      setFolderContextMenu(null);
+                    }}
+                    className="w-5 h-5 rounded-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer relative flex items-center justify-center"
+                    style={{ backgroundColor: preset.hex }}
+                    title={preset.name}
+                  >
+                    {isSelected && (
+                      <Check size={10} weight="bold" className="text-zinc-950 font-bold" />
+                    )}
+                  </button>
+                );
+              })}
+
+              {/* Dynamic Color Picker */}
+              <label
+                className="w-5 h-5 rounded-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer flex items-center justify-center bg-gradient-to-tr from-rose-400 via-sky-400 to-amber-300 relative shadow-sm"
+                title="Custom Color"
+              >
+                <input
+                  type="color"
+                  value={getFolderHexColor(folderContextMenu.folderId, folderColors) || '#a855f7'}
+                  onChange={(e) => {
+                    setFolderColor(folderContextMenu.folderId, e.target.value);
+                  }}
+                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                />
+                <Plus size={10} className="text-white drop-shadow-md font-bold" />
+              </label>
+            </div>
+          </div>
+
+          {/* Reset option */}
+          {getFolderHexColor(folderContextMenu.folderId, folderColors) && (
+            <button
+              className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:bg-muted flex items-center gap-2 transition-colors cursor-pointer"
+              onClick={() => {
+                const newColors = { ...folderColors };
+                delete newColors[folderContextMenu.folderId];
+                // Use setFolderColor with an empty string as sentinel — store ignores it if we need a delete action
+                // Instead directly patch store
+                useDocumentStore.setState(state => {
+                  const nc = { ...state.folderColors };
+                  delete nc[folderContextMenu.folderId];
+                  return { folderColors: nc };
+                });
+                setFolderContextMenu(null);
+              }}
+            >
+              <Trash size={14} className="text-muted-foreground" />
+              Reset to Default
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };
+
 
 const EmptyPaneState = () => {
   return (

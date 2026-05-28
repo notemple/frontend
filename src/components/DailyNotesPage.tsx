@@ -321,6 +321,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
   } = useUiStore();
   const [isCalendarOpen, setIsCalendarOpen] = useState(true);
   const [isCreatedTodayOpen, setIsCreatedTodayOpen] = useState(true);
+  const [isUpdatedTodayOpen, setIsUpdatedTodayOpen] = useState(true);
   const [isTasksCreatedOpen, setIsTasksCreatedOpen] = useState(true);
   const [isTasksFinishedOpen, setIsTasksFinishedOpen] = useState(true);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
@@ -344,7 +345,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
         const doc = state.documents[id];
         if (!doc) return false;
         if (doc.id.startsWith("daily-note-")) return false;
-        return isSameDayString(doc.updatedAt, formattedDateId);
+        return isSameDayString(doc.createdAt, formattedDateId);
       });
     },
     [formattedDateId]
@@ -359,12 +360,48 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
         const doc = state.documents[id];
         if (!doc) return false;
         if (doc.id.startsWith("daily-note-")) return false;
-        return isSameDayString(doc.updatedAt, formattedDateId);
+        return isSameDayString(doc.createdAt, formattedDateId);
       }).length;
     },
     [formattedDateId]
   );
   const createdTodayCount = useDocumentStore(createdTodayCountSelector);
+
+  // Optimized selector to get only the IDs of non-daily note documents updated today (but not created today)
+  const updatedTodayIdsSelector = useCallback(
+    (state: any) => {
+      const order = state.documentOrder || [];
+      return order.filter((id: string) => {
+        const doc = state.documents[id];
+        if (!doc) return false;
+        if (doc.id.startsWith("daily-note-")) return false;
+        return (
+          isSameDayString(doc.updatedAt, formattedDateId) &&
+          !isSameDayString(doc.createdAt, formattedDateId)
+        );
+      });
+    },
+    [formattedDateId]
+  );
+  const objectsUpdatedTodayIds = useDocumentStore(useShallow(updatedTodayIdsSelector));
+
+  // Optimized selector for count of documents updated today to avoid unnecessary re-renders
+  const updatedTodayCountSelector = useCallback(
+    (state: any) => {
+      const order = state.documentOrder || [];
+      return order.filter((id: string) => {
+        const doc = state.documents[id];
+        if (!doc) return false;
+        if (doc.id.startsWith("daily-note-")) return false;
+        return (
+          isSameDayString(doc.updatedAt, formattedDateId) &&
+          !isSameDayString(doc.createdAt, formattedDateId)
+        );
+      }).length;
+    },
+    [formattedDateId]
+  );
+  const updatedTodayCount = useDocumentStore(updatedTodayCountSelector);
 
   const renderDays = () => {
     const calendarDays = getCalendarDays(selectedDate);
@@ -429,10 +466,10 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                 { name: "Week", color: "sky" },
                 { name: "Day", color: "amber" }
               ] as const).map(({ name: v, color }) => {
-                const schemePillClasses = {
-                  purple: "bg-pink-orchid/70 dark:bg-pink-orchid/20 border-pink-orchid/50 dark:border-pink-orchid/30 border shadow-sm",
-                  sky: "bg-icy-blue/70 dark:bg-icy-blue/20 border-icy-blue/50 dark:border-icy-blue/30 border shadow-sm",
-                  amber: "bg-pastel-petal/70 dark:bg-pastel-petal/20 border-pastel-petal/50 dark:border-pastel-petal/30 border shadow-sm",
+                const colorVars = {
+                  purple: "var(--active-tab-purple)",
+                  sky: "var(--active-tab-sky)",
+                  amber: "var(--active-tab-amber)",
                 }[color];
 
                 return (
@@ -449,7 +486,8 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                     {view === v && (
                       <motion.div
                         layoutId="activeDailyNotesViewBg"
-                        className={cn("absolute inset-0 rounded-lg -z-10", schemePillClasses)}
+                        className="absolute inset-0 rounded-lg -z-10"
+                        style={{ backgroundColor: colorVars }}
                         transition={{ type: "spring", stiffness: 380, damping: 30 }}
                       />
                     )}
@@ -617,48 +655,96 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
               <div className="w-full h-px bg-border my-6" />
 
               {/* Objects Section */}
-              <div>
-                <div
-                  className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-lg transition-colors group"
-                  onClick={() => setIsCreatedTodayOpen(!isCreatedTodayOpen)}
-                >
-                  <h2 className="text-sm font-medium text-foreground">
-                    Created Today
-                  </h2>
-                  <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
-                    {createdTodayCount}
-                  </span>
-                  <div className="flex-1" />
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <button className="p-1 hover:text-foreground transition-colors">
-                      <CalendarBlank size={14} />
-                    </button>
-                    <button className="p-1 hover:text-foreground transition-colors">
-                      {isCreatedTodayOpen ? (
-                        <CaretUp size={14} />
-                      ) : (
-                        <CaretDown size={14} />
-                      )}
-                    </button>
+              <div className="flex flex-col gap-6">
+                {/* Created Today */}
+                <div>
+                  <div
+                    className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-lg transition-colors group"
+                    onClick={() => setIsCreatedTodayOpen(!isCreatedTodayOpen)}
+                  >
+                    <h2 className="text-sm font-medium text-foreground">
+                      Created Today
+                    </h2>
+                    <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
+                      {createdTodayCount}
+                    </span>
+                    <div className="flex-1" />
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <button className="p-1 hover:text-foreground transition-colors">
+                        <CalendarBlank size={14} />
+                      </button>
+                      <button className="p-1 hover:text-foreground transition-colors">
+                        {isCreatedTodayOpen ? (
+                          <CaretUp size={14} />
+                        ) : (
+                          <CaretDown size={14} />
+                        )}
+                      </button>
+                    </div>
                   </div>
+
+                  {isCreatedTodayOpen && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+                      {objectsCreatedTodayIds.length === 0 && (
+                        <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-xl">
+                          No other documents created today.
+                        </div>
+                      )}
+                      {objectsCreatedTodayIds.map((id) => (
+                        <CreatedTodayItem
+                          key={id}
+                          docId={id}
+                          paneId={paneId}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
 
-                {isCreatedTodayOpen && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
-                    {objectsCreatedTodayIds.length === 0 && (
-                      <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-xl">
-                        No other documents created today.
-                      </div>
-                    )}
-                    {objectsCreatedTodayIds.map((id) => (
-                      <CreatedTodayItem
-                        key={id}
-                        docId={id}
-                        paneId={paneId}
-                      />
-                    ))}
+                {/* Updated Today */}
+                <div>
+                  <div
+                    className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-lg transition-colors group"
+                    onClick={() => setIsUpdatedTodayOpen(!isUpdatedTodayOpen)}
+                  >
+                    <h2 className="text-sm font-medium text-foreground">
+                      Updated Today
+                    </h2>
+                    <span className="bg-muted text-muted-foreground text-xs px-2 rounded-full font-medium">
+                      {updatedTodayCount}
+                    </span>
+                    <div className="flex-1" />
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <button className="p-1 hover:text-foreground transition-colors">
+                        <CalendarBlank size={14} />
+                      </button>
+                      <button className="p-1 hover:text-foreground transition-colors">
+                        {isUpdatedTodayOpen ? (
+                          <CaretUp size={14} />
+                        ) : (
+                          <CaretDown size={14} />
+                        )}
+                      </button>
+                    </div>
                   </div>
-                )}
+
+                  {isUpdatedTodayOpen && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+                      {objectsUpdatedTodayIds.length === 0 && (
+                        <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium border border-dashed border-border rounded-xl">
+                          No other documents updated today.
+                        </div>
+                      )}
+                      {objectsUpdatedTodayIds.map((id) => (
+                        <CreatedTodayItem
+                          key={id}
+                          docId={id}
+                          paneId={paneId}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex flex-col mt-10 gap-6">

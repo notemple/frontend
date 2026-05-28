@@ -41,6 +41,8 @@ interface DocumentStore {
   createdTags: string[];
   tagColors: Record<string, string>;
   setTagColor: (tag: string, color: string) => void;
+  folderColors: Record<string, string>;
+  setFolderColor: (folderId: string, color: string) => void;
 
   addDocument: (doc: NoteDocument) => void;
   updateDocument: (id: string, updates: Partial<NoteDocument>) => void;
@@ -72,11 +74,19 @@ export const useDocumentStore = create<DocumentStore>()(
       documentOrder: initialDocOrder,
       createdTags: [],
       tagColors: {},
+      folderColors: {},
 
       setTagColor: (tag, color) => set((state) => ({
         tagColors: {
           ...state.tagColors,
           [tag]: color
+        }
+      })),
+
+      setFolderColor: (folderId, color) => set((state) => ({
+        folderColors: {
+          ...state.folderColors,
+          [folderId]: color
         }
       })),
 
@@ -191,10 +201,13 @@ export const useDocumentStore = create<DocumentStore>()(
             newDocs[docId].folderId = null;
           }
         });
+        const newFolderColors = { ...state.folderColors };
+        delete newFolderColors[id];
         return {
           folders: state.folders.filter(f => f?.id !== id),
           folderOrder: state.folderOrder.filter(fId => fId !== id),
-          documents: newDocs
+          documents: newDocs,
+          folderColors: newFolderColors
         };
       }),
 

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useUiStore } from '../store/uiStore';
 import { useDocumentStore } from '../store/documentStore';
 import { useShallow } from 'zustand/react/shallow';
-import { cn } from '../lib/utils';
+import { cn, getFolderHexColor } from '../lib/utils';
 import { SettingsDialog } from '../components/SettingsDialog';
 import {
   MagnifyingGlass,
@@ -129,7 +129,8 @@ const SidebarFolderItem = ({
   onRenameComplete,
   onRenameCancel,
   onClick,
-  rightElement
+  rightElement,
+  folderColor,
 }: {
   folderId: string;
   folderName: string;
@@ -139,6 +140,7 @@ const SidebarFolderItem = ({
   onRenameCancel?: () => void;
   onClick: () => void;
   rightElement?: React.ReactNode;
+  folderColor?: string | null;
 }) => {
   const [tempName, setTempName] = useState(folderName);
   const originalNameRef = React.useRef(folderName);
@@ -150,6 +152,14 @@ const SidebarFolderItem = ({
     }
   }, [isRenaming, folderName]);
 
+  // Resolve icon color: use custom color or fallback to amber
+  const iconStyle = folderColor
+    ? { color: folderColor }
+    : undefined;
+  const iconClassName = folderColor
+    ? undefined
+    : 'text-amber-500/80 dark:text-amber-400/80';
+
   if (isRenaming) {
     return (
       <div
@@ -157,7 +167,11 @@ const SidebarFolderItem = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="shrink-0 text-muted-foreground">
-          <FolderIcon size={16} className="text-amber-500/80 dark:text-amber-400/80" />
+          <FolderIcon
+            size={16}
+            className={iconClassName}
+            style={iconStyle}
+          />
         </div>
         <input
           autoFocus
@@ -190,7 +204,7 @@ const SidebarFolderItem = ({
 
   return (
     <SidebarItem
-      icon={<FolderIcon size={16} className="text-amber-500/80 dark:text-amber-400/80" />}
+      icon={<FolderIcon size={16} className={iconClassName} style={iconStyle} />}
       label={folderName}
       isOpen={isOpen}
       onClick={onClick}
@@ -371,6 +385,7 @@ export const Sidebar = () => {
   const documentOrder = useDocumentStore(useShallow(documentOrderSelector));
   const favoriteDocIds = useDocumentStore(useShallow(favoriteDocIdsSelector));
   const uncategorizedDocIds = useDocumentStore(useShallow(uncategorizedDocIdsSelector));
+  const folderColors = useDocumentStore(state => state.folderColors) || {};
 
   // Store static references to actions so they never trigger extra re-renders.
   const createFolder = useDocumentStore(state => state.createFolder);
@@ -660,6 +675,7 @@ export const Sidebar = () => {
                           onRenameComplete={() => setRenamingFolderId(null)}
                           onRenameCancel={() => setRenamingFolderId(null)}
                           onClick={() => toggleFolderCollapse(folder.id)}
+                          folderColor={getFolderHexColor(folder.id, folderColors)}
                           rightElement={
                             <div className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded transition-colors duration-200">
                               {!collapsedFolders.has(folder.id) ? <CaretDown size={14} /> : <CaretRight size={14} />}

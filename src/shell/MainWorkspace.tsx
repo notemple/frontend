@@ -17,6 +17,7 @@ import { SectionGridItem } from "@/features/documents/components/SectionGridItem
 import { EmptyPaneState } from "@/features/documents/components/EmptyPaneState";
 import { useSettingsStore } from '@/features/settings/store';
 import { formatDisplayDateTime } from '@/shared/lib/time';
+import { AccountDialog } from '@/features/settings/AccountDialog';
 
 export const ClockWidget = () => {
   const { timezone, timeFormat } = useSettingsStore(
@@ -89,6 +90,9 @@ export const MainWorkspace = () => {
       toggleSidebar: state.toggleSidebar,
     }))
   );
+
+  const [isAccountOpen, setIsAccountOpen] = React.useState(false);
+  const userProfileIcon = useSettingsStore((state) => state.userProfileIcon);
 
 
   const activePane = panes.find(p => p?.id === activePaneId) || panes[0];
@@ -175,9 +179,12 @@ export const MainWorkspace = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground rounded-sm shadow-sm-sm border border-border">
-              N
-            </div>
+            <button
+              onClick={() => setIsAccountOpen(true)}
+              className="w-6 h-6 bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/80 border border-border rounded-sm shadow-sm-sm transition-all duration-150 cursor-pointer select-none"
+            >
+              {userProfileIcon || "N"}
+            </button>
             <button className="flex items-center gap-1.5 h-6 px-3 rounded-sm shadow-sm-sm transition-all text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted border border-border bg-muted/40">
               <ShareFat size={12} weight="fill" />
               Share
@@ -219,6 +226,7 @@ export const MainWorkspace = () => {
           );
         })}
       </div>
+      <AccountDialog isOpen={isAccountOpen} onClose={() => setIsAccountOpen(false)} />
     </div>
   );
 };

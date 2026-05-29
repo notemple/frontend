@@ -3,6 +3,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTaskStore, type Task } from '../store';
 import { CustomDatePicker } from './CustomDatePicker';
+import { CustomPriorityPicker } from './CustomPriorityPicker';
 import { formatDisplayDate } from '@/shared/lib/time';
 import { cn } from '@/shared/lib/utils';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
@@ -137,6 +138,13 @@ export const KanbanCard = ({
             onChange={(v: string) => updateTask(task.id, { deadline: v })}
             placeholder="Deadline"
             icon={<Flag size={10} />}
+            onOpenChange={onDatePickerOpenChange}
+          />
+
+          <CustomPriorityPicker
+            small
+            priority={task.priority}
+            onChange={(p: "low" | "medium" | "urgent" | undefined) => updateTask(task.id, { priority: p })}
             onOpenChange={onDatePickerOpenChange}
           />
         </div>

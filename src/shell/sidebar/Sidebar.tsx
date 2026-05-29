@@ -26,6 +26,7 @@ import {
 } from '@phosphor-icons/react';
 import { SidebarItem } from "./SidebarItem";
 import { SidebarFolderItem } from "./SidebarFolderItem";
+import { useSettingsStore } from '@/features/settings/store';
 
 // Optimized item for individual documents inside the sidebar list.
 // By using a specific selector with useShallow, it ONLY re-renders if its own title or type changes.
@@ -216,7 +217,7 @@ const FolderDocumentsList = ({
         <div
           id={`sidebar-doc-${docId}`}
           key={docId}
-          className="pl-4"
+          className={isOpen ? "pl-4" : "pl-0"}
           draggable
           onDragStart={(e) => {
             e.stopPropagation();
@@ -337,6 +338,13 @@ export const Sidebar = () => {
       openDocument: state.openDocument,
       panes: state.panes,
       activePaneId: state.activePaneId,
+    }))
+  );
+
+  const { spaceName, spaceIcon } = useSettingsStore(
+    useShallow((state) => ({
+      spaceName: state.spaceName,
+      spaceIcon: state.spaceIcon,
     }))
   );
 
@@ -499,15 +507,15 @@ export const Sidebar = () => {
       ref={sidebarRef}
       className="h-full flex flex-col border-r border-border bg-muted relative shrink-0 overflow-y-auto no-scrollbar group/sidebar z-30 shadow-sm-none"
     >
-      <div className="flex items-center justify-between mb-8 shrink-0 relative z-10 px-1 h-8">
+      <div className={cn("flex items-center mb-8 shrink-0 relative z-10 h-8 w-full", isSidebarOpen ? "justify-between px-1" : "justify-center px-0")}>
           {isSidebarOpen ? (
             <button
               className="flex items-center gap-2.5 px-2 hover:bg-muted py-1.5 rounded-sm-sm w-full text-left transition-all whitespace-nowrap overflow-hidden group/personal"
             >
               <div className="w-5 h-5 bg-muted flex items-center justify-center text-foreground font-bold text-[10px] shrink-0 rounded-sm-sm border border-border shadow-sm-sm group-hover/personal:bg-muted/80 transition-all">
-                N
+                {spaceIcon}
               </div>
-              <span className="font-semibold tracking-tight text-[13px] flex-1 truncate text-foreground">{"Personal Space"}</span>
+              <span className="font-semibold tracking-tight text-[13px] flex-1 truncate text-foreground">{spaceName}</span>
               <CaretDown size={12} className="text-muted-foreground mr-2 group-hover/personal:text-foreground" />
             </button>
           ) : (
@@ -515,7 +523,7 @@ export const Sidebar = () => {
               className="w-full flex justify-center py-1.5"
             >
               <div className="w-6 h-6 bg-muted flex items-center justify-center text-foreground font-bold text-xs shrink-0 rounded-sm-sm border border-border shadow-sm-sm">
-                N
+                {spaceIcon}
               </div>
             </div>
           )}

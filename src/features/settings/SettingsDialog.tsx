@@ -10,10 +10,14 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
     timeFormat, 
     weekStartDay, 
     roundness,
+    spaceName,
+    spaceIcon,
     setTimezone, 
     setTimeFormat, 
     setWeekStartDay,
-    setRoundness
+    setRoundness,
+    setSpaceName,
+    setSpaceIcon
   } = useSettingsStore();
   const mounted = useIsMounted();
 
@@ -67,6 +71,36 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
               </div>
 
               <div className="p-6 flex flex-col gap-6">
+                {/* Space Name & Icon */}
+                <div className="flex gap-4 items-end">
+                  <div className="flex flex-col gap-2 flex-[2_2_0%]">
+                    <label className="text-sm font-semibold text-foreground">Space Name</label>
+                    <input
+                      type="text"
+                      value={spaceName}
+                      onChange={(e) => setSpaceName(e.target.value)}
+                      placeholder="e.g. Personal Space"
+                      className="bg-background border border-border rounded-sm px-3 py-2 text-sm text-foreground outline-none focus:border-accent/40 transition-colors w-full focus:ring-1 focus:ring-accent font-sans"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2 flex-1">
+                    <label className="text-sm font-semibold text-foreground">Icon</label>
+                    <div className="flex gap-2 items-center">
+                      <div className="w-9 h-9 bg-muted flex items-center justify-center text-foreground font-bold text-sm shrink-0 rounded-sm-sm border border-border shadow-sm-sm select-none">
+                        {spaceIcon || "N"}
+                      </div>
+                      <input
+                        type="text"
+                        maxLength={2}
+                        value={spaceIcon}
+                        onChange={(e) => setSpaceIcon(e.target.value)}
+                        placeholder="N"
+                        className="bg-background border border-border rounded-sm px-2 py-2 text-center text-sm text-foreground outline-none focus:border-accent/40 transition-colors w-full focus:ring-1 focus:ring-accent font-sans"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 {/* Timezone */}
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-semibold text-foreground">Timezone</label>

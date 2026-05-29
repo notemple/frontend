@@ -43,7 +43,7 @@ export const CommandPalette = () => {
   const rowVirtualizer = useVirtual({
     size: filteredDocs.length,
     parentRef,
-    estimateSize: React.useCallback(() => 42, []), // estimated row height is 42px
+    estimateSize: React.useCallback(() => 50, []), // estimated row height is 50px
     overscan: 5,
   });
 
@@ -73,6 +73,39 @@ export const CommandPalette = () => {
       setSelectedIndex(0);
     }
   }, [isOpen]);
+
+  // Handle auto-scrolling when navigating items with Arrow keys
+  useEffect(() => {
+    if (isOpen && parentRef.current) {
+      const container = parentRef.current;
+      const clientHeight = container.clientHeight;
+      const scrollTop = container.scrollTop;
+
+      let itemTop = 0;
+      let itemHeight = 42;
+
+      if (selectedIndex === 0) {
+        // "Split Workspace" button (rendered below the Commands header which is ~36px)
+        itemTop = 36;
+        itemHeight = 38;
+      } else {
+        // Virtualized documents
+        // Height of "Commands" header (36px) + "Split Workspace" button (38px + 6px margin-bottom = 44px) + "Documents" header (52px) = 132px
+        itemTop = 132 + (selectedIndex - 1) * 50;
+        itemHeight = 44; // button height is 50px minus 6px margin/gap
+      }
+
+      const itemBottom = itemTop + itemHeight;
+
+      if (itemTop < scrollTop + 36) {
+        // Scroll up to show item
+        container.scrollTo({ top: Math.max(0, itemTop - 36), behavior: 'auto' });
+      } else if (itemBottom > scrollTop + clientHeight - 10) {
+        // Scroll down to show item
+        container.scrollTo({ top: itemBottom - clientHeight + 10, behavior: 'auto' });
+      }
+    }
+  }, [selectedIndex, isOpen]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'ArrowDown') {
@@ -126,8 +159,9 @@ export const CommandPalette = () => {
             <div ref={parentRef} className="max-h-[60vh] overflow-y-auto p-2 no-scrollbar">
               <div className="text-xs font-semibold px-3 py-2 text-muted-foreground mb-1 uppercase tracking-wider font-mono">Commands</div>
               <button
+                id="cmd-palette-item-0"
                 onClick={allItems[0].action}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-sm-sm text-[13px] text-left transition-colors duration-100 group ${selectedIndex === 0 ? 'bg-muted text-foreground font-semibold shadow-sm-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-sm-sm text-[13px] text-left transition-colors duration-100 group mb-1.5 ${selectedIndex === 0 ? 'bg-muted text-foreground font-semibold shadow-sm-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
               >
                 <div className="flex items-center">
                   {React.cloneElement(allItems[0].icon, { className: selectedIndex === 0 ? 'text-foreground mr-3' : 'text-muted-foreground mr-3' })}
@@ -153,6 +187,7 @@ export const CommandPalette = () => {
                       const isSelected = selectedIndex === itemIndex;
                       return (
                         <button
+                          id={`cmd-palette-item-${itemIndex}`}
                           key={doc.id}
                           onClick={() => allItems[itemIndex].action()}
                           style={{
@@ -160,10 +195,10 @@ export const CommandPalette = () => {
                             top: 0,
                             left: 0,
                             width: '100%',
-                            height: `${virtualRow.size}px`,
+                            height: `${virtualRow.size - 6}px`,
                             transform: `translateY(${virtualRow.start}px)`,
                           }}
-                          className={`flex items-center justify-between px-3 py-2 rounded-sm-sm text-[13px] text-left transition-colors duration-100 group ${isSelected ? 'bg-muted text-foreground font-semibold shadow-sm-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                          className={`flex items-center justify-between px-3 py-2.5 rounded-sm-sm text-[13px] text-left transition-colors duration-100 group ${isSelected ? 'bg-muted text-foreground font-semibold shadow-sm-sm' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
                         >
                           <div className="flex items-center">
                             {React.cloneElement(allItems[itemIndex].icon, { className: isSelected ? 'text-foreground mr-3' : 'text-muted-foreground mr-3' })}

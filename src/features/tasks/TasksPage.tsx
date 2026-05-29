@@ -25,6 +25,7 @@ import {
   List,
   Kanban,
   DotsSixVertical,
+  ArrowsDownUp,
 } from "@phosphor-icons/react";
 import { DndContext, useDroppable, useDraggable, PointerSensor, useSensor, useSensors, type DragEndEvent, DragOverlay, type DragStartEvent } from "@dnd-kit/core";
 import { motion, AnimatePresence } from "motion/react";
@@ -32,6 +33,7 @@ import { NotempleEditor } from "@/features/editor/NotempleEditor";
 import {
   isTaskDueToday,
   isTaskUpcoming,
+  isTaskOverdue,
   getCalendarDays,
   toUtcString,
   formatDisplayDate,
@@ -180,7 +182,7 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
   const parentRef = useRef<HTMLDivElement>(null);
 
   const [activeTab, setActiveTab] = useState<
-    "Today" | "Upcoming" | "All Tasks"
+    "Today" | "Upcoming" | "All Tasks" | "Overdue"
   >("Today");
   const [viewMode, setViewMode] = useState<"list" | "kanban">(() => {
     const saved = localStorage.getItem("tasks-view-mode");
@@ -193,6 +195,7 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
   const [isTaskInputOpen, setIsTaskInputOpen] = useState(false);
   const [activeTask, setActiveTask] = useState<string | null>(null);
   const [openDatePickerTaskId, setOpenDatePickerTaskId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"priority" | "month" | "week" | null>(null);
 
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskList, setNewTaskList] = useState<
@@ -206,12 +209,106 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
   const filteredTasks = useMemo(() => {
     return tasks.filter((t) => {
       if (activeTab === "All Tasks") return true;
+      if (activeTab === "Overdue") {
+        return !t.completed && t.status !== "done" && isTaskOverdue(t.deadline);
+      }
       const creationUtc = t.startDate || t.createdAt;
       if (activeTab === "Today") return isTaskCreatedToday(creationUtc);
       if (activeTab === "Upcoming") return isTaskUpcoming(creationUtc);
       return true;
     });
   }, [tasks, activeTab]);
+
+  const sortedTasks = useMemo(() => {
+    const list = [...filteredTasks];
+    if (!sortBy) return list;
+
+    if (sortBy === "priority") {
+      const priorityWeight = { urgent: 3, medium: 2, low: 1, undefined: 0 };
+      return list.sort((a, b) => {
+        const wA = priorityWeight[a.priority || "undefined"];
+        const wB = priorityWeight[b.priority || "undefined"];
+        return wB - wA; // Higher priority first
+      });
+    }
+
+    if (sortBy === "month") {
+      return list.sort((a, b) => {
+        if (!a.deadline && !b.deadline) return 0;
+        if (!a.deadline) return 1;
+        if (!b.deadline) return -1;
+        const dateA = new Date(a.deadline);
+        const dateB = new Date(b.deadline);
+        const monthA = dateA.getFullYear() * 12 + dateA.getMonth();
+        const monthB = dateB.getFullYear() * 12 + dateB.getMonth();
+        return monthA - monthB;
+      });
+    }
+
+    if (sortBy === "week") {
+      return list.sort((a, b) => {
+        if (!a.deadline && !b.deadline) return 0;
+        if (!a.deadline) return 1;
+        if (!b.deadline) return -1;
+        const dateA = new Date(a.deadline);
+        const dateB = new Date(b.deadline);
+        const getStartOfWeek = (d: Date) => {
+          const day = d.getDay();
+          const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+          const start = new Date(d);
+          start.setDate(diff);
+          start.setHours(0,0,0,0);
+          return start.getTime();
+        };
+        return getStartOfWeek(dateA) - getStartOfWeek(dateB);
+      });
+    }
+
+    return list;
+  }, [filteredTasks, sortBy]);
+
+  const groupedTasksByMonth = useMemo(() => {
+    if (viewMode !== "list") {
+      return null;
+    }
+
+    let getDateStr: (t: Task) => string;
+    if (activeTab === "All Tasks") {
+      getDateStr = (t) => t.createdAt;
+    } else if (activeTab === "Upcoming") {
+      getDateStr = (t) => t.startDate || t.createdAt;
+    } else if (activeTab === "Overdue") {
+      getDateStr = (t) => t.deadline || t.createdAt;
+    } else {
+      return null;
+    }
+
+    const groups: { [key: string]: Task[] } = {};
+    
+    sortedTasks.forEach((task) => {
+      const dateStr = getDateStr(task);
+      const yearMonthKey = formatDisplayDate(dateStr, "yyyy-MM");
+      if (!groups[yearMonthKey]) {
+        groups[yearMonthKey] = [];
+      }
+      groups[yearMonthKey].push(task);
+    });
+
+    const sortedKeys = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+
+    return sortedKeys.map((key) => {
+      const firstTask = groups[key][0];
+      const dateStr = getDateStr(firstTask);
+      const displayLabel = formatDisplayDate(dateStr, "MMMM yyyy");
+      return {
+        key,
+        label: displayLabel,
+        tasks: groups[key],
+      };
+    });
+  }, [sortedTasks, activeTab, viewMode]);
+
+
 
 
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
@@ -239,9 +336,9 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
     updateTask(taskId, { status: newStatus });
   }, [updateTask]);
 
-  const openTasks = useMemo(() => filteredTasks.filter(t => (t.status === "open" || (!t.status && !t.completed))), [filteredTasks]);
-  const inProgressTasks = useMemo(() => filteredTasks.filter(t => t.status === "in progress"), [filteredTasks]);
-  const doneTasks = useMemo(() => filteredTasks.filter(t => t.status === "done" || t.completed), [filteredTasks]);
+  const openTasks = useMemo(() => sortedTasks.filter(t => (t.status === "open" || (!t.status && !t.completed))), [sortedTasks]);
+  const inProgressTasks = useMemo(() => sortedTasks.filter(t => t.status === "in progress"), [sortedTasks]);
+  const doneTasks = useMemo(() => sortedTasks.filter(t => t.status === "done" || t.completed), [sortedTasks]);
 
   const handleCreateTask = () => {
     if (!newTaskTitle.trim()) return;
@@ -294,33 +391,43 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
               onClick={() => setActiveTab("All Tasks")}
               colorScheme="purple"
             />
+            <TabButton
+              icon={<Clock size={16} className={activeTab === "Overdue" ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground"} />}
+              label="Overdue"
+              active={activeTab === "Overdue"}
+              onClick={() => setActiveTab("Overdue")}
+              colorScheme="rose"
+            />
           </div>
 
-          <div className="flex items-center gap-1 bg-muted/60 p-0.5 rounded-sm-sm border border-border/85 shadow-sm-sm">
-            <button
-              onClick={() => setViewMode("list")}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1 rounded-sm-sm text-xs font-semibold transition-all duration-200 cursor-pointer select-none",
-                viewMode === "list"
-                  ? "bg-background text-foreground shadow-sm-sm border border-border/40 font-bold"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
-              )}
-            >
-              <List size={14} weight={viewMode === "list" ? "bold" : "regular"} />
-              <span>List</span>
-            </button>
-            <button
-              onClick={() => setViewMode("kanban")}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1 rounded-sm-sm text-xs font-semibold transition-all duration-200 cursor-pointer select-none",
-                viewMode === "kanban"
-                  ? "bg-background text-foreground shadow-sm-sm border border-border/40 font-bold"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
-              )}
-            >
-              <Kanban size={14} weight={viewMode === "kanban" ? "bold" : "regular"} />
-              <span>Kanban</span>
-            </button>
+          <div className="flex items-center gap-3">
+            <SortDropdown sortBy={sortBy} onChange={setSortBy} />
+            <div className="flex items-center gap-1 bg-muted/60 p-0.5 rounded-sm-sm border border-border/85 shadow-sm-sm">
+              <button
+                onClick={() => setViewMode("list")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1 rounded-sm-sm text-xs font-semibold transition-all duration-200 cursor-pointer select-none",
+                  viewMode === "list"
+                    ? "bg-background text-foreground shadow-sm-sm border border-border/40 font-bold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                )}
+              >
+                <List size={14} weight={viewMode === "list" ? "bold" : "regular"} />
+                <span>List</span>
+              </button>
+              <button
+                onClick={() => setViewMode("kanban")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1 rounded-sm-sm text-xs font-semibold transition-all duration-200 cursor-pointer select-none",
+                  viewMode === "kanban"
+                    ? "bg-background text-foreground shadow-sm-sm border border-border/40 font-bold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                )}
+              >
+                <Kanban size={14} weight={viewMode === "kanban" ? "bold" : "regular"} />
+                <span>Kanban</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -328,33 +435,69 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
           <div className="flex flex-col relative before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent w-full">
             <div className="flex flex-col pl-8 w-full gap-3">
               <AnimatePresence initial={false} mode="popLayout">
-                {filteredTasks.map((task) => (
-                  <motion.div
-                    key={task.id}
-                    layout
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 500,
-                      damping: 38
-                    }}
-                    style={{
-                      zIndex: openDatePickerTaskId === task.id ? 50 : undefined,
-                    }}
-                  >
-                    <TaskRow
-                      task={task}
-                      updateTask={updateTask}
-                      deleteTask={deleteTask}
-                      onOpen={() => setActiveTask(task.id)}
-                      onDatePickerOpenChange={(isOpen) => setOpenDatePickerTaskId(isOpen ? task.id : null)}
-                    />
-                  </motion.div>
-                ))}
+                {groupedTasksByMonth ? (
+                  groupedTasksByMonth.map((group, index) => (
+                    <div key={group.key} className="flex flex-col gap-3">
+                      <div className={cn("text-xs font-bold tracking-widest text-muted-foreground/60 uppercase font-mono flex items-center gap-2 select-none", index === 0 ? "mt-1 mb-2" : "mt-6 mb-2")}>
+                        <CalendarBlank size={12} className="text-purple-500/80 dark:text-purple-400" />
+                        <span>{group.label}</span>
+                      </div>
+                      {group.tasks.map((task) => (
+                        <motion.div
+                          key={task.id}
+                          layout
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 500,
+                            damping: 38
+                          }}
+                          style={{
+                            zIndex: openDatePickerTaskId === task.id ? 50 : undefined,
+                          }}
+                        >
+                          <TaskRow
+                            task={task}
+                            updateTask={updateTask}
+                            deleteTask={deleteTask}
+                            onOpen={() => setActiveTask(task.id)}
+                            onDatePickerOpenChange={(isOpen) => setOpenDatePickerTaskId(isOpen ? task.id : null)}
+                          />
+                        </motion.div>
+                      ))}
+                    </div>
+                  ))
+                ) : (
+                  sortedTasks.map((task) => (
+                    <motion.div
+                      key={task.id}
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 38
+                      }}
+                      style={{
+                        zIndex: openDatePickerTaskId === task.id ? 50 : undefined,
+                      }}
+                    >
+                      <TaskRow
+                        task={task}
+                        updateTask={updateTask}
+                        deleteTask={deleteTask}
+                        onOpen={() => setActiveTask(task.id)}
+                        onDatePickerOpenChange={(isOpen) => setOpenDatePickerTaskId(isOpen ? task.id : null)}
+                      />
+                    </motion.div>
+                  ))
+                )}
               </AnimatePresence>
-              {filteredTasks.length === 0 && (
+              {sortedTasks.length === 0 && (
                 <div className="text-muted-foreground text-sm italic py-4">
                   No tasks in this list.
                 </div>
@@ -504,7 +647,7 @@ const TabButton = ({
   label: string;
   active: boolean;
   onClick: () => void;
-  colorScheme: "amber" | "sky" | "purple";
+  colorScheme: "amber" | "sky" | "purple" | "rose";
 }) => {
   const schemeClasses = {
     amber: {
@@ -518,6 +661,10 @@ const TabButton = ({
     purple: {
       active: "bg-pink-orchid/70 dark:bg-pink-orchid/20 text-foreground dark:text-pink-orchid border-pink-orchid/50 dark:border-pink-orchid/30 shadow-sm-sm border font-semibold hover:bg-pink-orchid/80 dark:hover:bg-pink-orchid/35",
       indicator: "bg-pink-orchid dark:bg-pink-orchid shadow-sm-sm"
+    },
+    rose: {
+      active: "bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-500/30 dark:border-rose-500/20 shadow-sm-sm border font-semibold hover:bg-rose-500/15 dark:hover:bg-rose-500/30",
+      indicator: "bg-rose-500 dark:bg-rose-400 shadow-sm-sm"
     }
   }[colorScheme];
 
@@ -538,5 +685,90 @@ const TabButton = ({
       )}
       {icon} {label}
     </button>
+  );
+};
+
+export const SortDropdown = ({
+  sortBy,
+  onChange,
+}: {
+  sortBy: "priority" | "month" | "week" | null;
+  onChange: (val: "priority" | "month" | "week" | null) => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const options = [
+    { value: null, label: "Default" },
+    { value: "priority", label: "Priority" },
+    { value: "month", label: "Month" },
+    { value: "week", label: "Week" },
+  ] as const;
+
+  const currentLabel = options.find((o) => o.value === sortBy)?.label || "Sort";
+
+  return (
+    <div className="relative font-sans" ref={containerRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-1.5 px-3 py-1.5 bg-muted/60 text-xs font-semibold rounded-sm-sm border border-border/85 shadow-sm-sm hover:text-foreground hover:bg-muted/95 transition-all duration-200 cursor-pointer select-none"
+      >
+        <ArrowsDownUp size={14} weight={sortBy ? "bold" : "regular"} className={sortBy ? "text-purple-500" : "text-muted-foreground"} />
+        <span>{sortBy ? `Sorted by: ${currentLabel}` : "Sort"}</span>
+        <CaretDown size={10} className="text-muted-foreground" />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 5 }}
+            className="absolute top-full right-0 mt-1.5 w-40 bg-background border border-border rounded-sm-sm shadow-sm-sm p-1 z-[60] flex flex-col gap-0.5 origin-top-right"
+          >
+            <div className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground/50 px-2.5 py-1 font-mono border-b border-border mb-0.5">
+              Sort Tasks By
+            </div>
+            {options.map((option) => {
+              const isSelected = option.value === sortBy;
+              return (
+                <button
+                  type="button"
+                  key={option.value || "default"}
+                  className={cn(
+                    "flex items-center justify-between w-full text-xs font-semibold px-3 py-2 rounded-sm-sm text-left transition-colors cursor-pointer",
+                    isSelected
+                      ? "bg-purple-500/10 text-purple-600 dark:text-purple-400"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                  onClick={() => {
+                    onChange(option.value);
+                    setIsOpen(false);
+                  }}
+                >
+                  <span>{option.label}</span>
+                  {isSelected && <span className="w-1.5 h-1.5 rounded-sm-full bg-purple-500 dark:bg-purple-400" />}
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };

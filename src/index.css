@@ -365,3 +365,88 @@
 .dark .folder-element, html.dark .folder-element {
   --folder-text: var(--folder-text-dark);
 }
+
+/* Premium TaskList / Todo list styles */
+.tiptap ul[data-type="taskList"] {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.tiptap li[data-type="taskItem"] {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tiptap li[data-type="taskItem"] > label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  margin-top: 0.25rem;
+  position: relative;
+  cursor: pointer;
+}
+
+/* Hide default checkbox styling and apply customized modern check box */
+.tiptap li[data-type="taskItem"] > label input[type="checkbox"] {
+  appearance: none;
+  background-color: transparent;
+  margin: 0;
+  font: inherit;
+  color: currentColor;
+  width: 1rem;
+  height: 1rem;
+  border: 1.5px solid var(--muted-foreground);
+  border-radius: 0.125rem;
+  display: grid;
+  place-content: center;
+  transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.tiptap li[data-type="taskItem"] > label input[type="checkbox"]:hover {
+  border-color: var(--foreground);
+  background-color: rgba(255, 255, 255, 0.05);
+  transform: scale(1.05);
+}
+
+.tiptap li[data-type="taskItem"] > label input[type="checkbox"]:checked {
+  background-color: #10b981; /* Emerald-500 */
+  border-color: #10b981;
+  transform: scale(0.95);
+}
+
+.tiptap li[data-type="taskItem"] > label input[type="checkbox"]::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.3rem;
+  transform: scale(0) rotate(-45deg);
+  transform-origin: center;
+  border-left: 1.5px solid white;
+  border-bottom: 1.5px solid white;
+  margin-top: -2px;
+  transition: transform 120ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.tiptap li[data-type="taskItem"] > label input[type="checkbox"]:checked::before {
+  transform: scale(1) rotate(-45deg);
+}
+
+/* Checked content styling with smooth fade and line-through */
+.tiptap li[data-type="taskItem"][data-checked="true"] > div {
+  text-decoration: line-through;
+  color: var(--muted-foreground);
+  opacity: 0.65;
+  transition: all 180ms ease-out;
+}
+
+.tiptap li[data-type="taskItem"]:not([data-checked="true"]) > div {
+  text-decoration: none;
+  color: var(--foreground);
+  opacity: 1;
+  transition: all 180ms ease-out;
+}
+

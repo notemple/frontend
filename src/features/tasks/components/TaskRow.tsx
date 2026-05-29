@@ -1,5 +1,6 @@
 import { CustomStatusPicker } from "../TasksPage";
 import { CustomDatePicker } from "./CustomDatePicker";
+import { CustomPriorityPicker } from "./CustomPriorityPicker";
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -102,6 +103,13 @@ export const TaskRow = React.memo(({
 <CustomStatusPicker
             status={task.status || (task.completed ? "done" : "open")}
             onChange={(s: "open" | "in progress" | "done") => updateTask(task.id, { status: s })}
+            onOpenChange={onDatePickerOpenChange}
+          />
+
+          {/* CustomPriorityPicker */}
+<CustomPriorityPicker
+            priority={task.priority}
+            onChange={(p: "low" | "medium" | "urgent" | undefined) => updateTask(task.id, { priority: p })}
             onOpenChange={onDatePickerOpenChange}
           />
         </div>

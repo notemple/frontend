@@ -43,6 +43,7 @@ export interface Task {
   deadline?: string;
   createdAt: string;
   status?: 'open' | 'in progress' | 'done';
+  priority?: 'low' | 'medium' | 'urgent';
   isDeleted?: boolean;
   deletedAt?: string;
 }

@@ -5,7 +5,11 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
-import Image from '@tiptap/extension-image';
+import { ReferenceExtension } from './extensions/ReferenceExtension';
+import { MentionSuggestion, renderMentionItems } from './extensions/MentionSuggestion';
+import { CustomImageExtension } from './extensions/CustomImageExtension';
+import { BlockHandle } from './components/BlockHandle';
+import { aiService } from '@/services/ai.service';
 import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
 import Color from '@tiptap/extension-color';
@@ -16,10 +20,10 @@ import Typography from '@tiptap/extension-typography';
 import { Table, TableRow, TableHeader, TableCell } from '@tiptap/extension-table';
 import { motion } from 'motion/react';
 import { SlashCommand, getSuggestionItems, renderItems } from './components/SlashCommand';
-import { useDocumentStore } from '@/features/documents/store';
+import { useDocumentStore, type NoteDocument } from '@/features/documents/store';
 import { useUiStore } from '@/shared/store/uiStore';
 import { useShallow } from 'zustand/react/shallow';
-import { Tag, TextB, TextItalic, TextStrikethrough, TextAUnderline, Code, ArrowsInSimple } from '@phosphor-icons/react';
+import { Tag, TextB, TextItalic, TextStrikethrough, TextAUnderline, Code, ArrowsInSimple, Sparkle, FileText } from '@phosphor-icons/react';
 import { useSettingsStore } from '@/features/settings/store';
 import { toDate } from 'date-fns-tz';
 import { cn, getTagStyle } from '@/shared/lib/utils';
@@ -53,6 +57,32 @@ const allExistingTagsSelector = (state: any) => {
 
   cachedAllExistingTags = Array.from(set);
   return cachedAllExistingTags;
+};
+
+const getBacklinksForDocument = (currentDocId: string, documents: Record<string, NoteDocument>) => {
+  const list: { id: string; title: string; excerpt: string; updatedAt: string }[] = [];
+  Object.values(documents).forEach(doc => {
+    if (doc.id === currentDocId || doc.isDeleted || !doc.content) return;
+    
+    // Parse references
+    const parser = new DOMParser();
+    const htmlDoc = parser.parseFromString(doc.content, 'text/html');
+    const hasRef = Array.from(htmlDoc.querySelectorAll('span[data-reference][data-type="document"]'))
+      .some(span => span.getAttribute('data-id') === currentDocId);
+      
+    if (hasRef) {
+      // Extract a clean excerpt around the reference or from the beginning
+      const cleanText = htmlDoc.body.textContent || '';
+      const excerpt = cleanText.length > 140 ? `${cleanText.slice(0, 140).trim()}...` : cleanText.trim();
+      list.push({
+        id: doc.id,
+        title: doc.title || 'Untitled',
+        excerpt: excerpt || 'No text preview available.',
+        updatedAt: doc.updatedAt
+      });
+    }
+  });
+  return list;
 };
 
 export const NotempleEditor = React.memo(({ 
@@ -120,6 +150,12 @@ export const NotempleEditor = React.memo(({
   const [tags, setTags] = useState<string[]>(document?.tags || []);
   const [showTagsDropdown, setShowTagsDropdown] = useState(false);
   const tagsDropdownRef = useRef<HTMLDivElement>(null);
+  const [showBacklinks, setShowBacklinks] = useState(true);
+  const documents = useDocumentStore(state => state.documents);
+  const backlinks = useMemo(() => {
+    if (!documentId) return [];
+    return getBacklinksForDocument(documentId, documents);
+  }, [documentId, documents]);
 
   useEffect(() => {
     if (!showTagsDropdown) return;
@@ -216,7 +252,14 @@ export const NotempleEditor = React.memo(({
     TaskItem.configure({
       nested: true,
     }),
-    Image,
+    CustomImageExtension,
+    ReferenceExtension,
+    MentionSuggestion.configure({
+      suggestion: {
+        items: ({ query }) => [query],
+        render: renderMentionItems,
+      },
+    }),
     TextAlign.configure({
       types: ['heading', 'paragraph'],
     }),
@@ -607,6 +650,9 @@ export const NotempleEditor = React.memo(({
           }}
         >
           {editor && (
+            <BlockHandle editor={editor} />
+          )}
+          {editor && (
             <BubbleMenu
               editor={editor}
               options={{ placement: 'top' }}
@@ -643,9 +689,63 @@ export const NotempleEditor = React.memo(({
               >
                 <Code size={16} />
               </button>
+              <div className="w-px h-4 bg-border mx-1" />
+              <button
+                onClick={async () => {
+                  const { from, to } = editor.state.selection;
+                  const selectedText = editor.state.doc.textBetween(from, to, ' ');
+                  if (selectedText) {
+                    const res = await aiService.rewrite(selectedText, 'improved');
+                    if (res.success) {
+                      editor.chain().focus().insertContentAt({ from, to }, res.text).run();
+                    }
+                  }
+                }}
+                className="p-1.5 rounded-sm-sm transition-colors text-purple-500 hover:bg-purple-500/10 cursor-pointer"
+                title="AI Polish selected text"
+              >
+                <Sparkle size={16} />
+              </button>
             </BubbleMenu>
           )}
           <EditorContent editor={editor} />
+
+          {/* Backlinks panel */}
+          {!isMinimized && backlinks.length > 0 && (
+            <div className="mt-16 pt-8 border-t border-border/40 font-sans shrink-0 z-10 relative">
+              <button
+                onClick={() => setShowBacklinks(!showBacklinks)}
+                className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest hover:text-foreground transition-colors cursor-pointer select-none mb-4"
+              >
+                <FileText size={14} className="opacity-70" />
+                <span>Backlinks ({backlinks.length})</span>
+                <span className="text-[10px] opacity-50">{showBacklinks ? 'Collapse' : 'Expand'}</span>
+              </button>
+              
+              {showBacklinks && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+                  {backlinks.map(link => (
+                    <div
+                      key={link.id}
+                      onClick={() => openDocument(link.id)}
+                      className="group/backlink p-4 rounded-sm-sm border border-border/50 bg-muted/20 hover:bg-muted/40 hover:border-border transition-all duration-200 cursor-pointer flex flex-col gap-1.5 shadow-sm-sm"
+                    >
+                      <div className="flex items-center gap-2 text-[13px] font-semibold text-foreground group-hover/backlink:text-blue-500 transition-colors">
+                        <FileText size={14} className="text-muted-foreground shrink-0" />
+                        <span className="truncate">{link.title}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                        {link.excerpt}
+                      </p>
+                      <div className="text-[10px] text-muted-foreground/50 font-mono mt-1">
+                        Updated {formatDisplayDate(link.updatedAt, "MMM d, h:mm a")}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

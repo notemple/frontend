@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import type { CommandItem } from './SlashCommand';
 import { CaretRight, CaretLeft } from '@phosphor-icons/react';
 
@@ -11,12 +11,33 @@ export const SlashCommandList = forwardRef((props: SlashCommandListProps, ref) =
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [currentMenu, setCurrentMenu] = useState<CommandItem[]>(props.items);
   const [menuStack, setMenuStack] = useState<CommandItem[][]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setCurrentMenu(props.items);
     setSelectedIndex(0);
     setMenuStack([]);
   }, [props.items]);
+
+  // Handle automatic scrolling when selection index changes
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const container = containerRef.current;
+    const selectedButton = container.querySelector('[data-slash-item="true"]') as HTMLElement;
+
+    if (selectedButton) {
+      const containerHeight = container.clientHeight;
+      const containerScrollTop = container.scrollTop;
+      const buttonTop = selectedButton.offsetTop;
+      const buttonHeight = selectedButton.offsetHeight;
+
+      if (buttonTop < containerScrollTop) {
+        container.scrollTop = buttonTop - 8; // add a little padding
+      } else if (buttonTop + buttonHeight > containerScrollTop + containerHeight) {
+        container.scrollTop = buttonTop + buttonHeight - containerHeight + 8;
+      }
+    }
+  }, [selectedIndex, currentMenu]);
 
   const selectItem = (index: number) => {
     const item = currentMenu[index];
@@ -84,11 +105,14 @@ export const SlashCommandList = forwardRef((props: SlashCommandListProps, ref) =
   }
 
   return (
-    <div className="bg-card  border border-white/5 rounded-sm-sm shadow-sm-sm p-2 flex flex-col min-w-[280px] max-h-[380px] overflow-y-auto no-scrollbar font-sans">
+    <div 
+      ref={containerRef}
+      className="bg-card border border-white/5 rounded-sm-sm shadow-sm-sm p-2 flex flex-col gap-1 min-w-[280px] max-h-[380px] overflow-y-auto no-scrollbar font-sans"
+    >
       {menuStack.length > 0 && (
         <button
           onClick={goBack}
-          className="w-full flex items-center justify-between px-3 py-2 text-sm rounded-sm-sm transition-all text-white/50 hover:bg-muted/40 hover:text-white mb-2 border-b border-white/5 pb-2"
+          className="w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-sm-sm transition-all text-white/50 hover:bg-muted/40 hover:text-white mb-1.5 border-b border-white/5 pb-2.5 shrink-0"
         >
           <div className="flex items-center gap-3">
             <CaretLeft size={16} />
@@ -98,6 +122,7 @@ export const SlashCommandList = forwardRef((props: SlashCommandListProps, ref) =
       )}
       {currentMenu.map((item, index) => {
         const isNewGroup = index === 0 || item.group !== currentMenu[index - 1].group;
+        const isSelected = index === selectedIndex;
         return (
           <React.Fragment key={index}>
             {isNewGroup && item.group && (
@@ -106,17 +131,18 @@ export const SlashCommandList = forwardRef((props: SlashCommandListProps, ref) =
               </div>
             )}
             <button
+              data-slash-item={isSelected}
               onClick={() => selectItem(index)}
               className={`
-                w-full flex items-center justify-between px-3 py-2 text-[13px] rounded-sm-sm transition-all duration-200 group relative overflow-hidden
-                ${index === selectedIndex ? 'text-white shadow-sm-sm' : 'text-white/60 hover:text-white/90'}
+                w-full flex items-center justify-between px-3 py-2.5 text-[13px] rounded-sm-sm transition-all duration-200 group relative overflow-hidden shrink-0
+                ${isSelected ? 'text-white shadow-sm-sm' : 'text-white/60 hover:text-white/90'}
               `}
             >
-              {index === selectedIndex && (
-                <div className="absolute inset-0 bg-muted/40  shadow-sm-inner rounded-sm-sm" />
+              {isSelected && (
+                <div className="absolute inset-0 bg-muted/40 shadow-sm-inner rounded-sm-sm" />
               )}
               <div className="flex items-center gap-3 relative z-10">
-                <span className={index === selectedIndex ? "text-white flex items-center justify-center w-5 h-5 shadow-sm-sm transform scale-110 transition-transform" : "opacity-70 group-hover:opacity-100 flex items-center justify-center w-5 h-5 transition-transform group-hover:scale-105"}>{item.icon}</span>
+                <span className={isSelected ? "text-white flex items-center justify-center w-5 h-5 shadow-sm-sm transform scale-110 transition-transform" : "opacity-70 group-hover:opacity-100 flex items-center justify-center w-5 h-5 transition-transform group-hover:scale-105"}>{item.icon}</span>
                 <span className="font-medium tracking-tight shadow-sm-sm">{item.title}</span>
               </div>
               {item.submenu && (

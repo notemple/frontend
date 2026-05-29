@@ -1,4 +1,5 @@
 import { Extension } from '@tiptap/core';
+import { PluginKey } from '@tiptap/pm/state';
 import Suggestion from '@tiptap/suggestion';
 import { ReactRenderer } from '@tiptap/react';
 import tippy, { type Instance as TippyInstance } from 'tippy.js';
@@ -69,28 +70,12 @@ export const getSuggestionItems = ({ query }: { query: string }) => {
     { title: 'Group', icon: <Square size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
     { title: 'Math', icon: <MathOperations size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
     { title: 'Code', icon: <CodeBlock size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleCodeBlock().run() },
-    { title: 'Table', icon: <Table size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
-
-    { title: 'New Tag', icon: <Tag size={16} className="text-orange-400" />, group: 'Create an object', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run(), submenu: [] },
-    { title: 'New Person', icon: <User size={16} className="text-orange-400" />, group: 'Create an object', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run(), submenu: [] },
-    { title: 'New Book', icon: <Book size={16} className="text-purple-400" />, group: 'Create an object', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run(), submenu: [] },
-    { title: 'New Page', icon: <FileText size={16} className="text-blue-400" />, group: 'Create an object', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run(), submenu: [] },
-    { title: 'New Date', icon: <CalendarBlank size={16} className="text-blue-400" />, group: 'Create an object', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run(), submenu: [] },
-    { title: 'New Image', icon: <ImageIcon size={16} className="text-red-400" />, group: 'Create an object', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run(), submenu: [] },
-    { title: 'New Weblink', icon: <Globe size={16} className="text-blue-400" />, group: 'Create an object', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run(), submenu: [] },
-    { title: 'New File', icon: <File size={16} className="text-red-400" />, group: 'Create an object', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run(), submenu: [] },
-
-    { title: 'Time', icon: <Clock size={16} />, group: 'Link to a date', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
-    { title: 'Now', icon: <Clock size={16} />, group: 'Link to a date', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
-    { title: 'Today', icon: <Calendar size={16} />, group: 'Link to a date', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
-    { title: 'Tomorrow', icon: <Calendar size={16} />, group: 'Link to a date', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
-    { title: 'Yesterday', icon: <Calendar size={16} />, group: 'Link to a date', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
-    { title: 'In a week', icon: <Calendar size={16} />, group: 'Link to a date', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
-    { title: 'A week ago', icon: <Calendar size={16} />, group: 'Link to a date', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() }
-  ];
+    { title: 'Table', icon: <Table size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },  ];
 
   return items.filter(item => item.title.toLowerCase().includes(query.toLowerCase()));
 };
+
+export const SlashCommandKey = new PluginKey('slashCommand');
 
 export const SlashCommand = Extension.create({
   name: 'slashCommand',
@@ -109,6 +94,7 @@ export const SlashCommand = Extension.create({
   addProseMirrorPlugins() {
     return [
       Suggestion({
+        pluginKey: SlashCommandKey,
         editor: this.editor,
         ...this.options.suggestion,
       }),

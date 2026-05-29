@@ -32,8 +32,8 @@ export const SidebarItem = ({
     <button
       onClick={onClick}
       className={cn(
-        "relative flex items-center gap-3 w-full px-2 py-1.5 text-[13px] outline-none group/item rounded-sm-sm transition-all duration-100 ease-out active:scale-[0.98] border border-transparent cursor-pointer",
-        !isOpen && "justify-center px-0 items-center",
+        "relative flex items-center w-full py-1.5 text-[13px] outline-none group/item rounded-sm-sm transition-all duration-100 ease-out active:scale-[0.98] border border-transparent cursor-pointer",
+        isOpen ? "px-2 gap-3" : "px-0 justify-center items-center gap-0",
         highlight
           ? activeTextClass
           : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
@@ -59,8 +59,8 @@ export const SidebarItem = ({
       </div>
       <div
         className={cn(
-          "flex-1 flex items-center justify-between min-w-0 transition-all duration-200 ease-out relative z-10",
-          isOpen ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2 pointer-events-none w-0 h-0 overflow-hidden"
+          "flex items-center justify-between min-w-0 transition-all duration-200 ease-out relative z-10",
+          isOpen ? "flex-1 opacity-100 translate-x-0" : "absolute opacity-0 -translate-x-2 pointer-events-none w-0 h-0 overflow-hidden"
         )}
       >
         <span

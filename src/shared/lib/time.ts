@@ -100,6 +100,19 @@ export const isTaskUpcoming = (dateUtc: string | null | undefined): boolean => {
   return dateStrZoned > todayStrZoned;
 };
 
+// Check if a task's deadline is overdue (strictly before zoned today)
+export const isTaskOverdue = (deadlineUtc: string | null | undefined): boolean => {
+  if (!deadlineUtc) return false;
+  const date = new Date(deadlineUtc);
+  if (isNaN(date.getTime())) return false;
+
+  const { timezone } = useSettingsStore.getState();
+  const dateStrZoned = formatInTimeZone(date, timezone, 'yyyy-MM-dd');
+  const todayStrZoned = formatInTimeZone(new Date(), timezone, 'yyyy-MM-dd');
+  return dateStrZoned < todayStrZoned;
+};
+
+
 // Check if a UTC date string matches a target zoned date ID ('yyyy-MM-dd')
 export const isSameDayString = (dateUtc: string | null | undefined, targetDateId: string): boolean => {
   if (!dateUtc) return false;

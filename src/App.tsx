@@ -18,8 +18,9 @@ export default function App() {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove('roundness-none', 'roundness-md');
-    root.classList.add(`roundness-${roundness === 'rounded-md' ? 'md' : 'none'}`);
+    root.classList.remove('roundness-none', 'roundness-md', 'roundness-lg');
+    const suffix = roundness === 'rounded-lg' ? 'lg' : roundness === 'rounded-md' ? 'md' : 'none';
+    root.classList.add(`roundness-${suffix}`);
   }, [roundness]);
 
   return (

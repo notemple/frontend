@@ -5,7 +5,7 @@ export interface SettingsStore {
   timezone: string;
   timeFormat: '12h' | '24h';
   weekStartDay: 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 for Sunday, 1 for Monday
-  roundness: 'rounded-md' | 'rounded-none';
+  roundness: 'rounded-md' | 'rounded-none' | 'rounded-lg';
   spaceName: string;
   spaceIcon: string;
   userName: string;
@@ -15,7 +15,7 @@ export interface SettingsStore {
   setTimezone: (timezone: string) => void;
   setTimeFormat: (format: '12h' | '24h') => void;
   setWeekStartDay: (day: 0 | 1 | 2 | 3 | 4 | 5 | 6) => void;
-  setRoundness: (roundness: 'rounded-md' | 'rounded-none') => void;
+  setRoundness: (roundness: 'rounded-md' | 'rounded-none' | 'rounded-lg') => void;
   setSpaceName: (name: string) => void;
   setSpaceIcon: (icon: string) => void;
   setUserName: (name: string) => void;

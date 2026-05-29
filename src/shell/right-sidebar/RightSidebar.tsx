@@ -395,7 +395,7 @@ const StyleTab = () => {
                       setShowColorPickerInline(false);
                     }}
                     className={cn(
-                      "w-8 h-8 rounded-sm-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
+                      "w-8 h-8 rounded-sm-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
                       isSelected ? "scale-105" : ""
                     )}
                     style={{ 
@@ -424,7 +424,7 @@ const StyleTab = () => {
               <button
                 onClick={() => setShowColorPickerInline(!showColorPickerInline)}
                 className={cn(
-                  "w-8 h-8 rounded-sm-full border transition-all duration-200 shrink-0 flex items-center justify-center relative overflow-hidden group justify-self-center cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
+                  "w-8 h-8 rounded-sm-full border transition-all duration-200 shrink-0 flex items-center justify-center relative overflow-hidden group justify-self-center cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
                   showColorPickerInline ? "scale-105" : ""
                 )}
                 style={{
@@ -480,7 +480,7 @@ const StyleTab = () => {
                     key={idx}
                     onClick={() => handleGradientPresetSelect(preset)}
                     className={cn(
-                      "w-8 h-8 rounded-sm-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
+                      "w-8 h-8 rounded-sm-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
                       isSelected ? "scale-105" : ""
                     )}
                     style={{ 
@@ -510,7 +510,7 @@ const StyleTab = () => {
               <button
                 onClick={() => setShowColorPickerInline(!showColorPickerInline)}
                 className={cn(
-                  "w-8 h-8 rounded-sm-full border transition-all duration-200 shrink-0 flex items-center justify-center relative overflow-hidden group justify-self-center cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
+                  "w-8 h-8 rounded-sm-full border transition-all duration-200 shrink-0 flex items-center justify-center relative overflow-hidden group justify-self-center cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
                   showColorPickerInline ? "scale-105" : ""
                 )}
                 style={{
@@ -641,7 +641,7 @@ const StyleTab = () => {
                           }
                         }}
                         className={cn(
-                          "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden bg-white/5 cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
+                          "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden bg-white/5 cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
                           isSelected ? "scale-105" : ""
                         )}
                         style={{
@@ -676,7 +676,7 @@ const StyleTab = () => {
                   <button
                     onClick={() => setShowPaperColorPickerInline(!showPaperColorPickerInline)}
                     className={cn(
-                      "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden group cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
+                      "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden group cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
                       showPaperColorPickerInline ? "scale-105" : ""
                     )}
                     style={{
@@ -731,7 +731,7 @@ const StyleTab = () => {
                           handlePaperGradientPresetSelect(swatch);
                         }}
                         className={cn(
-                          "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
+                          "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
                           isSelected ? "scale-105" : ""
                         )}
                         style={{ 
@@ -761,7 +761,7 @@ const StyleTab = () => {
                   <button
                     onClick={() => setShowPaperGradientPickerInline(!showPaperGradientPickerInline)}
                     className={cn(
-                      "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden group cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
+                      "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden group cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
                       showPaperGradientPickerInline ? "scale-105" : ""
                     )}
                     style={{
@@ -851,7 +851,7 @@ const StyleTab = () => {
                     key={idx}
                     onClick={() => updateDocument(document.id, { textColor: swatch.value })}
                     className={cn(
-                      "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden bg-white/5 cursor-pointer shadow-sm-sm border-black/80 dark:border-black/80",
+                      "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden bg-white/5 cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
                       isSelected ? "scale-105" : ""
                     )}
                     style={{

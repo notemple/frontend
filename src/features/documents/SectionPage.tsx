@@ -136,6 +136,23 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
   if (sectionId === 'section-trash') {
     return <TrashPage paneId={paneId} />;
   }
+  if (sectionId === 'section-glance') {
+    return (
+      <div className="flex flex-col h-full w-full items-center justify-center p-8 bg-transparent select-none font-sans">
+        <h1 className="text-4xl font-bold tracking-tight text-foreground/80 mb-2">Glance</h1>
+        <p className="text-muted-foreground text-sm font-medium">Blank Page</p>
+      </div>
+    );
+  }
+  if (sectionId === 'section-wall') {
+    return (
+      <div className="flex flex-col h-full w-full items-center justify-center p-8 bg-transparent select-none font-sans">
+        <h1 className="text-4xl font-bold tracking-tight text-foreground/80 mb-2">Wall</h1>
+        <p className="text-muted-foreground text-sm font-medium">Blank Page</p>
+      </div>
+    );
+  }
+
 
   return (
     <div className="flex flex-col h-full overflow-y-auto no-scrollbar relative w-full items-center p-8 bg-transparent">

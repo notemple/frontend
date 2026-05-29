@@ -5,7 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 import path from 'path';
 
-// https://vite.dev/config/
+// https://vite.dev/config/ - Touched to force invalidation of Vite cache
 export default defineConfig({
   resolve: {
     alias: {

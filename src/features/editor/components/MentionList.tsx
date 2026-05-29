@@ -46,7 +46,11 @@ export const MentionList = forwardRef((props: MentionListProps, ref) => {
       .map((doc: any) => ({
         title: doc.title || 'Untitled',
         subtitle: 'Note',
-        icon: <FileText size={16} className="text-blue-500" />,
+        icon: doc.icon ? (
+          <span className="text-[14px] leading-none flex items-center justify-center font-sans shrink-0">{doc.icon}</span>
+        ) : (
+          <FileText size={16} className="text-blue-500" />
+        ),
         group: 'Documents' as const,
         action: () => {
           props.editor

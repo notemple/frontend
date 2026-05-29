@@ -92,7 +92,9 @@ export const SectionGridItem = React.memo(({
         >
           {itemType === 'folder'
             ? <Folder size={20} weight="duotone" className={customStyle ? 'text-[color:var(--folder-text)]' : ''} />
-            : <FileText size={20} weight="duotone" />}
+            : (item as any).icon ? (
+              <span className="text-[18px] leading-none flex items-center justify-center font-sans">{(item as any).icon}</span>
+            ) : <FileText size={20} weight="duotone" />}
         </div>
         <span className={cn(
           "font-medium text-sm truncate transition-colors leading-none pr-1 text-foreground/80",

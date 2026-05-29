@@ -17,13 +17,16 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import FontFamily from '@tiptap/extension-font-family';
 import Highlight from '@tiptap/extension-highlight';
 import Typography from '@tiptap/extension-typography';
-import { Table, TableRow, TableHeader, TableCell } from '@tiptap/extension-table';
+import { CustomTable } from './extensions/table/CustomTable';
+import { TableRow, TableHeader, TableCell } from './extensions/table/TableCell';
+import { FloatingToolbar } from './extensions/table/FloatingToolbar';
+import './extensions/table/styles.css';
 import { motion } from 'motion/react';
 import { SlashCommand, getSuggestionItems, renderItems } from './components/SlashCommand';
 import { useDocumentStore, type NoteDocument } from '@/features/documents/store';
 import { useUiStore } from '@/shared/store/uiStore';
 import { useShallow } from 'zustand/react/shallow';
-import { Tag, TextB, TextItalic, TextStrikethrough, TextAUnderline, Code, ArrowsInSimple, Sparkle, FileText } from '@phosphor-icons/react';
+import { Tag, TextB, TextItalic, TextStrikethrough, TextAUnderline, Code, ArrowsInSimple, Sparkle, FileText, Smiley } from '@phosphor-icons/react';
 import { useSettingsStore } from '@/features/settings/store';
 import { toDate } from 'date-fns-tz';
 import { cn, getTagStyle } from '@/shared/lib/utils';
@@ -150,6 +153,8 @@ export const NotempleEditor = React.memo(({
   const [tags, setTags] = useState<string[]>(document?.tags || []);
   const [showTagsDropdown, setShowTagsDropdown] = useState(false);
   const tagsDropdownRef = useRef<HTMLDivElement>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
   const [showBacklinks, setShowBacklinks] = useState(true);
   const documents = useDocumentStore(state => state.documents);
   const backlinks = useMemo(() => {
@@ -167,6 +172,17 @@ export const NotempleEditor = React.memo(({
     window.addEventListener('mousedown', handleClickOutside);
     return () => window.removeEventListener('mousedown', handleClickOutside);
   }, [showTagsDropdown]);
+
+  useEffect(() => {
+    if (!showEmojiPicker) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    window.addEventListener('mousedown', handleClickOutside);
+    return () => window.removeEventListener('mousedown', handleClickOutside);
+  }, [showEmojiPicker]);
 
   const localStyle = {
     color: document?.color || '#ffffff',
@@ -271,7 +287,7 @@ export const NotempleEditor = React.memo(({
       multicolor: true,
     }),
     Typography,
-    Table.configure({
+    CustomTable.configure({
       resizable: true,
     }),
     TableRow,
@@ -509,15 +525,60 @@ export const NotempleEditor = React.memo(({
           </div>
 
           <div className="flex items-center gap-4">
-            {hasCustomStyle && (
-              <div
-                className="w-7 h-7 rounded-sm-sm border flex items-center justify-center shrink-0 opacity-40 hover:opacity-100 transition-opacity cursor-pointer shadow-sm-sm"
-                style={{ borderColor: activeTextColor }}
-              >
-                <div
-                  className="w-3 h-3 rounded-sm bg-current"
-                  style={{ backgroundColor: activeTextColor }}
-                />
+            {isDailyNote ? null : (
+              <div className="relative shrink-0 self-center animate-fade-in" ref={emojiPickerRef}>
+                <button
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className="w-12 h-12 rounded-sm-sm border border-transparent hover:border-border flex items-center justify-center opacity-60 hover:opacity-100 hover:bg-muted/30 hover:shadow-sm-sm transition-all cursor-pointer select-none"
+                  title={document.icon ? "Change Emoji" : "Add Emoji"}
+                >
+                  {document.icon ? (
+                    <span className="text-[26px] leading-none flex items-center justify-center font-sans">{document.icon}</span>
+                  ) : (
+                    <Smiley size={24} style={{ color: activeTextColor }} />
+                  )}
+                </button>
+                {showEmojiPicker && (
+                  <div className="absolute top-full left-0 mt-2 w-64 bg-background border border-border shadow-sm-sm z-50 overflow-hidden text-sans text-foreground rounded-sm-sm">
+                    <div className="p-2 border-b border-border bg-muted/30 flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Select Emoji</span>
+                      {document.icon && (
+                        <button
+                          onClick={() => {
+                            updateDocument(documentId, { icon: undefined });
+                            setShowEmojiPicker(false);
+                          }}
+                          className="text-[10px] text-red-500 hover:text-red-400 font-semibold cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-6 gap-1 p-2.5 max-h-48 overflow-y-auto no-scrollbar">
+                      {['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
+                        '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
+                        '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸',
+                        '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️',
+                        '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡',
+                        '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓',
+                        '🤗', '🤔', '🫣', '🤭', '🫢', '🫡', '🤫', '🫠', '✍️', '📝',
+                        '📚', '💻', '💡', '🚀', '🔥', '⭐️', '🎯', '🎨', '🧠', '💼',
+                        '📅', '📌', '❤️', '👍', '🎉', '🌟', '✨', '🌍', '🐱', '🍕'
+                      ].map(emoji => (
+                        <button
+                          key={emoji}
+                          onClick={() => {
+                            updateDocument(documentId, { icon: emoji });
+                            setShowEmojiPicker(false);
+                          }}
+                          className="w-8 h-8 flex items-center justify-center text-[18px] hover:bg-muted rounded transition-colors cursor-pointer select-none"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             {isDailyNote ? null : (
@@ -525,7 +586,7 @@ export const NotempleEditor = React.memo(({
                 value={title}
                 onChange={handleTitleChange}
                 placeholder="Untitled Document"
-                className="text-5xl w-full font-medium font-content tracking-tight outline-none border-none bg-transparent pb-4 placeholder:placeholder-opacity-20"
+                className="text-5xl w-full font-medium font-content tracking-tight outline-none border-none bg-transparent placeholder:placeholder-opacity-20 flex-1"
                 style={{
                   color: activeTextColor,
                 }}
@@ -709,6 +770,7 @@ export const NotempleEditor = React.memo(({
             </BubbleMenu>
           )}
           <EditorContent editor={editor} />
+          {editor && <FloatingToolbar editor={editor} />}
 
           {/* Backlinks panel */}
           {!isMinimized && backlinks.length > 0 && (

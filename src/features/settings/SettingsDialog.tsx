@@ -160,16 +160,22 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
                   <label className="text-sm font-semibold text-foreground">Border Roundness</label>
                   <div className="flex bg-muted/40 p-1 rounded-sm border border-border">
                     <button
-                      className={`flex-1 text-sm py-1.5 rounded-sm font-medium transition-all select-none cursor-pointer border ${roundness === 'rounded-md' ? 'bg-card text-foreground border-border/80 shadow-sm' : 'text-muted-foreground border-transparent hover:text-foreground'}`}
-                      onClick={() => setRoundness('rounded-md')}
-                    >
-                      Rounded (Medium)
-                    </button>
-                    <button
-                      className={`flex-1 text-sm py-1.5 rounded-sm font-medium transition-all select-none cursor-pointer border ${roundness === 'rounded-none' ? 'bg-card text-foreground border-border/80 shadow-sm' : 'text-muted-foreground border-transparent hover:text-foreground'}`}
+                      className={`flex-1 text-sm py-1.5 rounded-sm font-medium transition-all select-none cursor-pointer border ${roundness === 'rounded-none' ? 'bg-card text-foreground border-border/80 shadow-sm font-semibold' : 'text-muted-foreground border-transparent hover:text-foreground'}`}
                       onClick={() => setRoundness('rounded-none')}
                     >
                       Sharp (None)
+                    </button>
+                    <button
+                      className={`flex-1 text-sm py-1.5 rounded-sm font-medium transition-all select-none cursor-pointer border ${roundness === 'rounded-md' ? 'bg-card text-foreground border-border/80 shadow-sm font-semibold' : 'text-muted-foreground border-transparent hover:text-foreground'}`}
+                      onClick={() => setRoundness('rounded-md')}
+                    >
+                      Medium (MD)
+                    </button>
+                    <button
+                      className={`flex-1 text-sm py-1.5 rounded-sm font-medium transition-all select-none cursor-pointer border ${roundness === 'rounded-lg' ? 'bg-card text-foreground border-border/80 shadow-sm font-semibold' : 'text-muted-foreground border-transparent hover:text-foreground'}`}
+                      onClick={() => setRoundness('rounded-lg')}
+                    >
+                      Large (LG)
                     </button>
                   </div>
                 </div>

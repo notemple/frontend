@@ -49,7 +49,7 @@ export const CommandPalette = () => {
 
   const allItems = [
     { type: 'command', title: 'Split Workspace', icon: <Columns size={16} />, action: () => { addPane(`pane-${Date.now()}`); setIsOpen(false); } },
-    ...filteredDocs.map(doc => ({ type: 'document', title: doc?.title || 'Untitled', icon: <FileText size={16} />, action: () => { if(doc?.id) openDocument(doc.id); setIsOpen(false); } }))
+    ...filteredDocs.map(doc => ({ type: 'document', title: doc?.title || 'Untitled', icon: doc?.icon ? <span className="text-[14px] leading-none flex items-center justify-center font-sans shrink-0">{doc.icon}</span> : <FileText size={16} />, action: () => { if(doc?.id) openDocument(doc.id); setIsOpen(false); } }))
   ];
 
   useEffect(() => {

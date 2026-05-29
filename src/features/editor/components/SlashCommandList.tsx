@@ -12,11 +12,15 @@ export const SlashCommandList = forwardRef((props: SlashCommandListProps, ref) =
   const [currentMenu, setCurrentMenu] = useState<CommandItem[]>(props.items);
   const [menuStack, setMenuStack] = useState<CommandItem[][]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  const [showTablePicker, setShowTablePicker] = useState(false);
+  const [hoveredGrid, setHoveredGrid] = useState({ r: 2, c: 2 });
 
   useEffect(() => {
     setCurrentMenu(props.items);
     setSelectedIndex(0);
     setMenuStack([]);
+    setShowTablePicker(false);
   }, [props.items]);
 
   // Handle automatic scrolling when selection index changes
@@ -39,10 +43,27 @@ export const SlashCommandList = forwardRef((props: SlashCommandListProps, ref) =
     }
   }, [selectedIndex, currentMenu]);
 
+  const insertGridTable = (r: number, c: number) => {
+    const tableItem: CommandItem = {
+      title: 'Table',
+      command: ({ editor, range }) => {
+        editor.chain()
+          .focus()
+          .deleteRange(range)
+          .insertTable({ rows: r + 1, cols: c + 1, withHeaderRow: true })
+          .run();
+      }
+    };
+    props.command(tableItem);
+  };
+
   const selectItem = (index: number) => {
     const item = currentMenu[index];
     if (item) {
-      if (item.submenu) {
+      if (item.title === 'Table') {
+        setShowTablePicker(true);
+        setHoveredGrid({ r: 2, c: 2 });
+      } else if (item.submenu) {
         setMenuStack([...menuStack, currentMenu]);
         setCurrentMenu(item.submenu);
         setSelectedIndex(0);
@@ -63,6 +84,34 @@ export const SlashCommandList = forwardRef((props: SlashCommandListProps, ref) =
 
   useImperativeHandle(ref, () => ({
     onKeyDown: ({ event }: { event: KeyboardEvent }) => {
+      if (showTablePicker) {
+        if (event.key === 'ArrowUp') {
+          setHoveredGrid(prev => ({ ...prev, r: Math.max(0, prev.r - 1) }));
+          return true;
+        }
+        if (event.key === 'ArrowDown') {
+          setHoveredGrid(prev => ({ ...prev, r: Math.min(5, prev.r + 1) }));
+          return true;
+        }
+        if (event.key === 'ArrowLeft') {
+          setHoveredGrid(prev => ({ ...prev, c: Math.max(0, prev.c - 1) }));
+          return true;
+        }
+        if (event.key === 'ArrowRight') {
+          setHoveredGrid(prev => ({ ...prev, c: Math.min(5, prev.c + 1) }));
+          return true;
+        }
+        if (event.key === 'Enter') {
+          insertGridTable(hoveredGrid.r, hoveredGrid.c);
+          return true;
+        }
+        if (event.key === 'Escape' || event.key === 'Backspace') {
+          setShowTablePicker(false);
+          return true;
+        }
+        return true; // Consume other keys in picker mode
+      }
+
       if (event.key === 'ArrowUp') {
         setSelectedIndex((selectedIndex + currentMenu.length - 1) % currentMenu.length);
         return true;
@@ -99,6 +148,57 @@ export const SlashCommandList = forwardRef((props: SlashCommandListProps, ref) =
       return false;
     },
   }));
+
+  if (showTablePicker) {
+    return (
+      <div 
+        ref={containerRef}
+        className="bg-card border border-white/5 rounded-sm-sm shadow-sm-sm p-3.5 flex flex-col gap-3 min-w-[250px] overflow-hidden font-sans"
+      >
+        <button
+          onClick={() => setShowTablePicker(false)}
+          className="w-full flex items-center gap-3 px-1 py-1 text-sm rounded-sm-sm transition-all text-white/50 hover:text-white shrink-0"
+        >
+          <CaretLeft size={16} />
+          <span className="font-medium tracking-wide text-[13px]">Back</span>
+        </button>
+
+        <div className="flex flex-col items-center gap-2.5 py-1">
+          <div className="text-[12px] font-semibold text-white/70 tracking-wider">
+            {hoveredGrid.r + 1} &times; {hoveredGrid.c + 1} Table
+          </div>
+
+          <div className="flex flex-col gap-1">
+            {Array.from({ length: 6 }).map((_, rIndex) => (
+              <div key={rIndex} className="flex gap-1">
+                {Array.from({ length: 6 }).map((_, cIndex) => {
+                  const isHighlighted = rIndex <= hoveredGrid.r && cIndex <= hoveredGrid.c;
+                  return (
+                    <div
+                      key={cIndex}
+                      onMouseEnter={() => setHoveredGrid({ r: rIndex, c: cIndex })}
+                      onClick={() => insertGridTable(rIndex, cIndex)}
+                      className={`
+                        w-6 h-6 border transition-all duration-150 cursor-pointer rounded-[3px]
+                        ${isHighlighted 
+                          ? 'bg-purple-500/80 border-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.3)] scale-[1.05]' 
+                          : 'bg-white/5 border-white/10 hover:border-white/20'
+                        }
+                      `}
+                    />
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+
+          <div className="text-[10px] text-white/40 text-center mt-1">
+            Use arrows to select, Enter to insert
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (currentMenu.length === 0) {
     return null;

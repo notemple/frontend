@@ -25,6 +25,7 @@ export interface NoteDocument {
   isFavorite?: boolean;
   isDeleted?: boolean;
   deletedAt?: string;
+  icon?: string;
 }
 
 export interface Folder {

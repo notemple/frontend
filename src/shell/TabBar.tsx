@@ -32,11 +32,11 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
   );
 
   // Target-selected document title and type to prevent any keystroke/typing re-renders!
-  const docSelector = useCallback(
+  const docSelector = React.useCallback(
     state => {
-      if (tabId === 'new-note') return { title: 'Untitled', type: 'page' };
+      if (tabId === 'new-note') return { title: 'Untitled', type: 'page', icon: undefined };
       const d = state.documents[tabId];
-      return d ? { title: d.title, type: d.type } : null;
+      return d ? { title: d.title, type: d.type, icon: d.icon } : null;
     },
     [tabId]
   );
@@ -70,7 +70,7 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
       )}
     >
       <span className="shrink-0 text-muted-foreground">
-        {getIcon(doc.type)}
+        {getIcon(doc.type, doc.icon)}
       </span>
       <span className="text-xs truncate flex-1">{doc.title}</span>
       <button
@@ -159,7 +159,10 @@ export const TabBar = ({ paneId }: { paneId: string }) => {
   );
 };
 
-function getIcon(type: string) {
+function getIcon(type: string, emoji?: string) {
+  if (emoji) {
+    return <span className="text-[13px] leading-none flex items-center justify-center font-sans">{emoji}</span>;
+  }
   switch (type) {
     case 'page': return <FileText size={14} />;
     case 'book': return <Book size={14} />;

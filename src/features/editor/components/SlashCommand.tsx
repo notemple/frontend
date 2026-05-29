@@ -70,7 +70,7 @@ export const getSuggestionItems = ({ query }: { query: string }) => {
     { title: 'Group', icon: <Square size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
     { title: 'Math', icon: <MathOperations size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
     { title: 'Code', icon: <CodeBlock size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleCodeBlock().run() },
-    { title: 'Table', icon: <Table size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },  ];
+    { title: 'Table', icon: <Table size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 4, withHeaderRow: true }).run() },  ];
 
   return items.filter(item => item.title.toLowerCase().includes(query.toLowerCase()));
 };
@@ -142,11 +142,15 @@ export const renderItems = () => {
     },
 
     onKeyDown(props: any) {
+      const handled = (component.ref as any)?.onKeyDown(props);
+      if (handled) {
+        return true;
+      }
       if (props.event.key === 'Escape') {
         popup[0].hide();
         return true;
       }
-      return (component.ref as any)?.onKeyDown(props);
+      return false;
     },
 
     onExit() {

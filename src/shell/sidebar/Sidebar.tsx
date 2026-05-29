@@ -22,7 +22,9 @@ import {
   Folder,
   CheckSquare,
   PencilSimple,
-  Tag
+  Tag,
+  Eye,
+  SquaresFour
 } from '@phosphor-icons/react';
 import { SidebarItem } from "./SidebarItem";
 import { SidebarFolderItem } from "./SidebarFolderItem";
@@ -51,7 +53,7 @@ const SidebarDocumentItem = ({
   const docSelector = React.useCallback(
     (state: any) => {
       const d = state.documents[docId];
-      return d ? { title: d.title, type: d.type } : null;
+      return d ? { title: d.title, type: d.type, icon: d.icon } : null;
     },
     [docId]
   );
@@ -83,7 +85,7 @@ const SidebarDocumentItem = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="shrink-0 text-muted-foreground">
-          {doc.type ? getIconForType(doc.type) : <FileText size={16} />}
+          {getIconForType(doc.type || 'page', doc.icon)}
         </div>
         <input
           autoFocus
@@ -116,7 +118,7 @@ const SidebarDocumentItem = ({
 
   return (
     <SidebarItem
-      icon={doc.type ? getIconForType(doc.type) : undefined}
+      icon={getIconForType(doc.type || 'page', doc.icon)}
       label={doc.title || 'Untitled'}
       isOpen={isOpen}
       highlight={isActive}
@@ -538,6 +540,8 @@ export const Sidebar = () => {
           <SidebarItem icon={<CalendarBlank size={16} className={isDocActive('section-daily-notes') ? "text-current" : "text-emerald-500/90 dark:text-emerald-400/90"} />} label="Daily Notes" isOpen={isSidebarOpen} highlight={isDocActive('section-daily-notes')} onClick={() => handleDocClick('section-daily-notes')} activeBgClass="bg-icy-blue/70 dark:bg-icy-blue/20 border-icy-blue/50 dark:border-icy-blue/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
           <SidebarItem icon={<CheckSquare size={16} className={isDocActive('section-tasks') ? "text-current" : "text-blue-500/90 dark:text-blue-400/90"} />} label="Tasks" isOpen={isSidebarOpen} highlight={isDocActive('section-tasks')} onClick={() => handleDocClick('section-tasks')} activeBgClass="bg-sky-blue/70 dark:bg-sky-blue/20 border-sky-blue/50 dark:border-sky-blue/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
           <SidebarItem icon={<Tag size={16} className={isDocActive('section-tags') ? "text-current" : "text-purple-500/90 dark:text-purple-400/90"} />} label="Tags" isOpen={isSidebarOpen} highlight={isDocActive('section-tags')} onClick={() => handleDocClick('section-tags')} activeBgClass="bg-pink-orchid/70 dark:bg-pink-orchid/20 border-pink-orchid/50 dark:border-pink-orchid/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+          <SidebarItem icon={<Eye size={16} className={isDocActive('section-glance') ? "text-current" : "text-amber-500/90 dark:text-amber-400/90"} />} label="Glance" isOpen={isSidebarOpen} highlight={isDocActive('section-glance')} onClick={() => handleDocClick('section-glance')} activeBgClass="bg-blush-pop/70 dark:bg-blush-pop/20 border-blush-pop/50 dark:border-blush-pop/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+          <SidebarItem icon={<SquaresFour size={16} className={isDocActive('section-wall') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="Wall" isOpen={isSidebarOpen} highlight={isDocActive('section-wall')} onClick={() => handleDocClick('section-wall')} activeBgClass="bg-pink-orchid/70 dark:bg-pink-orchid/20 border-pink-orchid/50 dark:border-pink-orchid/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
         </div>
 
         {/* Favorites Section */}
@@ -793,7 +797,10 @@ export const Sidebar = () => {
   );
 };
 
-function getIconForType(type: string) {
+function getIconForType(type: string, emoji?: string) {
+  if (emoji) {
+    return <span className="text-[15px] font-sans leading-none flex items-center justify-center w-5 h-5 select-none">{emoji}</span>;
+  }
   switch (type) {
     case 'page': return <FileText size={16} className="text-cyan-600/80 dark:text-cyan-400/80" />;
     case 'book': return <Book size={16} className="text-orange-600/80 dark:text-orange-400/80" />;

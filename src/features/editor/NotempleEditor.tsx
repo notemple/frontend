@@ -21,6 +21,10 @@ import { CustomTable } from './extensions/table/CustomTable';
 import { TableRow, TableHeader, TableCell } from './extensions/table/TableCell';
 import { FloatingToolbar } from './extensions/table/FloatingToolbar';
 import './extensions/table/styles.css';
+import { CustomTodoItem } from './extensions/CustomTodoItem';
+import { CustomCodeBlock } from './extensions/CustomCodeBlock';
+import { EditorDndContext } from './components/EditorDndContext';
+import { DocumentPreviewPopup } from './components/DocumentPreviewPopup';
 import { motion } from 'motion/react';
 import { SlashCommand, getSuggestionItems, renderItems } from './components/SlashCommand';
 import { useDocumentStore, type NoteDocument } from '@/features/documents/store';
@@ -145,6 +149,7 @@ export const NotempleEditor = React.memo(({
     [documentId]
   );
   const document = useDocumentStore(useShallow(documentSelector));
+  const isInitialized = useDocumentStore(state => state.isInitialized);
 
   const allExistingTags = useDocumentStore(useShallow(allExistingTagsSelector));
   const tagColors = useDocumentStore(state => state.tagColors) || {};
@@ -249,23 +254,25 @@ export const NotempleEditor = React.memo(({
   }, [localStyle.textColor, activeTextColor, hasCustomStyle]);
 
   useEffect(() => {
-    if (document) {
+    if (document && isInitialized) {
       if (document.title !== title) {
         setTitle(document.title || '');
       }
       setTags(document.tags || []);
     }
-  }, [document?.id, document?.title, title]);
+  }, [document?.id, document?.title, title, isInitialized]);
 
   const extensions = useMemo(() => [
     StarterKit.configure({
       underline: false,
+      codeBlock: false,
     }),
+    CustomCodeBlock,
     Placeholder.configure({
       placeholder: 'Press "/" for commands, or start typing...',
     }),
     TaskList,
-    TaskItem.configure({
+    CustomTodoItem.configure({
       nested: true,
     }),
     CustomImageExtension,
@@ -444,20 +451,28 @@ export const NotempleEditor = React.memo(({
     setShowTagsDropdown(false);
   };
 
-  const prevDocIdRef = useRef(documentId);
+  const contentLoadedForRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (editor && documentId !== prevDocIdRef.current) {
-      // Only set content if the editor's current HTML doesn't match the incoming document's content.
-      // This prevents cursor loss when transitioning from a 'new-note' to a saved note while typing.
-      if (editor.getHTML() !== (document?.content || '<p></p>') && editor.getHTML() !== (document?.content || '')) {
-        if (!editor.isDestroyed) {
-          editor.commands.setContent(document?.content || '');
+    if (editor && document && isInitialized) {
+      const currentHTML = editor.getHTML();
+      const targetHTML = document.content || '';
+
+      // If we haven't loaded the content for this documentId yet, OR if the documentId changed
+      if (contentLoadedForRef.current !== documentId) {
+        // Only set content if the editor's current HTML doesn't match the incoming document's content.
+        // This prevents cursor loss when transitioning from a 'new-note' to a saved note while typing.
+        if (currentHTML !== (targetHTML || '<p></p>') && currentHTML !== (targetHTML || '')) {
+          setTimeout(() => {
+            if (editor && !editor.isDestroyed) {
+              editor.commands.setContent(targetHTML);
+            }
+          }, 0);
         }
+        contentLoadedForRef.current = documentId;
       }
-      prevDocIdRef.current = documentId;
     }
-  }, [editor, documentId, document?.content]);
+  }, [editor, documentId, document?.content, isInitialized]);
 
   if (!document) return <div className="p-8 text-muted-foreground">Document not found.</div>;
 
@@ -700,6 +715,7 @@ export const NotempleEditor = React.memo(({
           </div>
         </div>
 
+        <EditorDndContext editor={editor!}>
         <div
           className={cn(
             "flex-1 notemple-editor-wrapper font-content text-lg relative",
@@ -771,6 +787,7 @@ export const NotempleEditor = React.memo(({
           )}
           <EditorContent editor={editor} />
           {editor && <FloatingToolbar editor={editor} />}
+          <DocumentPreviewPopup />
 
           {/* Backlinks panel */}
           {!isMinimized && backlinks.length > 0 && (
@@ -809,6 +826,7 @@ export const NotempleEditor = React.memo(({
             </div>
           )}
         </div>
+        </EditorDndContext>
       </div>
     </div>
   );

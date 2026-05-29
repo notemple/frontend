@@ -350,6 +350,30 @@
   padding: 0;
 }
 
+/* Custom code block styling with dynamic line numbers */
+.code-block-wrapper {
+  background: #16161d !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 0.25rem;
+  padding: 0.75rem 1rem !important;
+}
+
+.code-block-wrapper pre {
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  overflow-x: auto;
+}
+
+.code-block-wrapper pre code {
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+}
+
 .tag-element {
   --tag-bg: var(--tag-bg-light);
   --tag-border: var(--tag-border-light);
@@ -469,3 +493,64 @@
   transition: all 180ms ease-out;
 }
 
+
+/* ── dnd-kit block drag ─────────────────────────────────────────────────────── */
+
+/* Source block while dragging — opacity is applied inline via JS for perf,
+   but this class can be used as a fallback / for targeting in tests. */
+.prosemirror-dragging-block {
+  opacity: 0.22 !important;
+  transition: opacity 120ms ease;
+}
+
+/* Drag overlay ghost — GPU-accelerated, no layout thrashing */
+[data-dnd-overlay],
+.dnd-drag-overlay {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  pointer-events: none;
+  transition: none !important; /* Forces zero lag relative to the pointer */
+}
+
+/* ── Tight premium vertical spacing between editor blocks ── */
+.ProseMirror > * {
+  margin-top: 6px !important;
+  margin-bottom: 6px !important;
+}
+
+/* Hierarchy spacing with tight visual bounds */
+.ProseMirror > h1 {
+  margin-top: 16px !important;
+  margin-bottom: 6px !important;
+}
+.ProseMirror > h2 {
+  margin-top: 14px !important;
+  margin-bottom: 6px !important;
+}
+.ProseMirror > h3 {
+  margin-top: 12px !important;
+  margin-bottom: 4px !important;
+}
+.ProseMirror > blockquote,
+.ProseMirror > pre,
+.ProseMirror > table,
+.ProseMirror > [data-type="taskList"],
+.ProseMirror > ul,
+.ProseMirror > ol {
+  margin-top: 8px !important;
+  margin-bottom: 8px !important;
+}
+
+/* Tight vertical spacing between list items in numbered and bulleted lists */
+.ProseMirror ol li,
+.ProseMirror ul li {
+  margin-top: 2px !important;
+  margin-bottom: 2px !important;
+}
+
+/* Remove margins on paragraphs inside list items to maintain the tight layout */
+.ProseMirror ol li > p,
+.ProseMirror ul li > p {
+  margin-top: 0px !important;
+  margin-bottom: 0px !important;
+}

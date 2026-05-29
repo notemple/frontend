@@ -37,7 +37,14 @@ export const ReferenceNodeView = ({ node, updateAttributes }: any) => {
     e.stopPropagation();
     e.preventDefault();
     if (type === 'document' && id) {
-      openDocument(id);
+      if (e.metaKey || e.ctrlKey) {
+        openDocument(id);
+      } else {
+        // Dispatch global custom event to trigger inline portal preview popup
+        window.dispatchEvent(new CustomEvent('doc-preview-open', {
+          detail: { id, trigger: e.currentTarget }
+        }));
+      }
     }
   };
 
@@ -60,7 +67,7 @@ export const ReferenceNodeView = ({ node, updateAttributes }: any) => {
         {type === 'document' && (
           <span 
             onClick={handleOpenReference}
-            className="inline-flex items-center gap-1.5 px-2 py-0.5 mx-0.5 rounded-sm bg-blue-500/10 dark:bg-blue-400/10 border border-blue-500/20 dark:border-blue-400/20 text-blue-600 dark:text-blue-400 text-[13px] font-medium cursor-pointer transition-colors duration-150 hover:bg-blue-500/20 hover:border-blue-500/30"
+            className="inline-flex items-center gap-1.5 px-2 py-0.5 mx-0.5 rounded-sm bg-blue-500/10 dark:bg-blue-400/10 border border-blue-500/20 dark:border-blue-400/20 text-blue-600 dark:text-blue-400 text-[13px] font-medium cursor-pointer transition-colors duration-150 hover:bg-blue-500/20 hover:border-blue-500/30 group/mention"
           >
             {targetDoc?.icon ? (
               <span className="text-[13px] leading-none shrink-0 font-sans">{targetDoc.icon}</span>
@@ -68,6 +75,18 @@ export const ReferenceNodeView = ({ node, updateAttributes }: any) => {
               <FileText size={14} weight="duotone" className="shrink-0" />
             )}
             <span className="truncate max-w-[150px]">{displayLabel}</span>
+            
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                openDocument(id);
+              }}
+              className="opacity-0 group-hover/mention:opacity-100 hover:text-blue-700 dark:hover:text-blue-300 transition-all pl-0.5 rounded shrink-0"
+              title="Open full page"
+            >
+              <ArrowSquareOut size={12} weight="bold" />
+            </button>
           </span>
         )}
 

@@ -7,6 +7,7 @@ import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import { ReferenceExtension } from './extensions/ReferenceExtension';
 import { MentionSuggestion, renderMentionItems } from './extensions/MentionSuggestion';
+import { TagSuggestion, renderTagItems } from './extensions/TagSuggestion';
 import { CustomImageExtension } from './extensions/CustomImageExtension';
 import { BlockHandle } from './components/BlockHandle';
 import { aiService } from '@/services/ai.service';
@@ -30,7 +31,7 @@ import { SlashCommand, getSuggestionItems, renderItems } from './components/Slas
 import { useDocumentStore, type NoteDocument } from '@/features/documents/store';
 import { useUiStore } from '@/shared/store/uiStore';
 import { useShallow } from 'zustand/react/shallow';
-import { Tag, TextB, TextItalic, TextStrikethrough, TextAUnderline, Code, ArrowsInSimple, Sparkle, FileText, Smiley } from '@phosphor-icons/react';
+import { Tag, TextB, TextItalic, TextStrikethrough, TextAUnderline, Code, ArrowsInSimple, Sparkle, FileText, Smiley, CaretUp, CaretDown } from '@phosphor-icons/react';
 import { useSettingsStore } from '@/features/settings/store';
 import { toDate } from 'date-fns-tz';
 import { cn, getTagStyle } from '@/shared/lib/utils';
@@ -160,7 +161,7 @@ export const NotempleEditor = React.memo(({
   const tagsDropdownRef = useRef<HTMLDivElement>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
-  const [showBacklinks, setShowBacklinks] = useState(true);
+  const [showBacklinks, setShowBacklinks] = useState(false);
   const documents = useDocumentStore(state => state.documents);
   const backlinks = useMemo(() => {
     if (!documentId) return [];
@@ -281,6 +282,12 @@ export const NotempleEditor = React.memo(({
       suggestion: {
         items: ({ query }) => [query],
         render: renderMentionItems,
+      },
+    }),
+    TagSuggestion.configure({
+      suggestion: {
+        items: ({ query }) => [query],
+        render: renderTagItems,
       },
     }),
     TextAlign.configure({
@@ -791,36 +798,43 @@ export const NotempleEditor = React.memo(({
 
           {/* Backlinks panel */}
           {!isMinimized && backlinks.length > 0 && (
-            <div className="mt-16 pt-8 border-t border-border/40 font-sans shrink-0 z-10 relative">
+            <div className="mt-32 pb-8 pt-8 border-t border-border/40 font-sans shrink-0 z-10 relative">
               <button
                 onClick={() => setShowBacklinks(!showBacklinks)}
                 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest hover:text-foreground transition-colors cursor-pointer select-none mb-4"
               >
                 <FileText size={14} className="opacity-70" />
                 <span>Backlinks ({backlinks.length})</span>
-                <span className="text-[10px] opacity-50">{showBacklinks ? 'Collapse' : 'Expand'}</span>
+                {showBacklinks ? <CaretUp size={14} className="opacity-75" /> : <CaretDown size={14} className="opacity-75" />}
               </button>
               
               {showBacklinks && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
-                  {backlinks.map(link => (
-                    <div
-                      key={link.id}
-                      onClick={() => openDocument(link.id)}
-                      className="group/backlink p-4 rounded-sm-sm border border-border/50 bg-muted/20 hover:bg-muted/40 hover:border-border transition-all duration-200 cursor-pointer flex flex-col gap-1.5 shadow-sm-sm"
-                    >
-                      <div className="flex items-center gap-2 text-[13px] font-semibold text-foreground group-hover/backlink:text-blue-500 transition-colors">
-                        <FileText size={14} className="text-muted-foreground shrink-0" />
-                        <span className="truncate">{link.title}</span>
+                  {backlinks.map(link => {
+                    const targetDoc = documents[link.id];
+                    return (
+                      <div
+                        key={link.id}
+                        onClick={() => openDocument(link.id)}
+                        className="group/backlink p-4 rounded-sm-sm border border-border/50 bg-muted/20 hover:bg-muted/40 hover:border-border transition-all duration-200 cursor-pointer flex flex-col gap-1.5 shadow-sm-sm"
+                      >
+                        <div className="flex items-center gap-2 text-[13px] font-semibold text-foreground group-hover/backlink:text-blue-500 transition-colors">
+                          {targetDoc?.icon ? (
+                            <span className="text-[14px] leading-none shrink-0 font-sans">{targetDoc.icon}</span>
+                          ) : (
+                            <FileText size={14} className="text-muted-foreground shrink-0" />
+                          )}
+                          <span className="truncate">{link.title}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                          {link.excerpt}
+                        </p>
+                        <div className="text-[10px] text-muted-foreground/50 font-mono mt-1">
+                          Updated {formatDisplayDate(link.updatedAt, "MMM d, h:mm a")}
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                        {link.excerpt}
-                      </p>
-                      <div className="text-[10px] text-muted-foreground/50 font-mono mt-1">
-                        Updated {formatDisplayDate(link.updatedAt, "MMM d, h:mm a")}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

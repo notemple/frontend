@@ -16,7 +16,7 @@ import { useDocumentStore } from '@/features/documents/store';
 import { useUiStore } from '@/shared/store/uiStore';
 import { 
   FileText, 
-  ArrowSquareOut,
+  ArrowsOutSimple,
   X,
   Sparkle
 } from '@phosphor-icons/react';
@@ -30,9 +30,15 @@ export const DocumentPreviewPopup = () => {
   const documents = useDocumentStore(state => state.documents);
   const updateDocument = useDocumentStore(state => state.updateDocument);
   const openDocument = useUiStore(state => state.openDocument);
+  const panes = useUiStore(state => state.panes);
   
   const popupRef = useRef<HTMLDivElement>(null);
   const targetDoc = activeDocId ? documents[activeDocId] : null;
+
+  const isAlreadyOpen = useMemo(() => {
+    if (!activeDocId) return false;
+    return panes.some(pane => pane.tabs.includes(activeDocId));
+  }, [panes, activeDocId]);
 
   // Track the global event to open preview popup
   useEffect(() => {
@@ -160,6 +166,7 @@ export const DocumentPreviewPopup = () => {
   if (!activeDocId || !targetDoc) return null;
 
   const handleOpenFullTab = () => {
+    if (isAlreadyOpen || !activeDocId) return;
     openDocument(activeDocId);
     setActiveDocId(null);
   };
@@ -193,10 +200,15 @@ export const DocumentPreviewPopup = () => {
           <div className="flex items-center gap-1.5 ml-3 shrink-0">
             <button 
               onClick={handleOpenFullTab}
-              className="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
-              title="Open full document"
+              disabled={isAlreadyOpen}
+              className={`p-1 rounded transition-colors ${
+                isAlreadyOpen 
+                  ? 'text-zinc-600 cursor-not-allowed opacity-40' 
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800 cursor-pointer'
+              }`}
+              title={isAlreadyOpen ? "Document is already open in editor" : "Open in editor"}
             >
-              <ArrowSquareOut size={13} />
+              <ArrowsOutSimple size={13} />
             </button>
             <button 
               onClick={() => setActiveDocId(null)}

@@ -2,18 +2,18 @@ import { Extension } from '@tiptap/core';
 import Suggestion from '@tiptap/suggestion';
 import { ReactRenderer } from '@tiptap/react';
 import tippy, { type Instance as TippyInstance } from 'tippy.js';
-import { MentionList } from '../components/MentionList';
+import { TagList } from '../components/TagList';
 import { PluginKey } from '@tiptap/pm/state';
 
-export const MentionSuggestionKey = new PluginKey('mentionSuggestion');
+export const TagSuggestionKey = new PluginKey('tagSuggestion');
 
-export const MentionSuggestion = Extension.create({
-  name: 'mentionSuggestion',
+export const TagSuggestion = Extension.create({
+  name: 'tagSuggestion',
 
   addOptions() {
     return {
       suggestion: {
-        char: '@',
+        char: '#',
         command: ({ editor, range, props }: any) => {
           props.command({ editor, range });
         },
@@ -24,7 +24,7 @@ export const MentionSuggestion = Extension.create({
   addProseMirrorPlugins() {
     return [
       Suggestion({
-        pluginKey: MentionSuggestionKey,
+        pluginKey: TagSuggestionKey,
         editor: this.editor,
         ...this.options.suggestion,
       }),
@@ -32,13 +32,13 @@ export const MentionSuggestion = Extension.create({
   },
 });
 
-export const renderMentionItems = () => {
+export const renderTagItems = () => {
   let component: ReactRenderer;
   let popup: TippyInstance[];
 
   return {
     onStart: (props: any) => {
-      component = new ReactRenderer(MentionList, {
+      component = new ReactRenderer(TagList, {
         props,
         editor: props.editor,
       });

@@ -42,6 +42,8 @@ import {
 } from '@phosphor-icons/react';
 import React from 'react';
 
+import { format, addDays } from 'date-fns';
+
 export interface CommandItem {
   title: string;
   icon?: React.ReactNode;
@@ -67,7 +69,80 @@ export const getSuggestionItems = ({ query }: { query: string }) => {
     { title: 'To-do', icon: <CheckSquareOffset size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleTaskList().run() },
     { title: 'Icon', icon: <Smiley size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
     { title: 'Code', icon: <CodeBlock size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleCodeBlock().run() },
-    { title: 'Table', icon: <Table size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 4, withHeaderRow: true }).run() },  ];
+    { title: 'Table', icon: <Table size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 4, withHeaderRow: true }).run() },
+    
+    // References & Mentions Group
+    { 
+      title: 'Mention Document', 
+      icon: <FileText size={16} className="text-blue-500" />, 
+      group: 'References & Mentions', 
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).insertContent('@').run();
+      } 
+    },
+    { 
+      title: 'Mention Tag', 
+      icon: <Tag size={16} className="text-rose-500" />, 
+      group: 'References & Mentions', 
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).insertContent('#').run();
+      } 
+    },
+    { 
+      title: 'Mention Task', 
+      icon: <CheckSquareOffset size={16} className="text-amber-500" />, 
+      group: 'References & Mentions', 
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).insertContent({
+          type: 'reference',
+          attrs: { label: 'New Task', type: 'task', status: 'todo' }
+        }).insertContent(' ').run();
+      } 
+    },
+    { 
+      title: 'Insert Date', 
+      icon: <Calendar size={16} className="text-purple-500" />, 
+      group: 'References & Mentions',
+      submenu: [
+        { 
+          title: 'Today', 
+          icon: <CalendarBlank size={16} className="text-purple-400" />, 
+          command: ({ editor, range }) => {
+            const today = new Date();
+            const formatted = format(today, 'eeee, MMM d, yyyy');
+            editor.chain().focus().deleteRange(range).insertContent({
+              type: 'reference',
+              attrs: { label: 'Today', type: 'date', dateStr: formatted }
+            }).insertContent(' ').run();
+          } 
+        },
+        { 
+          title: 'Tomorrow', 
+          icon: <CalendarBlank size={16} className="text-purple-400" />, 
+          command: ({ editor, range }) => {
+            const tomorrow = addDays(new Date(), 1);
+            const formatted = format(tomorrow, 'eeee, MMM d, yyyy');
+            editor.chain().focus().deleteRange(range).insertContent({
+              type: 'reference',
+              attrs: { label: 'Tomorrow', type: 'date', dateStr: formatted }
+            }).insertContent(' ').run();
+          } 
+        },
+        { 
+          title: 'Next Week', 
+          icon: <CalendarBlank size={16} className="text-purple-400" />, 
+          command: ({ editor, range }) => {
+            const nextWeek = addDays(new Date(), 7);
+            const formatted = format(nextWeek, 'eeee, MMM d, yyyy');
+            editor.chain().focus().deleteRange(range).insertContent({
+              type: 'reference',
+              attrs: { label: 'Next Week', type: 'date', dateStr: formatted }
+            }).insertContent(' ').run();
+          } 
+        }
+      ]
+    }
+  ];
 
   return items.filter(item => item.title.toLowerCase().includes(query.toLowerCase()));
 };
@@ -151,8 +226,12 @@ export const renderItems = () => {
     },
 
     onExit() {
-      popup[0].destroy();
-      component.destroy();
+      if (popup && popup[0] && !popup[0].state.isDestroyed) {
+        popup[0].destroy();
+      }
+      if (component) {
+        component.destroy();
+      }
     },
   };
 };

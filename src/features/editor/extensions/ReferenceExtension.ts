@@ -62,7 +62,7 @@ export const ReferenceExtension = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['span', mergeAttributes({ 'data-reference': '' }, HTMLAttributes), 0];
+    return ['span', mergeAttributes({ 'data-reference': '' }, HTMLAttributes)];
   },
 
   addNodeView() {

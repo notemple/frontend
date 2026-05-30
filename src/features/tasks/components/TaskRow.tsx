@@ -9,7 +9,8 @@ import { formatDisplayDate } from '@/shared/lib/time';
 import { cn } from '@/shared/lib/utils';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { Plus, Trash, CalendarBlank, Flag, CaretDown, CaretUp, Rows, GridFour, DotsSixVertical, ClipboardText, Clock, ArrowCircleRight, ListBullets } from '@phosphor-icons/react';
+import { Plus, Trash, CalendarBlank, Flag, CaretDown, CaretUp, Rows, GridFour, DotsSixVertical, ClipboardText, Clock, ArrowCircleRight, ListBullets, Play, Pause, Stop } from '@phosphor-icons/react';
+import { useTaskTimerStore } from '@/shared/store/taskTimerStore';
 
 export const TaskRow = React.memo(({
   task,
@@ -25,6 +26,11 @@ export const TaskRow = React.memo(({
   onDatePickerOpenChange?: (isOpen: boolean) => void;
 }) => {
   const [localTitle, setLocalTitle] = useState(task.title);
+  
+  const timer = useTaskTimerStore(state => state.timers[task.id]) || { taskId: task.id, seconds: 0, isRunning: false };
+  const startTimer = useTaskTimerStore(state => state.startTimer);
+  const pauseTimer = useTaskTimerStore(state => state.pauseTimer);
+  const stopTimer = useTaskTimerStore(state => state.stopTimer);
 
   useEffect(() => {
     setLocalTitle(task.title);
@@ -99,6 +105,21 @@ export const TaskRow = React.memo(({
             onOpenChange={onDatePickerOpenChange}
           />
 
+          {/* Time spent beside the date */}
+          {timer.seconds >= 60 && (
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-mono font-semibold rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 shadow-sm-sm shrink-0">
+              <Clock size={10} />
+              {(() => {
+                const hrs = Math.floor(timer.seconds / 3600);
+                const mins = Math.floor((timer.seconds % 3600) / 60);
+                if (hrs > 0) {
+                  return `${hrs}h ${mins}m`;
+                }
+                return `${mins}m`;
+              })()}
+            </span>
+          )}
+
           {/* CustomStatusPicker */}
 <CustomStatusPicker
             status={task.status || (task.completed ? "done" : "open")}
@@ -112,6 +133,49 @@ export const TaskRow = React.memo(({
             onChange={(p: "low" | "medium" | "urgent" | undefined) => updateTask(task.id, { priority: p })}
             onOpenChange={onDatePickerOpenChange}
           />
+
+          {/* Task Timer Widget */}
+          <div className="flex items-center gap-1.5 ml-2 pl-2 border-l border-border/60 shrink-0">
+            {timer.seconds > 0 && (
+              <span className="text-[11px] font-semibold font-mono text-muted-foreground/80 tracking-tight select-none">
+                {(() => {
+                  const hrs = Math.floor(timer.seconds / 3600);
+                  const mins = Math.floor((timer.seconds % 3600) / 60);
+                  const secs = timer.seconds % 60;
+                  const pad = (n: number) => n.toString().padStart(2, '0');
+                  return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+                })()}
+              </span>
+            )}
+            
+            {timer.isRunning ? (
+              <button
+                onClick={(e) => { e.stopPropagation(); pauseTimer(task.id); }}
+                className="p-1 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-all flex items-center justify-center shrink-0 cursor-pointer"
+                title="Pause stopwatch"
+              >
+                <Pause size={12} weight="bold" />
+              </button>
+            ) : (
+              <button
+                onClick={(e) => { e.stopPropagation(); startTimer(task.id); }}
+                className="p-1 rounded bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20 transition-all flex items-center justify-center shrink-0 cursor-pointer"
+                title="Start stopwatch"
+              >
+                <Play size={12} weight="fill" />
+              </button>
+            )}
+            
+            {timer.seconds > 0 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); stopTimer(task.id); }}
+                className="p-1 rounded bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-all flex items-center justify-center shrink-0 cursor-pointer"
+                title="Stop & Reset"
+              >
+                <Stop size={12} weight="fill" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

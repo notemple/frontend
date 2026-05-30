@@ -7,6 +7,8 @@ import {
   Stop, 
 } from '@phosphor-icons/react';
 import { useFocusTimerStore } from '@/shared/store/focusTimerStore';
+import { useTaskTimerStore } from '@/shared/store/taskTimerStore';
+import { useTaskStore } from '@/features/tasks/store';
 
 type TimerMode = 'stopwatch' | 'timer' | 'pomodoro';
 
@@ -26,6 +28,20 @@ export const FocusTimerPopup = ({ onClose }: { onClose: () => void }) => {
     reset,
     stop
   } = useFocusTimerStore();
+
+  const tasks = useTaskStore(state => state.tasks) || [];
+  const timers = useTaskTimerStore(state => state.timers) || {};
+  const pauseTimer = useTaskTimerStore(state => state.pauseTimer);
+  const stopTimer = useTaskTimerStore(state => state.stopTimer);
+
+  const runningTimersList = React.useMemo(() => {
+    return Object.values(timers)
+      .filter(t => t.isRunning)
+      .map(timer => {
+        const task = tasks.find(t => t.id === timer.taskId) || { id: timer.taskId, title: 'Deleted Task' };
+        return { task, timer };
+      });
+  }, [timers, tasks]);
 
   // Click outside detection
   useEffect(() => {
@@ -226,6 +242,50 @@ export const FocusTimerPopup = ({ onClose }: { onClose: () => void }) => {
           <Stop size={13} weight="fill" />
         </button>
       </div>
+
+      {/* Active Task Timers List */}
+      {runningTimersList.length > 0 && (
+        <div className="w-full border-t border-border/40 pt-3 mt-1 flex flex-col gap-2 max-h-[140px] overflow-y-auto no-scrollbar">
+          <div className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-wider pl-1">
+            Running Tasks
+          </div>
+          {runningTimersList.map(({ task, timer }) => (
+            <div key={task.id} className="flex items-center justify-between bg-muted/30 border border-border/40 rounded px-2.5 py-1.5 w-full gap-2 shrink-0">
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-[11px] font-semibold text-foreground truncate leading-none mb-0.5">{task.title || 'Untitled Task'}</span>
+                <span className="text-[9px] text-muted-foreground/60 leading-none">Task stopwatch</span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[11px] font-bold font-mono text-muted-foreground tracking-tight">
+                  {(() => {
+                    const hrs = Math.floor(timer.seconds / 3600);
+                    const mins = Math.floor((timer.seconds % 3600) / 60);
+                    const secs = timer.seconds % 60;
+                    const pad = (n: number) => n.toString().padStart(2, '0');
+                    return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+                  })()}
+                </span>
+                <div className="flex items-center gap-0.5">
+                  <button
+                    onClick={() => pauseTimer(task.id)}
+                    className="p-1 rounded text-amber-500 hover:bg-amber-500/10 cursor-pointer flex items-center justify-center shrink-0"
+                    title="Pause"
+                  >
+                    <Pause size={10} weight="bold" />
+                  </button>
+                  <button
+                    onClick={() => stopTimer(task.id)}
+                    className="p-1 rounded text-red-500 hover:bg-red-500/10 cursor-pointer flex items-center justify-center shrink-0"
+                    title="Stop & Reset"
+                  >
+                    <Stop size={10} weight="fill" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 };

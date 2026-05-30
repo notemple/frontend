@@ -25,6 +25,7 @@ import { AccountDialog } from '@/features/settings/AccountDialog';
 import { FocusTimerPopup } from './FocusTimerPopup';
 import { formatInTimeZone } from 'date-fns-tz';
 import { useFocusTimerStore } from '@/shared/store/focusTimerStore';
+import { useTaskTimerStore } from '@/shared/store/taskTimerStore';
 
 export const ClockWidget = () => {
   const { timezone, timeFormat } = useSettingsStore(
@@ -202,6 +203,9 @@ export const MainWorkspace = () => {
   const isTimerRunning = useFocusTimerStore((state) => state.isRunning);
   const tickTimer = useFocusTimerStore((state) => state.tick);
 
+  const tickTaskTimers = useTaskTimerStore((state) => state.tick);
+  const hasRunningTasks = useTaskTimerStore((state) => Object.values(state.timers).some(t => t.isRunning));
+
   React.useEffect(() => {
     if (!isTimerRunning) return;
     const interval = setInterval(() => {
@@ -209,6 +213,14 @@ export const MainWorkspace = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, [isTimerRunning, tickTimer]);
+
+  React.useEffect(() => {
+    if (!hasRunningTasks) return;
+    const interval = setInterval(() => {
+      tickTaskTimers();
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [hasRunningTasks, tickTaskTimers]);
 
   React.useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {

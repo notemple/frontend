@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { TaskTitleInput } from "./TaskTitleInput";
 import { X, CaretDown, Check, Circle, Clock, CheckCircle, CalendarBlank, Flag } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "motion/react";
 import { NotempleEditor } from "@/features/editor/NotempleEditor";
@@ -21,6 +22,20 @@ export const TaskEditorModal = ({
   );
   const updateTask = useTaskStore((state) => state.updateTask);
   const currentStatus = task?.status || 'open';
+
+  const [localTitle, setLocalTitle] = useState(task?.title || "");
+
+  useEffect(() => {
+    if (task?.title) {
+      setLocalTitle(task.title);
+    }
+  }, [task?.title]);
+
+  const handleBlur = () => {
+    if (task && localTitle !== task.title) {
+      updateTask(task.id, { title: localTitle });
+    }
+  };
 
   const statusConfig = {
     open: {
@@ -67,9 +82,19 @@ export const TaskEditorModal = ({
           >
             <div className="w-full flex items-center justify-between p-4 border-b border-border font-bold text-sm text-foreground bg-muted relative z-20">
               <div className="flex items-center gap-3 min-w-0 flex-1">
-                <span className="truncate text-muted-foreground font-semibold">
-                  {task?.title || "Edit Task"}
-                </span>
+                {task ? (
+                  <TaskTitleInput
+                    value={localTitle}
+                    onChange={setLocalTitle}
+                    onBlur={handleBlur}
+                    isCompleted={task.completed}
+                    className="text-sm font-semibold max-w-[360px] bg-transparent border-transparent"
+                  />
+                ) : (
+                  <span className="truncate text-muted-foreground font-semibold">
+                    Edit Task
+                  </span>
+                )}
 
                 {task && (
                   <div className="relative shrink-0">

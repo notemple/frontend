@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { TaskTitleInput } from './TaskTitleInput';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTaskStore, type Task } from '../store';
 import { CustomDatePicker } from './CustomDatePicker';
@@ -8,8 +9,7 @@ import { formatDisplayDate } from '@/shared/lib/time';
 import { cn } from '@/shared/lib/utils';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { Plus, Trash, CalendarBlank, Flag, CaretDown, CaretUp, Rows, GridFour, DotsSixVertical, ClipboardText, Clock, ArrowCircleRight, ListBullets, Play, Pause, Stop } from '@phosphor-icons/react';
-import { useTaskTimerStore } from '@/shared/store/taskTimerStore';
+import { Plus, Trash, CalendarBlank, Flag, CaretDown, CaretUp, Rows, GridFour, DotsSixVertical, ClipboardText, Clock, ArrowCircleRight, ListBullets } from '@phosphor-icons/react';
 
 export const KanbanCard = ({
   task,
@@ -28,11 +28,6 @@ export const KanbanCard = ({
   isDatePickerOpen: boolean;
   isOverlay?: boolean;
 }) => {
-  const timer = useTaskTimerStore(state => state.timers[task.id]) || { taskId: task.id, seconds: 0, isRunning: false };
-  const startTimer = useTaskTimerStore(state => state.startTimer);
-  const pauseTimer = useTaskTimerStore(state => state.pauseTimer);
-  const stopTimer = useTaskTimerStore(state => state.stopTimer);
-
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
     disabled: isOverlay,
@@ -105,20 +100,12 @@ export const KanbanCard = ({
           )}
         </div>
 
-        {/* Editable Title Input */}
-        <input
+        <TaskTitleInput
           value={localTitle}
-          onChange={(e) => setLocalTitle(e.target.value)}
+          onChange={setLocalTitle}
           onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-          className={cn(
-            "text-xs font-sans font-semibold transition-all bg-transparent border border-transparent hover:border-border/80 focus:border-border/80 focus:ring-1 focus:ring-border rounded-sm-sm outline-none px-1 flex-1 min-w-0 py-0",
-            task.completed
-              ? "line-through text-muted-foreground/50"
-              : "text-foreground font-medium",
-          )}
+          isCompleted={task.completed}
+          className="text-xs font-semibold py-0.5 px-1"
         />
         
         {/* Drag Handle & Drag Indicators */}
@@ -147,70 +134,12 @@ export const KanbanCard = ({
             onOpenChange={onDatePickerOpenChange}
           />
 
-          {/* Time spent beside the date */}
-          {timer.seconds >= 60 && (
-            <span className="inline-flex items-center gap-1 px-1 py-0.5 text-[9px] font-mono font-semibold rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 shrink-0">
-              <Clock size={10} />
-              {(() => {
-                const hrs = Math.floor(timer.seconds / 3600);
-                const mins = Math.floor((timer.seconds % 3600) / 60);
-                if (hrs > 0) {
-                  return `${hrs}h ${mins}m`;
-                }
-                return `${mins}m`;
-              })()}
-            </span>
-          )}
-
           <CustomPriorityPicker
             small
             priority={task.priority}
             onChange={(p: "low" | "medium" | "urgent" | undefined) => updateTask(task.id, { priority: p })}
             onOpenChange={onDatePickerOpenChange}
           />
-
-          {/* Task Timer Widget */}
-          <div className="flex items-center gap-1 ml-1.5 pl-1.5 border-l border-border/40 shrink-0">
-            {timer.seconds > 0 && (
-              <span className="text-[10px] font-semibold font-mono text-muted-foreground/80 tracking-tight select-none">
-                {(() => {
-                  const hrs = Math.floor(timer.seconds / 3600);
-                  const mins = Math.floor((timer.seconds % 3600) / 60);
-                  const secs = timer.seconds % 60;
-                  const pad = (n: number) => n.toString().padStart(2, '0');
-                  return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
-                })()}
-              </span>
-            )}
-            
-            {timer.isRunning ? (
-              <button
-                onClick={(e) => { e.stopPropagation(); e.preventDefault(); pauseTimer(task.id); }}
-                className="p-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-all flex items-center justify-center shrink-0 cursor-pointer"
-                title="Pause stopwatch"
-              >
-                <Pause size={10} weight="bold" />
-              </button>
-            ) : (
-              <button
-                onClick={(e) => { e.stopPropagation(); e.preventDefault(); startTimer(task.id); }}
-                className="p-0.5 rounded bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20 transition-all flex items-center justify-center shrink-0 cursor-pointer"
-                title="Start stopwatch"
-              >
-                <Play size={10} weight="fill" />
-              </button>
-            )}
-            
-            {timer.seconds > 0 && (
-              <button
-                onClick={(e) => { e.stopPropagation(); e.preventDefault(); stopTimer(task.id); }}
-                className="p-0.5 rounded bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-all flex items-center justify-center shrink-0 cursor-pointer"
-                title="Stop & Reset"
-              >
-                <Stop size={10} weight="fill" />
-              </button>
-            )}
-          </div>
         </div>
 
         <div className="flex items-center gap-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity flex-shrink-0 pl-1" onPointerDown={(e) => e.stopPropagation()}>

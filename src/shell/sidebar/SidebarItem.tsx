@@ -28,11 +28,21 @@ export const SidebarItem = ({
   activeBgClass?: string,
   activeTextClass?: string
 }) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick?.();
+    }
+  };
+
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
       className={cn(
-        "relative flex items-center w-full py-1.5 text-[13px] outline-none group/item rounded-sm-sm transition-all duration-100 ease-out active:scale-[0.98] border border-transparent cursor-pointer",
+        "relative flex items-center w-full py-1.5 text-[13px] outline-none group/item rounded-sm-sm transition-all duration-100 ease-out active:scale-[0.98] border border-transparent cursor-pointer select-none",
         isOpen ? "px-2 gap-3" : "px-0 justify-center items-center gap-0",
         highlight
           ? activeTextClass
@@ -77,6 +87,6 @@ export const SidebarItem = ({
           </div>
         )}
       </div>
-    </button>
+    </div>
   );
 };

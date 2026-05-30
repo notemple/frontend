@@ -3,6 +3,7 @@ import { CustomDatePicker } from "./CustomDatePicker";
 import { CustomPriorityPicker } from "./CustomPriorityPicker";
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { TaskTitleInput } from './TaskTitleInput';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTaskStore, type Task } from '../store';
 import { formatDisplayDate } from '@/shared/lib/time';
@@ -71,17 +72,12 @@ export const TaskRow = React.memo(({
           {task.completed && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-2 rounded-sm-sm h-2 bg-emerald-500 dark:bg-emerald-400" />}
         </div>
 
-        <input
+        <TaskTitleInput
           value={localTitle}
-          onChange={(e) => setLocalTitle(e.target.value)}
+          onChange={setLocalTitle}
           onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          className={cn(
-            "text-base font-sans transition-all bg-transparent border border-transparent hover:border-border/80 focus:border-border/80 focus:ring-1 focus:ring-border rounded-sm-sm outline-none px-2 flex-1",
-            task.completed
-              ? "line-through text-muted-foreground/50"
-              : "text-foreground font-medium",
-          )}
+          isCompleted={task.completed}
+          className="text-base font-medium"
         />
 
         <div className="flex items-center gap-2">

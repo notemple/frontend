@@ -122,7 +122,7 @@ export const SlashCommandList = forwardRef((props: SlashCommandListProps, ref) =
         return true;
       }
 
-      if (event.key === 'ArrowLeft' && menuStack.length > 0) {
+      if ((event.key === 'ArrowLeft' || event.key === 'Backspace') && menuStack.length > 0) {
         goBack();
         return true;
       }

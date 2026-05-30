@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle, us
 import { useDocumentStore } from '@/features/documents/store';
 import { useUiStore } from '@/shared/store/uiStore';
 import { useShallow } from 'zustand/react/shallow';
+import { useTaskStore } from '@/features/tasks/store';
 import { 
   FileText, 
   Calendar, 
   CheckSquare, 
+  Square,
   Tag as TagIcon, 
   User, 
   PlusCircle 
@@ -30,9 +32,10 @@ export const MentionList = forwardRef((props: MentionListProps, ref) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Live lookup of documents and tags from the store
+  // Live lookup of documents, tags, and tasks from the store
   const documents = useDocumentStore(state => state.documents);
   const createdTags = useDocumentStore(state => state.createdTags) || [];
+  const tasks = useTaskStore(state => state.tasks) || [];
 
   const items = useMemo(() => {
     const list: MentionItem[] = [];
@@ -100,12 +103,18 @@ export const MentionList = forwardRef((props: MentionListProps, ref) => {
     list.push(...filteredDates);
 
     // 3. Tasks Group
-    // If user has typed a query, offer a "Create Task" command!
-    if (query) {
-      list.push({
-        title: `Create task: "${props.query}"`,
-        subtitle: 'Add as interactive check item',
-        icon: <PlusCircle size={16} className="text-amber-500" />,
+    const filteredTasks = tasks
+      .filter((task: any) => task && !task.isDeleted)
+      .filter((task: any) => !query || (task.title || 'Untitled Task').toLowerCase().includes(query))
+      .slice(0, 5)
+      .map((task: any) => ({
+        title: task.title || 'Untitled Task',
+        subtitle: task.completed ? 'Completed' : 'Task',
+        icon: (
+          <span className="text-[14px] leading-none flex items-center justify-center font-sans shrink-0">
+            {task.completed ? <CheckSquare size={16} className="text-emerald-500" /> : <Square size={16} className="text-amber-500" />}
+          </span>
+        ),
         group: 'Tasks' as const,
         action: () => {
           props.editor
@@ -114,7 +123,36 @@ export const MentionList = forwardRef((props: MentionListProps, ref) => {
             .deleteRange(props.range)
             .insertContent({
               type: 'reference',
-              attrs: { label: props.query, type: 'task', status: 'todo' }
+              attrs: { id: task.id, label: task.title || 'Untitled Task', type: 'task', status: task.completed ? 'done' : 'todo' }
+            })
+            .insertContent(' ')
+            .run();
+        }
+      }));
+    list.push(...filteredTasks);
+
+    if (query && !tasks.some(t => !t.isDeleted && t.title?.toLowerCase() === query)) {
+      list.push({
+        title: `Create task: "${props.query}"`,
+        subtitle: 'Add as interactive check item',
+        icon: <PlusCircle size={16} className="text-amber-500" />,
+        group: 'Tasks' as const,
+        action: () => {
+          const newTaskId = `task-${crypto.randomUUID()}`;
+          useTaskStore.getState().addTask({
+            id: newTaskId,
+            title: props.query,
+            completed: false,
+            status: 'open',
+            list: 'All Tasks'
+          });
+          props.editor
+            .chain()
+            .focus()
+            .deleteRange(props.range)
+            .insertContent({
+              type: 'reference',
+              attrs: { id: newTaskId, label: props.query, type: 'task', status: 'todo' }
             })
             .insertContent(' ')
             .run();
@@ -133,7 +171,6 @@ export const MentionList = forwardRef((props: MentionListProps, ref) => {
       .slice(0, 3)
       .map(tag => ({
         title: tag,
-        subtitle: 'Tag Chip',
         icon: <TagIcon size={16} className="text-rose-500" />,
         group: 'Tags' as const,
         action: () => {
@@ -151,36 +188,8 @@ export const MentionList = forwardRef((props: MentionListProps, ref) => {
       }));
     list.push(...filteredTags);
 
-    // 5. People Group
-    const team = [
-      { name: 'Alice Smith', email: 'alice@notemple.com' },
-      { name: 'Bob Jones', email: 'bob@notemple.com' },
-      { name: 'Carol Davis', email: 'carol@notemple.com' }
-    ];
-    const filteredPeople = team
-      .filter(p => !query || p.name.toLowerCase().includes(query))
-      .map(p => ({
-        title: p.name,
-        subtitle: p.email,
-        icon: <User size={16} className="text-sky-500" />,
-        group: 'People' as const,
-        action: () => {
-          props.editor
-            .chain()
-            .focus()
-            .deleteRange(props.range)
-            .insertContent({
-              type: 'reference',
-              attrs: { label: p.name, type: 'person' }
-            })
-            .insertContent(' ')
-            .run();
-        }
-      }));
-    list.push(...filteredPeople);
-
     return list;
-  }, [props.query, documents, createdTags, props.editor, props.range]);
+  }, [props.query, documents, createdTags, tasks, props.editor, props.range]);
 
   useEffect(() => {
     setSelectedIndex(0);

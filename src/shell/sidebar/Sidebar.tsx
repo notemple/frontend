@@ -451,6 +451,25 @@ export const Sidebar = () => {
     openDocument(newId);
   };
 
+  const handleNewNoteInFolderClick = (folderId: string) => {
+    const newId = `doc-${crypto.randomUUID()}`;
+    addDocument({
+      id: newId,
+      title: '',
+      content: '',
+      type: 'page',
+      tags: [],
+      folderId: folderId,
+      updatedAt: new Date().toISOString()
+    });
+    setCollapsedFolders(prev => {
+      const next = new Set(prev);
+      next.delete(folderId);
+      return next;
+    });
+    openDocument(newId);
+  };
+
   const handleContextMenu = (e: React.MouseEvent, id: string, type: 'document' | 'folder') => {
     e.preventDefault();
     setContextMenu({ x: e.clientX, y: e.clientY, id, type });
@@ -656,22 +675,35 @@ export const Sidebar = () => {
                       highlight={isDocActive(`section-folder-${folder.id}`)}
                       folderColor={getFolderHexColor(folder.id, folderColors)}
                       rightElement={
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFolderCollapse(folder.id);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
+                        <div className="flex items-center gap-1 relative z-30">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              handleNewNoteInFolderClick(folder.id);
+                            }}
+                            className="opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-foreground p-0.5 hover:bg-muted/80 rounded-sm transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0"
+                            title="Create new note in folder"
+                          >
+                            <Plus size={14} />
+                          </button>
+                          <div
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => {
                               e.stopPropagation();
                               toggleFolderCollapse(folder.id);
-                            }
-                          }}
-                          className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200 cursor-pointer"
-                        >
-                          {!collapsedFolders.has(folder.id) ? <CaretDown size={14} /> : <CaretRight size={14} />}
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.stopPropagation();
+                                toggleFolderCollapse(folder.id);
+                              }
+                            }}
+                            className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200 cursor-pointer"
+                          >
+                            {!collapsedFolders.has(folder.id) ? <CaretDown size={14} /> : <CaretRight size={14} />}
+                          </div>
                         </div>
                       }
                     />

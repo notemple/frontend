@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NodeViewWrapper } from '@tiptap/react';
 import { useDocumentStore } from '@/features/documents/store';
 import { useUiStore } from '@/shared/store/uiStore';
+import { useTaskStore } from '@/features/tasks/store';
 import { 
   FileText, 
   Calendar, 
@@ -19,18 +20,31 @@ export const ReferenceNodeView = ({ node, updateAttributes }: any) => {
   const { id, label, type, status, dueDate, dateStr } = node.attrs;
   const openDocument = useUiStore(state => state.openDocument);
   const documents = useDocumentStore(state => state.documents);
+  const tasks = useTaskStore(state => state.tasks) || [];
   const [hovered, setHovered] = useState(false);
 
   // Live lookup of note details if reference type is document
   const targetDoc = type === 'document' && id ? documents[id] : null;
-  const displayLabel = targetDoc ? (targetDoc.title || 'Untitled') : label;
+  const targetTask = type === 'task' && id ? tasks.find(t => t.id === id) : null;
+  
+  const displayLabel = targetDoc 
+    ? (targetDoc.title || 'Untitled') 
+    : (targetTask ? (targetTask.title || 'Untitled Task') : label);
+
+  const activeStatus = targetTask 
+    ? (targetTask.completed || targetTask.status === 'done' ? 'done' : 'todo') 
+    : status;
 
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    const newStatus = activeStatus === 'done' ? 'todo' : 'done';
     updateAttributes({
-      status: status === 'done' ? 'todo' : 'done'
+      status: newStatus
     });
+    if (type === 'task' && id) {
+      useTaskStore.getState().updateTask(id, { completed: newStatus === 'done', status: newStatus === 'done' ? 'done' : 'open' });
+    }
   };
 
   const handleOpenReference = (e: React.MouseEvent) => {
@@ -92,15 +106,24 @@ export const ReferenceNodeView = ({ node, updateAttributes }: any) => {
 
         {type === 'task' && (
           <span 
+            onClick={(e) => {
+              if (id) {
+                e.stopPropagation();
+                e.preventDefault();
+                window.dispatchEvent(new CustomEvent('task-editor-open', {
+                  detail: { id }
+                }));
+              }
+            }}
             className={cn(
-              "inline-flex items-center gap-1.5 px-2 py-0.5 mx-0.5 rounded-sm text-[13px] font-medium border transition-all duration-200 select-none",
-              status === 'done' 
+              "inline-flex items-center gap-1.5 px-2 py-0.5 mx-0.5 rounded-sm text-[13px] font-medium border transition-all duration-200 select-none cursor-pointer hover:bg-amber-500/15 active:scale-95",
+              activeStatus === 'done' 
                 ? "bg-emerald-500/5 dark:bg-emerald-400/5 border-emerald-500/15 dark:border-emerald-400/15 text-emerald-500/50 dark:text-emerald-400/50 line-through" 
                 : "bg-amber-500/10 dark:bg-amber-400/10 border-amber-500/20 dark:border-amber-400/20 text-amber-600 dark:text-amber-400"
             )}
           >
             <span onClick={handleCheckboxClick} className="cursor-pointer flex items-center justify-center shrink-0">
-              {status === 'done' ? (
+              {activeStatus === 'done' ? (
                 <CheckSquare size={14} weight="fill" className="text-emerald-500 dark:text-emerald-400" />
               ) : (
                 <Square size={14} className="text-amber-500 dark:text-amber-400 hover:scale-105 active:scale-95 transition-transform" />

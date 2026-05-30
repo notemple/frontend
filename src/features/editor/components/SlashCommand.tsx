@@ -4,6 +4,7 @@ import Suggestion from '@tiptap/suggestion';
 import { ReactRenderer } from '@tiptap/react';
 import tippy, { type Instance as TippyInstance } from 'tippy.js';
 import { SlashCommandList } from './SlashCommandList';
+import { useTaskStore } from '@/features/tasks/store';
 import {
   Sparkle,
   ListBullets,
@@ -92,12 +93,42 @@ export const getSuggestionItems = ({ query }: { query: string }) => {
       title: 'Mention Task', 
       icon: <CheckSquareOffset size={16} className="text-amber-500" />, 
       group: 'References & Mentions', 
-      command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).insertContent({
-          type: 'reference',
-          attrs: { label: 'New Task', type: 'task', status: 'todo' }
-        }).insertContent(' ').run();
-      } 
+      submenu: [
+        {
+          title: '+ Create new task...',
+          icon: <CheckSquareOffset size={16} className="text-green-500" />,
+          command: ({ editor, range }) => {
+            const newTaskId = `task-${crypto.randomUUID()}`;
+            useTaskStore.getState().addTask({
+              id: newTaskId,
+              title: 'New Task',
+              completed: false,
+              status: 'open',
+              list: 'All Tasks'
+            });
+            editor.chain().focus().deleteRange(range).insertContent({
+              type: 'reference',
+              attrs: { id: newTaskId, label: 'New Task', type: 'task', status: 'todo' }
+            }).insertContent(' ').run();
+            // Automatically open task editor popup for the newly created task
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('task-editor-open', {
+                detail: { id: newTaskId }
+              }));
+            }, 50);
+          }
+        },
+        ...useTaskStore.getState().tasks.filter(t => !t.isDeleted).map(task => ({
+          title: task.title || 'Untitled Task',
+          icon: <Square size={16} className="text-amber-500" />,
+          command: ({ editor, range }) => {
+            editor.chain().focus().deleteRange(range).insertContent({
+              type: 'reference',
+              attrs: { id: task.id, label: task.title || 'Untitled Task', type: 'task', status: task.completed ? 'done' : 'todo' }
+            }).insertContent(' ').run();
+          }
+        }))
+      ]
     },
     { 
       title: 'Insert Date', 

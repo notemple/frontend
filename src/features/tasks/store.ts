@@ -8,7 +8,7 @@ interface TaskStore {
   isInitialized: boolean;
 
   initialize: () => Promise<void>;
-  addTask: (task: Omit<Task, 'id' | 'createdAt'>) => Promise<void>;
+  addTask: (task: Omit<Task, 'id' | 'createdAt'> & { id?: string }) => Promise<void>;
   updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
 
@@ -37,10 +37,10 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   addTask: async (task) => {
     const defaultStatus = task.completed ? 'done' : 'open';
     const newTask: Task = {
+      id: task.id || `task-${crypto.randomUUID()}`,
+      createdAt: new Date().toISOString(),
       ...task,
-      id: `task-${crypto.randomUUID()}`,
-      status: task.status || defaultStatus,
-      createdAt: new Date().toISOString()
+      status: task.status || defaultStatus
     };
 
     set({ tasks: [...get().tasks, newTask] });

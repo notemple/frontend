@@ -1,18 +1,29 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sidebar } from './sidebar/Sidebar';
 import { MainWorkspace } from './MainWorkspace';
 import { RightSidebar } from './right-sidebar/RightSidebar';
 import { CommandPalette } from "@/shared/ui/CommandPalette";
 import { useUiStore } from '@/shared/store/uiStore';
 import { useShallow } from 'zustand/react/shallow';
+import { TaskEditorModal } from "@/features/tasks/components/TaskEditorModal";
 
 export const RootLayout = () => {
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+
   const { openDocument, appearance } = useUiStore(
     useShallow((state) => ({
       openDocument: state.openDocument,
       appearance: state.appearance,
     }))
   );
+
+  useEffect(() => {
+    const handleOpenTaskEditor = (e: CustomEvent) => {
+      setEditingTaskId(e.detail.id);
+    };
+    window.addEventListener('task-editor-open' as any, handleOpenTaskEditor as any);
+    return () => window.removeEventListener('task-editor-open' as any, handleOpenTaskEditor as any);
+  }, []);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -127,6 +138,12 @@ export const RootLayout = () => {
       <MainWorkspace />
       <RightSidebar />
       <CommandPalette />
+      {editingTaskId && (
+        <TaskEditorModal 
+          taskId={editingTaskId} 
+          onClose={() => setEditingTaskId(null)} 
+        />
+      )}
     </div>
   );
 };

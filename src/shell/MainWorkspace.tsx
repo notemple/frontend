@@ -9,7 +9,11 @@ import { TasksPage } from '@/features/tasks/TasksPage';
 import { TagsPage } from '@/features/tags/TagsPage';
 import { cn, getItemColor, getFolderStyle, getFolderHexColor, } from '@/shared/lib/utils';
 import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
-import { Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, CaretDown, FileText, Folder, Sun, Moon, Monitor, Clock, ArrowLeft, PlusCircle, Check, X, Plus, Trash } from '@phosphor-icons/react';
+import { 
+  Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, 
+  CaretDown, FileText, Folder, Sun, Moon, Monitor, Clock, ArrowLeft, PlusCircle, 
+  Check, X, Plus, Trash, Hourglass, Target, Play as MiniPlay, Pause as MiniPause, Stop as MiniStop 
+} from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'motion/react';
 import { gsap } from 'gsap';
 import { SectionPage } from "@/features/documents/SectionPage";
@@ -18,6 +22,9 @@ import { EmptyPaneState } from "@/features/documents/components/EmptyPaneState";
 import { useSettingsStore } from '@/features/settings/store';
 import { formatDisplayDateTime } from '@/shared/lib/time';
 import { AccountDialog } from '@/features/settings/AccountDialog';
+import { FocusTimerPopup } from './FocusTimerPopup';
+import { formatInTimeZone } from 'date-fns-tz';
+import { useFocusTimerStore } from '@/shared/store/focusTimerStore';
 
 export const ClockWidget = () => {
   const { timezone, timeFormat } = useSettingsStore(
@@ -46,6 +53,107 @@ export const ClockWidget = () => {
     <div className="flex items-center gap-2 px-3 py-1 rounded-sm-full bg-muted/40 hover:bg-muted/70 border border-border/80 text-[11px] font-medium text-muted-foreground/90 shadow-sm-sm transition-all duration-200 select-none group hover:border-border">
       <Clock size={13} className="text-muted-foreground/60 group-hover:text-rose-500 dark:group-hover:text-rose-400 transition-colors duration-200" />
       <span className="font-mono tracking-wide leading-none">{dateTime}</span>
+    </div>
+  );
+};
+
+export const FocusTimerWidget = () => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const {
+    mode,
+    isRunning,
+    stopwatchSeconds,
+    timerSeconds,
+    pomodoroSeconds,
+    setIsRunning,
+    stop
+  } = useFocusTimerStore();
+
+  const getSeconds = () => {
+    switch (mode) {
+      case 'stopwatch':
+        return stopwatchSeconds;
+      case 'timer':
+        return timerSeconds;
+      case 'pomodoro':
+        return pomodoroSeconds;
+    }
+  };
+
+  const formatTime = (totalSecs: number) => {
+    const hrs = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    const secs = totalSecs % 60;
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+  };
+
+  const getModeIcon = () => {
+    switch (mode) {
+      case 'stopwatch':
+        return <ClockCounterClockwise size={13} className="text-sky-400 dark:text-sky-300 transition-colors" />;
+      case 'timer':
+        return <Hourglass size={13} className="text-blue-400 dark:text-blue-300 transition-colors" />;
+      case 'pomodoro':
+        return <Target size={13} className="text-rose-400 dark:text-rose-300 transition-colors animate-pulse" />;
+    }
+  };
+
+  return (
+    <div 
+      className="relative"
+      onMouseEnter={() => setIsOpen(true)}
+      onMouseLeave={() => setIsOpen(false)}
+    >
+      <div className="focus-timer-widget-trigger flex items-center gap-2.5 px-3 py-1 rounded-sm-full bg-muted/40 hover:bg-muted/70 border border-border/80 text-[11px] font-medium text-muted-foreground/90 shadow-sm-sm transition-all duration-200 select-none group hover:border-border">
+        {/* Active Mode Icon */}
+        <div className="flex items-center justify-center">
+          {getModeIcon()}
+        </div>
+
+        {/* Current Duration */}
+        <span className="font-mono tracking-wide leading-none select-none text-[11px]">
+          {formatTime(getSeconds())}
+        </span>
+
+        {/* Small separator */}
+        <div className="w-[px] border-r border-border h-3 self-center opacity-60" />
+
+        {/* Mini controls */}
+        <div className="flex items-center gap-1.5">
+          {/* Play/Pause Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsRunning(!isRunning);
+            }}
+            className={`p-0.5 rounded-sm hover:bg-muted transition-colors flex items-center justify-center cursor-pointer ${
+              isRunning ? 'text-rose-500' : 'text-muted-foreground/80 hover:text-foreground'
+            }`}
+            title={isRunning ? 'Pause' : 'Start'}
+          >
+            {isRunning ? <MiniPause size={10} weight="bold" /> : <MiniPlay size={10} weight="fill" />}
+          </button>
+
+          {/* Stop Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              stop();
+            }}
+            className="p-0.5 rounded-sm hover:bg-muted transition-colors flex items-center justify-center text-muted-foreground/80 hover:text-rose-500 cursor-pointer"
+            title="Stop & Clear"
+          >
+            <MiniStop size={10} weight="fill" />
+          </button>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <FocusTimerPopup onClose={() => setIsOpen(false)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -91,6 +199,30 @@ export const MainWorkspace = () => {
     }))
   );
 
+  const isTimerRunning = useFocusTimerStore((state) => state.isRunning);
+  const tickTimer = useFocusTimerStore((state) => state.tick);
+
+  React.useEffect(() => {
+    if (!isTimerRunning) return;
+    const interval = setInterval(() => {
+      tickTimer();
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isTimerRunning, tickTimer]);
+
+  React.useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isTimerRunning) {
+        const msg = "time is still timing, are you sure to close and stop?";
+        e.preventDefault();
+        e.returnValue = msg;
+        return msg;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isTimerRunning]);
+
   const [isAccountOpen, setIsAccountOpen] = React.useState(false);
   const userProfileIcon = useSettingsStore((state) => state.userProfileIcon);
 
@@ -133,6 +265,7 @@ export const MainWorkspace = () => {
           </button>
           
           <ClockWidget />
+          <FocusTimerWidget />
         </div>
         <div className="text-[13px] font-medium text-muted-foreground flex-1 text-center font-sans tracking-wide">
           {headerText}

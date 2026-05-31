@@ -490,7 +490,7 @@ export const NotempleEditor = React.memo(({
       className={cn(
         "w-full overflow-y-auto no-scrollbar flex flex-col relative",
         isMinimized 
-          ? "h-[280px] border border-border rounded-sm-sm bg-muted/20 hover:bg-muted/30 hover:border-muted-foreground/20 focus-within:border-rose-500/35 focus-within:bg-background transition-all duration-200" 
+          ? "h-[450px] border border-border rounded-sm-sm bg-muted/20 hover:bg-muted/30 hover:border-muted-foreground/20 focus-within:border-rose-500/35 focus-within:bg-background transition-all duration-200" 
           : "h-full",
         hasCustomStyle ? "p-4 sm:p-8 md:p-12 lg:p-16 transition-[padding] duration-300" : ""
       )}

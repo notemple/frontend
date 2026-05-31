@@ -77,13 +77,58 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
     }))
   );
   const [isCalendarOpen, setIsCalendarOpen] = useState(true);
-  const [isCreatedTodayOpen, setIsCreatedTodayOpen] = useState(true);
-  const [isUpdatedTodayOpen, setIsUpdatedTodayOpen] = useState(true);
-  const [isTasksCreatedOpen, setIsTasksCreatedOpen] = useState(true);
-  const [isTasksFinishedOpen, setIsTasksFinishedOpen] = useState(true);
+  const [isCreatedTodayOpen, setIsCreatedTodayOpen] = useState(false);
+  const [isUpdatedTodayOpen, setIsUpdatedTodayOpen] = useState(false);
+  const [isTasksCreatedOpen, setIsTasksCreatedOpen] = useState(false);
+  const [isTasksFinishedOpen, setIsTasksFinishedOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
   const calendarGridRef = useRef<HTMLDivElement>(null);
+  const createdTodayRef = useRef<HTMLDivElement>(null);
+  const updatedTodayRef = useRef<HTMLDivElement>(null);
+  const tasksCreatedRef = useRef<HTMLDivElement>(null);
+  const tasksDeadlineRef = useRef<HTMLDivElement>(null);
+
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement | null>) => {
+    setTimeout(() => {
+      ref.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }, 100);
+  };
+
+  const handleToggleCreatedToday = () => {
+    const nextState = !isCreatedTodayOpen;
+    setIsCreatedTodayOpen(nextState);
+    if (nextState) {
+      scrollToSection(createdTodayRef);
+    }
+  };
+
+  const handleToggleUpdatedToday = () => {
+    const nextState = !isUpdatedTodayOpen;
+    setIsUpdatedTodayOpen(nextState);
+    if (nextState) {
+      scrollToSection(updatedTodayRef);
+    }
+  };
+
+  const handleToggleTasksCreated = () => {
+    const nextState = !isTasksCreatedOpen;
+    setIsTasksCreatedOpen(nextState);
+    if (nextState) {
+      scrollToSection(tasksCreatedRef);
+    }
+  };
+
+  const handleToggleTasksFinished = () => {
+    const nextState = !isTasksFinishedOpen;
+    setIsTasksFinishedOpen(nextState);
+    if (nextState) {
+      scrollToSection(tasksDeadlineRef);
+    }
+  };
 
   const zonedMonthYearKey = `${getZonedMonth(selectedDate, timezone)}-${getZonedYear(selectedDate, timezone)}`;
   useEffect(() => {
@@ -446,10 +491,10 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                     {/* Objects Section */}
                     <div className="flex flex-col gap-6">
                       {/* Created Today */}
-                      <div>
+                      <div ref={createdTodayRef}>
                         <div
                           className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-sm-sm transition-colors group"
-                          onClick={() => setIsCreatedTodayOpen(!isCreatedTodayOpen)}
+                          onClick={handleToggleCreatedToday}
                         >
                           <h2 className="text-sm font-medium text-foreground">
                             Created Today
@@ -491,10 +536,10 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                       </div>
 
                       {/* Updated Today */}
-                      <div>
+                      <div ref={updatedTodayRef}>
                         <div
                           className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-sm-sm transition-colors group"
-                          onClick={() => setIsUpdatedTodayOpen(!isUpdatedTodayOpen)}
+                          onClick={handleToggleUpdatedToday}
                         >
                           <h2 className="text-sm font-medium text-foreground">
                             Updated Today
@@ -536,10 +581,10 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                       </div>
 
                       {/* Tasks Created Today */}
-                      <div>
+                      <div ref={tasksCreatedRef}>
                         <div
                           className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-sm-sm transition-colors group"
-                          onClick={() => setIsTasksCreatedOpen(!isTasksCreatedOpen)}
+                          onClick={handleToggleTasksCreated}
                         >
                           <h2 className="text-sm font-medium text-foreground">
                             Tasks Created Today
@@ -625,10 +670,10 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                       </div>
 
                       {/* Tasks Finished Today */}
-                      <div>
+                      <div ref={tasksDeadlineRef}>
                         <div
                           className="flex items-center gap-2 mb-4 cursor-pointer hover:bg-muted py-1 -mx-2 px-2 rounded-sm-sm transition-colors group"
-                          onClick={() => setIsTasksFinishedOpen(!isTasksFinishedOpen)}
+                          onClick={handleToggleTasksFinished}
                         >
                           <h2 className="text-sm font-medium text-foreground">
                             Tasks with Deadline Today

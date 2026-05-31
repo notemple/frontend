@@ -682,5 +682,64 @@ div[class*="bg-purple-500/80"] {
   box-shadow: 0 0 10px rgba(168, 85, 247, 0.6) !important;
 }
 
+/* ── Object Hover Highlights & Tight Drag Preview ────────────────────────── */
+
+/* Hover highlights on individual content objects in the editor */
+.ProseMirror p,
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror blockquote,
+.ProseMirror pre,
+.ProseMirror [data-type="taskItem"],
+.ProseMirror [data-type="image"],
+.ProseMirror [data-type="table"],
+.ProseMirror table {
+  transition: background-color 150ms ease-out, box-shadow 150ms ease-out;
+  border-radius: 4px;
+}
+
+.ProseMirror p:hover,
+.ProseMirror h1:hover,
+.ProseMirror h2:hover,
+.ProseMirror h3:hover,
+.ProseMirror blockquote:hover,
+.ProseMirror pre:hover,
+.ProseMirror [data-type="taskItem"]:hover,
+.ProseMirror [data-type="image"]:hover,
+.ProseMirror [data-type="table"]:hover,
+.ProseMirror table:hover {
+  background-color: rgba(168, 85, 247, 0.02) !important; /* Extremely subtle transparent purple tint matching Notemple style */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 0 1px rgba(168, 85, 247, 0.05) !important;
+}
+
+html.light .ProseMirror p:hover,
+html.light .ProseMirror h1:hover,
+html.light .ProseMirror h2:hover,
+html.light .ProseMirror h3:hover,
+html.light .ProseMirror blockquote:hover,
+html.light .ProseMirror pre:hover,
+html.light .ProseMirror [data-type="taskItem"]:hover,
+html.light .ProseMirror [data-type="image"]:hover,
+html.light .ProseMirror [data-type="table"]:hover,
+html.light .ProseMirror table:hover {
+  background-color: rgba(168, 85, 247, 0.015) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02), 0 0 1px rgba(168, 85, 247, 0.03) !important;
+}
+
+/* Restrict height and strip heavy margins on components inside the drag overlay */
+.dnd-drag-overlay .ProseMirror {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-height: 180px !important; /* Cap high blocks (like giant tables/code) to keep it compact and lightweight */
+}
+
+.dnd-drag-overlay .ProseMirror > * {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+}
+
 
 

@@ -14,11 +14,19 @@ export const ColumnExtension = Node.create({
       width: {
         default: null,
         parseHTML: element => {
-          const val = element.style.width || element.getAttribute('data-width');
+          const val = element.getAttribute('data-width') || element.style.width;
+          if (val === 'auto') return 'auto';
           return val ? parseFloat(val) : null;
         },
         renderHTML: attributes => {
           if (!attributes.width) return {};
+          if (attributes.width === 'auto') {
+            return {
+              style: 'width: auto',
+              'data-width': 'auto',
+              class: 'width-auto',
+            };
+          }
           return {
             style: `width: ${attributes.width}%`,
             'data-width': attributes.width,

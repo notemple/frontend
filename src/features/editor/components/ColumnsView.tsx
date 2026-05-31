@@ -240,7 +240,6 @@ export const ColumnsView = ({ node, editor, getPos }: NodeViewProps) => {
 
     return { pos: targetPos, node: targetNode };
   };
-
   // Presets system cycling
   const cyclePresets = () => {
     if (typeof getPos !== 'function') return;
@@ -249,15 +248,17 @@ export const ColumnsView = ({ node, editor, getPos }: NodeViewProps) => {
     if (!parentNode) return;
 
     if (parentNode.childCount !== 2) {
-      // 3+ columns: equalize widths
+      // 3+ columns: toggle between equal widths and 'auto'
+      const isAllAuto = parentNode.child(0).attrs.width === 'auto';
       const childCount = parentNode.childCount;
-      const equalWidth = 100 / childCount;
+      const targetWidth = isAllAuto ? (100 / childCount) : 'auto';
+
       let tr = editor.state.tr;
       let currentPos = parentPos + 1;
       parentNode.forEach((childNode) => {
         tr = tr.setNodeMarkup(currentPos, undefined, {
           ...childNode.attrs,
-          width: equalWidth,
+          width: targetWidth,
         });
         currentPos += childNode.nodeSize;
       });
@@ -266,12 +267,13 @@ export const ColumnsView = ({ node, editor, getPos }: NodeViewProps) => {
       return;
     }
 
-    // 2 Columns cycle: Equal (50/50), Left heavy (66/34), Right heavy (34/66), Left wide (75/25), Right wide (25/75), 40/60, 60/40
+    // 2 Columns cycle: Equal (50/50), Adaptive (auto/auto), Left heavy (66/34), Right heavy (34/66), Left wide (75/25), Right wide (25/75), 40/60, 60/40
     const firstCol = parentNode.child(0);
-    const currentWidth = firstCol.attrs.width !== null ? parseFloat(firstCol.attrs.width) : 50;
+    const isCurrentAuto = firstCol.attrs.width === 'auto';
 
     const presets = [
       [50, 50],
+      ['auto', 'auto'],
       [66.66, 33.33],
       [33.33, 66.66],
       [75, 25],
@@ -281,14 +283,20 @@ export const ColumnsView = ({ node, editor, getPos }: NodeViewProps) => {
     ];
 
     let closestIdx = 0;
-    let minDiff = Infinity;
-    presets.forEach((preset, idx) => {
-      const diff = Math.abs(preset[0] - currentWidth);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIdx = idx;
-      }
-    });
+    if (isCurrentAuto) {
+      closestIdx = 1;
+    } else {
+      const currentWidth = firstCol.attrs.width !== null ? parseFloat(firstCol.attrs.width) : 50;
+      let minDiff = Infinity;
+      presets.forEach((preset, idx) => {
+        if (preset[0] === 'auto') return;
+        const diff = Math.abs((preset[0] as number) - currentWidth);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestIdx = idx;
+        }
+      });
+    }
 
     const nextIdx = (closestIdx + 1) % presets.length;
     const nextPreset = presets[nextIdx];

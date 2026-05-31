@@ -604,6 +604,13 @@
   opacity: 1;
 }
 
+/* Fit Content / Adaptive Column Widths */
+.notemple-column.width-auto {
+  flex: 0 1 auto !important;
+  width: auto !important;
+  min-width: 120px !important;
+}
+
 /* Light Mode specific colors */
 html.light .notemple-column {
   border-color: rgba(0, 0, 0, 0.05);

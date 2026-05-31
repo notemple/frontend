@@ -421,7 +421,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
         </div>
 
         {/* Content container */}
-        <div className="px-8 pb-20 max-w-[900px] mx-auto w-full pt-10">
+        <div className="px-8 pb-20 max-w-[1400px] mx-auto w-full pt-10">
           <AnimatePresence mode="wait">
             <motion.div
               key={view}

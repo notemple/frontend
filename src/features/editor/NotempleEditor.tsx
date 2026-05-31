@@ -524,8 +524,8 @@ export const NotempleEditor = React.memo(({
         className={cn(
           "w-full mx-auto font-content flex flex-col shrink-0 z-10",
           hasCustomStyle
-            ? "max-w-[1450px] px-3 sm:px-4 md:px-5 py-5 sm:py-8 md:py-10 rounded-sm-sm shadow-sm-none relative border border-border min-h-[500px] md:min-h-[calc(100vh-160px)] overflow-hidden"
-            : cn("max-w-[1400px] h-full", isMinimized ? "py-4 px-6" : "py-10 px-6")
+            ? "max-w-full px-6 sm:px-8 md:px-10 py-5 sm:py-8 md:py-10 rounded-sm-sm shadow-sm-none relative border border-border min-h-[500px] md:min-h-[calc(100vh-160px)] overflow-hidden"
+            : cn("max-w-[1400px] h-full", isMinimized ? "py-6 px-8" : "py-10 px-6")
         )}
         style={{
           background: localStyle.documentColor || (hasCustomStyle ? '#faf8f5' : 'transparent'),
@@ -549,17 +549,17 @@ export const NotempleEditor = React.memo(({
             localStyle.topSectionColor
               ? (
                   hasCustomStyle
-                    ? "-mx-3 -mt-5 sm:-mx-4 sm:-mt-8 md:-mx-5 md:-mt-10 px-3 py-5 sm:px-4 sm:py-6 md:px-5 md:py-8 border-b border-border/30 rounded-t-sm-sm rounded-b-none mb-6"
+                    ? "-mx-6 -mt-5 sm:-mx-8 sm:-mt-8 md:-mx-10 md:-mt-10 px-6 py-5 sm:px-8 sm:py-6 md:px-10 md:py-8 border-b border-border/30 rounded-t-sm-sm rounded-b-none mb-6"
                     : (
                         isMinimized
-                          ? "-mx-6 -mt-4 px-6 py-4 border-b border-border/30 rounded-t-sm-sm rounded-b-none mb-4"
+                          ? "-mx-8 -mt-6 px-8 py-6 border-b border-border/30 rounded-t-sm-sm rounded-b-none mb-6"
                           : "-mx-6 -mt-10 px-6 py-10 border-b border-border/30 rounded-t-sm-sm rounded-b-none mb-8"
                       )
                 )
               : (
                   isMinimized 
-                    ? "mb-4 px-2" 
-                    : (hasCustomStyle ? "mb-8 px-1 sm:px-2 md:px-3" : "mb-8 px-4")
+                    ? "mb-6 px-8" 
+                    : (hasCustomStyle ? "mb-8 px-4 sm:px-6 md:px-8" : "mb-8 px-4")
                 )
           )}
           style={{
@@ -765,7 +765,7 @@ export const NotempleEditor = React.memo(({
         <div
           className={cn(
             "flex-1 notemple-editor-wrapper font-content text-lg relative flex flex-col cursor-text",
-            isMinimized ? "px-2" : (hasCustomStyle ? "px-1 sm:px-2 md:px-3" : "px-4")
+            isMinimized ? "px-8" : (hasCustomStyle ? "px-4 sm:px-6 md:px-8" : "px-4")
           )}
           style={{
             color: activeTextColor,

@@ -9,6 +9,25 @@ export const ColumnExtension = Node.create({
   // Columns shouldn't be created as top-level free-floating blocks, only inside the parent ColumnsExtension container
   defining: true,
 
+  addAttributes() {
+    return {
+      width: {
+        default: null,
+        parseHTML: element => {
+          const val = element.style.width || element.getAttribute('data-width');
+          return val ? parseFloat(val) : null;
+        },
+        renderHTML: attributes => {
+          if (!attributes.width) return {};
+          return {
+            style: `width: ${attributes.width}%`,
+            'data-width': attributes.width,
+          };
+        },
+      },
+    };
+  },
+
   parseHTML() {
     return [
       {

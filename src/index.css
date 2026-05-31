@@ -574,27 +574,51 @@
   flex: 1 1 auto; /* Grows and shrinks depending on content size */
   min-width: 220px; /* Sensible min-width to avoid microscopic column widths */
   max-width: 100%; /* Guarantees no horizontal overflow */
-  border: 1px dashed var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 6px;
   padding: 0.875rem 1.125rem;
   background-color: rgba(255, 255, 255, 0.005);
-  transition: all 180ms ease-out;
+  transition: border-color 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out;
   position: relative;
 }
 
 /* Hover highlights on columns */
 .notemple-column:hover {
-  border-color: var(--muted-foreground);
+  border-color: rgba(255, 255, 255, 0.12);
   background-color: rgba(255, 255, 255, 0.015);
+}
+
+/* Focused/active column with cursor inside */
+.notemple-column:focus-within {
+  border-color: rgba(168, 85, 247, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.1);
+  background-color: rgba(168, 85, 247, 0.003);
+}
+
+/* Column Toolbar hover transitions */
+.column-toolbar {
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+}
+.notemple-column:hover .column-toolbar {
+  opacity: 1;
 }
 
 /* Light Mode specific colors */
 html.light .notemple-column {
+  border-color: rgba(0, 0, 0, 0.05);
   background-color: rgba(0, 0, 0, 0.003);
 }
 
 html.light .notemple-column:hover {
-  background-color: rgba(0, 0, 0, 0.012);
+  border-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(0, 0, 0, 0.01);
+}
+
+html.light .notemple-column:focus-within {
+  border-color: rgba(168, 85, 247, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.06);
+  background-color: rgba(168, 85, 247, 0.002);
 }
 
 /* Column Empty placeholder guides to make dragging or typing highly intuitive */
@@ -626,5 +650,30 @@ html.light .notemple-column:hover {
   cursor: text;
   outline: none;
 }
+
+
+/* ── Premium Layout resizing & Drag-beside visual chrome ────────────────────── */
+
+/* Columns Resizing Drag target line overlays */
+.column-resize-handle {
+  width: 8px !important;
+  background-color: transparent;
+  transition: background-color 150ms ease-out, box-shadow 150ms ease-out;
+  cursor: col-resize;
+  border-radius: 9999px;
+}
+
+.column-resize-handle:hover,
+.column-resize-handle:active {
+  background-color: rgba(168, 85, 247, 0.45) !important; /* Glow purple dragline matching Notemple visual style */
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
+}
+
+/* Beautiful rounded glowing drag insertion guidelines (both horizontal and vertical) */
+div[class*="bg-purple-500/80"] {
+  border-radius: 9999px;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.6) !important;
+}
+
 
 

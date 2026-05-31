@@ -10,12 +10,13 @@ export const BlockDragExtension = Extension.create({
     let indicator: HTMLDivElement | null = null;
     let dragSourcePos: { from: number; to: number } | null = null;
     let currentDropPos = -1;
+    let dragPlacement: { targetPos: number; side: 'above' | 'below' | 'left' | 'right' } | null = null;
 
     // Helper to get or create insertion guide line
     const getIndicator = (view: any) => {
       if (indicator) return indicator;
       indicator = document.createElement('div');
-      indicator.className = 'absolute left-0 right-0 h-0.5 bg-purple-500/80 pointer-events-none z-50 transition-transform duration-75 ease-out shadow-[0_0_8px_rgba(168,85,247,0.4)]';
+      indicator.className = 'absolute bg-purple-500/80 pointer-events-none z-50 transition-[transform,width,height] duration-75 ease-out shadow-[0_0_8px_rgba(168,85,247,0.4)]';
       // Append to the editor container
       view.dom.parentElement?.appendChild(indicator);
       return indicator;
@@ -35,6 +36,7 @@ export const BlockDragExtension = Extension.create({
       });
       dragSourcePos = null;
       currentDropPos = -1;
+      dragPlacement = null;
     };
 
     return [
@@ -75,12 +77,16 @@ export const BlockDragExtension = Extension.create({
 
               let closestEl: HTMLElement | null = null;
               let closestDistance = Infinity;
-              let insertPosition: 'above' | 'below' = 'above';
+              let insertPosition: any = 'above';
 
               const mouseY = event.clientY;
+              const mouseX = event.clientX;
 
               children.forEach(child => {
-                if (child.classList.contains('block-handle-container')) return;
+                if (
+                  child.classList.contains('block-handle-container') ||
+                  child.classList.contains('column-resize-handle')
+                ) return;
                 
                 const childRect = child.getBoundingClientRect();
                 const childMiddleY = childRect.top + childRect.height / 2;
@@ -89,30 +95,62 @@ export const BlockDragExtension = Extension.create({
                 if (distance < closestDistance) {
                   closestDistance = distance;
                   closestEl = child;
-                  insertPosition = mouseY < childMiddleY ? 'above' : 'below';
+                  
+                  // Check if mouse is near the left or right 25% boundary of this block for horizontal splitting
+                  const boundaryWidth = childRect.width * 0.25;
+                  if (mouseX < childRect.left + boundaryWidth) {
+                    insertPosition = 'left';
+                  } else if (mouseX > childRect.right - boundaryWidth) {
+                    insertPosition = 'right';
+                  } else {
+                    insertPosition = mouseY < childMiddleY ? 'above' : 'below';
+                  }
                 }
               });
 
               if (closestEl) {
                 const targetRect = (closestEl as HTMLElement).getBoundingClientRect();
-                const lineY = insertPosition === 'above' 
-                  ? targetRect.top + window.scrollY - 1
-                  : targetRect.bottom + window.scrollY + 1;
-                
-                // Align indicator horizontally with the target block
                 const ind = getIndicator(view);
-                ind.style.width = `${targetRect.width}px`;
-                ind.style.left = `${targetRect.left - rect.left}px`;
-                ind.style.transform = `translate3d(0, ${lineY - rect.top - window.scrollY}px, 0)`;
+                
+                if (insertPosition === 'left' || insertPosition === 'right') {
+                  // Draw a vertical guide line next to the target block
+                  const lineX = insertPosition === 'left'
+                    ? targetRect.left - rect.left - 1
+                    : targetRect.right - rect.left + 1;
+                  
+                  ind.style.width = '3px';
+                  ind.style.height = `${targetRect.height}px`;
+                  ind.style.transform = `translate3d(${lineX}px, ${targetRect.top - rect.top}px, 0)`;
+                } else {
+                  // Draw a standard horizontal guide line above or below the target block
+                  const lineY = insertPosition === 'above' 
+                    ? targetRect.top - rect.top - 1
+                    : targetRect.bottom - rect.top + 1;
+                  
+                  ind.style.width = `${targetRect.width}px`;
+                  ind.style.height = '2px';
+                  ind.style.transform = `translate3d(${targetRect.left - rect.left}px, ${lineY}px, 0)`;
+                }
 
                 // Resolve target position in ProseMirror document
-                const targetCoords = view.posAtCoords({ 
-                  left: targetRect.left + 10, 
-                  top: insertPosition === 'above' ? targetRect.top + 4 : targetRect.bottom - 4 
-                });
+                let targetCoords;
+                if (insertPosition === 'left') {
+                  targetCoords = view.posAtCoords({ left: targetRect.left + 5, top: targetRect.top + 5 });
+                } else if (insertPosition === 'right') {
+                  targetCoords = view.posAtCoords({ left: targetRect.right - 5, top: targetRect.top + 5 });
+                } else {
+                  targetCoords = view.posAtCoords({ 
+                    left: targetRect.left + 10, 
+                    top: insertPosition === 'above' ? targetRect.top + 4 : targetRect.bottom - 4 
+                  });
+                }
                 
                 if (targetCoords) {
                   currentDropPos = targetCoords.pos;
+                  dragPlacement = {
+                    targetPos: targetCoords.pos,
+                    side: insertPosition,
+                  };
                 }
               }
 
@@ -128,33 +166,137 @@ export const BlockDragExtension = Extension.create({
             },
 
             drop: (view, event) => {
-              if (!dragSourcePos || currentDropPos === -1) {
+              if (!dragSourcePos || !dragPlacement || currentDropPos === -1) {
                 cleanup(view);
                 return false;
               }
               event.preventDefault();
 
               const { from, to } = dragSourcePos;
-              const slice = view.state.doc.slice(from, to);
+              const { targetPos, side } = dragPlacement;
 
-              let tr = view.state.tr;
-              
-              // Standard move calculation: prevent dropping inside itself
-              if (currentDropPos >= from && currentDropPos <= to) {
+              // Prevent dropping a node inside itself
+              if (targetPos >= from && targetPos <= to) {
                 cleanup(view);
                 return true;
               }
 
-              // Adjust drop coordinates depending on whether the target pos is before or after source pos
-              if (currentDropPos < from) {
-                tr = tr.insert(currentDropPos, slice.content).delete(from + slice.size, to + slice.size);
-              } else {
-                tr = tr.insert(currentDropPos, slice.content).delete(from, to);
+              let tr = view.state.tr;
+              
+              // Get the source slice content
+              const sourceSlice = view.state.doc.slice(from, to);
+              if (!sourceSlice.content.firstChild) {
+                cleanup(view);
+                return false;
+              }
+              
+              const sourceNode = sourceSlice.content.firstChild;
+
+              if (side === 'above' || side === 'below') {
+                let dropPos = targetPos;
+                if (dropPos < from) {
+                  tr = tr.insert(dropPos, sourceSlice.content).delete(from + sourceSlice.size, to + sourceSlice.size);
+                } else {
+                  tr = tr.insert(dropPos, sourceSlice.content).delete(from, to);
+                }
+                view.dispatch(tr);
+                cleanup(view);
+                return true;
               }
 
-              view.dispatch(tr);
-              cleanup(view);
-              return true;
+              // Dragging beside a block to create columns or insert into columns!
+              const $target = view.state.tr.doc.resolve(targetPos);
+              
+              // Find if target node is inside columns
+              let targetColumnDepth = -1;
+              let targetColumnsDepth = -1;
+              for (let d = $target.depth; d > 0; d--) {
+                if ($target.node(d).type.name === 'column') {
+                  targetColumnDepth = d;
+                }
+                if ($target.node(d).type.name === 'columns') {
+                  targetColumnsDepth = d;
+                }
+              }
+
+              if (targetColumnDepth === -1) {
+                // CASE 1: Split a regular block into 2 columns
+                const $targetBlockPos = view.state.doc.resolve(targetPos);
+                const targetBlockStart = $targetBlockPos.start(1) - 1;
+                const targetBlockNode = $targetBlockPos.node(1);
+                const targetBlockEnd = targetBlockStart + targetBlockNode.nodeSize;
+
+                // Make sure target block pos doesn't intersect with source pos
+                if (targetBlockStart >= from && targetBlockStart <= to) {
+                  cleanup(view);
+                  return true;
+                }
+
+                // If target block is already a Columns Node, drop as a child rather than wrapping
+                if (targetBlockNode.type.name === 'columns') {
+                  const firstColNode = targetBlockNode.firstChild;
+                  if (firstColNode) {
+                    const newColNode = view.state.schema.nodes.column.create(null, sourceNode);
+                    const insertPos = side === 'left' ? targetBlockStart + 1 : targetBlockEnd - 1;
+                    if (insertPos < from) {
+                      tr = tr.insert(insertPos, newColNode).delete(from + newColNode.nodeSize, to + newColNode.nodeSize);
+                    } else {
+                      tr = tr.delete(from, to).insert(insertPos - sourceSlice.size, newColNode);
+                    }
+                    view.dispatch(tr);
+                    cleanup(view);
+                    return true;
+                  }
+                }
+
+                const colNode1 = view.state.schema.nodes.column.create(null, targetBlockNode);
+                const colNode2 = view.state.schema.nodes.column.create(null, sourceNode);
+                
+                let columnsNode;
+                if (side === 'left') {
+                  columnsNode = view.state.schema.nodes.columns.create(null, [colNode2, colNode1]);
+                } else {
+                  columnsNode = view.state.schema.nodes.columns.create(null, [colNode1, colNode2]);
+                }
+
+                if (targetBlockStart < from) {
+                  tr = tr.replaceWith(targetBlockStart, targetBlockEnd, columnsNode)
+                         .delete(from + (columnsNode.nodeSize - targetBlockNode.nodeSize), to + (columnsNode.nodeSize - targetBlockNode.nodeSize));
+                } else {
+                  tr = tr.delete(from, to)
+                         .replaceWith(targetBlockStart - sourceSlice.size, targetBlockEnd - sourceSlice.size, columnsNode);
+                }
+                
+                view.dispatch(tr);
+                cleanup(view);
+                return true;
+              } else {
+                // CASE 2: Add a column to an existing columns list
+                const targetColumnNode = $target.node(targetColumnDepth);
+                const targetColumnStart = $target.before(targetColumnDepth);
+                const targetColumnEnd = targetColumnStart + targetColumnNode.nodeSize;
+
+                const newColNode = view.state.schema.nodes.column.create(null, sourceNode);
+
+                let insertPos;
+                if (side === 'left') {
+                  insertPos = targetColumnStart;
+                } else {
+                  insertPos = targetColumnEnd;
+                }
+
+                if (insertPos < from) {
+                  tr = tr.insert(insertPos, newColNode)
+                         .delete(from + newColNode.nodeSize, to + newColNode.nodeSize);
+                } else {
+                  tr = tr.delete(from, to)
+                         .insert(insertPos - sourceSlice.size, newColNode);
+                }
+
+                view.dispatch(tr);
+                cleanup(view);
+                return true;
+              }
             },
 
             dragend: (view) => {

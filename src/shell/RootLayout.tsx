@@ -129,6 +129,43 @@ export const RootLayout = () => {
     };
   }, []);
 
+  // Click outside sidebars to close them automatically
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target) return;
+
+      // Close left sidebar if click is outside of it
+      const leftSidebar = document.querySelector('.group\\/sidebar');
+      const leftSidebarToggle = target.closest('.left-sidebar-toggle');
+
+      if (
+        leftSidebar &&
+        !leftSidebar.contains(target) &&
+        !leftSidebarToggle &&
+        useUiStore.getState().isSidebarOpen
+      ) {
+        useUiStore.getState().setSidebarOpen(false);
+      }
+
+      // Close right sidebar if click is outside of it
+      const rightSidebar = document.querySelector('.notemple-sidebar-right');
+      const rightSidebarToggle = target.closest('.right-sidebar-toggle');
+
+      if (
+        rightSidebar &&
+        !rightSidebar.contains(target) &&
+        !rightSidebarToggle &&
+        useUiStore.getState().isRightSidebarOpen
+      ) {
+        useUiStore.getState().toggleRightSidebar();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-transparent font-sans text-foreground relative z-0">
       {/* Persistent Global Background Layer */}

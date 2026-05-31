@@ -31,7 +31,7 @@ export const RightSidebar = () => {
   return (
     <div
       className={cn(
-        "h-full border-l border-border bg-background absolute right-0 top-0 bottom-0 flex flex-col overflow-hidden z-30 shadow-md transition-[width,opacity] duration-250 ease-out will-change-[width,opacity]",
+        "notemple-sidebar-right h-full border-l border-border bg-background absolute right-0 top-0 bottom-0 flex flex-col overflow-hidden z-30 shadow-md transition-[width,opacity] duration-250 ease-out will-change-[width,opacity]",
         isRightSidebarOpen ? "w-[320px] opacity-100" : "w-0 opacity-0 pointer-events-none"
       )}
     >

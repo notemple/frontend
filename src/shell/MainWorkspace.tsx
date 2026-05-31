@@ -188,7 +188,7 @@ const GSAPPageWrapper = ({ children, activeTabId }: { children: React.ReactNode;
 };
 
 export const MainWorkspace = () => {
-  const { panes, activePaneId, toggleRightSidebar, appearance, setAppearance, isRightSidebarOpen, toggleSidebar } = useUiStore(
+  const { panes, activePaneId, toggleRightSidebar, appearance, setAppearance, isRightSidebarOpen, toggleSidebar, isSidebarOpen } = useUiStore(
     useShallow((state) => ({
       panes: state.panes,
       activePaneId: state.activePaneId,
@@ -197,6 +197,7 @@ export const MainWorkspace = () => {
       setAppearance: state.setAppearance,
       isRightSidebarOpen: state.isRightSidebarOpen,
       toggleSidebar: state.toggleSidebar,
+      isSidebarOpen: state.isSidebarOpen,
     }))
   );
 
@@ -267,7 +268,11 @@ export const MainWorkspace = () => {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-transparent relative pt-0 z-10 w-full border-l border-border">
-      <div className="h-14 w-full flex items-center justify-between px-6 shrink-0 bg-[image:var(--background-topbar)] dark:bg-background border-b border-border z-20">
+      <div className={cn(
+        "h-14 w-full flex items-center justify-between shrink-0 bg-[image:var(--background-topbar)] dark:bg-background border-b border-border z-20 transition-all duration-220 ease-out",
+        isSidebarOpen ? "pl-[276px]" : "pl-6",
+        isRightSidebarOpen ? "pr-[336px]" : "pr-6"
+      )}>
         <div className="flex-1 flex items-center gap-3">
           <button
             onClick={toggleSidebar}

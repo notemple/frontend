@@ -4,7 +4,6 @@ import { BubbleMenu } from '@tiptap/react/menus';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import TaskList from '@tiptap/extension-task-list';
-import TaskItem from '@tiptap/extension-task-item';
 import { ReferenceExtension } from './extensions/ReferenceExtension';
 import { MentionSuggestion, renderMentionItems } from './extensions/MentionSuggestion';
 import { TagSuggestion, renderTagItems } from './extensions/TagSuggestion';
@@ -26,7 +25,8 @@ import { CustomTodoItem } from './extensions/CustomTodoItem';
 import { CustomCodeBlock } from './extensions/CustomCodeBlock';
 import { EditorDndContext } from './components/EditorDndContext';
 import { DocumentPreviewPopup } from './components/DocumentPreviewPopup';
-import { motion } from 'motion/react';
+import { ColumnsExtension } from './extensions/ColumnsExtension';
+import { ColumnExtension } from './extensions/ColumnExtension';
 import { SlashCommand, getSuggestionItems, renderItems } from './components/SlashCommand';
 import { useDocumentStore, type NoteDocument } from '@/features/documents/store';
 import { useUiStore } from '@/shared/store/uiStore';
@@ -106,11 +106,9 @@ export const NotempleEditor = React.memo(({
   isMinimized?: boolean; 
   onClosePopup?: () => void; 
 }) => {
-  const addDocument = useDocumentStore(state => state.addDocument);
   const updateDocument = useDocumentStore(state => state.updateDocument);
-  const { setActiveTab, openDocument, setSelectedDailyNoteDate } = useUiStore(
+  const { openDocument, setSelectedDailyNoteDate } = useUiStore(
     useShallow((state) => ({
-      setActiveTab: state.setActiveTab,
       openDocument: state.openDocument,
       setSelectedDailyNoteDate: state.setSelectedDailyNoteDate,
     }))
@@ -151,22 +149,38 @@ export const NotempleEditor = React.memo(({
   );
   const document = useDocumentStore(useShallow(documentSelector));
   const isInitialized = useDocumentStore(state => state.isInitialized);
-
-  const allExistingTags = useDocumentStore(useShallow(allExistingTagsSelector));
   const tagColors = useDocumentStore(state => state.tagColors) || {};
 
   const [title, setTitle] = useState(document?.title || '');
   const [tags, setTags] = useState<string[]>(document?.tags || []);
   const [showTagsDropdown, setShowTagsDropdown] = useState(false);
+
+  const tagsSelector = useCallback(
+    (state: any) => {
+      if (!showTagsDropdown) return EMPTY_TAGS;
+      return allExistingTagsSelector(state);
+    },
+    [showTagsDropdown]
+  );
+  const allExistingTags = useDocumentStore(useShallow(tagsSelector));
+
   const tagsDropdownRef = useRef<HTMLDivElement>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const [showBacklinks, setShowBacklinks] = useState(false);
-  const documents = useDocumentStore(state => state.documents);
+
+  const backlinksSelector = useCallback(
+    (state: any) => {
+      if (isMinimized || !showBacklinks) return EMPTY_TAGS;
+      return state.documents;
+    },
+    [isMinimized, showBacklinks]
+  );
+  const documents = useDocumentStore(backlinksSelector);
   const backlinks = useMemo(() => {
-    if (!documentId) return [];
+    if (!documentId || isMinimized || !showBacklinks) return EMPTY_TAGS;
     return getBacklinksForDocument(documentId, documents);
-  }, [documentId, documents]);
+  }, [documentId, documents, isMinimized, showBacklinks]);
 
   useEffect(() => {
     if (!showTagsDropdown) return;
@@ -200,10 +214,11 @@ export const NotempleEditor = React.memo(({
     backdropGradientEnd: document?.backdropGradientEnd || '',
     backdropGradientDirection: document?.backdropGradientDirection || '',
     documentColor: document?.documentColor,
-    textColor: document?.textColor
+    textColor: document?.textColor,
+    topSectionColor: document?.topSectionColor
   };
 
-  const hasCustomStyle = !!(localStyle.backdropColor || localStyle.documentColor || localStyle.textColor);
+  const hasCustomStyle = !!(localStyle.backdropColor || localStyle.documentColor || localStyle.textColor || localStyle.topSectionColor);
 
   // Smart dynamic text color contrast resolver
   const activeTextColor = useMemo(() => {
@@ -307,6 +322,8 @@ export const NotempleEditor = React.memo(({
     TableRow,
     TableHeader,
     TableCell,
+    ColumnsExtension,
+    ColumnExtension,
     SlashCommand.configure({
       suggestion: {
         items: getSuggestionItems,
@@ -324,16 +341,16 @@ export const NotempleEditor = React.memo(({
     editorProps: {
       attributes: {
         class: cn(
-          'prose prose-sm sm:prose lg:prose-lg mx-auto focus:outline-none w-full max-w-full',
-          (localStyle.backdropColor || localStyle.textColor || localStyle.documentColor)
+          'prose prose-sm sm:prose lg:prose-lg focus:outline-none w-full max-w-none',
+          (localStyle.backdropColor || localStyle.textColor || localStyle.documentColor || localStyle.topSectionColor)
             ? ''
             : 'text-foreground prose-headings:text-foreground hover:prose-a:text-foreground prose-a:text-muted-foreground prose-strong:text-foreground prose-code:text-foreground prose-ol:text-foreground prose-ul:text-foreground prose-p:text-foreground/95'
         ),
-        style: (localStyle.backdropColor || localStyle.textColor || localStyle.documentColor)
+        style: (localStyle.backdropColor || localStyle.textColor || localStyle.documentColor || localStyle.topSectionColor)
           ? `color: ${activeTextColor}; --tw-prose-body: ${activeTextColor}; --tw-prose-headings: ${activeTextColor}; --tw-prose-bold: ${activeTextColor}; --tw-prose-links: ${activeTextColor}; --tw-prose-quotes: ${activeTextColor}; --tw-prose-code: ${activeTextColor};`
           : ''
       },
-      handleDrop: (view, event, slice, moved) => {
+      handleDrop: (view, event) => {
         if (!event.dataTransfer) return false;
 
         const insertData = event.dataTransfer.getData('application/notemple-insert');
@@ -422,12 +439,12 @@ export const NotempleEditor = React.memo(({
   // Dynamically update Tiptap editor class attributes when document style changes
   useEffect(() => {
     if (editor && !editor.isDestroyed) {
-      const hasStyle = !!(localStyle.backdropColor || localStyle.textColor || localStyle.documentColor);
+      const hasStyle = !!(localStyle.backdropColor || localStyle.textColor || localStyle.documentColor || localStyle.topSectionColor);
       editor.setOptions({
         editorProps: {
           attributes: {
             class: cn(
-              'prose prose-sm sm:prose lg:prose-lg mx-auto focus:outline-none w-full max-w-full',
+              'prose prose-sm sm:prose lg:prose-lg focus:outline-none w-full max-w-none',
               hasStyle
                 ? ''
                 : 'text-foreground prose-headings:text-foreground hover:prose-a:text-foreground prose-a:text-muted-foreground prose-strong:text-foreground prose-code:text-foreground prose-ol:text-foreground prose-ul:text-foreground prose-p:text-foreground/95'
@@ -439,7 +456,7 @@ export const NotempleEditor = React.memo(({
         }
       });
     }
-  }, [editor, localStyle.backdropColor, localStyle.textColor, localStyle.documentColor, activeTextColor]);
+  }, [editor, localStyle.backdropColor, localStyle.textColor, localStyle.documentColor, localStyle.topSectionColor, activeTextColor]);
 
 
 
@@ -492,7 +509,7 @@ export const NotempleEditor = React.memo(({
         isMinimized 
           ? "h-[450px] border border-border rounded-sm-sm bg-muted/20 hover:bg-muted/30 hover:border-muted-foreground/20 focus-within:border-rose-500/35 focus-within:bg-background transition-all duration-200" 
           : "h-full",
-        hasCustomStyle ? "p-4 sm:p-8 md:p-12 lg:p-16 transition-[padding] duration-300" : ""
+        hasCustomStyle ? "p-3 sm:p-5 md:p-8 lg:p-10 transition-[padding] duration-300" : ""
       )}
       style={{
         background: localStyle.backdropColor || undefined,
@@ -507,8 +524,8 @@ export const NotempleEditor = React.memo(({
         className={cn(
           "w-full mx-auto font-content flex flex-col shrink-0 z-10",
           hasCustomStyle
-            ? "max-w-[950px] p-8 sm:p-12 md:p-16 rounded-sm-sm shadow-sm-none relative border border-border min-h-[500px] md:min-h-[calc(100vh-160px)] overflow-hidden"
-            : cn("max-w-[900px] h-full", isMinimized ? "py-4 px-6" : "py-16 px-12")
+            ? "max-w-[1450px] px-3 sm:px-4 md:px-5 py-5 sm:py-8 md:py-10 rounded-sm-sm shadow-sm-none relative border border-border min-h-[500px] md:min-h-[calc(100vh-160px)] overflow-hidden"
+            : cn("max-w-[1400px] h-full", isMinimized ? "py-4 px-6" : "py-10 px-6")
         )}
         style={{
           background: localStyle.documentColor || (hasCustomStyle ? '#faf8f5' : 'transparent'),
@@ -526,9 +543,31 @@ export const NotempleEditor = React.memo(({
           <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} />
         )}
 
-        <div className={cn("relative z-10", isMinimized ? "mb-4 px-2" : "mb-12 px-[54px]")}>
+        <div 
+          className={cn(
+            "relative z-10 transition-all duration-300",
+            localStyle.topSectionColor
+              ? (
+                  hasCustomStyle
+                    ? "-mx-3 -mt-5 sm:-mx-4 sm:-mt-8 md:-mx-5 md:-mt-10 px-3 py-5 sm:px-4 sm:py-6 md:px-5 md:py-8 border-b border-border/30 rounded-t-sm-sm rounded-b-none mb-6"
+                    : (
+                        isMinimized
+                          ? "-mx-6 -mt-4 px-6 py-4 border-b border-border/30 rounded-t-sm-sm rounded-b-none mb-4"
+                          : "-mx-6 -mt-10 px-6 py-10 border-b border-border/30 rounded-t-sm-sm rounded-b-none mb-8"
+                      )
+                )
+              : (
+                  isMinimized 
+                    ? "mb-4 px-2" 
+                    : (hasCustomStyle ? "mb-8 px-1 sm:px-2 md:px-3" : "mb-8 px-4")
+                )
+          )}
+          style={{
+            background: localStyle.topSectionColor || undefined,
+          }}
+        >
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em]" style={{ color: activeMutedColor }}>
+            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em]" style={{ color: document.topSectionTextColor || activeMutedColor }}>
               <span>{document.type}</span>
               <span>/</span>
               <span>{formatDisplayDate(document.updatedAt, "MMM d, yyyy")}</span>
@@ -557,7 +596,7 @@ export const NotempleEditor = React.memo(({
                   {document.icon ? (
                     <span className="text-[26px] leading-none flex items-center justify-center font-sans">{document.icon}</span>
                   ) : (
-                    <Smiley size={24} style={{ color: activeTextColor }} />
+                    <Smiley size={24} style={{ color: document.topSectionTextColor || activeTextColor }} />
                   )}
                 </button>
                 {showEmojiPicker && (
@@ -610,7 +649,7 @@ export const NotempleEditor = React.memo(({
                 placeholder="Untitled Document"
                 className="text-5xl w-full font-medium font-content tracking-tight outline-none border-none bg-transparent placeholder:placeholder-opacity-20 flex-1"
                 style={{
-                  color: activeTextColor,
+                  color: document.topSectionTextColor || activeTextColor,
                 }}
               />
             )}
@@ -725,8 +764,8 @@ export const NotempleEditor = React.memo(({
         <EditorDndContext editor={editor!}>
         <div
           className={cn(
-            "flex-1 notemple-editor-wrapper font-content text-lg relative",
-            isMinimized ? "px-2" : "px-[54px]"
+            "flex-1 notemple-editor-wrapper font-content text-lg relative flex flex-col cursor-text",
+            isMinimized ? "px-2" : (hasCustomStyle ? "px-1 sm:px-2 md:px-3" : "px-4")
           )}
           style={{
             color: activeTextColor,

@@ -124,8 +124,8 @@
     border-color: var(--border);
   }
   
-  /* Apply border roundness setting globally except to full rounded (circle) elements */
-  *:not(.rounded-full):not([class*="rounded-full"]):not([style*="border-radius: 50%"]):not([style*="border-radius: 9999px"]) {
+  /* Apply border roundness setting globally except to full rounded (circle) elements, explicit corner-specific rounded overrides, or rounded-none elements */
+  *:not(.rounded-full):not([class*="rounded-full"]):not([style*="border-radius: 50%"]):not([style*="border-radius: 9999px"]):not(.rounded-none):not([class*="rounded-none"]):not([class*="rounded-t-"]):not([class*="rounded-b-"]):not([class*="rounded-l-"]):not([class*="rounded-r-"]):not([class*="rounded-tr-"]):not([class*="rounded-tl-"]):not([class*="rounded-br-"]):not([class*="rounded-bl-"]) {
     border-radius: var(--app-border-radius) !important;
   }
   body {
@@ -554,3 +554,77 @@
   margin-top: 0px !important;
   margin-bottom: 0px !important;
 }
+
+
+/* ── Multi-Column Layout System ───────────────────────────────────────────── */
+
+/* Columns Container Block */
+.notemple-columns {
+  display: flex;
+  gap: 1.25rem;
+  width: 100%;
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap; /* Allows wrapping to next line if screen is narrow or too many columns are added */
+  align-items: stretch;
+}
+
+/* Individual Column Block */
+.notemple-column {
+  flex: 1 1 auto; /* Grows and shrinks depending on content size */
+  min-width: 220px; /* Sensible min-width to avoid microscopic column widths */
+  max-width: 100%; /* Guarantees no horizontal overflow */
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  padding: 0.875rem 1.125rem;
+  background-color: rgba(255, 255, 255, 0.005);
+  transition: all 180ms ease-out;
+  position: relative;
+}
+
+/* Hover highlights on columns */
+.notemple-column:hover {
+  border-color: var(--muted-foreground);
+  background-color: rgba(255, 255, 255, 0.015);
+}
+
+/* Light Mode specific colors */
+html.light .notemple-column {
+  background-color: rgba(0, 0, 0, 0.003);
+}
+
+html.light .notemple-column:hover {
+  background-color: rgba(0, 0, 0, 0.012);
+}
+
+/* Column Empty placeholder guides to make dragging or typing highly intuitive */
+.notemple-column:empty::before,
+.notemple-column > .ProseMirror-placeholder:only-child::before {
+  content: 'Empty column — click to type...';
+  color: var(--muted-foreground);
+  font-size: 0.825rem;
+  opacity: 0.35;
+  pointer-events: none;
+  font-family: var(--font-sans);
+}
+
+
+/* ── Immersive Full-Height Editor Canvas ───────────────────────────────────── */
+
+/* Make the intermediate wrappers stretch vertically to occupy all paper space */
+.notemple-editor-wrapper .tiptap,
+.notemple-editor-wrapper > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Make ProseMirror fill the entire layout height so any empty card area is natively interactive */
+.ProseMirror {
+  flex: 1;
+  min-height: 420px;
+  cursor: text;
+  outline: none;
+}
+
+

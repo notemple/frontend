@@ -39,7 +39,10 @@ import {
   Globe,
   File,
   Clock,
-  Calendar
+  Calendar,
+  Columns as ColumnsIcon,
+  Trash,
+  Plus
 } from '@phosphor-icons/react';
 import React from 'react';
 
@@ -54,7 +57,19 @@ export interface CommandItem {
   group?: string; // Add group option
 }
 
-export const getSuggestionItems = ({ query }: { query: string }) => {
+const isInsideColumn = (state: any) => {
+  if (!state) return false;
+  const { $from } = state.selection;
+  for (let d = $from.depth; d > 0; d--) {
+    if ($from.node(d).type.name === 'column') {
+      return true;
+    }
+  }
+  return false;
+};
+
+export const getSuggestionItems = ({ query, editor }: { query: string; editor?: any }) => {
+  const isInside = editor ? isInsideColumn(editor.state) : false;
   const items: CommandItem[] = [
     { title: 'Standard', icon: <TextT size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
     { title: 'Small', icon: <TextAUnderline size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
@@ -71,6 +86,36 @@ export const getSuggestionItems = ({ query }: { query: string }) => {
     { title: 'Icon', icon: <Smiley size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
     { title: 'Code', icon: <CodeBlock size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleCodeBlock().run() },
     { title: 'Table', icon: <Table size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 4, withHeaderRow: true }).run() },
+    { title: '2 Columns layout', icon: <ColumnsIcon size={16} />, group: 'Create a block', command: ({ editor, range }) => (editor.chain() as any).focus().deleteRange(range).insertColumns(2).run() },
+    { title: '3 Columns layout', icon: <ColumnsIcon size={16} />, group: 'Create a block', command: ({ editor, range }) => (editor.chain() as any).focus().deleteRange(range).insertColumns(3).run() },
+    
+    // Dynamic column actions when focused inside a column
+    ...(isInside ? [
+      { 
+        title: 'Add column right', 
+        icon: <Plus size={16} className="text-green-500" />, 
+        group: 'Columns Actions', 
+        command: ({ editor, range }: any) => {
+          (editor.chain() as any).focus().deleteRange(range).addColumnAfter().run();
+        } 
+      },
+      { 
+        title: 'Add column left', 
+        icon: <Plus size={16} className="text-green-500" />, 
+        group: 'Columns Actions', 
+        command: ({ editor, range }: any) => {
+          (editor.chain() as any).focus().deleteRange(range).addColumnBefore().run();
+        } 
+      },
+      { 
+        title: 'Delete this column', 
+        icon: <Trash size={16} className="text-rose-500" />, 
+        group: 'Columns Actions', 
+        command: ({ editor, range }: any) => {
+          (editor.chain() as any).focus().deleteRange(range).deleteActiveColumn().run();
+        } 
+      },
+    ] : []),
     
     // References & Mentions Group
     { 

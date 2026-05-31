@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useCallback } from 'react';
+import { motion } from 'motion/react';
 import { useUiStore } from '@/shared/store/uiStore';
 import { useDocumentStore } from '@/features/documents/store';
+import { useSettingsStore } from '@/features/settings/store';
 import { useShallow } from 'zustand/react/shallow';
 import {
   X,
@@ -11,8 +12,6 @@ import {
   Check,
   PaintBrush,
   ArrowCounterClockwise,
-  Drop,
-  Image,
   CaretDown
 } from '@phosphor-icons/react';
 import { cn } from '@/shared/lib/utils';
@@ -32,7 +31,7 @@ export const RightSidebar = () => {
   return (
     <div
       className={cn(
-        "h-full border-l border-border bg-background shrink-0 flex flex-col overflow-hidden z-20 shadow-sm-none transition-[width,opacity] duration-250 ease-out will-change-[width,opacity]",
+        "h-full border-l border-border bg-background absolute right-0 top-0 bottom-0 flex flex-col overflow-hidden z-30 shadow-md transition-[width,opacity] duration-250 ease-out will-change-[width,opacity]",
         isRightSidebarOpen ? "w-[320px] opacity-100" : "w-0 opacity-0 pointer-events-none"
       )}
     >
@@ -84,6 +83,9 @@ const StyleTab = () => {
   const [showColorPickerInline, setShowColorPickerInline] = useState(false);
   const [showPaperColorPickerInline, setShowPaperColorPickerInline] = useState(false);
   const [showPaperGradientPickerInline, setShowPaperGradientPickerInline] = useState(false);
+  const [showTopSectionColorPickerInline, setShowTopSectionColorPickerInline] = useState(false);
+  const [showTopSectionGradientPickerInline, setShowTopSectionGradientPickerInline] = useState(false);
+  const [showTopSectionTextColorPickerInline, setShowTopSectionTextColorPickerInline] = useState(false);
 
   const activePane = panes.find(p => p?.id === activePaneId) || panes[0];
   const activeDocId = activePane?.activeTabId;
@@ -97,7 +99,13 @@ const StyleTab = () => {
     [activeDocId]
   );
   const document = useDocumentStore(useShallow(documentSelector));
-
+  const topSectionPresets = [
+    { name: 'None (Transparent)', value: undefined },
+    { name: 'Ember Rose', value: '#f8eae6' },
+    { name: 'Dusty Sage', value: '#e4ede4' },
+    { name: 'Plum Velvet', value: '#150e1c' },
+    { name: 'Deep Forest', value: '#071713' },
+  ];
   if (!document) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-center p-4">
@@ -110,41 +118,32 @@ const StyleTab = () => {
 
   // Preset configuration
   const solidPresets = [
-    '#f8fafc', // Slate-50 (Morning Slate)
-    '#f0fdf4', // Emerald-50 (Spring Garden)
-    '#f0f9ff', // Sky-50 (Ocean Air)
-    '#09090b', // Zinc-950 (Absolute Dark)
-    '#0f172a', // Slate-900 (Deep Slate)
+    '#faf6f0', // Warm Alabaster (Light complementary 1)
+    '#edf2ed', // Sage Mist (Light complementary 2)
+    '#150e1c', // Plum Velvet (Dark complementary 1)
+    '#071713', // Deep Forest (Dark complementary 2)
   ];
 
   const gradientPresets = [
-    { start: '#f8fafc', end: '#e2e8f0', dir: 'linear-gradient(135deg, #f8fafc, #e2e8f0)', name: 'Morning Mist' },
-    { start: '#f0fdf4', end: '#dcfce7', dir: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', name: 'Spring Garden' },
-    { start: '#f0f9ff', end: '#e0f2fe', dir: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)', name: 'Ocean Air' },
-    { start: '#09090b', end: '#18181b', dir: 'linear-gradient(135deg, #09090b, #18181b)', name: 'Absolute Dark' },
-    { start: '#0f172a', end: '#1e293b', dir: 'linear-gradient(135deg, #0f172a, #1e293b)', name: 'Deep Slate' },
+    { start: '#faf6f0', end: '#f3e8d9', dir: 'linear-gradient(135deg, #faf6f0, #f3e8d9)', name: 'Alabaster Glow' },
+    { start: '#edf2ed', end: '#d4e1d4', dir: 'linear-gradient(135deg, #edf2ed, #d4e1d4)', name: 'Sage Meadow' },
+    { start: '#150e1c', end: '#09050d', dir: 'linear-gradient(135deg, #150e1c, #09050d)', name: 'Velvet Night' },
+    { start: '#071713', end: '#020a08', dir: 'linear-gradient(135deg, #071713, #020a08)', name: 'Forest Shadow' },
   ];
 
   const paperPresets = [
     { name: 'Float (None)', value: undefined },
-    { name: 'Pure White', value: '#ffffff' },
-    
-    // Complementary Dark Solids
+    { name: 'Warm Cream', value: '#faf7f2' },
+    { name: 'Rose Quartz', value: '#faf2f0' },
     { name: 'Obsidian Black', value: '#121214' },
     { name: 'Slate Shadow', value: '#1e293b' },
-    { name: 'Midnight Indigo', value: '#1a1740' },
-    { name: 'Deep Forest', value: '#07241c' },
   ];
 
   const paperGradientPresets = [
-    { start: '#ffffff', end: '#fafaf6', dir: 'linear-gradient(135deg, #ffffff, #fafaf6)', name: 'Silk Cream' },
-    { start: '#ffffff', end: '#edf7f2', dir: 'linear-gradient(135deg, #ffffff, #edf7f2)', name: 'Spring Garden Silk' },
-    { start: '#ffffff', end: '#ebf5fc', dir: 'linear-gradient(135deg, #ffffff, #ebf5fc)', name: 'Ocean Air Silk' },
-    
-    // Complementary Dark Gradients
-    { start: '#18181b', end: '#09090b', dir: 'linear-gradient(135deg, #18181b, #09090b)', name: 'Absolute Dark Silk' },
+    { start: '#faf7f2', end: '#f3ede1', dir: 'linear-gradient(135deg, #faf7f2, #f3ede1)', name: 'Warm Silk' },
+    { start: '#faf2f0', end: '#f2e1dd', dir: 'linear-gradient(135deg, #faf2f0, #f2e1dd)', name: 'Rose Clay' },
+    { start: '#18181b', end: '#09090b', dir: 'linear-gradient(135deg, #18181b, #09090b)', name: 'Obsidian Silk' },
     { start: '#1e293b', end: '#0f172a', dir: 'linear-gradient(135deg, #1e293b, #0f172a)', name: 'Deep Slate Silk' },
-    { start: '#1f1b40', end: '#100e26', dir: 'linear-gradient(135deg, #1f1b40, #100e26)', name: 'Cosmic Indigo Silk' },
   ];
 
   const textPresets = [
@@ -153,8 +152,20 @@ const StyleTab = () => {
     { name: 'Charcoal Black', value: '#000000' },
   ];
 
+  const topSectionGradientPresets = [
+    { start: '#f8eae6', end: '#eddcd7', dir: 'linear-gradient(135deg, #f8eae6, #eddcd7)', name: 'Ember Rose Silk' },
+    { start: '#e4ede4', end: '#cadbc9', dir: 'linear-gradient(135deg, #e4ede4, #cadbc9)', name: 'Sage Garden Silk' },
+    { start: '#150e1c', end: '#09050d', dir: 'linear-gradient(135deg, #150e1c, #09050d)', name: 'Velvet Night' },
+    { start: '#071713', end: '#020a08', dir: 'linear-gradient(135deg, #071713, #020a08)', name: 'Forest Shadow' },
+  ];
+
+  const topSectionTextPresets = [
+    { name: 'Auto', value: undefined },
+    { name: 'White', value: '#ffffff' },
+    { name: 'Black', value: '#000000' },
+  ];
+
   const currentType = document.backdropType || 'none';
-  const currentStyle = document.backdropStyle || 'immersive';
   const currentStart = document.backdropGradientStart || '#a3f4c5';
   const currentEnd = document.backdropGradientEnd || '#ffbbbb';
   const currentDir = document.backdropGradientDirection || '180deg';
@@ -163,6 +174,11 @@ const StyleTab = () => {
   const paperStart = document.documentGradientStart || '#ffffff';
   const paperEnd = document.documentGradientEnd || '#f1f5f9';
   const paperDir = document.documentGradientDirection || '135deg';
+
+  const topSectionType = document.topSectionColorType || 'solid';
+  const topSectionStart = document.topSectionGradientStart || '#ffffff';
+  const topSectionEnd = document.topSectionGradientEnd || '#f1f5f9';
+  const topSectionDir = document.topSectionGradientDirection || '135deg';
 
   // Master style update that ensures background, helper start/end, and type sync properly
   const setBackdropType = (type: 'none' | 'solid' | 'gradient') => {
@@ -218,10 +234,6 @@ const StyleTab = () => {
         documentColor: cssSpec,
       });
     }
-  };
-
-  const setBackdropStyleMode = (styleMode: 'immersive' | 'faded') => {
-    updateDocument(document.id, { backdropStyle: styleMode });
   };
 
   const handleSolidColorSelect = (color: string) => {
@@ -288,6 +300,34 @@ const StyleTab = () => {
     });
   };
 
+  const handleTopSectionGradientPresetSelect = (preset: typeof topSectionGradientPresets[0]) => {
+    updateDocument(document.id, {
+      topSectionColorType: 'gradient',
+      topSectionGradientStart: preset.start,
+      topSectionGradientEnd: preset.end,
+      topSectionGradientDirection: '135deg',
+      topSectionColor: `linear-gradient(135deg, ${preset.start}, ${preset.end})`,
+    });
+  };
+
+  const handleTopSectionGradientCustomUpdate = (updates: { start?: string; end?: string; dir?: string }) => {
+    const nextStart = updates.start !== undefined ? updates.start : topSectionStart;
+    const nextEnd = updates.end !== undefined ? updates.end : topSectionEnd;
+    const nextDir = updates.dir !== undefined ? updates.dir : topSectionDir;
+
+    const cssSpec = nextDir === 'radial'
+      ? `radial-gradient(circle, ${nextStart}, ${nextEnd})`
+      : `linear-gradient(${nextDir}, ${nextStart}, ${nextEnd})`;
+
+    updateDocument(document.id, {
+      topSectionGradientStart: nextStart,
+      topSectionGradientEnd: nextEnd,
+      topSectionGradientDirection: nextDir,
+      topSectionColor: cssSpec,
+      topSectionColorType: 'gradient'
+    });
+  };
+
   const handleResetAll = () => {
     updateDocument(document.id, {
       backdropType: 'none',
@@ -301,11 +341,20 @@ const StyleTab = () => {
       documentGradientStart: undefined,
       documentGradientEnd: undefined,
       documentGradientDirection: undefined,
-      textColor: undefined
+      textColor: undefined,
+      topSectionColor: undefined,
+      topSectionColorType: 'solid',
+      topSectionGradientStart: undefined,
+      topSectionGradientEnd: undefined,
+      topSectionGradientDirection: undefined,
+      topSectionTextColor: undefined
     });
     setShowColorPickerInline(false);
     setShowPaperColorPickerInline(false);
     setShowPaperGradientPickerInline(false);
+    setShowTopSectionColorPickerInline(false);
+    setShowTopSectionGradientPickerInline(false);
+    setShowTopSectionTextColorPickerInline(false);
   };
 
   return (
@@ -886,6 +935,351 @@ const StyleTab = () => {
         </div>
       </div>
 
+      {/* Header Banner Color Module */}
+      <div className="space-y-4 pt-1 border-t border-black/10 dark:border-white/5">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Header Banner</span>
+        
+        {/* Segmented Control Selector for Banner Color Type */}
+        <div className="grid grid-cols-2 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
+          {/* Solid */}
+          <button
+            onClick={() => updateDocument(document.id, { topSectionColorType: 'solid', topSectionColor: document.topSectionGradientStart || '#ffffff' })}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-sm-sm transition-all text-xs cursor-pointer font-mono",
+              topSectionType === 'solid'
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+          >
+            Solid
+          </button>
+
+          {/* Gradient */}
+          <button
+            onClick={() => updateDocument(document.id, { topSectionColorType: 'gradient', topSectionColor: `linear-gradient(135deg, ${topSectionStart}, ${topSectionEnd})` })}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-sm-sm transition-all text-xs cursor-pointer font-mono",
+              topSectionType === 'gradient'
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+          >
+            Gradient
+          </button>
+        </div>
+
+        <div className="space-y-3.5">
+          <div className="space-y-1.5">
+            <span className="text-[10px] text-muted-foreground font-mono">Banner Background Color</span>
+            
+            {topSectionType === 'solid' && (
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-3.5 items-center pt-1">
+                  {topSectionPresets.map((swatch, idx) => {
+                    const isSelected = document.topSectionColor === swatch.value;
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          updateDocument(document.id, { topSectionColor: swatch.value, topSectionColorType: 'solid' });
+                          if (swatch.value === undefined) {
+                            setShowTopSectionColorPickerInline(false);
+                          }
+                        }}
+                        className={cn(
+                          "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden bg-white/5 cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
+                          isSelected ? "scale-105" : ""
+                        )}
+                        style={{
+                          backgroundColor: swatch.value || undefined,
+                          boxShadow: isSelected 
+                            ? `0 0 0 2px var(--background), 0 0 0 4px ${swatch.value || '#94a3b8'}` 
+                            : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
+                        }}
+                        title={swatch.name}
+                      >
+                        {!swatch.value && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="w-[20px] h-[1px] bg-red-500 rotate-45 transform origin-center" />
+                          </div>
+                        )}
+                        {isSelected && (
+                          <Check
+                            size={11}
+                            className={cn(
+                              "font-bold drop-shadow-sm z-10",
+                              !swatch.value || swatch.value === '#ffffff'
+                                ? "text-slate-800 dark:text-slate-200"
+                                : "text-white"
+                            )}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+
+                  {/* Rainbow selector for custom top section solid color */}
+                  <button
+                    onClick={() => setShowTopSectionColorPickerInline(!showTopSectionColorPickerInline)}
+                    className={cn(
+                      "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden group cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
+                      showTopSectionColorPickerInline ? "scale-105" : ""
+                    )}
+                    style={{
+                      boxShadow: showTopSectionColorPickerInline 
+                        ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6' 
+                        : '0 0 0 2px var(--background), 0 0 0 4px var(--foreground)'
+                    }}
+                    title="Custom Header Color"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 opacity-90 group-hover:opacity-100" />
+                    <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow-sm" />
+                  </button>
+                </div>
+
+                {/* Custom inline top section color picker panel */}
+                {showTopSectionColorPickerInline && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="p-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 rounded-sm-sm space-y-2.5 overflow-hidden font-mono text-[11px] mt-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Custom Header Color:</span>
+                      <span className="text-accent text-[10px] uppercase font-bold">{document.topSectionColor || '#ffffff'}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ background: document.topSectionColor || '#ffffff' }} />
+                      <input
+                        type="color"
+                        value={document.topSectionColor || '#ffffff'}
+                        onChange={(e) => updateDocument(document.id, { topSectionColor: e.target.value, topSectionColorType: 'solid' })}
+                        className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            )}
+
+            {topSectionType === 'gradient' && (
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-3.5 items-center pt-1">
+                  {topSectionGradientPresets.map((swatch, idx) => {
+                    const isSelected = topSectionStart.toLowerCase() === swatch.start.toLowerCase() &&
+                      topSectionEnd.toLowerCase() === swatch.end.toLowerCase();
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          handleTopSectionGradientPresetSelect(swatch);
+                        }}
+                        className={cn(
+                          "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
+                          isSelected ? "scale-105" : ""
+                        )}
+                        style={{ 
+                          background: swatch.dir,
+                          boxShadow: isSelected 
+                            ? `0 0 0 2px var(--background), 0 0 0 4px ${swatch.start}` 
+                            : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
+                        }}
+                        title={swatch.name}
+                      >
+                        {isSelected && (
+                          <Check
+                            size={11}
+                            className={cn(
+                              "font-bold drop-shadow-sm z-10",
+                              swatch.start === '#ffffff'
+                                ? "text-slate-800 dark:text-slate-200"
+                                : "text-white"
+                            )}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+
+                  {/* Rainbow arrow circle inline picker toggle for gradient */}
+                  <button
+                    onClick={() => setShowTopSectionGradientPickerInline(!showTopSectionGradientPickerInline)}
+                    className={cn(
+                      "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden group cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
+                      showTopSectionGradientPickerInline ? "scale-105" : ""
+                    )}
+                    style={{
+                      boxShadow: showTopSectionGradientPickerInline 
+                        ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6' 
+                        : '0 0 0 2px var(--background), 0 0 0 4px var(--foreground)'
+                    }}
+                    title="Custom Banner Gradient"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 opacity-90 group-hover:opacity-100" />
+                    <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow-sm" />
+                  </button>
+                </div>
+
+                {/* Custom top section gradient picker inputs */}
+                {showTopSectionGradientPickerInline && (
+                  <div className="space-y-4 p-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 rounded-sm-sm font-mono text-[11px] transition-all">
+                    {/* Start Color picker */}
+                    <div className="space-y-2 pb-2.5 border-b border-black/10 dark:border-white/5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-sm-full bg-accent" />
+                          Start Color
+                        </span>
+                        <span className="text-accent text-[10px] uppercase font-bold">{topSectionStart}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: topSectionStart }} />
+                        <input
+                          type="color"
+                          value={topSectionStart}
+                          onChange={(e) => handleTopSectionGradientCustomUpdate({ start: e.target.value })}
+                          className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
+                        />
+                      </div>
+                    </div>
+
+                    {/* End Color picker */}
+                    <div className="space-y-2 pb-2.5 border-b border-black/10 dark:border-white/5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-sm-full bg-pink-400" />
+                          End Color
+                        </span>
+                        <span className="text-pink-400 text-[10px] uppercase font-bold">{topSectionEnd}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: topSectionEnd }} />
+                        <input
+                          type="color"
+                          value={topSectionEnd}
+                          onChange={(e) => handleTopSectionGradientCustomUpdate({ end: e.target.value })}
+                          className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Direction picker */}
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-muted-foreground">Direction</span>
+                      <select
+                        value={topSectionDir}
+                        onChange={(e) => handleTopSectionGradientCustomUpdate({ dir: e.target.value })}
+                        className="flex-1 max-w-[124px] bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 rounded-sm-sm text-foreground dark:text-white/95 px-2.5 py-1 text-[11px] outline-none hover:border-black/20 dark:hover:border-white/20 transition-all font-mono"
+                      >
+                        <option value="180deg">Top to Bottom</option>
+                        <option value="90deg">Left to Right</option>
+                        <option value="45deg">Diagonal Up</option>
+                        <option value="135deg">Diagonal Down</option>
+                        <option value="radial">Radial Circle</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Banner Text Color presets */}
+          <div className="space-y-1.5 pt-2 border-t border-black/10 dark:border-white/5">
+            <span className="text-[10px] text-muted-foreground font-mono">Banner Text Color</span>
+            <div className="flex flex-wrap gap-3.5 font-sans">
+              {topSectionTextPresets.map((swatch, idx) => {
+                const isSelected = document.topSectionTextColor === swatch.value;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      updateDocument(document.id, { topSectionTextColor: swatch.value });
+                      if (swatch.value === undefined) {
+                        setShowTopSectionTextColorPickerInline(false);
+                      }
+                    }}
+                    className={cn(
+                      "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden bg-white/5 cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
+                      isSelected ? "scale-105" : ""
+                    )}
+                    style={{
+                      backgroundColor: swatch.value || undefined,
+                      boxShadow: isSelected 
+                        ? `0 0 0 2px var(--background), 0 0 0 4px ${swatch.value || '#94a3b8'}` 
+                        : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
+                    }}
+                    title={swatch.name}
+                  >
+                    {!swatch.value && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="w-[20px] h-[1px] bg-red-500 rotate-45 transform origin-center" />
+                      </div>
+                    )}
+                    {isSelected && (
+                      <Check
+                        size={11}
+                        className={cn(
+                          "font-bold drop-shadow-sm z-10",
+                          !swatch.value || swatch.value === '#ffffff'
+                            ? "text-slate-800 dark:text-slate-200"
+                            : "text-white"
+                        )}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+
+              {/* Rainbow selector for custom top section text color */}
+              <button
+                onClick={() => setShowTopSectionTextColorPickerInline(!showTopSectionTextColorPickerInline)}
+                className={cn(
+                  "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden group cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
+                  showTopSectionTextColorPickerInline ? "scale-105" : ""
+                )}
+                style={{
+                  boxShadow: showTopSectionTextColorPickerInline 
+                    ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6' 
+                    : '0 0 0 2px var(--background), 0 0 0 4px var(--foreground)'
+                }}
+                title="Custom Banner Text Color"
+              >
+                <div className="absolute inset-0 bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 opacity-90 group-hover:opacity-100" />
+                <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow-sm" />
+              </button>
+            </div>
+
+            {/* Custom inline top section text color picker panel */}
+            {showTopSectionTextColorPickerInline && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="p-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 rounded-sm-sm space-y-2.5 overflow-hidden font-mono text-[11px] mt-2"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Custom Banner Text Color:</span>
+                  <span className="text-accent text-[10px] uppercase font-bold">{document.topSectionTextColor || '#ffffff'}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ background: document.topSectionTextColor || '#ffffff' }} />
+                  <input
+                    type="color"
+                    value={document.topSectionTextColor || '#ffffff'}
+                    onChange={(e) => updateDocument(document.id, { topSectionTextColor: e.target.value })}
+                    className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
+                  />
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="p-3 bg-black/5 dark:bg-white/[0.02] border border-black/10 dark:border-white/5 rounded-sm-sm">
         <p className="text-[10px] text-muted-foreground leading-relaxed font-mono">
           <strong>Tip:</strong> Create sophisticated document styles. Combine gradients for backdrops and documents to achieve stunning custom visual templates.
@@ -896,13 +1290,13 @@ const StyleTab = () => {
 };
 
 const InfoTab = () => {
+  const userName = useSettingsStore(state => state.userName);
   const { panes, activePaneId } = useUiStore(
     useShallow((state) => ({
       panes: state.panes,
       activePaneId: state.activePaneId,
     }))
   );
-  const updateDocument = useDocumentStore(state => state.updateDocument);
   const [subTab, setSubTab] = useState('Page Info');
 
   const activePane = panes.find(p => p?.id === activePaneId) || panes[0];
@@ -985,13 +1379,11 @@ const InfoTab = () => {
               {/* Author */}
               <div className="flex items-center gap-3">
                 <User size={16} className="text-muted-foreground shrink-0" />
-                <div className="flex items-center gap-1.5 text-xs flex-1">
+                <div className="flex items-center gap-2 text-xs">
                   <span className="text-muted-foreground font-mono">Author:</span>
-                  <input
-                    value={document.author || 'new user'}
-                    onChange={(e) => updateDocument(document.id, { author: e.target.value })}
-                    className="bg-transparent border-b border-white/5 hover:border-white/20 focus:border-accent text-foreground/90 font-medium font-sans outline-none flex-1 px-1 py-0.5 transition-all"
-                  />
+                  <span className="text-foreground/90 font-medium font-sans">
+                    {userName}
+                  </span>
                 </div>
               </div>
             </div>

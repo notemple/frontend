@@ -19,6 +19,12 @@ export interface NoteDocument {
   documentGradientEnd?: string;
   documentGradientDirection?: string;
   textColor?: string;
+  topSectionColor?: string;
+  topSectionColorType?: 'solid' | 'gradient';
+  topSectionGradientStart?: string;
+  topSectionGradientEnd?: string;
+  topSectionGradientDirection?: string;
+  topSectionTextColor?: string;
   color?: string;
   fontFamily?: string;
   folderId?: string | null;

@@ -76,7 +76,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
       setDailyNoteFullView: state.setDailyNoteFullView,
     }))
   );
-  const [isCalendarOpen, setIsCalendarOpen] = useState(true);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isCreatedTodayOpen, setIsCreatedTodayOpen] = useState(false);
   const [isUpdatedTodayOpen, setIsUpdatedTodayOpen] = useState(false);
   const [isTasksCreatedOpen, setIsTasksCreatedOpen] = useState(false);
@@ -84,6 +84,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
   const calendarGridRef = useRef<HTMLDivElement>(null);
+  const calendarSidebarRef = useRef<HTMLDivElement>(null);
   const createdTodayRef = useRef<HTMLDivElement>(null);
   const updatedTodayRef = useRef<HTMLDivElement>(null);
   const tasksCreatedRef = useRef<HTMLDivElement>(null);
@@ -140,6 +141,31 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
     }
   }, [zonedMonthYearKey]);
 
+  useEffect(() => {
+    if (!calendarSidebarRef.current) return;
+    if (isCalendarOpen) {
+      gsap.to(calendarSidebarRef.current, {
+        width: 300,
+        opacity: 1,
+        padding: "16px",
+        borderLeftWidth: "1px",
+        duration: 0.3,
+        ease: "power2.out",
+        display: "flex",
+      });
+    } else {
+      gsap.to(calendarSidebarRef.current, {
+        width: 0,
+        opacity: 0,
+        padding: "0px",
+        borderLeftWidth: "0px",
+        duration: 0.25,
+        ease: "power2.inOut",
+        display: "none",
+      });
+    }
+  }, [isCalendarOpen]);
+
   const updateTask = useTaskStore(state => state.updateTask);
   const deleteTask = useTaskStore(state => state.deleteTask);
 
@@ -176,31 +202,36 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
       }));
   }, [tasks, formattedDateId]);
 
-  const documentOrder = useDocumentStore(useShallow((state: any) => state.documentOrder || EMPTY_ARRAY));
-  const documents = useDocumentStore(useShallow((state: any) => state.documents));
-
-  const objectsCreatedTodayIds = useMemo(() => {
-    return documentOrder.filter((id: string) => {
-      const doc = documents[id];
-      if (!doc || doc.isDeleted) return false;
-      if (doc.id.startsWith("daily-note-")) return false;
-      return isSameDayString(doc.createdAt, formattedDateId);
-    });
-  }, [documentOrder, documents, formattedDateId]);
+  const objectsCreatedTodayIds = useDocumentStore(
+    useShallow((state: any) => {
+      const order = state.documentOrder || EMPTY_ARRAY;
+      const docs = state.documents;
+      return order.filter((id: string) => {
+        const doc = docs[id];
+        if (!doc || doc.isDeleted) return false;
+        if (doc.id.startsWith("daily-note-")) return false;
+        return isSameDayString(doc.createdAt, formattedDateId);
+      });
+    })
+  );
 
   const createdTodayCount = objectsCreatedTodayIds.length;
 
-  const objectsUpdatedTodayIds = useMemo(() => {
-    return documentOrder.filter((id: string) => {
-      const doc = documents[id];
-      if (!doc || doc.isDeleted) return false;
-      if (doc.id.startsWith("daily-note-")) return false;
-      return (
-        isSameDayString(doc.updatedAt, formattedDateId) &&
-        !isSameDayString(doc.createdAt, formattedDateId)
-      );
-    });
-  }, [documentOrder, documents, formattedDateId]);
+  const objectsUpdatedTodayIds = useDocumentStore(
+    useShallow((state: any) => {
+      const order = state.documentOrder || EMPTY_ARRAY;
+      const docs = state.documents;
+      return order.filter((id: string) => {
+        const doc = docs[id];
+        if (!doc || doc.isDeleted) return false;
+        if (doc.id.startsWith("daily-note-")) return false;
+        return (
+          isSameDayString(doc.updatedAt, formattedDateId) &&
+          !isSameDayString(doc.createdAt, formattedDateId)
+        );
+      });
+    })
+  );
 
   const updatedTodayCount = objectsUpdatedTodayIds.length;
 
@@ -765,96 +796,96 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
       </div>
 
       {/* Right side Calendar View */}
-      <AnimatePresence>
-        {isCalendarOpen && (
-          <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 300, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
-            className="border-l border-[var(--border-calendar)] bg-[var(--background-calendar)] shrink-0 flex flex-col p-4 overflow-hidden"
-          >
-            <div className="w-67">
-              <div className="flex items-center justify-between mb-4 text-sm font-medium text-muted-foreground w-full">
-                <button
-                  className="p-1 hover:text-foreground"
-                  onClick={() => {
-                    setSelectedDate(changeZonedMonth(selectedDate, -1, timezone));
+      <div
+        ref={calendarSidebarRef}
+        style={{
+          width: 0,
+          opacity: 0,
+          display: "none",
+          padding: "0px",
+          borderLeftWidth: "0px",
+        }}
+        className="border-solid border-[var(--border-calendar)] bg-[var(--background-calendar)] shrink-0 flex flex-col overflow-hidden"
+      >
+        <div className="w-67">
+          <div className="flex items-center justify-between mb-4 text-sm font-medium text-muted-foreground w-full">
+            <button
+              className="p-1 hover:text-foreground"
+              onClick={() => {
+                setSelectedDate(changeZonedMonth(selectedDate, -1, timezone));
+              }}
+            >
+              <CaretLeft size={16} />
+            </button>
+            <div className="flex items-center gap-4">
+              <div className="relative flex items-center group">
+                <select
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  value={getZonedMonth(selectedDate, timezone)}
+                  onChange={(e) => {
+                    setSelectedDate(setZonedMonth(selectedDate, parseInt(e.target.value), timezone));
                   }}
                 >
-                  <CaretLeft size={16} />
-                </button>
-                <div className="flex items-center gap-4">
-                  <div className="relative flex items-center group">
-                    <select
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                      value={getZonedMonth(selectedDate, timezone)}
-                      onChange={(e) => {
-                        setSelectedDate(setZonedMonth(selectedDate, parseInt(e.target.value), timezone));
-                      }}
-                    >
-                      {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m, i) => (
-                        <option key={i} value={i}>
-                          {m}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="cursor-pointer group-hover:text-foreground">
-                      {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][getZonedMonth(selectedDate, timezone)]}{" "}
-                      <CaretDown size={12} className="inline ml-1" />
-                    </span>
-                  </div>
-                  <div className="relative flex items-center group">
-                    <select
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                      value={getZonedYear(selectedDate, timezone)}
-                      onChange={(e) => {
-                        setSelectedDate(setZonedYear(selectedDate, parseInt(e.target.value), timezone));
-                      }}
-                    >
-                      {Array.from({ length: 10 }).map((_, i) => {
-                        const year = getZonedYear(new Date(), timezone) - 5 + i;
-                        return (
-                          <option key={year} value={year}>
-                            {year}
-                          </option>
-                        );
-                      })}
-                    </select>
-                    <span className="cursor-pointer group-hover:text-foreground">
-                      {getZonedYear(selectedDate, timezone)}{" "}
-                      <CaretDown size={12} className="inline ml-1" />
-                    </span>
-                  </div>
-                </div>
-                <button
-                  className="p-1 hover:text-foreground"
-                  onClick={() => {
-                    setSelectedDate(changeZonedMonth(selectedDate, 1, timezone));
-                  }}
-                >
-                  <CaretRight size={16} />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-7 gap-1 text-center text-xs mb-2 text-muted-foreground font-medium w-full">
-                {["S", "M", "T", "W", "T", "F", "S"]
-                  .slice(weekStartDay)
-                  .concat(
-                    ["S", "M", "T", "W", "T", "F", "S"].slice(0, weekStartDay),
-                  )
-                  .map((d, i) => (
-                    <div key={i}>{d}</div>
+                  {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m, i) => (
+                    <option key={i} value={i}>
+                      {m}
+                    </option>
                   ))}
+                </select>
+                <span className="cursor-pointer group-hover:text-foreground">
+                  {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][getZonedMonth(selectedDate, timezone)]}{" "}
+                  <CaretDown size={12} className="inline ml-1" />
+                </span>
               </div>
-
-              <div ref={calendarGridRef} className="grid grid-cols-7 gap-1 text-center font-medium w-full">
-                {renderDays()}
+              <div className="relative flex items-center group">
+                <select
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  value={getZonedYear(selectedDate, timezone)}
+                  onChange={(e) => {
+                    setSelectedDate(setZonedYear(selectedDate, parseInt(e.target.value), timezone));
+                  }}
+                >
+                  {Array.from({ length: 10 }).map((_, i) => {
+                    const year = getZonedYear(new Date(), timezone) - 5 + i;
+                    return (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    );
+                  })}
+                </select>
+                <span className="cursor-pointer group-hover:text-foreground">
+                  {getZonedYear(selectedDate, timezone)}{" "}
+                  <CaretDown size={12} className="inline ml-1" />
+                </span>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <button
+              className="p-1 hover:text-foreground"
+              onClick={() => {
+                setSelectedDate(changeZonedMonth(selectedDate, 1, timezone));
+              }}
+            >
+              <CaretRight size={16} />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 text-center text-xs mb-2 text-muted-foreground font-medium w-full">
+            {["S", "M", "T", "W", "T", "F", "S"]
+              .slice(weekStartDay)
+              .concat(
+                ["S", "M", "T", "W", "T", "F", "S"].slice(0, weekStartDay),
+              )
+              .map((d, i) => (
+                <div key={i}>{d}</div>
+              ))}
+          </div>
+
+          <div ref={calendarGridRef} className="grid grid-cols-7 gap-1 text-center font-medium w-full">
+            {renderDays()}
+          </div>
+        </div>
+      </div>
       <TaskEditorModal
         taskId={editingTaskId}
         onClose={() => setEditingTaskId(null)}

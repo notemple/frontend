@@ -143,7 +143,7 @@ const DragBlock = React.memo(({ html, fontFamily, fontSize, color, backgroundCol
       overflow: 'hidden',
       boxSizing: 'border-box',
     }}
-    className="prose prose-sm sm:prose w-full max-w-full tiptap ProseMirror"
+    className="prose prose-sm sm:prose w-full max-w-none tiptap ProseMirror"
     dangerouslySetInnerHTML={{ __html: html }}
   />
 ));

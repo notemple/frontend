@@ -3,7 +3,7 @@ import { useUiStore } from '@/shared/store/uiStore';
 import { useDocumentStore } from '@/features/documents/store';
 import { useShallow } from 'zustand/react/shallow';
 import { cn } from '@/shared/lib/utils';
-import { X, FileText, Book, User } from '@phosphor-icons/react';
+import { X, FileText, Book, User, CalendarBlank, CheckSquare, Tag, Eye, SquaresFour, Folder, Star, Trash } from '@phosphor-icons/react';
 import {
   DndContext,
   closestCenter,
@@ -35,6 +35,25 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
   const docSelector = React.useCallback(
     state => {
       if (tabId === 'new-note') return { title: 'Untitled', type: 'page', icon: undefined };
+      if (tabId === 'section-daily-notes') return { title: 'Daily Notes', type: 'daily-notes', icon: undefined };
+      if (tabId === 'section-tasks') return { title: 'Tasks', type: 'tasks', icon: undefined };
+      if (tabId === 'section-tags') return { title: 'Tags', type: 'tags', icon: undefined };
+      if (tabId === 'section-glance') return { title: 'Glance', type: 'glance', icon: undefined };
+      if (tabId === 'section-wall') return { title: 'Wall', type: 'wall', icon: undefined };
+      if (tabId === 'section-favorites') return { title: 'Favorites', type: 'favorites', icon: undefined };
+      if (tabId === 'section-folders') return { title: 'Folders', type: 'folders', icon: undefined };
+      if (tabId === 'section-uncategorized') return { title: 'Uncategorized', type: 'folders', icon: undefined };
+      if (tabId === 'section-trash') return { title: 'Trash', type: 'trash', icon: undefined };
+      if (tabId.startsWith('section-folder-')) {
+        const folderId = tabId.replace('section-folder-', '');
+        const folder = state.folders?.find((f: any) => f?.id === folderId);
+        return { title: folder?.name || 'Folder', type: 'folder', icon: undefined };
+      }
+      if (tabId.startsWith('section-')) {
+        const cleanId = tabId.replace('section-', '');
+        const title = cleanId.charAt(0).toUpperCase() + cleanId.slice(1);
+        return { title, type: cleanId, icon: undefined };
+      }
       const d = state.documents[tabId];
       return d ? { title: d.title, type: d.type, icon: d.icon } : null;
     },
@@ -167,6 +186,16 @@ function getIcon(type: string, emoji?: string) {
     case 'page': return <FileText size={14} />;
     case 'book': return <Book size={14} />;
     case 'person': return <User size={14} />;
+    case 'daily-notes': return <CalendarBlank size={14} />;
+    case 'tasks': return <CheckSquare size={14} />;
+    case 'tags': return <Tag size={14} />;
+    case 'glance': return <Eye size={14} />;
+    case 'wall': return <SquaresFour size={14} />;
+    case 'folders':
+    case 'folder':
+      return <Folder size={14} />;
+    case 'favorites': return <Star size={14} />;
+    case 'trash': return <Trash size={14} />;
     default: return <FileText size={14} />;
   }
 }

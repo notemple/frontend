@@ -76,7 +76,11 @@ export const TaskEditorModal = ({
           className="fixed inset-0 bg-black/20 z-50 flex items-center justify-center p-4"
           onClick={onClose}
         >
-          <div
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            transition={{ duration: 0.15 }}
             onClick={(e) => e.stopPropagation()}
             className="bg-background border border-border rounded-sm-sm w-full max-w-2xl h-[70vh] flex flex-col overflow-hidden relative"
           >
@@ -191,7 +195,7 @@ export const TaskEditorModal = ({
             <div className="flex-1 w-full overflow-y-auto">
               <NotempleEditor documentId={`task-${taskId}`} isDailyNote />
             </div>
-          </div>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

@@ -22,6 +22,7 @@ import {
 } from '@phosphor-icons/react';
 import { useFloating, autoUpdate, offset, flip, shift } from '@floating-ui/react';
 import ReactDOM from 'react-dom';
+import { motion, AnimatePresence } from 'motion/react';
 
 export const DocumentPreviewPopup = () => {
   const [activeDocId, setActiveDocId] = useState<string | null>(null);
@@ -163,8 +164,6 @@ export const DocumentPreviewPopup = () => {
     };
   }, [activeDocId, previewEditor, targetDoc?.content]);
 
-  if (!activeDocId || !targetDoc) return null;
-
   const handleOpenFullTab = () => {
     if (isAlreadyOpen || !activeDocId) return;
     openDocument(activeDocId);
@@ -172,60 +171,70 @@ export const DocumentPreviewPopup = () => {
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateDocument(activeDocId, { title: e.target.value });
+    if (activeDocId) {
+      updateDocument(activeDocId, { title: e.target.value });
+    }
   };
 
-  // Render popup overlay inside React Portal
+  // Render popup overlay inside React Portal with Exit animation support
   return ReactDOM.createPortal(
-    <div
-      ref={refs.setFloating}
-      style={floatingStyles}
-      className="table-dark-menu z-[1000] w-[350px] max-h-[380px] flex flex-col shadow-xl select-none animate-fade-in p-0 overflow-hidden font-sans border border-[#27272a] bg-[#18181b]"
-    >
-      <div 
-        ref={popupRef}
-        className="flex flex-col h-full w-full max-h-[380px]"
-      >
-        {/* Portal Header */}
-        <div className="flex items-center justify-between border-b border-[#27272a] px-3.5 py-2.5 bg-[#202023] shrink-0">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <FileText size={14} className="text-[#a1a1aa] shrink-0" />
-            <input 
-              value={targetDoc.title || ''}
-              onChange={handleTitleChange}
-              placeholder="Untitled note"
-              className="bg-transparent border-none text-[12px] font-semibold text-[#f4f4f5] outline-none truncate w-full"
-            />
-          </div>
-          <div className="flex items-center gap-1.5 ml-3 shrink-0">
-            <button 
-              onClick={handleOpenFullTab}
-              disabled={isAlreadyOpen}
-              className={`p-1 rounded transition-colors ${
-                isAlreadyOpen 
-                  ? 'text-zinc-600 cursor-not-allowed opacity-40' 
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800 cursor-pointer'
-              }`}
-              title={isAlreadyOpen ? "Document is already open in editor" : "Open in editor"}
-            >
-              <ArrowsOutSimple size={13} />
-            </button>
-            <button 
-              onClick={() => setActiveDocId(null)}
-              className="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
-              title="Close Preview"
-            >
-              <X size={13} />
-            </button>
-          </div>
-        </div>
+    <AnimatePresence>
+      {activeDocId && targetDoc && (
+        <motion.div
+          ref={refs.setFloating}
+          style={floatingStyles}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.15 }}
+          className="table-dark-menu z-[1000] w-[350px] max-h-[380px] flex flex-col shadow-xl select-none p-0 overflow-hidden font-sans border border-[#27272a] bg-[#18181b]"
+        >
+          <div 
+            ref={popupRef}
+            className="flex flex-col h-full w-full max-h-[380px]"
+          >
+            {/* Portal Header */}
+            <div className="flex items-center justify-between border-b border-[#27272a] px-3.5 py-2.5 bg-[#202023] shrink-0">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <FileText size={14} className="text-[#a1a1aa] shrink-0" />
+                <input 
+                  value={targetDoc.title || ''}
+                  onChange={handleTitleChange}
+                  placeholder="Untitled note"
+                  className="bg-transparent border-none text-[12px] font-semibold text-[#f4f4f5] outline-none truncate w-full"
+                />
+              </div>
+              <div className="flex items-center gap-1.5 ml-3 shrink-0">
+                <button 
+                  onClick={handleOpenFullTab}
+                  disabled={isAlreadyOpen}
+                  className={`p-1 rounded transition-colors ${
+                    isAlreadyOpen 
+                      ? 'text-zinc-600 cursor-not-allowed opacity-40' 
+                      : 'text-zinc-400 hover:text-white hover:bg-zinc-800 cursor-pointer'
+                  }`}
+                  title={isAlreadyOpen ? "Document is already open in editor" : "Open in editor"}
+                >
+                  <ArrowsOutSimple size={13} />
+                </button>
+                <button 
+                  onClick={() => setActiveDocId(null)}
+                  className="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                  title="Close Preview"
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            </div>
 
-        {/* Live Mini Editor */}
-        <div className="flex-1 overflow-y-auto p-4 max-h-[320px] scrollbar-thin">
-          <EditorContent editor={previewEditor} />
-        </div>
-      </div>
-    </div>,
+            {/* Live Mini Editor */}
+            <div className="flex-1 overflow-y-auto p-4 max-h-[320px] scrollbar-thin">
+              <EditorContent editor={previewEditor} />
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
     document.body
   );
 };

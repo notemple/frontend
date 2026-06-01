@@ -741,5 +741,91 @@ html.light .ProseMirror table:hover {
   padding-bottom: 4px !important;
 }
 
+/* ── Premium Neumorphic Styling System ─────────────────────────────────────── */
 
+.neu-card {
+  background: var(--workspace-bg);
+  border-radius: 16px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
+html.light .neu-card {
+  box-shadow: 12px 12px 28px rgba(163, 177, 198, 0.35), 
+              -12px -12px 28px rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+html.dark .neu-card {
+  box-shadow: 14px 14px 32px rgba(0, 0, 0, 0.65), 
+              -14px -14px 32px rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.01);
+}
+
+.neu-inset {
+  background: var(--workspace-bg);
+  transition: all 0.25s ease-out;
+}
+
+html.light .neu-inset {
+  box-shadow: inset 3px 3px 6px rgba(163, 177, 198, 0.4), 
+              inset -3px -3px 6px rgba(255, 255, 255, 0.8) !important;
+}
+
+html.dark .neu-inset {
+  box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.6), 
+              inset -4px -4px 8px rgba(255, 255, 255, 0.02) !important;
+}
+
+.neu-btn {
+  background: var(--workspace-bg);
+  border-radius: 10px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 1.125rem;
+  font-size: 0.8125rem;
+  font-weight: 550;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
+}
+
+html.light .neu-btn {
+  box-shadow: 4px 4px 10px rgba(163, 177, 198, 0.3), 
+              -4px -4px 10px rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid rgba(0, 0, 0, 0.015);
+  color: var(--body-text);
+}
+
+html.light .neu-btn:hover {
+  box-shadow: 2px 2px 5px rgba(163, 177, 198, 0.3), 
+              -2px -2px 5px rgba(255, 255, 255, 0.8) !important;
+  transform: translateY(1px);
+}
+
+html.light .neu-btn:active {
+  box-shadow: inset 2px 2px 5px rgba(163, 177, 198, 0.35), 
+              inset -2px -2px 5px rgba(255, 255, 255, 0.8) !important;
+  transform: translateY(1px) scale(0.98);
+}
+
+html.dark .neu-btn {
+  box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.5), 
+              -6px -6px 12px rgba(255, 255, 255, 0.015) !important;
+  border: 1px solid rgba(255, 255, 255, 0.005);
+  color: var(--muted-foreground);
+}
+
+html.dark .neu-btn:hover {
+  box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5), 
+              -3px -3px 6px rgba(255, 255, 255, 0.015) !important;
+  color: var(--foreground);
+  transform: translateY(1px);
+}
+
+html.dark .neu-btn:active {
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.65), 
+              inset -3px -3px 6px rgba(255, 255, 255, 0.015) !important;
+  transform: translateY(1px) scale(0.98);
+}

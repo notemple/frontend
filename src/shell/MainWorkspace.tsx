@@ -466,7 +466,7 @@ export const MainWorkspace = () => {
                     ) : pane.activeTabId ? (
                       <NotempleEditor key={`${pane.id}-${pane.activeTabId}`} paneId={pane.id} documentId={pane.activeTabId} />
                     ) : (
-                      <EmptyPaneState />
+                      <EmptyPaneState paneId={pane.id} />
                     )}
                   </GSAPPageWrapper>
 

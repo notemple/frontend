@@ -31,7 +31,7 @@ import { SlashCommand, getSuggestionItems, renderItems } from './components/Slas
 import { useDocumentStore, type NoteDocument } from '@/features/documents/store';
 import { useUiStore } from '@/shared/store/uiStore';
 import { useShallow } from 'zustand/react/shallow';
-import { Tag, TextB, TextItalic, TextStrikethrough, TextAUnderline, Code, ArrowsInSimple, Sparkle, FileText, Smiley, CaretUp, CaretDown } from '@phosphor-icons/react';
+import { Tag, TextB, TextItalic, TextStrikethrough, TextAUnderline, Code, ArrowsInSimple, Sparkle, FileText, Smiley, CaretUp, CaretDown, Trash } from '@phosphor-icons/react';
 import { useSettingsStore } from '@/features/settings/store';
 import { toDate } from 'date-fns-tz';
 import { cn, getTagStyle } from '@/shared/lib/utils';
@@ -107,10 +107,11 @@ export const NotempleEditor = React.memo(({
   onClosePopup?: () => void; 
 }) => {
   const updateDocument = useDocumentStore(state => state.updateDocument);
-  const { openDocument, setSelectedDailyNoteDate } = useUiStore(
+  const { openDocument, setSelectedDailyNoteDate, closeDocument } = useUiStore(
     useShallow((state) => ({
       openDocument: state.openDocument,
       setSelectedDailyNoteDate: state.setSelectedDailyNoteDate,
+      closeDocument: state.closeDocument,
     }))
   );
   const timezone = useSettingsStore(state => state.timezone);
@@ -503,22 +504,23 @@ export const NotempleEditor = React.memo(({
 
 
   return (
-    <div
-      className={cn(
-        "w-full overflow-y-auto no-scrollbar flex flex-col relative",
-        isMinimized 
-          ? "h-[450px] border border-border rounded-sm-sm bg-muted/20 hover:bg-muted/30 hover:border-muted-foreground/20 focus-within:border-rose-500/35 focus-within:bg-background transition-all duration-200" 
-          : "h-full",
-        hasCustomStyle ? "p-3 sm:p-5 md:p-8 lg:p-10 transition-[padding] duration-300" : ""
-      )}
-      style={{
-        background: localStyle.backdropColor || undefined,
-      }}
-    >
-      {/* If Faded style backdrop is selected, overlay a soft white matte solid layer */}
-      {hasCustomStyle && localStyle.backdropStyle === 'faded' && (
-        <div className="absolute inset-0 bg-white/85 pointer-events-none z-0" style={{ transition: 'background-color 0.15s ease' }} />
-      )}
+    <div className="relative w-full h-full overflow-hidden flex flex-col">
+      <div
+        className={cn(
+          "w-full overflow-y-auto no-scrollbar flex flex-col relative flex-1 h-full",
+          isMinimized 
+            ? "h-[450px] border border-border rounded-sm-sm bg-muted/20 hover:bg-muted/30 hover:border-muted-foreground/20 focus-within:border-rose-500/35 focus-within:bg-background transition-all duration-200" 
+            : "h-full",
+          hasCustomStyle ? "p-3 sm:p-5 md:p-8 lg:p-10 transition-[padding] duration-300" : ""
+        )}
+        style={{
+          background: localStyle.backdropColor || undefined,
+        }}
+      >
+        {/* If Faded style backdrop is selected, overlay a soft white matte solid layer */}
+        {hasCustomStyle && localStyle.backdropStyle === 'faded' && (
+          <div className="absolute inset-0 bg-white/85 pointer-events-none z-0" style={{ transition: 'background-color 0.15s ease' }} />
+        )}
 
       <div
         className={cn(
@@ -881,6 +883,36 @@ export const NotempleEditor = React.memo(({
         </div>
         </EditorDndContext>
       </div>
+    </div>
+
+      {document.isDeleted && (
+        <div className="absolute bottom-4 left-4 z-40 bg-red-600 dark:bg-red-700 text-white rounded-md p-3 px-4 shadow-lg flex items-center gap-3 animate-fade-in text-xs font-sans font-medium animate-in slide-in-from-bottom-2">
+          <Trash size={16} weight="fill" className="text-white/90 shrink-0" />
+          <span>This note is in the Trash.</span>
+          <div className="flex items-center gap-2 border-l border-white/20 pl-3">
+            <button
+              onClick={() => useDocumentStore.getState().restoreDocument(documentId)}
+              className="text-white hover:text-white/80 transition-colors font-bold cursor-pointer hover:underline"
+            >
+              Restore
+            </button>
+            <span className="text-white/40 font-normal">|</span>
+            <button
+              onClick={async () => {
+                await useDocumentStore.getState().permanentlyDeleteDocument(documentId);
+                if (paneId) {
+                  closeDocument(documentId, paneId);
+                } else {
+                  closeDocument(documentId);
+                }
+              }}
+              className="text-white/95 hover:text-white transition-colors font-bold cursor-pointer hover:underline"
+            >
+              Delete Permanently
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 });

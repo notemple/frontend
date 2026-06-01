@@ -124,11 +124,11 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
           title: d.title,
           type: d.type,
           icon: d.icon,
-          documentColor: d.documentColor,
-          documentColorType: d.documentColorType,
+          cardColor: d.cardColor,
           textColor: d.textColor,
           backdropColor: d.backdropColor,
           color: d.color,
+          isDeleted: d.isDeleted,
           folderColor,
         };
       }
@@ -151,18 +151,15 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
   // Decide the base color for the icon
   const resolvedIconColor = React.useMemo(() => {
     if (!doc) return undefined;
-    if (isActive && (doc as any).documentColor) {
-      return getContrastColor((doc as any).documentColor);
-    }
-    return sectionColor || (doc as any).folderColor || (doc as any).color;
-  }, [isActive, doc, sectionColor]);
+    return (doc as any).cardColor || sectionColor || (doc as any).folderColor || (doc as any).color;
+  }, [doc, sectionColor]);
 
   const iconStyle = React.useMemo(() => resolvedIconColor ? { color: resolvedIconColor } : undefined, [resolvedIconColor]);
 
   // Dynamic tab background and border styling
   const bgStyleValue = React.useMemo(() => {
     if (!doc) return undefined;
-    return (doc as any).documentColor || sectionColor || (doc as any).folderColor;
+    return (doc as any).cardColor || sectionColor || (doc as any).folderColor;
   }, [doc, sectionColor]);
   
   const hasBgColor = !!bgStyleValue;
@@ -170,12 +167,10 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
   const bgOpacityClass = React.useMemo(() => {
     if (!doc) return "opacity-0";
     if (isActive) {
-      if ((doc as any).documentColor) return "opacity-100";
-      if (sectionColor || (doc as any).folderColor) return "opacity-20";
+      if ((doc as any).cardColor || sectionColor || (doc as any).folderColor) return "opacity-20";
       return "opacity-0";
     } else {
-      if ((doc as any).documentColor) return "opacity-15 group-hover:opacity-35";
-      if (sectionColor || (doc as any).folderColor) return "opacity-8 group-hover:opacity-18";
+      if ((doc as any).cardColor || sectionColor || (doc as any).folderColor) return "opacity-8 group-hover:opacity-18";
       return "opacity-0";
     }
   }, [isActive, doc, sectionColor]);
@@ -187,13 +182,7 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
     return 'transparent';
   }, [isActive, resolvedIconColor]);
 
-  const contrastColor = React.useMemo(() => {
-    if (!doc) return undefined;
-    if (isActive && (doc as any).documentColor) {
-      return getContrastColor((doc as any).documentColor);
-    }
-    return undefined;
-  }, [isActive, doc]);
+  const contrastColor = undefined;
 
   const textStyle = React.useMemo(() => contrastColor ? { color: contrastColor } : undefined, [contrastColor]);
 
@@ -201,11 +190,9 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
     if (!doc) return "";
     return cn(
       "opacity-0 group-hover:opacity-100 p-0.5 rounded-sm transition-colors z-10",
-      isActive && (doc as any).documentColor
-        ? "hover:bg-white/20 text-current"
-        : "hover:bg-border text-muted-foreground"
+      "hover:bg-border text-muted-foreground"
     );
-  }, [isActive, doc]);
+  }, [doc]);
 
   if (!doc) return null;
 
@@ -228,7 +215,7 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
       className={cn(
         "relative flex items-center h-full px-4 border-r border-border min-w-[120px] max-w-[200px] gap-2 cursor-pointer transition-all group overflow-hidden select-none",
         isActive
-          ? (doc as any).documentColor ? "text-foreground" : "bg-muted text-foreground"
+          ? "bg-muted text-foreground"
           : "text-muted-foreground hover:bg-muted/50"
       )}
     >
@@ -256,6 +243,9 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
         {getIcon(doc.type, doc.icon)}
       </span>
       
+      {doc.isDeleted && (
+        <Trash size={12} className="text-red-500 shrink-0" weight="fill" />
+      )}
       <span className="text-xs truncate flex-1 font-medium">{doc.title}</span>
       
       <button

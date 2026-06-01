@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { useDocumentStore } from '@/features/documents/store';
 import { useTaskStore } from '@/features/tasks/store';
+import { useUiStore } from '@/shared/store/uiStore';
 import { formatDisplayDate } from '@/shared/lib/time';
 import { cn } from '@/shared/lib/utils';
 import { useShallow } from 'zustand/react/shallow';
@@ -21,6 +22,7 @@ type TrashTab = 'all' | 'documents' | 'folders' | 'tasks';
 export const TrashPage = ({ paneId }: { paneId: string }) => {
   const [activeTab, setActiveTab] = useState<TrashTab>('all');
   const [showConfirmEmpty, setShowConfirmEmpty] = useState(false);
+  const openDocument = useUiStore(state => state.openDocument);
 
   // Zustand Store States and Actions
   const deletedDocIds = useDocumentStore(
@@ -306,7 +308,18 @@ export const TrashPage = ({ paneId }: { paneId: string }) => {
               /* Items List */
               <div className="flex flex-col border border-border rounded-sm bg-card-bg divide-y divide-border overflow-hidden shadow-sm-sm animate-fade-in">
                 {filteredItems.map(item => (
-                  <div key={item.id} className="flex items-center justify-between p-3.5 hover:bg-muted/20 transition-colors group">
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      if (item.type === 'document') {
+                        openDocument(item.id, paneId);
+                      }
+                    }}
+                    className={cn(
+                      "flex items-center justify-between p-3.5 hover:bg-muted/20 transition-colors group",
+                      item.type === 'document' && "cursor-pointer"
+                    )}
+                  >
                     <div className="flex items-center gap-3.5 min-w-0">
                       <div className="w-8 h-8 rounded-sm bg-muted flex items-center justify-center border border-border shadow-sm-sm shrink-0">
                         {item.icon}
@@ -323,14 +336,20 @@ export const TrashPage = ({ paneId }: { paneId: string }) => {
 
                     <div className="flex items-center gap-2 opacity-90 group-hover:opacity-100 transition-opacity">
                       <button
-                        onClick={item.restore}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          item.restore();
+                        }}
                         className="p-1.5 bg-muted/40 hover:bg-muted border border-border/80 hover:border-border rounded-sm text-muted-foreground hover:text-emerald-500 dark:hover:text-emerald-400 transition-all cursor-pointer shadow-sm-sm"
                         title="Restore Item"
                       >
                         <ArrowCounterClockwise size={15} />
                       </button>
                       <button
-                        onClick={item.delete}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          item.delete();
+                        }}
                         className="p-1.5 bg-red-500/5 hover:bg-red-500 hover:text-white border border-red-500/10 hover:border-red-500/20 rounded-sm text-red-500/80 transition-all cursor-pointer shadow-sm-sm"
                         title="Permanently Delete"
                       >

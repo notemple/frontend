@@ -6,6 +6,8 @@ import { useDocumentStore } from '@/features/documents/store';
 import { useShallow } from 'zustand/react/shallow';
 import { cn, getFolderHexColor } from '@/shared/lib/utils';
 import { SettingsDialog } from '@/features/settings/SettingsDialog';
+import { DeleteFolderDialog } from './DeleteFolderDialog';
+import { ColorPicker } from '@/shared/ui/ColorPicker';
 import {
   MagnifyingGlass,
   CalendarBlank,
@@ -53,7 +55,7 @@ const SidebarDocumentItem = ({
   const docSelector = React.useCallback(
     (state: any) => {
       const d = state.documents[docId];
-      return d ? { title: d.title, type: d.type, icon: d.icon } : null;
+      return d ? { title: d.title, type: d.type, icon: d.icon, cardColor: d.cardColor } : null;
     },
     [docId]
   );
@@ -85,7 +87,7 @@ const SidebarDocumentItem = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="shrink-0 text-muted-foreground">
-          {getIconForType(doc.type || 'page', doc.icon)}
+          {getIconForType(doc.type || 'page', doc.icon, doc.cardColor)}
         </div>
         <input
           autoFocus
@@ -118,7 +120,7 @@ const SidebarDocumentItem = ({
 
   return (
     <SidebarItem
-      icon={getIconForType(doc.type || 'page', doc.icon)}
+      icon={getIconForType(doc.type || 'page', doc.icon, doc.cardColor)}
       label={doc.title || 'Untitled'}
       isOpen={isOpen}
       highlight={isActive}
@@ -144,6 +146,13 @@ const SidebarContextMenu = ({
     [contextMenu.id]
   );
   const isFavorite = useDocumentStore(isFavoriteSelector);
+
+  const documentColorSelector = React.useCallback(
+    (state: any) => state.documents[contextMenu.id]?.cardColor || '',
+    [contextMenu.id]
+  );
+  const documentColor = useDocumentStore(documentColorSelector);
+  const updateDocument = useDocumentStore(state => state.updateDocument);
 
   return (
     <div
@@ -176,6 +185,17 @@ const SidebarContextMenu = ({
         <Trash size={14} />
         Delete
       </button>
+      {contextMenu.type === 'document' && (
+        <div className="border-t border-border mt-1">
+          <ColorPicker
+            currentColor={documentColor}
+            onChange={(color) => {
+              updateDocument(contextMenu.id, { cardColor: color });
+            }}
+            label="Document Color"
+          />
+        </div>
+      )}
     </div>
   );
 };
@@ -406,6 +426,10 @@ export const Sidebar = () => {
   const [draggedItem, setDraggedItem] = useState<{ id: string, type: 'document' | 'folder' } | null>(null);
   const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(() => new Set(['section-favorites', 'section-folders', 'section-uncategorized', ...folderOrder]));
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [deleteFolderDialogOpen, setDeleteFolderDialogOpen] = useState(false);
+  const [deletingFolderId, setDeletingFolderId] = useState<string | null>(null);
+  const [deletingFolderName, setDeletingFolderName] = useState('');
+  const [deletingFolderFilesCount, setDeletingFolderFilesCount] = useState(0);
 
   // Automatically scroll the active document into view ONLY when selection changes, replacing the CPU heavy keystroke listener!
   useEffect(() => {
@@ -521,10 +545,37 @@ export const Sidebar = () => {
     if (!contextMenu || !contextMenu.id) return;
     if (contextMenu.type === 'document') {
       deleteDocument(contextMenu.id);
+      setContextMenu(null);
     } else {
-      deleteFolder(contextMenu.id);
+      const folderId = contextMenu.id;
+      const folder = folders.find(f => f.id === folderId);
+      const folderName = folder ? folder.name : 'Folder';
+      const allDocs = useDocumentStore.getState().documents;
+      const folderDocsCount = Object.values(allDocs).filter(
+        (doc: any) => doc.folderId === folderId && !doc.isDeleted
+      ).length;
+
+      if (folderDocsCount > 0) {
+        setDeletingFolderId(folderId);
+        setDeletingFolderName(folderName);
+        setDeletingFolderFilesCount(folderDocsCount);
+        setDeleteFolderDialogOpen(true);
+        setContextMenu(null);
+      } else {
+        deleteFolder(folderId);
+        setContextMenu(null);
+      }
     }
-    setContextMenu(null);
+  };
+
+  const handleConfirmDeleteFolder = (
+    action: 'delete' | 'uncategorize' | 'move',
+    targetFolderId?: string
+  ) => {
+    if (!deletingFolderId) return;
+    deleteFolder(deletingFolderId, { type: action, targetFolderId });
+    setDeleteFolderDialogOpen(false);
+    setDeletingFolderId(null);
   };
 
   return (
@@ -820,6 +871,15 @@ export const Sidebar = () => {
 
       <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
+      <DeleteFolderDialog
+        isOpen={deleteFolderDialogOpen}
+        onClose={() => setDeleteFolderDialogOpen(false)}
+        folderId={deletingFolderId || ''}
+        folderName={deletingFolderName}
+        fileCount={deletingFolderFilesCount}
+        onConfirm={handleConfirmDeleteFolder}
+      />
+
       {/* Context Menu */}
       {contextMenu && (
         <SidebarContextMenu
@@ -833,14 +893,15 @@ export const Sidebar = () => {
   );
 };
 
-function getIconForType(type: string, emoji?: string) {
+function getIconForType(type: string, emoji?: string, customColor?: string) {
   if (emoji) {
     return <span className="text-[15px] font-sans leading-none flex items-center justify-center w-5 h-5 select-none">{emoji}</span>;
   }
+  const style = customColor ? { color: customColor } : undefined;
   switch (type) {
-    case 'page': return <FileText size={16} className="text-cyan-600/80 dark:text-cyan-400/80" />;
-    case 'book': return <Book size={16} className="text-orange-600/80 dark:text-orange-400/80" />;
-    case 'person': return <User size={16} className="text-purple-600/80 dark:text-purple-400/80" />;
-    default: return <FileText size={16} className="text-sky-600/80 dark:text-sky-400/80" />;
+    case 'page': return <FileText size={16} className={customColor ? undefined : "text-cyan-600/80 dark:text-cyan-400/80"} style={style} />;
+    case 'book': return <Book size={16} className={customColor ? undefined : "text-orange-600/80 dark:text-orange-400/80"} style={style} />;
+    case 'person': return <User size={16} className={customColor ? undefined : "text-purple-600/80 dark:text-purple-400/80"} style={style} />;
+    default: return <FileText size={16} className={customColor ? undefined : "text-sky-600/80 dark:text-sky-400/80"} style={style} />;
   }
 }

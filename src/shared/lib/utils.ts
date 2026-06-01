@@ -100,13 +100,8 @@ export function getTagHexColor(tag: string, tagColors?: Record<string, string>) 
  * Returns CSS custom-property overrides for a folder's card and icon colours.
  * Falls back to the same CARD_COLORS palette when no custom colour is set.
  */
-export function getFolderStyle(
-  folderId: string,
-  folderColors?: Record<string, string>,
-  folderName?: string
-) {
-  const hex = folderColors?.[folderId];
-  if (!hex) return null; // signal "use default hash colour"
+export function getColorStyle(hex: string | null | undefined) {
+  if (!hex) return null;
 
   const rgb = hexToRgb(hex);
   const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
@@ -120,6 +115,15 @@ export function getFolderStyle(
     '--folder-text-light':  `hsla(${hsl.h}, ${hsl.s}%, 28%, 1)`,
     '--folder-text-dark':   `hsla(${hsl.h}, ${hsl.s}%, 75%, 1)`,
   };
+}
+
+export function getFolderStyle(
+  folderId: string,
+  folderColors?: Record<string, string>,
+  folderName?: string
+) {
+  const hex = folderColors?.[folderId];
+  return getColorStyle(hex);
 }
 
 export function getFolderHexColor(

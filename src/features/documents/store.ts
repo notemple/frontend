@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { documentService } from '@/services/document.service';
+import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
 import type { NoteDocument, Folder } from '@/storage/core/types';
 export type { NoteDocument, Folder } from '@/storage/core/types';
 
@@ -26,7 +27,7 @@ interface DocumentStore {
 
   createFolder: (name: string) => Promise<void>;
   updateFolder: (id: string, name: string) => Promise<void>;
-  deleteFolder: (id: string) => Promise<void>;
+  deleteFolder: (id: string, fileAction?: { type: 'delete' | 'uncategorize' | 'move'; targetFolderId?: string }) => Promise<void>;
 
   // Trash operations
   restoreDocument: (id: string) => Promise<void>;
@@ -112,6 +113,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       createdAt: doc.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       author: doc.author || 'new user',
+      cardColor: doc.cardColor || (!isUpdating ? TAG_COLOR_PRESETS[Math.floor(Math.random() * TAG_COLOR_PRESETS.length)].hex : undefined)
     };
 
     const newDocs = { ...get().documents, [doc.id]: docWithMetadata };
@@ -281,7 +283,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
     }
   },
 
-  deleteFolder: async (id) => {
+  deleteFolder: async (id, fileAction = { type: 'delete' }) => {
     const folder = get().folders.find(f => f.id === id);
     if (!folder) return;
 
@@ -296,11 +298,25 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
 
     Object.keys(newDocs).forEach(docId => {
       if (newDocs[docId].folderId === id) {
-        newDocs[docId] = {
-          ...newDocs[docId],
-          isDeleted: true,
-          deletedAt: new Date().toISOString()
-        };
+        if (fileAction.type === 'delete') {
+          newDocs[docId] = {
+            ...newDocs[docId],
+            isDeleted: true,
+            deletedAt: new Date().toISOString()
+          };
+        } else if (fileAction.type === 'uncategorize') {
+          newDocs[docId] = {
+            ...newDocs[docId],
+            folderId: null,
+            updatedAt: new Date().toISOString()
+          };
+        } else if (fileAction.type === 'move' && fileAction.targetFolderId) {
+          newDocs[docId] = {
+            ...newDocs[docId],
+            folderId: fileAction.targetFolderId,
+            updatedAt: new Date().toISOString()
+          };
+        }
         docsToSave.push(newDocs[docId]);
       }
     });
@@ -381,10 +397,12 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       deletedAt: undefined
     };
 
-    // If it was in a deleted folder, reset its folderId to null (uncategorized)
-    const folder = doc.folderId ? get().folders.find(f => f.id === doc.folderId) : null;
-    if (folder?.isDeleted) {
-      updatedDoc.folderId = null;
+    // If it was in a folder, check if that folder exists and is active (not deleted)
+    if (updatedDoc.folderId) {
+      const folder = get().folders.find(f => f.id === updatedDoc.folderId);
+      if (!folder || folder.isDeleted) {
+        updatedDoc.folderId = null;
+      }
     }
 
     set({
@@ -493,10 +511,11 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
     Object.keys(newDocs).forEach(docId => {
       if (newDocs[docId].isDeleted) {
         const updated = { ...newDocs[docId], isDeleted: false, deletedAt: undefined };
-        // If its folder was deleted and NOT restored in this batch, reset its folderId to null
+        // If its folder is deleted or doesn't exist, and is not restored in this batch, reset folderId to null
         if (updated.folderId) {
           const folder = get().folders.find(f => f.id === updated.folderId);
-          if (folder?.isDeleted && !foldersToSave.find(f => f.id === updated.folderId)) {
+          const willBeRestored = foldersToSave.some(f => f.id === updated.folderId);
+          if (!folder || (folder.isDeleted && !willBeRestored)) {
             updated.folderId = null;
           }
         }

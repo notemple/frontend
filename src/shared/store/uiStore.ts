@@ -21,7 +21,7 @@ interface UiState {
   setActivePane: (paneId: string) => void;
 
   openDocument: (docId: string, paneId?: string) => void;
-  closeDocument: (docId: string, paneId: string) => void;
+  closeDocument: (docId: string, paneId?: string) => void;
   setActiveTab: (docId: string, paneId: string) => void;
   moveTab: (docId: string, sourcePaneId: string, targetPaneId: string) => void;
 
@@ -104,7 +104,7 @@ export const useUiStore = create<UiState>((set, get) => ({
 
   closeDocument: (docId, paneId) => set((state) => {
     const newPanes = state.panes.map(pane => {
-      if (pane?.id === paneId) {
+      if (!paneId || pane?.id === paneId) {
         const newTabs = pane.tabs.filter(id => id !== docId);
         let newActiveTabId = pane.activeTabId;
         if (newActiveTabId === docId) {

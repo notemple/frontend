@@ -14,6 +14,7 @@ export interface NoteDocument {
   backdropGradientEnd?: string;
   backdropGradientDirection?: string;
   documentColor?: string;
+  cardColor?: string;
   documentColorType?: 'solid' | 'gradient';
   documentGradientStart?: string;
   documentGradientEnd?: string;

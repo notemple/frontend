@@ -414,7 +414,6 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
                     key={preset.hex}
                     onClick={() => {
                       setTagColor(contextMenu.tag, preset.hex);
-                      setContextMenu(null);
                     }}
                     className="w-5 h-5 rounded-sm-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer relative flex items-center justify-center"
                     style={{ backgroundColor: preset.hex }}

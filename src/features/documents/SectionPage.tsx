@@ -21,6 +21,7 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
   const openDocument = useUiStore(state => state.openDocument);
   const createFolder = useDocumentStore(state => state.createFolder);
   const addDocument = useDocumentStore(state => state.addDocument);
+  const updateDocument = useDocumentStore(state => state.updateDocument);
   const folderColors = useDocumentStore(state => state.folderColors) || {};
   const setFolderColor = useDocumentStore(state => state.setFolderColor);
 
@@ -32,18 +33,32 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
     x: number; y: number; folderId: string;
   } | null>(null);
 
+  // Context menu for document colour picking
+  const [documentContextMenu, setDocumentContextMenu] = React.useState<{
+    x: number; y: number; docId: string;
+  } | null>(null);
+
   // Dismiss context menu on click outside
   React.useEffect(() => {
-    if (!folderContextMenu) return;
-    const handle = () => setFolderContextMenu(null);
+    if (!folderContextMenu && !documentContextMenu) return;
+    const handle = () => {
+      setFolderContextMenu(null);
+      setDocumentContextMenu(null);
+    };
     window.addEventListener('mousedown', handle);
     return () => window.removeEventListener('mousedown', handle);
-  }, [folderContextMenu]);
+  }, [folderContextMenu, documentContextMenu]);
 
   const handleFolderContextMenu = (e: React.MouseEvent, folderId: string) => {
     e.preventDefault();
     e.stopPropagation();
     setFolderContextMenu({ x: e.clientX, y: e.clientY, folderId });
+  };
+
+  const handleDocumentContextMenu = (e: React.MouseEvent, docId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDocumentContextMenu({ x: e.clientX, y: e.clientY, docId });
   };
 
   const handleCreateFolderSubmit = () => {
@@ -257,6 +272,7 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
               paneId={paneId}
               folderColors={folderColors}
               onFolderContextMenu={sectionId === 'section-folders' ? handleFolderContextMenu : undefined}
+              onDocumentContextMenu={sectionId !== 'section-folders' ? handleDocumentContextMenu : undefined}
             />
           ))}
           {items.length === 0 && (
@@ -290,7 +306,6 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
                     key={preset.hex}
                     onClick={() => {
                       setFolderColor(folderContextMenu.folderId, preset.hex);
-                      setFolderContextMenu(null);
                     }}
                     className="w-5 h-5 rounded-sm-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer relative flex items-center justify-center"
                     style={{ backgroundColor: preset.hex }}
@@ -336,6 +351,36 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
                   return { folderColors: nc };
                 });
                 setFolderContextMenu(null);
+              }}
+            >
+              <Trash size={14} className="text-muted-foreground" />
+              Reset to Default
+            </button>
+          )}
+        </div>
+      )}
+      {/* Document Colour Context Menu */}
+      {documentContextMenu && (
+        <div
+          className="fixed z-50 bg-background rounded-sm-sm py-1 min-w-[160px] shadow-sm-sm border border-border neu-panel"
+          style={{ top: documentContextMenu.y, left: documentContextMenu.x }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <ColorPicker
+            currentColor={documents[documentContextMenu.docId]?.cardColor || ''}
+            onChange={(color) => {
+              updateDocument(documentContextMenu.docId, { cardColor: color });
+            }}
+            label="Document Color"
+          />
+          {/* Reset option */}
+          {documents[documentContextMenu.docId]?.cardColor && (
+            <button
+              className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:bg-muted flex items-center gap-2 transition-colors cursor-pointer"
+              onClick={() => {
+                updateDocument(documentContextMenu.docId, { cardColor: undefined });
+                setDocumentContextMenu(null);
               }}
             >
               <Trash size={14} className="text-muted-foreground" />

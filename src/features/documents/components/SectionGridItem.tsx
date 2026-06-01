@@ -7,7 +7,7 @@ import { useSettingsStore } from '@/features/settings/store';
 import { DailyNotesPage } from '@/features/daily-notes/DailyNotesPage';
 import { TasksPage } from '@/features/tasks/TasksPage';
 import { TagsPage } from '@/features/tags/TagsPage';
-import { cn, getItemColor, getFolderStyle, getFolderHexColor } from '@/shared/lib/utils';
+import { cn, getItemColor, getFolderStyle, getFolderHexColor, getColorStyle } from '@/shared/lib/utils';
 import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
 import { Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, CaretDown, FileText, Folder, Sun, Moon, Monitor, Clock, ArrowLeft, PlusCircle, Check, X, Plus, Trash } from '@phosphor-icons/react';
 import { useShallow } from 'zustand/react/shallow';
@@ -19,12 +19,14 @@ export const SectionGridItem = React.memo(({
   paneId,
   folderColors,
   onFolderContextMenu,
+  onDocumentContextMenu,
 }: {
   itemId: string;
   itemType: 'page' | 'folder';
   paneId: string;
   folderColors?: Record<string, string>;
   onFolderContextMenu?: (e: React.MouseEvent, folderId: string) => void;
+  onDocumentContextMenu?: (e: React.MouseEvent, docId: string) => void;
 }) => {
   const openDocument = useUiStore(state => state.openDocument);
 
@@ -35,7 +37,7 @@ export const SectionGridItem = React.memo(({
         return folder ? { title: folder.name } : null;
       } else {
         const doc = state.documents[itemId];
-        return doc ? { title: doc.title, type: doc.type || 'page' } : null;
+        return doc ? { title: doc.title, type: doc.type || 'page', cardColor: doc.cardColor } : null;
       }
     },
     [itemId, itemType]
@@ -44,8 +46,10 @@ export const SectionGridItem = React.memo(({
 
   if (!item) return null;
 
-  // Resolve colour: prefer custom folder colour, fall back to hash-based default.
-  const customStyle = itemType === 'folder' ? getFolderStyle(itemId, folderColors) : null;
+  // Resolve colour: prefer custom folder/document colour, fall back to hash-based default.
+  const customStyle = itemType === 'folder'
+    ? getFolderStyle(itemId, folderColors)
+    : getColorStyle((item as any).cardColor);
   const defaultCardColor = getItemColor(item.title || 'Untitled');
 
   const cardBg     = customStyle ? customStyle.bg     : defaultCardColor.bg;
@@ -70,7 +74,13 @@ export const SectionGridItem = React.memo(({
           openDocument(itemId, paneId);
         }
       }}
-      onContextMenu={itemType === 'folder' && onFolderContextMenu ? (e) => onFolderContextMenu(e, itemId) : undefined}
+      onContextMenu={(e) => {
+        if (itemType === 'folder') {
+          if (onFolderContextMenu) onFolderContextMenu(e, itemId);
+        } else {
+          if (onDocumentContextMenu) onDocumentContextMenu(e, itemId);
+        }
+      }}
       className="p-6 rounded-sm-sm border cursor-pointer group flex flex-col gap-3 transition-all duration-150 overflow-hidden relative"
       style={{
         backgroundColor: cardBg,
@@ -94,7 +104,7 @@ export const SectionGridItem = React.memo(({
             ? <Folder size={20} weight="duotone" className={customStyle ? 'text-[color:var(--folder-text)]' : ''} />
             : (item as any).icon ? (
               <span className="text-[18px] leading-none flex items-center justify-center font-sans">{(item as any).icon}</span>
-            ) : <FileText size={20} weight="duotone" />}
+            ) : <FileText size={20} weight="duotone" className={customStyle ? 'text-[color:var(--folder-text)]' : ''} />}
         </div>
         <span className={cn(
           "font-medium text-sm truncate transition-colors leading-none pr-1 text-foreground/80",

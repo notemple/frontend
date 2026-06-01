@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { NodeViewWrapper, NodeViewContent } from '@tiptap/react';
 import type { NodeViewProps } from '@tiptap/react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
@@ -10,11 +10,32 @@ import {
   Check,
   Trash,
   Copy,
-  Plus
+  Plus,
+  CalendarBlank,
+  Clock,
+  CircleDashed,
+  CheckCircle,
+  Play,
+  Pause,
+  Stop
 } from '@phosphor-icons/react';
-import { formatDisplayDate } from '@/shared/lib/time';
 import { cn } from '@/shared/lib/utils';
 import { CustomDatePicker } from '@/features/tasks/components/CustomDatePicker';
+import { CustomPriorityPicker } from '@/features/tasks/components/CustomPriorityPicker';
+import { CustomStatusPicker } from '@/features/tasks/TasksPage';
+import { useTaskStore } from '@/features/tasks/store';
+import { useTaskTimerStore } from '@/shared/store/taskTimerStore';
+
+const countTaskOccurrences = (editor: any, id: string) => {
+  if (!editor || !id) return 0;
+  let count = 0;
+  editor.state.doc.descendants((node: any) => {
+    if ((node.type.name === 'taskItem' || node.type.name === 'task_item') && node.attrs.taskId === id) {
+      count++;
+    }
+  });
+  return count;
+};
 
 export const CustomTodoItemView: React.FC<NodeViewProps> = ({ 
   node, 
@@ -23,31 +44,173 @@ export const CustomTodoItemView: React.FC<NodeViewProps> = ({
   getPos,
   editor
 }) => {
-  const { checked, priority = 'none', dueDate = null } = node.attrs;
+  const { 
+    checked, 
+    priority = 'none', 
+    dueDate = null, 
+    startDate = null, 
+    status = 'open', 
+    taskId = null 
+  } = node.attrs;
+
+  // Initialize and check if task exists in task store, otherwise create it
+  useEffect(() => {
+    // Proactively initialize store
+    useTaskStore.getState().initialize();
+
+    if (!taskId) {
+      const newTaskId = `task-${crypto.randomUUID()}`;
+      const todayStr = new Date().toLocaleDateString('sv-SE');
+      updateAttributes({ taskId: newTaskId, startDate: todayStr });
+      
+      useTaskStore.getState().addTask({
+        id: newTaskId,
+        title: node.textContent || 'New Todo Task',
+        completed: !!checked,
+        status: status || (checked ? 'done' : 'open'),
+        priority: priority === 'none' ? undefined : (priority as any),
+        startDate: todayStr,
+        deadline: dueDate || undefined,
+        list: 'All Tasks'
+      });
+    } else {
+      // Check for cloned or pasted nodes sharing the exact same taskId in the document
+      const occurrences = countTaskOccurrences(editor, taskId);
+      if (occurrences > 1) {
+        const newTaskId = `task-${crypto.randomUUID()}`;
+        updateAttributes({ taskId: newTaskId });
+        
+        useTaskStore.getState().addTask({
+          id: newTaskId,
+          title: node.textContent || 'Cloned Todo Task',
+          completed: !!checked,
+          status: status || (checked ? 'done' : 'open'),
+          priority: priority === 'none' ? undefined : (priority as any),
+          startDate: startDate || undefined,
+          deadline: dueDate || undefined,
+          list: 'All Tasks'
+        });
+      } else {
+        const task = useTaskStore.getState().tasks.find(t => t.id === taskId);
+        if (!task) {
+          useTaskStore.getState().addTask({
+            id: taskId,
+            title: node.textContent || 'New Todo Task',
+            completed: !!checked,
+            status: status || (checked ? 'done' : 'open'),
+            priority: priority === 'none' ? undefined : (priority as any),
+            startDate: startDate || undefined,
+            deadline: dueDate || undefined,
+            list: 'All Tasks'
+          });
+        }
+      }
+    }
+  }, []);
+
+  const task = useTaskStore(state => state.tasks.find(t => t.id === taskId));
+
+  // Timer subscription from the global task timer store
+  const timer = useTaskTimerStore(state => taskId ? state.timers[taskId] : null) || { 
+    taskId: taskId || '', 
+    seconds: 0, 
+    isRunning: false 
+  };
+  
+  const startTimer = useTaskTimerStore(state => state.startTimer);
+  const pauseTimer = useTaskTimerStore(state => state.pauseTimer);
+  const stopTimer = useTaskTimerStore(state => state.stopTimer);
+
+  // Debounced title sync from Tiptap node content to Task Store
+  const prevTextRef = useRef(node.textContent);
+  useEffect(() => {
+    const text = node.textContent;
+    if (text === prevTextRef.current) return;
+    prevTextRef.current = text;
+    
+    if (!taskId) return;
+
+    const timeout = setTimeout(() => {
+      useTaskStore.getState().updateTask(taskId, { title: text });
+    }, 400);
+
+    return () => clearTimeout(timeout);
+  }, [node.textContent, taskId]);
+
+  // Two-way sync: Update editor attributes if store task changes from task page
+  useEffect(() => {
+    if (!task) return;
+    
+    const updates: any = {};
+    if (task.completed !== checked) {
+      updates.checked = task.completed;
+    }
+    if (task.startDate !== startDate) {
+      updates.startDate = task.startDate || null;
+    }
+    if (task.deadline !== dueDate) {
+      updates.dueDate = task.deadline || null;
+    }
+    
+    const mappedPriority = task.priority || 'none';
+    if (mappedPriority !== priority) {
+      updates.priority = mappedPriority;
+    }
+    
+    const mappedStatus = task.status || (task.completed ? 'done' : 'open');
+    if (mappedStatus !== status) {
+      updates.status = mappedStatus;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      updateAttributes(updates);
+    }
+  }, [task, checked, startDate, dueDate, priority, status]);
 
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    updateAttributes({ checked: !checked });
-  };
-
-  const cyclePriority = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const priorities: ('none' | 'low' | 'medium' | 'high')[] = ['none', 'low', 'medium', 'high'];
-    const currentIndex = priorities.indexOf(priority);
-    const nextIndex = (currentIndex + 1) % priorities.length;
-    updateAttributes({ priority: priorities[nextIndex] });
+    const nextChecked = !checked;
+    updateAttributes({ 
+      checked: nextChecked,
+      status: nextChecked ? 'done' : 'open'
+    });
+    if (taskId) {
+      useTaskStore.getState().updateTask(taskId, { 
+        completed: nextChecked,
+        status: nextChecked ? 'done' : 'open'
+      });
+    }
   };
 
   const handleDuplicate = () => {
     if (typeof getPos === 'function' && typeof editor.commands.insertContentAt === 'function') {
       const pos = getPos();
-      editor.chain().focus().insertContentAt(pos + node.nodeSize, node.toJSON()).run();
-    } else if (typeof editor.commands.insertContent === 'function') {
-      editor.chain().focus().insertContent(node.toJSON()).run();
+      const newTaskId = `task-${crypto.randomUUID()}`;
+      
+      useTaskStore.getState().addTask({
+        id: newTaskId,
+        title: node.textContent || '',
+        completed: !!checked,
+        status: status || (checked ? 'done' : 'open'),
+        priority: priority === 'none' ? undefined : (priority as any),
+        startDate: startDate || undefined,
+        deadline: dueDate || undefined,
+        list: 'All Tasks'
+      });
+
+      const duplicatedJson = node.toJSON();
+      if (duplicatedJson.attrs) {
+        duplicatedJson.attrs.taskId = newTaskId;
+      }
+
+      editor.chain().focus().insertContentAt(pos + node.nodeSize, duplicatedJson).run();
     }
   };
 
   const handleDelete = () => {
+    if (taskId) {
+      useTaskStore.getState().deleteTask(taskId);
+    }
     if (typeof getPos === 'function') {
       const pos = getPos();
       editor.chain().focus().setNodeSelection(pos).deleteSelection().run();
@@ -56,17 +219,10 @@ export const CustomTodoItemView: React.FC<NodeViewProps> = ({
     }
   };
 
-  const priorityColors = {
-    none: 'text-muted-foreground/40 hover:text-muted-foreground/75 border-transparent bg-transparent',
-    low: 'text-blue-500 border-blue-200/50 bg-blue-100/10 dark:bg-blue-900/15 hover:bg-blue-100/25',
-    medium: 'text-amber-500 border-amber-200/50 bg-amber-100/10 dark:bg-amber-900/15 hover:bg-amber-100/25',
-    high: 'text-red-500 border-red-200/50 bg-red-100/10 dark:bg-red-900/15 hover:bg-red-100/25',
-  };
-
   return (
     <ContextMenu.Root>
       <ContextMenu.Trigger asChild>
-        <NodeViewWrapper className="flex flex-col gap-1 w-full py-1 px-1 rounded-sm transition-all duration-150 group/todo relative hover:bg-muted/10">
+        <NodeViewWrapper className="flex flex-col gap-1 w-full py-1.5 px-2 rounded-sm transition-all duration-150 group/todo relative hover:bg-muted/10">
           
           <div className="flex items-start gap-3 w-full relative">
             {/* Left Circular Checkbox */}
@@ -75,7 +231,7 @@ export const CustomTodoItemView: React.FC<NodeViewProps> = ({
               className={cn(
                 "w-4 h-4 rounded-full border flex items-center justify-center shrink-0 cursor-pointer mt-1 select-none transition-all duration-150 active:scale-90",
                 checked 
-                  ? "bg-blush-pop border-blush-pop shadow-sm-sm" 
+                  ? "bg-blush-pop border-blush-pop shadow-sm-sm animate-none" 
                   : "border-muted-foreground/30 hover:border-blush-pop bg-card-bg"
               )}
             >
@@ -91,37 +247,110 @@ export const CustomTodoItemView: React.FC<NodeViewProps> = ({
                 )} 
               />
 
-              {/* Bottom Metadata Pill row */}
-              <div className="flex items-center gap-1.5 flex-wrap mt-0.5 select-none font-sans text-[10px]">
+              {/* Bottom Metadata Picker Row */}
+              <div className="flex items-center gap-1.5 flex-wrap mt-1 select-none font-sans">
                 
-                {/* Due Date Trigger Pill */}
+                {/* Start Date */}
                 <CustomDatePicker
-                  value={dueDate || ''}
-                  onChange={(val) => updateAttributes({ dueDate: val ? val : null })}
-                  placeholder="Set Date"
-                  icon={<Calendar size={11} />}
-                  small={true}
-                  className={cn(
-                    "flex items-center gap-1 px-1.5 py-0.5 rounded-sm border cursor-pointer font-medium transition-all duration-150",
-                    dueDate 
-                      ? "bg-purple-100/20 border-purple-200/40 text-purple-600 dark:text-purple-400 hover:bg-purple-100/30" 
-                      : "bg-transparent border-border/80 text-muted-foreground/60 hover:border-muted-foreground/30 hover:text-foreground"
-                  )}
+                  small
+                  value={startDate || ""}
+                  onChange={(val) => {
+                    updateAttributes({ startDate: val || null });
+                    if (taskId) {
+                      useTaskStore.getState().updateTask(taskId, { startDate: val || undefined });
+                    }
+                  }}
+                  placeholder="Start"
+                  icon={<CalendarBlank size={11} />}
                 />
 
-                {/* Priority Trigger Pill */}
-                <div 
-                  onClick={cyclePriority}
-                  className={cn(
-                    "flex items-center gap-1 px-1.5 py-0.5 rounded-sm border cursor-pointer font-medium transition-all duration-150",
-                    priorityColors[priority as keyof typeof priorityColors]
-                  )}
-                  title={`Priority: ${priority}`}
-                >
-                  <Flag size={11} weight={priority !== 'none' ? 'fill' : 'bold'} />
-                  {priority !== 'none' && <span className="capitalize">{priority}</span>}
-                </div>
+                {/* Deadline (dueDate) */}
+                <CustomDatePicker
+                  small
+                  value={dueDate || ""}
+                  onChange={(val) => {
+                    updateAttributes({ dueDate: val || null });
+                    if (taskId) {
+                      useTaskStore.getState().updateTask(taskId, { deadline: val || undefined });
+                    }
+                  }}
+                  placeholder="Deadline"
+                  icon={<Flag size={11} />}
+                />
 
+                {/* Status */}
+                <CustomStatusPicker
+                  status={(status as any) || (checked ? "done" : "open")}
+                  onChange={(val) => {
+                    updateAttributes({ 
+                      status: val,
+                      checked: val === "done"
+                    });
+                    if (taskId) {
+                      useTaskStore.getState().updateTask(taskId, { 
+                        status: val,
+                        completed: val === "done"
+                      });
+                    }
+                  }}
+                />
+
+                {/* Priority */}
+                <CustomPriorityPicker
+                  small
+                  priority={priority === "none" ? undefined : (priority as any)}
+                  onChange={(val) => {
+                    updateAttributes({ priority: val || "none" });
+                    if (taskId) {
+                      useTaskStore.getState().updateTask(taskId, { priority: val || undefined });
+                    }
+                  }}
+                />
+
+                {/* Inline Stopwatch Task Timer Widget */}
+                {taskId && (
+                  <div className="flex items-center gap-1 ml-1.5 pl-1.5 border-l border-border/60 shrink-0 font-sans">
+                    {timer.seconds > 0 && (
+                      <span className="text-[10px] font-semibold font-mono text-muted-foreground/80 tracking-tight select-none">
+                        {(() => {
+                          const hrs = Math.floor(timer.seconds / 3600);
+                          const mins = Math.floor((timer.seconds % 3600) / 60);
+                          const secs = timer.seconds % 60;
+                          const pad = (n: number) => n.toString().padStart(2, '0');
+                          return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+                        })()}
+                      </span>
+                    )}
+                    
+                    {timer.isRunning ? (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); pauseTimer(taskId); }}
+                        className="p-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-all flex items-center justify-center shrink-0 cursor-pointer"
+                        title="Pause stopwatch"
+                      >
+                        <Pause size={10} weight="bold" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); startTimer(taskId); }}
+                        className="p-0.5 rounded bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20 transition-all flex items-center justify-center shrink-0 cursor-pointer"
+                        title="Start stopwatch"
+                      >
+                        <Play size={10} weight="fill" />
+                      </button>
+                    )}
+                    
+                    {timer.seconds > 0 && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); stopTimer(taskId); }}
+                        className="p-0.5 rounded bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-all flex items-center justify-center shrink-0 cursor-pointer"
+                        title="Stop & Reset"
+                      >
+                        <Stop size={10} weight="fill" />
+                      </button>
+                    )}
+                  </div>
+                )}
 
               </div>
             </div>
@@ -142,7 +371,19 @@ export const CustomTodoItemView: React.FC<NodeViewProps> = ({
                   <DropdownMenu.Content className="table-dark-menu z-50 animate-fade-in">
                     <DropdownMenu.Item 
                       className="table-dark-menu-item"
-                      onClick={() => updateAttributes({ checked: !checked })}
+                      onClick={() => {
+                        const nextChecked = !checked;
+                        updateAttributes({ 
+                          checked: nextChecked,
+                          status: nextChecked ? 'done' : 'open'
+                        });
+                        if (taskId) {
+                          useTaskStore.getState().updateTask(taskId, { 
+                            completed: nextChecked,
+                            status: nextChecked ? 'done' : 'open'
+                          });
+                        }
+                      }}
                     >
                       <div className="flex items-center gap-2">
                         <Check size={14} />

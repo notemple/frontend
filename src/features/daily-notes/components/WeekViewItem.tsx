@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CaretLeft, CaretRight, CalendarBlank, ArrowsOutSimple, DotsThree, Tag, CaretDown, FileText, CaretUp, Trash, ArrowCircleRight, X, ArrowsInSimple } from '@phosphor-icons/react';
-import { cn } from '@/shared/lib/utils';
+import { cn, getTagStyle } from '@/shared/lib/utils';
 import { useDocumentStore } from '@/features/documents/store';
 import { useUiStore } from '@/shared/store/uiStore';
 import { useTaskStore } from '@/features/tasks/store';
@@ -25,11 +25,12 @@ export const WeekViewItem = ({ date, formattedId, setView, setSelectedDate, onOp
   const docSelector = useCallback(
     (state: any) => {
       const doc = state.documents[did];
-      return doc ? { title: doc.title, content: doc.content } : null;
+      return doc ? { title: doc.title, content: doc.content, tags: doc.tags || [] } : null;
     },
     [did]
   );
   const doc = useDocumentStore(useShallow(docSelector));
+  const tagColors = useDocumentStore(state => state.tagColors);
 
   const isToday = isSameDayInTimezone(date, new Date(), timezone);
 
@@ -71,8 +72,31 @@ export const WeekViewItem = ({ date, formattedId, setView, setSelectedDate, onOp
         </span>
       </div>
 
-      <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium mb-4">
-        <Tag size={16} /> Tags
+      <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-sm font-medium mb-4 font-sans">
+        <Tag size={16} className="shrink-0 opacity-60" />
+        {doc && doc.tags && doc.tags.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5">
+            {doc.tags.map((tag: string) => {
+              const tagStyle = getTagStyle(tag, tagColors);
+              return (
+                <span
+                  key={tag}
+                  className="tag-element flex items-center gap-0.5 border text-xs px-2 py-0.5 transition-colors font-medium rounded-sm-sm"
+                  style={{
+                    backgroundColor: 'var(--tag-bg)',
+                    borderColor: 'var(--tag-border)',
+                    color: 'var(--tag-text)',
+                    ...tagStyle
+                  }}
+                >
+                  {tag}
+                </span>
+              );
+            })}
+          </div>
+        ) : (
+          <span className="text-xs text-muted-foreground/60 italic font-normal">No tags</span>
+        )}
       </div>
 
       {doc ? (

@@ -22,6 +22,68 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
+function getContrastColor(backgroundColor?: string): string {
+  if (!backgroundColor) return 'var(--foreground)';
+  
+  const clean = backgroundColor.toLowerCase().trim();
+  
+  // Check if it's a gradient
+  if (clean.includes('gradient')) {
+    if (
+      clean.includes('#09090b') || clean.includes('#18181b') ||
+      clean.includes('#1c1c1e') || clean.includes('#0f172a') ||
+      clean.includes('#1a1740') || clean.includes('#121214') ||
+      clean.includes('#1e293b') || clean.includes('#1f1b40') ||
+      clean.includes('#0b2e24') || clean.includes('#041410') ||
+      clean.includes('#300f4f') || clean.includes('#18052b') ||
+      clean.includes('#420d0d') || clean.includes('#1f0404') ||
+      clean.includes('#07241c') || clean.includes('#24053e') ||
+      clean.includes('#2d0505')
+    ) {
+      return '#ffffff';
+    }
+    return '#111827';
+  }
+  
+  if (clean.startsWith('#')) {
+    const hex = clean.substring(1);
+    if (hex.length === 3 || hex.length === 6) {
+      const r = parseInt(hex.length === 3 ? hex[0] + hex[0] : hex.substring(0, 2), 16);
+      const g = parseInt(hex.length === 3 ? hex[1] + hex[1] : hex.substring(2, 4), 16);
+      const b = parseInt(hex.length === 3 ? hex[2] + hex[2] : hex.substring(4, 6), 16);
+      const brightness = Math.sqrt(0.299 * r * r + 0.587 * g * g + 0.114 * b * b);
+      return brightness < 130 ? '#ffffff' : '#111827';
+    }
+  }
+  
+  if (clean.startsWith('rgb')) {
+    const match = clean.match(/\d+/g);
+    if (match && match.length >= 3) {
+      const r = parseInt(match[0], 10);
+      const g = parseInt(match[1], 10);
+      const b = parseInt(match[2], 10);
+      const brightness = Math.sqrt(0.299 * r * r + 0.587 * g * g + 0.114 * b * b);
+      return brightness < 130 ? '#ffffff' : '#111827';
+    }
+  }
+  
+  return 'var(--foreground)';
+}
+
+function getSectionColor(tabId: string, type: string, folderColor?: string): string | undefined {
+  if (tabId.startsWith('section-folder-')) return folderColor;
+  if (tabId === 'section-daily-notes') return '#10b981'; // Emerald
+  if (tabId === 'section-tasks') return '#3b82f6'; // Blue
+  if (tabId === 'section-tags') return '#f59e0b'; // Amber
+  if (tabId === 'section-glance') return '#6366f1'; // Indigo
+  if (tabId === 'section-wall') return '#ec4899'; // Pink
+  if (tabId === 'section-favorites') return '#eab308'; // Yellow/Gold
+  if (tabId === 'section-folders') return '#8b5cf6'; // Purple
+  if (tabId === 'section-uncategorized') return '#64748b'; // Slate
+  if (tabId === 'section-trash') return '#ef4444'; // Red
+  return undefined;
+}
+
 const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: string, isActive: boolean }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: tabId });
   const { setActiveTab, closeDocument } = useUiStore(
@@ -33,7 +95,7 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
 
   // Target-selected document title and type to prevent any keystroke/typing re-renders!
   const docSelector = React.useCallback(
-    state => {
+    (state: any) => {
       if (tabId === 'new-note') return { title: 'Untitled', type: 'page', icon: undefined };
       if (tabId === 'section-daily-notes') return { title: 'Daily Notes', type: 'daily-notes', icon: undefined };
       if (tabId === 'section-tasks') return { title: 'Tasks', type: 'tasks', icon: undefined };
@@ -47,7 +109,8 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
       if (tabId.startsWith('section-folder-')) {
         const folderId = tabId.replace('section-folder-', '');
         const folder = state.folders?.find((f: any) => f?.id === folderId);
-        return { title: folder?.name || 'Folder', type: 'folder', icon: undefined };
+        const folderColor = state.folderColors?.[folderId] || undefined;
+        return { title: folder?.name || 'Folder', type: 'folder', icon: undefined, folderColor };
       }
       if (tabId.startsWith('section-')) {
         const cleanId = tabId.replace('section-', '');
@@ -55,7 +118,21 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
         return { title, type: cleanId, icon: undefined };
       }
       const d = state.documents[tabId];
-      return d ? { title: d.title, type: d.type, icon: d.icon } : null;
+      if (d) {
+        const folderColor = d.folderId ? (state.folderColors?.[d.folderId] || undefined) : undefined;
+        return {
+          title: d.title,
+          type: d.type,
+          icon: d.icon,
+          documentColor: d.documentColor,
+          documentColorType: d.documentColorType,
+          textColor: d.textColor,
+          backdropColor: d.backdropColor,
+          color: d.color,
+          folderColor,
+        };
+      }
+      return null;
     },
     [tabId]
   );
@@ -66,12 +143,79 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
     transition,
   };
 
+  const sectionColor = React.useMemo(() => {
+    if (!doc) return undefined;
+    return getSectionColor(tabId, doc.type, (doc as any).folderColor);
+  }, [tabId, doc]);
+
+  // Decide the base color for the icon
+  const resolvedIconColor = React.useMemo(() => {
+    if (!doc) return undefined;
+    if (isActive && (doc as any).documentColor) {
+      return getContrastColor((doc as any).documentColor);
+    }
+    return sectionColor || (doc as any).folderColor || (doc as any).color;
+  }, [isActive, doc, sectionColor]);
+
+  const iconStyle = React.useMemo(() => resolvedIconColor ? { color: resolvedIconColor } : undefined, [resolvedIconColor]);
+
+  // Dynamic tab background and border styling
+  const bgStyleValue = React.useMemo(() => {
+    if (!doc) return undefined;
+    return (doc as any).documentColor || sectionColor || (doc as any).folderColor;
+  }, [doc, sectionColor]);
+  
+  const hasBgColor = !!bgStyleValue;
+
+  const bgOpacityClass = React.useMemo(() => {
+    if (!doc) return "opacity-0";
+    if (isActive) {
+      if ((doc as any).documentColor) return "opacity-100";
+      if (sectionColor || (doc as any).folderColor) return "opacity-20";
+      return "opacity-0";
+    } else {
+      if ((doc as any).documentColor) return "opacity-15 group-hover:opacity-35";
+      if (sectionColor || (doc as any).folderColor) return "opacity-8 group-hover:opacity-18";
+      return "opacity-0";
+    }
+  }, [isActive, doc, sectionColor]);
+
+  const topBorderColor = React.useMemo(() => {
+    if (isActive) {
+      return resolvedIconColor || 'var(--accent)';
+    }
+    return 'transparent';
+  }, [isActive, resolvedIconColor]);
+
+  const contrastColor = React.useMemo(() => {
+    if (!doc) return undefined;
+    if (isActive && (doc as any).documentColor) {
+      return getContrastColor((doc as any).documentColor);
+    }
+    return undefined;
+  }, [isActive, doc]);
+
+  const textStyle = React.useMemo(() => contrastColor ? { color: contrastColor } : undefined, [contrastColor]);
+
+  const closeBtnClassName = React.useMemo(() => {
+    if (!doc) return "";
+    return cn(
+      "opacity-0 group-hover:opacity-100 p-0.5 rounded-sm transition-colors z-10",
+      isActive && (doc as any).documentColor
+        ? "hover:bg-white/20 text-current"
+        : "hover:bg-border text-muted-foreground"
+    );
+  }, [isActive, doc]);
+
   if (!doc) return null;
 
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      style={{
+        ...style,
+        ...textStyle
+      }}
       {...attributes}
       {...listeners}
       onClick={(e) => {
@@ -82,22 +226,44 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
         }
       }}
       className={cn(
-        "flex items-center h-full px-4 border-r border-border min-w-[120px] max-w-[200px] gap-2 cursor-pointer transition-colors group",
+        "relative flex items-center h-full px-4 border-r border-border min-w-[120px] max-w-[200px] gap-2 cursor-pointer transition-all group overflow-hidden select-none",
         isActive
-          ? "bg-muted text-foreground border-t-2 border-t-accent"
-          : "text-muted-foreground hover:bg-muted/50 border-t-2 border-t-transparent"
+          ? (doc as any).documentColor ? "text-foreground" : "bg-muted text-foreground"
+          : "text-muted-foreground hover:bg-muted/50"
       )}
     >
-      <span className="shrink-0 text-muted-foreground">
+      {/* Dynamic Background Layer */}
+      {hasBgColor && (
+        <div 
+          className={cn(
+            "absolute inset-0 -z-10 transition-opacity duration-200",
+            bgOpacityClass
+          )}
+          style={{ background: bgStyleValue }}
+        />
+      )}
+      
+      {/* Top Accent Border */}
+      <div 
+        className="absolute top-0 left-0 right-0 h-[2px] transition-colors duration-200"
+        style={{ backgroundColor: topBorderColor }} 
+      />
+
+      <span 
+        className="shrink-0 transition-colors flex items-center justify-center"
+        style={iconStyle}
+      >
         {getIcon(doc.type, doc.icon)}
       </span>
-      <span className="text-xs truncate flex-1">{doc.title}</span>
+      
+      <span className="text-xs truncate flex-1 font-medium">{doc.title}</span>
+      
       <button
         onPointerDown={(e) => {
           e.stopPropagation();
           closeDocument(tabId, paneId);
         }}
-        className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-border transition-colors text-muted-foreground z-10"
+        className={closeBtnClassName}
       >
         <X size={12} />
       </button>

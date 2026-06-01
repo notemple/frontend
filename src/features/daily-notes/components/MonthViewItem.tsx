@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CaretLeft, CaretRight, CalendarBlank, ArrowsOutSimple, DotsThree, Tag, CaretDown, FileText, CaretUp, Trash, ArrowCircleRight, X, ArrowsInSimple } from '@phosphor-icons/react';
-import { cn } from '@/shared/lib/utils';
+import { cn, getTagStyle } from '@/shared/lib/utils';
 import { useDocumentStore } from '@/features/documents/store';
 import { useUiStore } from '@/shared/store/uiStore';
 import { useTaskStore } from '@/features/tasks/store';
@@ -17,11 +17,12 @@ export const MonthViewItem = ({ docId, onClick }: { docId: string; onClick: () =
   const docSelector = useCallback(
     (state: any) => {
       const doc = state.documents[docId];
-      return doc ? { title: doc.title, content: doc.content } : null;
+      return doc ? { title: doc.title, content: doc.content, tags: doc.tags || [] } : null;
     },
     [docId]
   );
   const doc = useDocumentStore(useShallow(docSelector));
+  const tagColors = useDocumentStore(state => state.tagColors);
 
   if (!doc) return null;
 
@@ -62,8 +63,31 @@ export const MonthViewItem = ({ docId, onClick }: { docId: string; onClick: () =
           dangerouslySetInnerHTML={{ __html: doc.content }}
         />
       </div>
-      <div className="flex items-center gap-1 text-muted-foreground text-sm mt-1 font-medium">
-        <Tag size={14} /> Tags
+      <div className="flex flex-wrap items-center gap-1.5 text-muted-foreground text-xs mt-auto pt-2 border-t border-border/40 font-sans">
+        <Tag size={12} className="shrink-0 text-muted-foreground opacity-60" />
+        {doc.tags && doc.tags.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {doc.tags.map((tag: string) => {
+              const tagStyle = getTagStyle(tag, tagColors);
+              return (
+                <span
+                  key={tag}
+                  className="tag-element flex items-center gap-0.5 border text-[10px] px-1.5 py-0.5 transition-colors font-medium rounded-sm"
+                  style={{
+                    backgroundColor: 'var(--tag-bg)',
+                    borderColor: 'var(--tag-border)',
+                    color: 'var(--tag-text)',
+                    ...tagStyle
+                  }}
+                >
+                  {tag}
+                </span>
+              );
+            })}
+          </div>
+        ) : (
+          <span className="text-[11px] text-muted-foreground/60 italic font-normal">No tags</span>
+        )}
       </div>
     </div>
   );

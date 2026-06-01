@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useUiStore } from '@/shared/store/uiStore';
-import { MagnifyingGlass, Columns, FileText, ArrowRight } from '@phosphor-icons/react';
+import { MagnifyingGlass, Columns, FileText, ArrowRight, X } from '@phosphor-icons/react';
 import { useDocumentStore } from '@/features/documents/store';
 import { useShallow } from 'zustand/react/shallow';
 import { useVirtual } from 'react-virtual';
@@ -25,10 +25,12 @@ export const CommandPalette = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const { addPane, openDocument } = useUiStore(
+  const { addPane, openDocument, activePaneId, removePane } = useUiStore(
     useShallow((state) => ({
       addPane: state.addPane,
       openDocument: state.openDocument,
+      activePaneId: state.activePaneId,
+      removePane: state.removePane,
     }))
   );
   const parentRef = useRef<HTMLDivElement>(null);
@@ -49,19 +51,25 @@ export const CommandPalette = () => {
 
   const allItems = [
     { type: 'command', title: 'Split Workspace', icon: <Columns size={16} />, action: () => { addPane(`pane-${Date.now()}`); setIsOpen(false); } },
-    ...filteredDocs.map(doc => ({ type: 'document', title: doc?.title || 'Untitled', icon: doc?.icon ? <span className="text-[14px] leading-none flex items-center justify-center font-sans shrink-0">{doc.icon}</span> : <FileText size={16} />, action: () => { if(doc?.id) openDocument(doc.id); setIsOpen(false); } }))
+    { type: 'command', title: 'Close Current Pane', icon: <X size={16} />, action: () => { if (activePaneId) removePane(activePaneId); setIsOpen(false); } },
+    ...filteredDocs.map(doc => ({ type: 'document', title: doc?.title || 'Untitled', icon: doc?.icon ? <span className="text-[14px] leading-none flex items-center justify-center font-sans shrink-0">{doc.icon}</span> : <FileText size={16} />, action: () => { if(doc?.id) openDocument(doc.id, activePaneId || undefined); setIsOpen(false); } }))
   ];
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+      const isK = e.key.toLowerCase() === 'k';
+      const isCtrlOrMeta = e.ctrlKey || e.metaKey;
+      if (isK && isCtrlOrMeta) {
         e.preventDefault();
         setIsOpen((open) => !open);
+      } else if (e.key === 'Escape' && isOpen) {
+        e.preventDefault();
+        setIsOpen(false);
       }
     };
     document.addEventListener('keydown', down);
     return () => document.removeEventListener('keydown', down);
-  }, []);
+  }, [isOpen]);
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -119,6 +127,9 @@ export const CommandPalette = () => {
       if (allItems[selectedIndex]) {
         allItems[selectedIndex].action();
       }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setIsOpen(false);
     }
   };
 
@@ -132,7 +143,7 @@ export const CommandPalette = () => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-card z-50 pointer-events-auto"
+            className="fixed inset-0 bg-black/15 dark:bg-black/35 backdrop-blur-[2px] z-50 pointer-events-auto"
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.97, y: 10 }}

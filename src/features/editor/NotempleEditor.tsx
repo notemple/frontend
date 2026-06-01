@@ -504,13 +504,18 @@ export const NotempleEditor = React.memo(({
 
 
   return (
-    <div className="relative w-full h-full overflow-hidden flex flex-col">
+    <div
+      className={cn(
+        "relative w-full overflow-hidden flex flex-col",
+        isMinimized ? "h-[450px]" : "h-full"
+      )}
+    >
       <div
         className={cn(
           "w-full overflow-y-auto no-scrollbar flex flex-col relative flex-1 h-full",
           isMinimized 
-            ? "h-[450px] border border-border rounded-sm-sm bg-muted/20 hover:bg-muted/30 hover:border-muted-foreground/20 focus-within:border-rose-500/35 focus-within:bg-background transition-all duration-200" 
-            : "h-full",
+            ? "border border-border rounded-sm-sm bg-muted/20 hover:bg-muted/30 hover:border-muted-foreground/20 focus-within:border-rose-500/35 focus-within:bg-background transition-all duration-200" 
+            : "",
           hasCustomStyle ? "p-3 sm:p-5 md:p-8 lg:p-10 transition-[padding] duration-300" : ""
         )}
         style={{

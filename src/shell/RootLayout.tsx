@@ -25,6 +25,39 @@ export const RootLayout = () => {
     return () => window.removeEventListener('task-editor-open' as any, handleOpenTaskEditor as any);
   }, []);
 
+  // Global keyboard shortcuts for toggling sidebars and cycling panes
+  useEffect(() => {
+    const handleShortcut = (e: KeyboardEvent) => {
+      const isCtrlOrMeta = e.ctrlKey || e.metaKey;
+      if (isCtrlOrMeta && e.altKey) {
+        const key = e.key.toLowerCase();
+        if (key === 'l') {
+          e.preventDefault();
+          useUiStore.getState().toggleSidebar();
+        } else if (key === 'r') {
+          e.preventDefault();
+          useUiStore.getState().toggleRightSidebar();
+        } else if (key === 'h') {
+          e.preventDefault();
+          const { panes, activePaneId, setActivePane } = useUiStore.getState();
+          const index = panes.findIndex(p => p.id === activePaneId);
+          if (index > 0) {
+            setActivePane(panes[index - 1].id);
+          }
+        } else if (key === 'j') {
+          e.preventDefault();
+          const { panes, activePaneId, setActivePane } = useUiStore.getState();
+          const index = panes.findIndex(p => p.id === activePaneId);
+          if (index !== -1 && index < panes.length - 1) {
+            setActivePane(panes[index + 1].id);
+          }
+        }
+      }
+    };
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, []);
+
   useEffect(() => {
     const root = window.document.documentElement;
 

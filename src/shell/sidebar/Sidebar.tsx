@@ -244,6 +244,9 @@ const FolderDocumentsList = ({
           onDragStart={(e) => {
             e.stopPropagation();
             setDraggedItem({ id: docId, type: 'document' });
+            e.dataTransfer.setData('text/plain', docId);
+            e.dataTransfer.setData('notemple/document-id', docId);
+            e.dataTransfer.effectAllowed = 'copyMove';
           }}
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => {
@@ -600,11 +603,56 @@ export const Sidebar = () => {
           <SidebarItem icon={<Plus size={16} className={isDocActive('new-note') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="New Note" isOpen={isSidebarOpen} highlight={isDocActive('new-note')} onClick={handleNewNoteClick} activeBgClass="bg-blush-pop/70 dark:bg-blush-pop/20 border-blush-pop/50 dark:border-blush-pop/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
           <SidebarItem icon={<MagnifyingGlass size={16} className="text-sky-500/80 dark:text-sky-400/80" />} label="Search" isOpen={isSidebarOpen} />
           <SidebarItem icon={<Sparkle size={16} className="text-purple-500/90 dark:text-purple-400/90" />} label="Ask AI" isOpen={isSidebarOpen} />
-          <SidebarItem icon={<CalendarBlank size={16} className={isDocActive('section-daily-notes') ? "text-current" : "text-emerald-500/90 dark:text-emerald-400/90"} />} label="Daily Notes" isOpen={isSidebarOpen} highlight={isDocActive('section-daily-notes')} onClick={() => handleDocClick('section-daily-notes')} activeBgClass="bg-icy-blue/70 dark:bg-icy-blue/20 border-icy-blue/50 dark:border-icy-blue/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
-          <SidebarItem icon={<CheckSquare size={16} className={isDocActive('section-tasks') ? "text-current" : "text-blue-500/90 dark:text-blue-400/90"} />} label="Tasks" isOpen={isSidebarOpen} highlight={isDocActive('section-tasks')} onClick={() => handleDocClick('section-tasks')} activeBgClass="bg-sky-blue/70 dark:bg-sky-blue/20 border-sky-blue/50 dark:border-sky-blue/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
-          <SidebarItem icon={<Tag size={16} className={isDocActive('section-tags') ? "text-current" : "text-purple-500/90 dark:text-purple-400/90"} />} label="Tags" isOpen={isSidebarOpen} highlight={isDocActive('section-tags')} onClick={() => handleDocClick('section-tags')} activeBgClass="bg-pink-orchid/70 dark:bg-pink-orchid/20 border-pink-orchid/50 dark:border-pink-orchid/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
-          <SidebarItem icon={<Eye size={16} className={isDocActive('section-glance') ? "text-current" : "text-amber-500/90 dark:text-amber-400/90"} />} label="Glance" isOpen={isSidebarOpen} highlight={isDocActive('section-glance')} onClick={() => handleDocClick('section-glance')} activeBgClass="bg-blush-pop/70 dark:bg-blush-pop/20 border-blush-pop/50 dark:border-blush-pop/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
-          <SidebarItem icon={<SquaresFour size={16} className={isDocActive('section-wall') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="Wall" isOpen={isSidebarOpen} highlight={isDocActive('section-wall')} onClick={() => handleDocClick('section-wall')} activeBgClass="bg-pink-orchid/70 dark:bg-pink-orchid/20 border-pink-orchid/50 dark:border-pink-orchid/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+          <div
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData('text/plain', 'section-daily-notes');
+              e.dataTransfer.setData('notemple/document-id', 'section-daily-notes');
+              e.dataTransfer.effectAllowed = 'copyMove';
+            }}
+          >
+            <SidebarItem icon={<CalendarBlank size={16} className={isDocActive('section-daily-notes') ? "text-current" : "text-emerald-500/90 dark:text-emerald-400/90"} />} label="Daily Notes" isOpen={isSidebarOpen} highlight={isDocActive('section-daily-notes')} onClick={() => handleDocClick('section-daily-notes')} activeBgClass="bg-icy-blue/70 dark:bg-icy-blue/20 border-icy-blue/50 dark:border-icy-blue/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+          </div>
+          <div
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData('text/plain', 'section-tasks');
+              e.dataTransfer.setData('notemple/document-id', 'section-tasks');
+              e.dataTransfer.effectAllowed = 'copyMove';
+            }}
+          >
+            <SidebarItem icon={<CheckSquare size={16} className={isDocActive('section-tasks') ? "text-current" : "text-blue-500/90 dark:text-blue-400/90"} />} label="Tasks" isOpen={isSidebarOpen} highlight={isDocActive('section-tasks')} onClick={() => handleDocClick('section-tasks')} activeBgClass="bg-sky-blue/70 dark:bg-sky-blue/20 border-sky-blue/50 dark:border-sky-blue/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+          </div>
+          <div
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData('text/plain', 'section-tags');
+              e.dataTransfer.setData('notemple/document-id', 'section-tags');
+              e.dataTransfer.effectAllowed = 'copyMove';
+            }}
+          >
+            <SidebarItem icon={<Tag size={16} className={isDocActive('section-tags') ? "text-current" : "text-purple-500/90 dark:text-purple-400/90"} />} label="Tags" isOpen={isSidebarOpen} highlight={isDocActive('section-tags')} onClick={() => handleDocClick('section-tags')} activeBgClass="bg-pink-orchid/70 dark:bg-pink-orchid/20 border-pink-orchid/50 dark:border-pink-orchid/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+          </div>
+          <div
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData('text/plain', 'section-glance');
+              e.dataTransfer.setData('notemple/document-id', 'section-glance');
+              e.dataTransfer.effectAllowed = 'copyMove';
+            }}
+          >
+            <SidebarItem icon={<Eye size={16} className={isDocActive('section-glance') ? "text-current" : "text-amber-500/90 dark:text-amber-400/90"} />} label="Glance" isOpen={isSidebarOpen} highlight={isDocActive('section-glance')} onClick={() => handleDocClick('section-glance')} activeBgClass="bg-blush-pop/70 dark:bg-blush-pop/20 border-blush-pop/50 dark:border-blush-pop/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+          </div>
+          <div
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData('text/plain', 'section-wall');
+              e.dataTransfer.setData('notemple/document-id', 'section-wall');
+              e.dataTransfer.effectAllowed = 'copyMove';
+            }}
+          >
+            <SidebarItem icon={<SquaresFour size={16} className={isDocActive('section-wall') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="Wall" isOpen={isSidebarOpen} highlight={isDocActive('section-wall')} onClick={() => handleDocClick('section-wall')} activeBgClass="bg-pink-orchid/70 dark:bg-pink-orchid/20 border-pink-orchid/50 dark:border-pink-orchid/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+          </div>
         </div>
 
         {/* Favorites Section */}
@@ -631,6 +679,13 @@ export const Sidebar = () => {
                 <div
                   id={`sidebar-fav-${docId}`}
                   key={`fav-${docId}`}
+                  draggable
+                  onDragStart={(e) => {
+                    e.stopPropagation();
+                    e.dataTransfer.setData('text/plain', docId);
+                    e.dataTransfer.setData('notemple/document-id', docId);
+                    e.dataTransfer.effectAllowed = 'copyMove';
+                  }}
                   onContextMenu={(e) => {
                     e.stopPropagation();
                     handleContextMenu(e, docId, 'document');
@@ -693,6 +748,10 @@ export const Sidebar = () => {
                     onDragStart={(e) => {
                       e.stopPropagation();
                       setDraggedItem({ id: folder.id, type: 'folder' });
+                      const folderDocId = `section-folder-${folder.id}`;
+                      e.dataTransfer.setData('text/plain', folderDocId);
+                      e.dataTransfer.setData('notemple/document-id', folderDocId);
+                      e.dataTransfer.effectAllowed = 'copyMove';
                     }}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => {
@@ -812,6 +871,9 @@ export const Sidebar = () => {
                   onDragStart={(e) => {
                     e.stopPropagation();
                     setDraggedItem({ id: docId, type: 'document' });
+                    e.dataTransfer.setData('text/plain', docId);
+                    e.dataTransfer.setData('notemple/document-id', docId);
+                    e.dataTransfer.effectAllowed = 'copyMove';
                   }}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => {
@@ -846,15 +908,24 @@ export const Sidebar = () => {
 
       {/* Bottom Actions */}
       <div className="pt-4 mt-auto space-y-[2px] min-w-0 flex-shrink-0">
-        <SidebarItem
-          icon={<Trash size={16} className={isDocActive('section-trash') ? "text-current" : "text-red-500/70 dark:text-red-400/70"} />}
-          label="Trash"
-          isOpen={isSidebarOpen}
-          highlight={isDocActive('section-trash')}
-          onClick={() => handleDocClick('section-trash')}
-          activeBgClass="bg-red-500/10 dark:bg-red-500/5 border-red-500/20 dark:border-red-500/10 border"
-          activeTextClass="!text-red-600 dark:!text-red-400 font-semibold"
-        />
+        <div
+          draggable
+          onDragStart={(e) => {
+            e.dataTransfer.setData('text/plain', 'section-trash');
+            e.dataTransfer.setData('notemple/document-id', 'section-trash');
+            e.dataTransfer.effectAllowed = 'copyMove';
+          }}
+        >
+          <SidebarItem
+            icon={<Trash size={16} className={isDocActive('section-trash') ? "text-current" : "text-red-500/70 dark:text-red-400/70"} />}
+            label="Trash"
+            isOpen={isSidebarOpen}
+            highlight={isDocActive('section-trash')}
+            onClick={() => handleDocClick('section-trash')}
+            activeBgClass="bg-red-500/10 dark:bg-red-500/5 border-red-500/20 dark:border-red-500/10 border"
+            activeTextClass="!text-red-600 dark:!text-red-400 font-semibold"
+          />
+        </div>
         <SidebarItem icon={<Gear size={16} className="text-slate-500/70 dark:text-slate-400/70" />} label="Settings" isOpen={isSidebarOpen} onClick={() => setIsSettingsOpen(true)} />
       </div>
 

@@ -188,7 +188,7 @@ const GSAPPageWrapper = ({ children, activeTabId }: { children: React.ReactNode;
 };
 
 export const MainWorkspace = () => {
-  const { panes, activePaneId, toggleRightSidebar, appearance, setAppearance, isRightSidebarOpen, toggleSidebar, isSidebarOpen } = useUiStore(
+  const { panes, activePaneId, toggleRightSidebar, appearance, setAppearance, isRightSidebarOpen, toggleSidebar, isSidebarOpen, openDocument, setActivePane } = useUiStore(
     useShallow((state) => ({
       panes: state.panes,
       activePaneId: state.activePaneId,
@@ -198,12 +198,16 @@ export const MainWorkspace = () => {
       isRightSidebarOpen: state.isRightSidebarOpen,
       toggleSidebar: state.toggleSidebar,
       isSidebarOpen: state.isSidebarOpen,
+      openDocument: state.openDocument,
+      setActivePane: state.setActivePane,
     }))
   );
 
   const autoHideNavbar = useSettingsStore(state => state.autoHideNavbar);
   const [isNavbarHovered, setIsNavbarHovered] = React.useState(false);
   const [isCursorNearTop, setIsCursorNearTop] = React.useState(false);
+  const [isNavbarManuallyHidden, setIsNavbarManuallyHidden] = React.useState(false);
+  const [dragOverPanes, setDragOverPanes] = React.useState<Record<string, boolean>>({});
 
   React.useEffect(() => {
     if (!autoHideNavbar) {
@@ -223,7 +227,31 @@ export const MainWorkspace = () => {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [autoHideNavbar]);
 
-  const showNavbar = !autoHideNavbar || isCursorNearTop || isNavbarHovered;
+  // Handle Ctrl + Alt + T global keyboard shortcut to manually toggle navbar
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isCtrlOrMeta = e.ctrlKey || e.metaKey;
+      if (isCtrlOrMeta && e.altKey && e.key.toLowerCase() === 't') {
+        if (!autoHideNavbar) {
+          e.preventDefault();
+          setIsNavbarManuallyHidden(prev => !prev);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [autoHideNavbar]);
+
+  // Automatically reset manual hiding when settings preference changes
+  React.useEffect(() => {
+    if (autoHideNavbar) {
+      setIsNavbarManuallyHidden(false);
+    }
+  }, [autoHideNavbar]);
+
+  const showNavbar = autoHideNavbar
+    ? (isCursorNearTop || isNavbarHovered)
+    : !isNavbarManuallyHidden;
 
   const isTimerRunning = useFocusTimerStore((state) => state.isRunning);
   const tickTimer = useFocusTimerStore((state) => state.tick);
@@ -402,7 +430,34 @@ export const MainWorkspace = () => {
               {index > 0 && (
                 <div className="w-px bg-border hover:bg-accent hover:w-[2px] transition-all cursor-col-resize shrink-0 z-10 neu-flat" />
               )}
-              <div className="flex-1 flex flex-col min-w-[300px] overflow-hidden relative">
+              <div
+                className="flex-1 flex flex-col min-w-[300px] overflow-hidden relative"
+                onClick={() => {
+                  if (activePaneId !== pane.id) {
+                    setActivePane(pane.id);
+                  }
+                }}
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  setDragOverPanes(prev => ({ ...prev, [pane.id]: true }));
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'copy';
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  setDragOverPanes(prev => ({ ...prev, [pane.id]: false }));
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOverPanes(prev => ({ ...prev, [pane.id]: false }));
+                  const docId = e.dataTransfer.getData('notemple/document-id') || e.dataTransfer.getData('text/plain');
+                  if (docId) {
+                    openDocument(docId, pane.id);
+                  }
+                }}
+              >
                 <TabBar paneId={pane.id} />
                 <div className="flex-1 overflow-hidden bg-transparent relative">
                   <GSAPPageWrapper activeTabId={pane.activeTabId || 'empty'}>
@@ -414,6 +469,28 @@ export const MainWorkspace = () => {
                       <EmptyPaneState />
                     )}
                   </GSAPPageWrapper>
+
+                  <AnimatePresence>
+                    {dragOverPanes[pane.id] && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.98 }}
+                        transition={{ duration: 0.15, ease: 'easeOut' }}
+                        className="absolute inset-0 bg-background/50 backdrop-blur-[4px] z-50 flex items-center justify-center p-4 pointer-events-none"
+                      >
+                        <div className="w-full h-full border-2 border-dashed border-sky-500/50 rounded-lg flex flex-col items-center justify-center gap-3 bg-muted/30">
+                          <div className="w-12 h-12 rounded-full bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-500 shadow-sm-sm">
+                            <PlusCircle size={24} className="animate-pulse" />
+                          </div>
+                          <div className="flex flex-col items-center gap-0.5 text-center">
+                            <span className="text-sm font-semibold text-foreground tracking-tight">Drop to Open</span>
+                            <span className="text-xs text-muted-foreground">Open in this workspace pane</span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             </React.Fragment>

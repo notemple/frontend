@@ -2,8 +2,9 @@ import React, { useCallback } from 'react';
 import { useUiStore } from '@/shared/store/uiStore';
 import { useDocumentStore } from '@/features/documents/store';
 import { useShallow } from 'zustand/react/shallow';
+import { useSettingsStore } from '@/features/settings/store';
 import { cn } from '@/shared/lib/utils';
-import { X, FileText, Book, User, CalendarBlank, CheckSquare, Tag, Eye, SquaresFour, Folder, Star, Trash } from '@phosphor-icons/react';
+import { X, FileText, Book, User, CalendarBlank, CheckSquare, Tag, Eye, SquaresFour, Folder, Star, Trash, Gear } from '@phosphor-icons/react';
 import {
   DndContext,
   closestCenter,
@@ -81,6 +82,7 @@ function getSectionColor(tabId: string, type: string, folderColor?: string): str
   if (tabId === 'section-folders') return '#8b5cf6'; // Purple
   if (tabId === 'section-uncategorized') return '#64748b'; // Slate
   if (tabId === 'section-trash') return '#ef4444'; // Red
+  if (tabId === 'section-settings') return '#64748b'; // Slate
   return undefined;
 }
 
@@ -106,6 +108,7 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
       if (tabId === 'section-folders') return { title: 'Folders', type: 'folders', icon: undefined };
       if (tabId === 'section-uncategorized') return { title: 'Uncategorized', type: 'folders', icon: undefined };
       if (tabId === 'section-trash') return { title: 'Trash', type: 'trash', icon: undefined };
+      if (tabId === 'section-settings') return { title: 'Settings', type: 'settings', icon: undefined };
       if (tabId.startsWith('section-folder-')) {
         const folderId = tabId.replace('section-folder-', '');
         const folder = state.folders?.find((f: any) => f?.id === folderId);
@@ -274,6 +277,36 @@ export const TabBar = ({ paneId }: { paneId: string }) => {
   const pane = panes.find(p => p?.id === paneId);
   if (!pane) return null;
 
+  const { 
+    activeHighlightType, 
+    activeHighlightColor, 
+    activeHighlightGradient,
+    inactiveHighlightType,
+    inactiveHighlightColor,
+    inactiveHighlightGradient
+  } = useSettingsStore();
+
+  const isCurrentActive = activePaneId === paneId;
+
+  const highlightStyle = React.useMemo(() => {
+    if (isCurrentActive) {
+      return {
+        background: activeHighlightType === 'gradient' ? activeHighlightGradient : activeHighlightColor,
+      };
+    } else {
+      const bg = inactiveHighlightType === 'gradient' ? inactiveHighlightGradient : inactiveHighlightColor;
+      return bg && bg !== 'none' && bg !== 'transparent' ? { background: bg } : undefined;
+    }
+  }, [
+    isCurrentActive, 
+    activeHighlightType, 
+    activeHighlightColor, 
+    activeHighlightGradient,
+    inactiveHighlightType,
+    inactiveHighlightColor,
+    inactiveHighlightGradient
+  ]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, {
@@ -347,8 +380,11 @@ export const TabBar = ({ paneId }: { paneId: string }) => {
         </button>
       )}
 
-      {activePaneId === paneId && (
-        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-sky-500 z-10 pointer-events-none" />
+      {highlightStyle && (
+        <div 
+          style={highlightStyle}
+          className="absolute bottom-0 left-0 right-0 h-[2px] z-10 pointer-events-none" 
+        />
       )}
     </div>
   );
@@ -372,6 +408,7 @@ function getIcon(type: string, emoji?: string) {
       return <Folder size={14} />;
     case 'favorites': return <Star size={14} />;
     case 'trash': return <Trash size={14} />;
+    case 'settings': return <Gear size={14} />;
     default: return <FileText size={14} />;
   }
 }

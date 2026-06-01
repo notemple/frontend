@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useUiStore } from '@/shared/store/uiStore';
 import { 
   MagnifyingGlass, Columns, FileText, ArrowRight, X, Folder, ArrowLeft, 
-  CheckSquare, Tag, Eye, CalendarBlank, PlusCircle 
+  CheckSquare, Tag, Eye, CalendarBlank, PlusCircle, Gear 
 } from '@phosphor-icons/react';
 import { useDocumentStore } from '@/features/documents/store';
 import { useShallow } from 'zustand/react/shallow';
@@ -205,6 +205,7 @@ export const CommandPalette = () => {
       items.push({ type: 'navigation', title: 'Tags', icon: <Tag size={16} style={{ color: '#a855f7' }} />, action: () => { openDocument('section-tags', activePaneId || undefined); setIsOpen(false); } });
       items.push({ type: 'navigation', title: 'Glance', icon: <Eye size={16} style={{ color: '#f59e0b' }} />, action: () => { openDocument('section-glance', activePaneId || undefined); setIsOpen(false); } });
       items.push({ type: 'navigation', title: 'Folders', icon: <Folder size={16} style={{ color: '#ec4899' }} />, action: () => { setMenuState({ type: 'folders' }); } });
+      items.push({ type: 'navigation', title: 'Settings', icon: <Gear size={16} style={{ color: '#64748b' }} />, action: () => { openDocument('section-settings', activePaneId || undefined); setIsOpen(false); } });
 
       return items;
     }

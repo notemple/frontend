@@ -188,7 +188,7 @@ const GSAPPageWrapper = ({ children, activeTabId }: { children: React.ReactNode;
 };
 
 export const MainWorkspace = () => {
-  const { panes, activePaneId, toggleRightSidebar, appearance, setAppearance, isRightSidebarOpen, toggleSidebar, isSidebarOpen, openDocument, setActivePane, isNavbarManuallyHidden, setNavbarManuallyHidden } = useUiStore(
+  const { panes, activePaneId, toggleRightSidebar, appearance, setAppearance, isRightSidebarOpen, toggleSidebar, isSidebarOpen, openDocument, setActivePane, isNavbarManuallyHidden, setNavbarManuallyHidden, updatePaneWidths } = useUiStore(
     useShallow((state) => ({
       panes: state.panes,
       activePaneId: state.activePaneId,
@@ -202,6 +202,7 @@ export const MainWorkspace = () => {
       setActivePane: state.setActivePane,
       isNavbarManuallyHidden: state.isNavbarManuallyHidden,
       setNavbarManuallyHidden: state.setNavbarManuallyHidden,
+      updatePaneWidths: state.updatePaneWidths,
     }))
   );
 
@@ -209,6 +210,65 @@ export const MainWorkspace = () => {
   const [isNavbarHovered, setIsNavbarHovered] = React.useState(false);
   const [isCursorNearTop, setIsCursorNearTop] = React.useState(false);
   const [dragOverPanes, setDragOverPanes] = React.useState<Record<string, boolean>>({});
+  
+  const workspaceContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const handleDividerMouseDown = (e: React.MouseEvent, index: number) => {
+    e.preventDefault();
+    if (!workspaceContainerRef.current) return;
+
+    const containerWidth = workspaceContainerRef.current.getBoundingClientRect().width;
+    const startX = e.clientX;
+
+    // Get current pane widths or distribute equally if not set
+    const initialWidths = panes.map(p => p.width || (100 / panes.length));
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const dx = moveEvent.clientX - startX;
+      const pctDelta = (dx / containerWidth) * 100;
+
+      const leftIdx = index - 1;
+      const rightIdx = index;
+
+      let newLeftWidth = initialWidths[leftIdx] + pctDelta;
+      let newRightWidth = initialWidths[rightIdx] - pctDelta;
+
+      // Minimum width constraint: 300px
+      const minPct = (300 / containerWidth) * 100;
+
+      if (newLeftWidth < minPct) {
+        const excess = minPct - newLeftWidth;
+        newLeftWidth = minPct;
+        newRightWidth -= excess;
+      }
+      if (newRightWidth < minPct) {
+        const excess = minPct - newRightWidth;
+        newRightWidth = minPct;
+        newLeftWidth -= excess;
+      }
+
+      const updatedWidths: { [paneId: string]: number } = {};
+      panes.forEach((p, idx) => {
+        if (idx === leftIdx) {
+          updatedWidths[p.id] = newLeftWidth;
+        } else if (idx === rightIdx) {
+          updatedWidths[p.id] = newRightWidth;
+        } else {
+          updatedWidths[p.id] = initialWidths[idx];
+        }
+      });
+
+      updatePaneWidths(updatedWidths);
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
 
   React.useEffect(() => {
     if (!autoHideNavbar) {
@@ -329,7 +389,7 @@ export const MainWorkspace = () => {
           "w-full flex items-center justify-between shrink-0 bg-[image:var(--background-topbar)] dark:bg-background border-b border-border z-20",
           isSidebarOpen ? "pl-[276px]" : "pl-6",
           isRightSidebarOpen ? "pr-[336px]" : "pr-6",
-          autoHideNavbar ? "overflow-hidden" : ""
+          autoHideNavbar && !showNavbar ? "overflow-hidden" : ""
         )}
         animate={{
           height: showNavbar ? 56 : 0,
@@ -425,15 +485,24 @@ export const MainWorkspace = () => {
         </div>
       </motion.div>
 
-      <div className="flex-1 flex overflow-hidden bg-workspace">
+      <div 
+        ref={workspaceContainerRef}
+        className="flex-1 flex overflow-hidden bg-workspace"
+      >
         {panes.map((pane, index) => {
           return (
             <React.Fragment key={pane.id}>
               {index > 0 && (
-                <div className="w-px bg-border hover:bg-accent hover:w-[2px] transition-all cursor-col-resize shrink-0 z-10 neu-flat" />
+                <div
+                  onMouseDown={(e) => handleDividerMouseDown(e, index)}
+                  className="w-1.5 bg-transparent hover:bg-sky-500/20 active:bg-sky-500/40 cursor-col-resize shrink-0 z-10 relative flex items-center justify-center group self-stretch transition-colors"
+                >
+                  <div className="w-px h-full bg-border group-hover:bg-sky-500/60 group-active:bg-sky-500 transition-colors" />
+                </div>
               )}
               <div
-                className="flex-1 flex flex-col min-w-[300px] overflow-hidden relative"
+                className="flex flex-col min-w-[300px] overflow-hidden relative shrink-0 grow-0"
+                style={{ width: `${pane.width || (100 / panes.length)}%` }}
                 onClick={() => {
                   if (activePaneId !== pane.id) {
                     setActivePane(pane.id);

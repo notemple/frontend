@@ -13,6 +13,16 @@ export interface SettingsStore {
   userPassword: string;
   userProfileIcon: string;
   autoHideNavbar: boolean;
+  autoHideSidebars: boolean;
+
+  // Active/Inactive Pane highlight options
+  activeHighlightType: 'solid' | 'gradient';
+  activeHighlightColor: string;
+  activeHighlightGradient: string;
+  inactiveHighlightType: 'solid' | 'gradient';
+  inactiveHighlightColor: string;
+  inactiveHighlightGradient: string;
+
   setTimezone: (timezone: string) => void;
   setTimeFormat: (format: '12h' | '24h') => void;
   setWeekStartDay: (day: 0 | 1 | 2 | 3 | 4 | 5 | 6) => void;
@@ -24,6 +34,14 @@ export interface SettingsStore {
   setUserPassword: (password: string) => void;
   setUserProfileIcon: (icon: string) => void;
   setAutoHideNavbar: (autoHide: boolean) => void;
+  setAutoHideSidebars: (autoHide: boolean) => void;
+
+  setActiveHighlightType: (type: 'solid' | 'gradient') => void;
+  setActiveHighlightColor: (color: string) => void;
+  setActiveHighlightGradient: (gradient: string) => void;
+  setInactiveHighlightType: (type: 'solid' | 'gradient') => void;
+  setInactiveHighlightColor: (color: string) => void;
+  setInactiveHighlightGradient: (gradient: string) => void;
 }
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -40,6 +58,16 @@ export const useSettingsStore = create<SettingsStore>()(
       userPassword: 'password123',
       userProfileIcon: 'N',
       autoHideNavbar: false,
+      autoHideSidebars: false,
+
+      // Initial highlight preferences
+      activeHighlightType: 'solid',
+      activeHighlightColor: '#0ea5e9', // Sky blue
+      activeHighlightGradient: 'linear-gradient(to right, #3b82f6, #8b5cf6)', // Blue to Purple
+      inactiveHighlightType: 'solid',
+      inactiveHighlightColor: 'transparent',
+      inactiveHighlightGradient: 'none',
+
       setTimezone: (timezone) => set({ timezone }),
       setTimeFormat: (timeFormat) => set({ timeFormat }),
       setWeekStartDay: (day) => set({ weekStartDay: day }),
@@ -51,6 +79,14 @@ export const useSettingsStore = create<SettingsStore>()(
       setUserPassword: (userPassword) => set({ userPassword }),
       setUserProfileIcon: (userProfileIcon) => set({ userProfileIcon }),
       setAutoHideNavbar: (autoHideNavbar) => set({ autoHideNavbar }),
+      setAutoHideSidebars: (autoHideSidebars) => set({ autoHideSidebars }),
+
+      setActiveHighlightType: (activeHighlightType) => set({ activeHighlightType }),
+      setActiveHighlightColor: (activeHighlightColor) => set({ activeHighlightColor }),
+      setActiveHighlightGradient: (activeHighlightGradient) => set({ activeHighlightGradient }),
+      setInactiveHighlightType: (inactiveHighlightType) => set({ inactiveHighlightType }),
+      setInactiveHighlightColor: (inactiveHighlightColor) => set({ inactiveHighlightColor }),
+      setInactiveHighlightGradient: (inactiveHighlightGradient) => set({ inactiveHighlightGradient }),
     }),
     {
       name: 'settings-storage',

@@ -5,6 +5,7 @@ export type PaneState = {
   id: string;
   tabs: string[]; // Document IDs
   activeTabId: string | null;
+  width?: number; // Percentage width (e.g. 0 to 100)
 };
 
 interface UiState {
@@ -36,6 +37,8 @@ interface UiState {
 
   isNavbarManuallyHidden: boolean;
   setNavbarManuallyHidden: (hidden: boolean) => void;
+
+  updatePaneWidths: (widths: { [paneId: string]: number }) => void;
 }
 
 const DEFAULT_PANE_ID = 'pane-main';
@@ -63,7 +66,7 @@ export const useUiStore = create<UiState>()(
       isDailyNoteFullView: false,
       setDailyNoteFullView: (isDailyNoteFullView) => set({ isDailyNoteFullView }),
 
-      panes: [{ id: DEFAULT_PANE_ID, tabs: ['section-daily-notes'], activeTabId: 'section-daily-notes' }],
+      panes: [{ id: DEFAULT_PANE_ID, tabs: ['section-daily-notes'], activeTabId: 'section-daily-notes', width: 100 }],
       activePaneId: DEFAULT_PANE_ID,
 
       appearance: getInitialAppearance(),
@@ -75,23 +78,57 @@ export const useUiStore = create<UiState>()(
       isNavbarManuallyHidden: false,
       setNavbarManuallyHidden: (isNavbarManuallyHidden) => set({ isNavbarManuallyHidden }),
 
+      updatePaneWidths: (widths) => set((state) => ({
+        panes: state.panes.map(pane => ({
+          ...pane,
+          width: widths[pane.id] !== undefined ? widths[pane.id] : (pane.width || (100 / state.panes.length))
+        }))
+      })),
+
       addPane: (paneId, afterPaneId) => set((state) => {
-        const newPane = { id: paneId, tabs: [], activeTabId: null };
+        const N = state.panes.length;
+        const newWidth = 100 / (N + 1);
+        const scale = N / (N + 1);
+        
+        // Scale existing pane widths proportionally to make room for new pane
+        const scaledPanes = state.panes.map(pane => ({
+          ...pane,
+          width: (pane.width || (100 / N)) * scale
+        }));
+        
+        const newPane = { id: paneId, tabs: [], activeTabId: null, width: newWidth };
+        
+        let updatedPanes: PaneState[] = [];
         if (!afterPaneId) {
-          return { panes: [...state.panes, newPane], activePaneId: paneId };
+          updatedPanes = [...scaledPanes, newPane];
+        } else {
+          const index = scaledPanes.findIndex(p => p?.id === afterPaneId);
+          if (index === -1) {
+            updatedPanes = [...scaledPanes, newPane];
+          } else {
+            updatedPanes = [...scaledPanes];
+            updatedPanes.splice(index + 1, 0, newPane);
+          }
         }
-        const index = state.panes.findIndex(p => p?.id === afterPaneId);
-        if (index === -1) return state;
-        const newPanes = [...state.panes];
-        newPanes.splice(index + 1, 0, newPane);
-        return { panes: newPanes, activePaneId: paneId };
+        
+        return { panes: updatedPanes, activePaneId: paneId };
       }),
 
       removePane: (paneId) => set((state) => {
         if (state.panes.length === 1) return state; // Don't remove last pane
-        const newPanes = state.panes.filter(p => p?.id !== paneId);
-        const newActivePaneId = state.activePaneId === paneId ? newPanes[0].id : state.activePaneId;
-        return { panes: newPanes, activePaneId: newActivePaneId };
+        
+        const remainingPanes = state.panes.filter(p => p?.id !== paneId);
+        const sumWidths = remainingPanes.reduce((sum, p) => sum + (p.width || 0), 0);
+        const scale = sumWidths > 0 ? (100 / sumWidths) : (100 / remainingPanes.length);
+        
+        // Scale remaining pane widths proportionally to fill the empty space
+        const updatedPanes = remainingPanes.map(pane => ({
+          ...pane,
+          width: (pane.width || (100 / (remainingPanes.length + 1))) * scale
+        }));
+        
+        const newActivePaneId = state.activePaneId === paneId ? updatedPanes[0].id : state.activePaneId;
+        return { panes: updatedPanes, activePaneId: newActivePaneId };
       }),
 
       setActivePane: (paneId) => set({ activePaneId: paneId }),

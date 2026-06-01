@@ -6,9 +6,11 @@ import { CommandPalette } from "@/shared/ui/CommandPalette";
 import { useUiStore } from '@/shared/store/uiStore';
 import { useShallow } from 'zustand/react/shallow';
 import { TaskEditorModal } from "@/features/tasks/components/TaskEditorModal";
+import { useSettingsStore } from '@/features/settings/store';
 
 export const RootLayout = () => {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const autoHideSidebars = useSettingsStore(state => state.autoHideSidebars);
 
   const { openDocument, appearance } = useUiStore(
     useShallow((state) => ({
@@ -32,11 +34,15 @@ export const RootLayout = () => {
       if (isCtrlOrMeta && e.altKey) {
         const key = e.key.toLowerCase();
         if (key === 'l') {
-          e.preventDefault();
-          useUiStore.getState().toggleSidebar();
+          if (!autoHideSidebars) {
+            e.preventDefault();
+            useUiStore.getState().toggleSidebar();
+          }
         } else if (key === 'r') {
-          e.preventDefault();
-          useUiStore.getState().toggleRightSidebar();
+          if (!autoHideSidebars) {
+            e.preventDefault();
+            useUiStore.getState().toggleRightSidebar();
+          }
         } else if (key === 'h') {
           e.preventDefault();
           const { panes, activePaneId, setActivePane } = useUiStore.getState();
@@ -56,7 +62,49 @@ export const RootLayout = () => {
     };
     window.addEventListener('keydown', handleShortcut);
     return () => window.removeEventListener('keydown', handleShortcut);
-  }, []);
+  }, [autoHideSidebars]);
+
+  // Immediately close both sidebars when auto-hide is turned ON in settings
+  useEffect(() => {
+    if (autoHideSidebars) {
+      useUiStore.setState({ isSidebarOpen: false, isRightSidebarOpen: false });
+    }
+  }, [autoHideSidebars]);
+
+  // Handle sidebar hover reveal and auto-hide close boundaries
+  useEffect(() => {
+    if (!autoHideSidebars) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const { clientX } = e;
+      const W = window.innerWidth;
+
+      const state = useUiStore.getState();
+      const isLeftOpen = state.isSidebarOpen;
+      const isRightOpen = state.isRightSidebarOpen;
+
+      // 1. Left Sidebar Edge Triggers: open within 15px from left edge, close beyond 260px boundary
+      if (clientX <= 15) {
+        if (!isLeftOpen) {
+          useUiStore.setState({ isSidebarOpen: true });
+        }
+      } else if (isLeftOpen && clientX > 260) {
+        useUiStore.setState({ isSidebarOpen: false });
+      }
+
+      // 2. Right Sidebar Edge Triggers: open within 15px from right edge, close below W - 320px boundary
+      if (clientX >= W - 15) {
+        if (!isRightOpen) {
+          useUiStore.setState({ isRightSidebarOpen: true });
+        }
+      } else if (isRightOpen && clientX < W - 320) {
+        useUiStore.setState({ isRightSidebarOpen: false });
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [autoHideSidebars]);
 
   useEffect(() => {
     const root = window.document.documentElement;

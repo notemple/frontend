@@ -8,6 +8,7 @@ import { DailyNotesPage } from '@/features/daily-notes/DailyNotesPage';
 import { TasksPage } from '@/features/tasks/TasksPage';
 import { TagsPage } from '@/features/tags/TagsPage';
 import { TrashPage } from '@/features/trash/TrashPage';
+import { SettingsPage } from '@/features/settings/SettingsPage';
 import { cn, getItemColor, getFolderStyle, getFolderHexColor } from '@/shared/lib/utils';
 import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
 import { Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, CaretDown, FileText, Folder, Sun, Moon, Monitor, Clock, ArrowLeft, PlusCircle, Check, X, Plus, Trash } from '@phosphor-icons/react';
@@ -150,6 +151,9 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
   }
   if (sectionId === 'section-trash') {
     return <TrashPage paneId={paneId} />;
+  }
+  if (sectionId === 'section-settings') {
+    return <SettingsPage paneId={paneId} />;
   }
   if (sectionId === 'section-glance') {
     return (

@@ -5,7 +5,7 @@ import { useUiStore } from '@/shared/store/uiStore';
 import { useDocumentStore } from '@/features/documents/store';
 import { useShallow } from 'zustand/react/shallow';
 import { cn, getFolderHexColor } from '@/shared/lib/utils';
-import { SettingsDialog } from '@/features/settings/SettingsDialog';
+
 import { DeleteFolderDialog } from './DeleteFolderDialog';
 import { ColorPicker } from '@/shared/ui/ColorPicker';
 import {
@@ -403,7 +403,7 @@ export const Sidebar = () => {
   const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
   const [draggedItem, setDraggedItem] = useState<{ id: string, type: 'document' | 'folder' } | null>(null);
   const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(() => new Set(['section-favorites', 'section-folders', 'section-uncategorized', ...folderOrder]));
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
   const [deleteFolderDialogOpen, setDeleteFolderDialogOpen] = useState(false);
   const [deletingFolderId, setDeletingFolderId] = useState<string | null>(null);
   const [deletingFolderName, setDeletingFolderName] = useState('');
@@ -926,10 +926,16 @@ export const Sidebar = () => {
             activeTextClass="!text-red-600 dark:!text-red-400 font-semibold"
           />
         </div>
-        <SidebarItem icon={<Gear size={16} className="text-slate-500/70 dark:text-slate-400/70" />} label="Settings" isOpen={isSidebarOpen} onClick={() => setIsSettingsOpen(true)} />
+        <SidebarItem 
+          icon={<Gear size={16} className={isDocActive('section-settings') ? "text-current" : "text-slate-500/70 dark:text-slate-400/70"} />} 
+          label="Settings" 
+          isOpen={isSidebarOpen} 
+          highlight={isDocActive('section-settings')}
+          onClick={() => openDocument('section-settings', activePaneId || undefined)} 
+          activeBgClass="bg-slate-500/10 dark:bg-slate-500/5 border-slate-500/20 dark:border-slate-500/10 border"
+          activeTextClass="!text-slate-600 dark:!text-slate-400 font-semibold"
+        />
       </div>
-
-      <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
       <DeleteFolderDialog
         isOpen={deleteFolderDialogOpen}

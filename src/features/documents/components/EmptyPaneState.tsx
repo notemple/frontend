@@ -3,7 +3,7 @@ import { useUiStore } from '@/shared/store/uiStore';
 import { useDocumentStore } from '@/features/documents/store';
 import { useShallow } from 'zustand/react/shallow';
 import { 
-  Columns, PlusCircle, X, CalendarBlank, CheckSquare, Tag, Eye, Folder 
+  Columns, PlusCircle, X, CalendarBlank, CheckSquare, Tag, Eye, Folder, Gear 
 } from '@phosphor-icons/react';
 
 export const EmptyPaneState = ({ paneId }: { paneId: string }) => {
@@ -115,6 +115,12 @@ export const EmptyPaneState = ({ paneId }: { paneId: string }) => {
       action: handleOpenFolders,
       visible: true,
     },
+    {
+      label: 'Settings',
+      icon: <Gear size={16} className="text-slate-500 shrink-0" />,
+      action: () => openDocument('section-settings', paneId),
+      visible: true,
+    },
   ];
 
   const activeOptions = options.filter(opt => opt.visible !== false);
@@ -125,7 +131,7 @@ export const EmptyPaneState = ({ paneId }: { paneId: string }) => {
         {/* Shadowy Neumorphic templ Card */}
         <div className="w-full neu-card py-20 px-8 flex flex-col items-center justify-center relative overflow-hidden group select-none hover:scale-[1.01] active:scale-[0.99] duration-300">
           <div className="absolute inset-0 bg-gradient-to-tr from-sky-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-          <h1 className="font-sans text-8xl md:text-9xl font-black tracking-widest uppercase select-none transition-all duration-300 text-[#ebe8e4] [text-shadow:4px_4px_8px_#c3c0ba,-4px_-4px_8px_#ffffff] dark:text-[#161616] dark:[text-shadow:4px_4px_8px_#000000,-4px_-4px_8px_rgba(255,255,255,0.03)] cursor-default">
+          <h1 className="font-sans text-8xl md:text-9xl font-black tracking-widest uppercase select-none transition-all duration-300 text-[#ebe8e4] [text-shadow:4px_4px_8px_#c3c0ba,-4px_-4px_8px_#ffffff] dark:text-[#3a3a3a] dark:[text-shadow:3px_3px_6px_rgba(0,0,0,0.85),-3px_-3px_6px_rgba(255,255,255,0.055)] cursor-default">
             templ
           </h1>
           <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground/40 mt-4 font-semibold select-none group-hover:text-muted-foreground/60 transition-colors duration-300">

@@ -188,7 +188,7 @@ const GSAPPageWrapper = ({ children, activeTabId }: { children: React.ReactNode;
 };
 
 export const MainWorkspace = () => {
-  const { panes, activePaneId, toggleRightSidebar, appearance, setAppearance, isRightSidebarOpen, toggleSidebar, isSidebarOpen, openDocument, setActivePane } = useUiStore(
+  const { panes, activePaneId, toggleRightSidebar, appearance, setAppearance, isRightSidebarOpen, toggleSidebar, isSidebarOpen, openDocument, setActivePane, isNavbarManuallyHidden, setNavbarManuallyHidden } = useUiStore(
     useShallow((state) => ({
       panes: state.panes,
       activePaneId: state.activePaneId,
@@ -200,13 +200,14 @@ export const MainWorkspace = () => {
       isSidebarOpen: state.isSidebarOpen,
       openDocument: state.openDocument,
       setActivePane: state.setActivePane,
+      isNavbarManuallyHidden: state.isNavbarManuallyHidden,
+      setNavbarManuallyHidden: state.setNavbarManuallyHidden,
     }))
   );
 
   const autoHideNavbar = useSettingsStore(state => state.autoHideNavbar);
   const [isNavbarHovered, setIsNavbarHovered] = React.useState(false);
   const [isCursorNearTop, setIsCursorNearTop] = React.useState(false);
-  const [isNavbarManuallyHidden, setIsNavbarManuallyHidden] = React.useState(false);
   const [dragOverPanes, setDragOverPanes] = React.useState<Record<string, boolean>>({});
 
   React.useEffect(() => {
@@ -234,7 +235,8 @@ export const MainWorkspace = () => {
       if (isCtrlOrMeta && e.altKey && e.key.toLowerCase() === 't') {
         if (!autoHideNavbar) {
           e.preventDefault();
-          setIsNavbarManuallyHidden(prev => !prev);
+          const currentHidden = useUiStore.getState().isNavbarManuallyHidden;
+          useUiStore.getState().setNavbarManuallyHidden(!currentHidden);
         }
       }
     };
@@ -245,9 +247,9 @@ export const MainWorkspace = () => {
   // Automatically reset manual hiding when settings preference changes
   React.useEffect(() => {
     if (autoHideNavbar) {
-      setIsNavbarManuallyHidden(false);
+      setNavbarManuallyHidden(false);
     }
-  }, [autoHideNavbar]);
+  }, [autoHideNavbar, setNavbarManuallyHidden]);
 
   const showNavbar = autoHideNavbar
     ? (isCursorNearTop || isNavbarHovered)

@@ -29,11 +29,21 @@ export const RightSidebar = () => {
   const tabs = ['Style', 'Info'];
 
   return (
-    <div
-      className={cn(
-        "notemple-sidebar-right h-full border-l border-border bg-background absolute right-0 top-0 bottom-0 flex flex-col overflow-hidden z-30 shadow-md transition-[width,opacity] duration-250 ease-out will-change-[width,opacity]",
-        isRightSidebarOpen ? "w-[320px] opacity-100" : "w-0 opacity-0 pointer-events-none"
-      )}
+    <motion.div
+      className="notemple-sidebar-right h-full border-l border-border bg-background absolute right-0 top-0 bottom-0 flex flex-col overflow-hidden z-30 shadow-md"
+      animate={{
+        width: isRightSidebarOpen ? 320 : 0,
+        opacity: isRightSidebarOpen ? 1 : 0
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 220,
+        damping: 26,
+        mass: 0.8
+      }}
+      style={{
+        pointerEvents: isRightSidebarOpen ? "auto" : "none"
+      }}
     >
           {/* Header */}
           <div className="h-12 border-b border-border flex items-center px-4 shrink-0 justify-between gap-1 bg-muted">
@@ -66,7 +76,7 @@ export const RightSidebar = () => {
             {activeTab === 'Style' && <StyleTab />}
             {activeTab === 'Info' && <InfoTab />}
           </div>
-    </div>
+    </motion.div>
   );
 };
 

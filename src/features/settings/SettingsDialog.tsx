@@ -3,6 +3,7 @@ import { X } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useSettingsStore } from '@/features/settings/store';
 import { formatDisplayDateTime, useIsMounted } from '@/shared/lib/time';
+import { cn } from '@/shared/lib/utils';
 
 export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const { 
@@ -12,12 +13,14 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
     roundness,
     spaceName,
     spaceIcon,
+    autoHideNavbar,
     setTimezone, 
     setTimeFormat, 
     setWeekStartDay,
     setRoundness,
     setSpaceName,
-    setSpaceIcon
+    setSpaceIcon,
+    setAutoHideNavbar
   } = useSettingsStore();
   const mounted = useIsMounted();
 
@@ -178,6 +181,27 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
                       Large (LG)
                     </button>
                   </div>
+                </div>
+
+                {/* Auto Hide Navbar Setting */}
+                <div className="flex items-center justify-between py-2.5 border-t border-border/85 mt-2">
+                  <div className="flex flex-col gap-0.5">
+                    <label className="text-sm font-semibold text-foreground">Auto-Hide Top Navbar</label>
+                    <span className="text-xs text-muted-foreground">Reveal by hover near the top edge</span>
+                  </div>
+                  <button
+                    onClick={() => setAutoHideNavbar(!autoHideNavbar)}
+                    className={cn(
+                      "w-10 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none cursor-pointer flex items-center shadow-inner relative border border-border/40",
+                      autoHideNavbar ? "bg-rose-500/80 dark:bg-rose-500/60 justify-end" : "bg-muted justify-start"
+                    )}
+                  >
+                    <motion.div 
+                      layout 
+                      className={cn("w-4.5 h-4.5 rounded-full shadow-sm-sm", autoHideNavbar ? "bg-white" : "bg-muted-foreground/60")} 
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  </button>
                 </div>
               </div>
             </motion.div>

@@ -12,6 +12,7 @@ export interface SettingsStore {
   userEmail: string;
   userPassword: string;
   userProfileIcon: string;
+  autoHideNavbar: boolean;
   setTimezone: (timezone: string) => void;
   setTimeFormat: (format: '12h' | '24h') => void;
   setWeekStartDay: (day: 0 | 1 | 2 | 3 | 4 | 5 | 6) => void;
@@ -22,6 +23,7 @@ export interface SettingsStore {
   setUserEmail: (email: string) => void;
   setUserPassword: (password: string) => void;
   setUserProfileIcon: (icon: string) => void;
+  setAutoHideNavbar: (autoHide: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -37,6 +39,7 @@ export const useSettingsStore = create<SettingsStore>()(
       userEmail: 'user@example.com',
       userPassword: 'password123',
       userProfileIcon: 'N',
+      autoHideNavbar: false,
       setTimezone: (timezone) => set({ timezone }),
       setTimeFormat: (timeFormat) => set({ timeFormat }),
       setWeekStartDay: (day) => set({ weekStartDay: day }),
@@ -47,6 +50,7 @@ export const useSettingsStore = create<SettingsStore>()(
       setUserEmail: (userEmail) => set({ userEmail }),
       setUserPassword: (userPassword) => set({ userPassword }),
       setUserProfileIcon: (userProfileIcon) => set({ userProfileIcon }),
+      setAutoHideNavbar: (autoHideNavbar) => set({ autoHideNavbar }),
     }),
     {
       name: 'settings-storage',

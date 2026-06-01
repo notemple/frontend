@@ -201,6 +201,30 @@ export const MainWorkspace = () => {
     }))
   );
 
+  const autoHideNavbar = useSettingsStore(state => state.autoHideNavbar);
+  const [isNavbarHovered, setIsNavbarHovered] = React.useState(false);
+  const [isCursorNearTop, setIsCursorNearTop] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!autoHideNavbar) {
+      setIsCursorNearTop(false);
+      return;
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (e.clientY <= 15) {
+        setIsCursorNearTop(true);
+      } else if (e.clientY > 70) {
+        setIsCursorNearTop(false);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [autoHideNavbar]);
+
+  const showNavbar = !autoHideNavbar || isCursorNearTop || isNavbarHovered;
+
   const isTimerRunning = useFocusTimerStore((state) => state.isRunning);
   const tickTimer = useFocusTimerStore((state) => state.tick);
 
@@ -268,11 +292,31 @@ export const MainWorkspace = () => {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-transparent relative pt-0 z-10 w-full border-l border-border">
-      <div className={cn(
-        "h-14 w-full flex items-center justify-between shrink-0 bg-[image:var(--background-topbar)] dark:bg-background border-b border-border z-20 transition-all duration-220 ease-out",
-        isSidebarOpen ? "pl-[276px]" : "pl-6",
-        isRightSidebarOpen ? "pr-[336px]" : "pr-6"
-      )}>
+      <motion.div 
+        onMouseEnter={() => setIsNavbarHovered(true)}
+        onMouseLeave={() => setIsNavbarHovered(false)}
+        className={cn(
+          "w-full flex items-center justify-between shrink-0 bg-[image:var(--background-topbar)] dark:bg-background border-b border-border z-20",
+          isSidebarOpen ? "pl-[276px]" : "pl-6",
+          isRightSidebarOpen ? "pr-[336px]" : "pr-6",
+          autoHideNavbar ? "overflow-hidden" : ""
+        )}
+        animate={{
+          height: showNavbar ? 56 : 0,
+          opacity: showNavbar ? 1 : 0,
+          y: showNavbar ? 0 : -8,
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 240,
+          damping: 24,
+          mass: 0.8
+        }}
+        style={{
+          borderColor: showNavbar ? 'var(--border)' : 'transparent',
+          pointerEvents: showNavbar ? 'auto' : 'none'
+        }}
+      >
         <div className="flex-1 flex items-center gap-3">
           <button
             onClick={toggleSidebar}
@@ -349,7 +393,7 @@ export const MainWorkspace = () => {
             </button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       <div className="flex-1 flex overflow-hidden bg-workspace">
         {panes.map((pane, index) => {

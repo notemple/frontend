@@ -371,31 +371,6 @@ export const Sidebar = () => {
   );
 
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const isInitialMount = useRef(true);
-
-  useEffect(() => {
-    if (sidebarRef.current) {
-      if (isInitialMount.current) {
-        gsap.set(sidebarRef.current, {
-          width: isSidebarOpen ? 260 : 0,
-          padding: isSidebarOpen ? "24px" : "24px 0px",
-          opacity: isSidebarOpen ? 1 : 0,
-          pointerEvents: isSidebarOpen ? "auto" : "none"
-        });
-        isInitialMount.current = false;
-      } else {
-        gsap.killTweensOf(sidebarRef.current);
-        gsap.to(sidebarRef.current, {
-          width: isSidebarOpen ? 260 : 0,
-          padding: isSidebarOpen ? "24px" : "24px 0px",
-          opacity: isSidebarOpen ? 1 : 0,
-          pointerEvents: isSidebarOpen ? "auto" : "none",
-          duration: 0.22,
-          ease: "power3.out"
-        });
-      }
-    }
-  }, [isSidebarOpen]);
 
   // Stable selector references
   const folders = useDocumentStore(useShallow(foldersSelector));
@@ -579,9 +554,23 @@ export const Sidebar = () => {
   };
 
   return (
-    <div
+    <motion.div
       ref={sidebarRef}
-      className="h-full flex flex-col border-r border-border bg-muted absolute left-0 top-0 bottom-0 z-30 overflow-y-auto no-scrollbar group/sidebar shadow-md transition-all duration-200"
+      className="h-full flex flex-col border-r border-border bg-muted absolute left-0 top-0 bottom-0 z-30 overflow-y-auto no-scrollbar group/sidebar shadow-md"
+      animate={{
+        width: isSidebarOpen ? 260 : 0,
+        padding: isSidebarOpen ? "24px" : "24px 0px",
+        opacity: isSidebarOpen ? 1 : 0
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 220,
+        damping: 26,
+        mass: 0.8
+      }}
+      style={{
+        pointerEvents: isSidebarOpen ? "auto" : "none"
+      }}
     >
       <div className={cn("flex items-center mb-8 shrink-0 relative z-10 h-8 w-full", isSidebarOpen ? "justify-between px-1" : "justify-center px-0")}>
           {isSidebarOpen ? (
@@ -889,7 +878,7 @@ export const Sidebar = () => {
           handleDelete={handleDelete}
         />
       )}
-    </div>
+    </motion.div>
   );
 };
 

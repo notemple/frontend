@@ -74,7 +74,7 @@ export const TaskEditorModal = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="fixed inset-0 bg-black/20 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-transparent z-50 flex items-center justify-center p-4"
           onClick={onClose}
         >
           <motion.div
@@ -166,12 +166,24 @@ export const TaskEditorModal = ({
 
             {task && (
               <div className="w-full flex items-center justify-between px-4 py-2 border-b border-border bg-muted/20 text-xs gap-4 relative z-10 flex-wrap font-sans">
-                <div className="flex items-center gap-2 text-muted-foreground/80 font-medium">
-                  <Clock size={14} className="text-muted-foreground/60" />
-                  <span>Created:</span>
-                  <span className="font-semibold text-foreground bg-muted px-2 py-0.5 rounded-sm border border-border/80 shadow-sm-inner">
-                    {task.createdAt ? new Date(task.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' }) : 'Unknown'}
-                  </span>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-muted-foreground/80 font-medium">
+                    <Clock size={14} className="text-muted-foreground/60" />
+                    <span>Created:</span>
+                    <span className="font-semibold text-foreground bg-muted px-2 py-0.5 rounded-sm border border-border/80 shadow-sm-inner">
+                      {task.createdAt ? new Date(task.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' }) : 'Unknown'}
+                    </span>
+                  </div>
+
+                  {task.completedAt && (
+                    <div className="flex items-center gap-2 text-muted-foreground/80 font-medium">
+                      <CheckCircle size={14} className="text-emerald-500" />
+                      <span>Completed:</span>
+                      <span className="font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-sm border border-emerald-500/20 shadow-sm-inner">
+                        {new Date(task.completedAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-3">

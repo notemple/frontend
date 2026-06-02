@@ -42,6 +42,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       createdAt: new Date().toISOString(),
       completedAt: isCompleted ? new Date().toISOString() : undefined,
       ...task,
+      startDate: task.startDate || new Date().toISOString(),
       status: task.status || defaultStatus
     };
 

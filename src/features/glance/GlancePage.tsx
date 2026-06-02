@@ -99,15 +99,16 @@ const getTaskStyle = (task: any) => {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export const GlancePage = ({ paneId }: { paneId: string }) => {
-  const openDocument = useUiStore((s) => s.openDocument);
-  const documents    = useDocumentStore((s) => s.documents) || {};
-  const tasks        = useTaskStore((s) => s.tasks) || [];
-  const updateTask   = useTaskStore((s) => s.updateTask);
-  const addTask      = useTaskStore((s) => s.addTask);
-  const addDocument  = useDocumentStore((s) => s.addDocument);
-  const timers       = useTaskTimerStore((s) => s.timers) || {};
-  const timezone     = useSettingsStore((s) => s.timezone);
-  const userName     = useSettingsStore((s) => s.userName);
+  const openDocument   = useUiStore((s) => s.openDocument);
+  const documents      = useDocumentStore((s) => s.documents) || {};
+  const tasks          = useTaskStore((s) => s.tasks) || [];
+  const updateTask     = useTaskStore((s) => s.updateTask);
+  const addTask        = useTaskStore((s) => s.addTask);
+  const addDocument    = useDocumentStore((s) => s.addDocument);
+  const updateDocument = useDocumentStore((s) => s.updateDocument);
+  const timers         = useTaskTimerStore((s) => s.timers) || {};
+  const timezone       = useSettingsStore((s) => s.timezone);
+  const userName       = useSettingsStore((s) => s.userName);
 
   // Quick capture
   const [captureText, setCaptureText] = useState("");
@@ -126,7 +127,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
     localStorage.setItem("glance-captures", JSON.stringify(list));
   };
 
-  const handleSubmitCapture = () => {
+  const handleSubmitCapture = async () => {
     if (!captureText.trim()) return;
     const entry = {
       id: `capture-${Date.now()}`,
@@ -134,9 +135,26 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
       type: activeType,
       createdAt: new Date().toISOString(),
     };
-    if (activeType === "Note" || activeType === "Doc") {
+    if (activeType === "Note") {
+      const todayDateStr = formatInTimeZone(new Date(), timezone, "yyyy-MM-dd");
+      const dailyNoteId = `daily-note-${todayDateStr}`;
+      const existingDoc = documents[dailyNoteId];
+      const captureTextTrimmed = captureText.trim();
+      let newContent = "";
+      if (existingDoc && existingDoc.content) {
+        newContent = existingDoc.content + `<p>${captureTextTrimmed}</p>`;
+      } else {
+        newContent = `<p>${captureTextTrimmed}</p>`;
+      }
+      await updateDocument(dailyNoteId, {
+        content: newContent,
+        type: "page",
+        updatedAt: new Date().toISOString()
+      });
+      openDocument(dailyNoteId, paneId);
+    } else if (activeType === "Doc") {
       const newId = `doc-${crypto.randomUUID()}`;
-      addDocument({
+      await addDocument({
         id: newId,
         title: captureText.trim().substring(0, 40),
         content: `<h1>${captureText.trim()}</h1><p>Captured from Glance.</p>`,
@@ -144,6 +162,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
         tags: [],
         updatedAt: new Date().toISOString(),
       });
+      openDocument(newId, paneId);
     } else if (activeType === "Task") {
       addTask({ title: captureText.trim(), completed: false, status: "open", list: "All Tasks" });
     }
@@ -184,10 +203,20 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
   }, [documents]);
 
   // Planner tasks
-  const completedToday = useMemo(
-    () => tasks.filter((t) => !t.isDeleted && (t.completed || t.status === "done") && (!t.completedAt || t.completedAt.startsWith(todayStr))),
-    [tasks, todayStr]
-  );
+  const completedToday = useMemo(() => {
+    return tasks.filter((t) => {
+      if (t.isDeleted || (!t.completed && t.status !== "done")) return false;
+      if (!t.completedAt) return false;
+      try {
+        const date = new Date(t.completedAt);
+        if (isNaN(date.getTime())) return false;
+        const dateStrZoned = formatInTimeZone(date, timezone, 'yyyy-MM-dd');
+        return dateStrZoned === todayStr;
+      } catch (e) {
+        return false;
+      }
+    });
+  }, [tasks, todayStr, timezone]);
   const incompleteTasks = useMemo(
     () => tasks.filter((t) => !t.isDeleted && !t.completed && t.status !== "done" && !isTaskUpcoming(t.startDate || t.createdAt)),
     [tasks]

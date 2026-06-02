@@ -906,7 +906,7 @@ export const NotempleEditor = React.memo(({
     </div>
 
       {document.isDeleted && (
-        <div className="absolute bottom-4 left-4 z-40 bg-red-600 dark:bg-red-700 text-white rounded-md p-3 px-4 shadow-lg flex items-center gap-3 animate-fade-in text-xs font-sans font-medium animate-in slide-in-from-bottom-2">
+        <div className="absolute bottom-4 right-4 z-40 bg-red-600 dark:bg-red-700 text-white rounded-md p-3 px-4 shadow-lg flex items-center gap-3 animate-fade-in text-xs font-sans font-medium animate-in slide-in-from-bottom-2">
           <Trash size={16} weight="fill" className="text-white/90 shrink-0" />
           <span>This note is in the Trash.</span>
           <div className="flex items-center gap-2 border-l border-white/20 pl-3">

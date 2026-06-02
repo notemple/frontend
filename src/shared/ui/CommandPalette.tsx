@@ -351,7 +351,7 @@ export const CommandPalette = () => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-black/15 dark:bg-black/35 backdrop-blur-[2px] z-50 pointer-events-auto"
+            className="fixed inset-0 bg-transparent backdrop-blur-[2px] z-50 pointer-events-auto"
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.97, y: 10 }}

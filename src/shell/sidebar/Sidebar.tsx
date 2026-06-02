@@ -397,7 +397,15 @@ export const Sidebar = () => {
   const activePane = panes.find(p => p?.id === activePaneId);
   const activeDocId = activePane?.activeTabId || null;
 
-  const isDocActive = (docId: string) => activeDocId === docId;
+  // Keyboard navigation cursor — separate from what's actually open in the pane.
+  // Arrow keys move this; Enter commits (opens). Mouse clicks clear it.
+  const [kbFocusId, setKbFocusId] = useState<string | null>(null);
+  const kbFocusIdRef = useRef<string | null>(null);
+  kbFocusIdRef.current = kbFocusId;
+
+  // Highlight follows keyboard cursor when active, otherwise follows open tab
+  const isDocActive = (docId: string) =>
+    kbFocusId !== null ? kbFocusId === docId : activeDocId === docId;
 
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, id: string, type: 'document' | 'folder' } | null>(null);
   const [renamingDocId, setRenamingDocId] = useState<string | null>(null);
@@ -428,10 +436,30 @@ export const Sidebar = () => {
     return () => window.removeEventListener('click', handleClick);
   }, []);
 
-  // Keyboard navigation: ArrowUp / ArrowDown through visible sidebar items
+  const toggleFolderCollapse = (folderId: string) => {
+    setCollapsedFolders(prev => {
+      const next = new Set(prev);
+      if (next.has(folderId)) {
+        next.delete(folderId);
+      } else {
+        next.add(folderId);
+      }
+      return next;
+    });
+  };
+
+  // Keyboard navigation: ArrowUp / ArrowDown / Enter through visible sidebar items
   useEffect(() => {
+    const COLLAPSIBLE_SECTIONS = new Set([
+      'section-favorites',
+      'section-folders',
+      'section-uncategorized',
+    ]);
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+      const isArrow = e.key === 'ArrowUp' || e.key === 'ArrowDown';
+      const isEnter = e.key === 'Enter';
+      if (!isArrow && !isEnter) return;
       if (!isSidebarOpen) return;
 
       // Don't steal keys from inputs, textareas, or the editor
@@ -441,6 +469,32 @@ export const Sidebar = () => {
         target.tagName === 'TEXTAREA' ||
         target.isContentEditable
       ) return;
+
+      // Current keyboard cursor position (falls back to actually-open doc on first use)
+      const { panes: livePanes, activePaneId: liveActivePaneId } = useUiStore.getState();
+      const livePane = livePanes.find(p => p?.id === liveActivePaneId);
+      const currentDocId = kbFocusIdRef.current ?? livePane?.activeTabId ?? null;
+
+      // Enter: open the focused item or toggle collapse
+      if (isEnter) {
+        if (!currentDocId) return;
+        if (COLLAPSIBLE_SECTIONS.has(currentDocId)) {
+          e.preventDefault();
+          toggleFolderCollapse(currentDocId);
+          return;
+        }
+        if (currentDocId.startsWith('section-folder-')) {
+          e.preventDefault();
+          const folderId = currentDocId.replace('section-folder-', '');
+          toggleFolderCollapse(folderId);
+          return;
+        }
+        // Regular item — open it and clear the keyboard cursor
+        e.preventDefault();
+        openDocument(currentDocId);
+        setKbFocusId(null);
+        return;
+      }
 
       e.preventDefault();
 
@@ -453,10 +507,13 @@ export const Sidebar = () => {
         'section-wall',
       ];
 
+      // Always include section headers; only include children when expanded
+      ids.push('section-favorites');
       if (!collapsedFolders.has('section-favorites')) {
         ids.push(...favoriteDocIds);
       }
 
+      ids.push('section-folders');
       if (!collapsedFolders.has('section-folders')) {
         for (const folderId of folderOrder) {
           ids.push(`section-folder-${folderId}`);
@@ -471,16 +528,12 @@ export const Sidebar = () => {
         }
       }
 
+      ids.push('section-uncategorized');
       if (!collapsedFolders.has('section-uncategorized')) {
         ids.push(...uncategorizedDocIds);
       }
 
       ids.push('section-trash', 'section-help', 'section-settings');
-
-      // Get the truly current active doc from the store to avoid stale closure
-      const { panes: livePanes, activePaneId: liveActivePaneId } = useUiStore.getState();
-      const livePane = livePanes.find(p => p?.id === liveActivePaneId);
-      const currentDocId = livePane?.activeTabId || null;
 
       const currentIdx = ids.indexOf(currentDocId || '');
       let nextIdx: number;
@@ -494,12 +547,14 @@ export const Sidebar = () => {
       }
 
       const nextId = ids[nextIdx];
-      if (nextId) openDocument(nextId);
+      if (nextId) setKbFocusId(nextId);
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSidebarOpen, collapsedFolders, favoriteDocIds, folderOrder, uncategorizedDocIds, openDocument]);
+  }, [isSidebarOpen, collapsedFolders, favoriteDocIds, folderOrder, uncategorizedDocIds, openDocument, toggleFolderCollapse]);
+
+
 
 
   // Track folder creation to automatically uncollapse the parent Folders section
@@ -516,6 +571,7 @@ export const Sidebar = () => {
   }, [folderOrder.length]);
 
   const handleDocClick = (id: string) => {
+    setKbFocusId(null); // clear keyboard cursor on mouse click
     openDocument(id);
   };
 
@@ -556,17 +612,7 @@ export const Sidebar = () => {
     setContextMenu({ x: e.clientX, y: e.clientY, id, type });
   };
 
-  const toggleFolderCollapse = (folderId: string) => {
-    setCollapsedFolders(prev => {
-      const next = new Set(prev);
-      if (next.has(folderId)) {
-        next.delete(folderId);
-      } else {
-        next.add(folderId);
-      }
-      return next;
-    });
-  };
+
 
   const handleFavoriteToggle = () => {
     if (!contextMenu || contextMenu.type !== 'document' || !contextMenu.id) return;
@@ -733,10 +779,10 @@ export const Sidebar = () => {
         {/* Favorites Section */}
         <div className="space-y-[2px] group/favorites">
           {isSidebarOpen && (
-            <div className="flex items-center justify-between px-2 py-1 mb-1 group-hover/favorites:bg-transparent">
+            <div className={cn("flex items-center justify-between px-2 py-1 mb-1 rounded-sm transition-colors", isDocActive('section-favorites') ? "bg-muted/40" : "group-hover/favorites:bg-transparent")}>
               <div
                 onClick={() => handleDocClick('section-favorites')}
-                className="text-xs font-semibold text-muted-foreground truncate uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors flex-1"
+                className={cn("text-xs font-semibold truncate uppercase tracking-wider cursor-pointer transition-colors flex-1", isDocActive('section-favorites') ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
               >
                 Favorites
               </div>
@@ -784,10 +830,10 @@ export const Sidebar = () => {
         {/* Folders Section */}
         <div className="space-y-[2px] group/folders">
           {isSidebarOpen && (
-            <div className="flex items-center justify-between px-2 py-1 mb-1 group-hover/folders:bg-transparent">
+            <div className={cn("flex items-center justify-between px-2 py-1 mb-1 rounded-sm transition-colors", isDocActive('section-folders') ? "bg-muted/40" : "group-hover/folders:bg-transparent")}>
               <div
                 onClick={() => handleDocClick('section-folders')}
-                className="text-xs font-semibold text-muted-foreground truncate uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors flex-1"
+                className={cn("text-xs font-semibold truncate uppercase tracking-wider cursor-pointer transition-colors flex-1", isDocActive('section-folders') ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
               >
                 Folders
               </div>
@@ -921,10 +967,10 @@ export const Sidebar = () => {
           }}
         >
           {isSidebarOpen && (
-            <div className="flex items-center justify-between px-2 py-1 mb-1 group-hover/uncategorized:bg-transparent">
+            <div className={cn("flex items-center justify-between px-2 py-1 mb-1 rounded-sm transition-colors", isDocActive('section-uncategorized') ? "bg-muted/40" : "group-hover/uncategorized:bg-transparent")}>
               <div
                 onClick={() => handleDocClick('section-uncategorized')}
-                className="text-xs font-semibold text-muted-foreground truncate uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors flex-1"
+                className={cn("text-xs font-semibold truncate uppercase tracking-wider cursor-pointer transition-colors flex-1", isDocActive('section-uncategorized') ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
               >
                 Uncategorized
               </div>

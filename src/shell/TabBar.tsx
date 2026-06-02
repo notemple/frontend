@@ -276,9 +276,6 @@ export const TabBar = ({ paneId }: { paneId: string }) => {
     }))
   );
 
-  const pane = panes.find(p => p?.id === paneId);
-  if (!pane) return null;
-
   const { 
     activeHighlightType, 
     activeHighlightColor, 
@@ -287,6 +284,8 @@ export const TabBar = ({ paneId }: { paneId: string }) => {
     inactiveHighlightColor,
     inactiveHighlightGradient
   } = useSettingsStore();
+
+  const pane = panes.find(p => p?.id === paneId);
 
   const isCurrentActive = activePaneId === paneId;
 
@@ -316,6 +315,8 @@ export const TabBar = ({ paneId }: { paneId: string }) => {
     })
   );
 
+  if (!pane) return null;
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (active.id !== over?.id && over) {
@@ -337,60 +338,64 @@ export const TabBar = ({ paneId }: { paneId: string }) => {
   };
 
   return (
-    <div
-      className={cn(
-        "flex items-center h-10 border-b border-border bg-background overflow-x-auto overflow-y-hidden select-none justify-between relative",
-        activePaneId === paneId ? "opacity-100" : "opacity-70 grayscale hover:grayscale-0"
-      )}
-      onClick={() => setActivePane(paneId)}
-    >
-      <div className="flex items-center overflow-x-auto overflow-y-hidden flex-1 no-scrollbar h-full">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={pane.tabs}
-            strategy={horizontalListSortingStrategy}
+    <div className="relative">
+      <div
+        className={cn(
+          "flex items-center h-10 border-b border-border bg-background overflow-x-auto overflow-y-hidden select-none justify-between relative",
+          activePaneId === paneId ? "opacity-100" : "opacity-70 grayscale hover:grayscale-0"
+        )}
+        onClick={() => setActivePane(paneId)}
+      >
+        <div className="flex items-center overflow-x-auto overflow-y-hidden flex-1 no-scrollbar h-full">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
           >
-            {pane.tabs.map(tabId => {
-              const isActive = pane.activeTabId === tabId;
-              return (
-                <SortableTab
-                  key={tabId}
-                  tabId={tabId}
-                  paneId={paneId}
-                  isActive={isActive}
-                />
-              );
-            })}
-          </SortableContext>
-        </DndContext>
+            <SortableContext
+              items={pane.tabs}
+              strategy={horizontalListSortingStrategy}
+            >
+              {pane.tabs.map(tabId => {
+                const isActive = pane.activeTabId === tabId;
+                return (
+                  <SortableTab
+                    key={tabId}
+                    tabId={tabId}
+                    paneId={paneId}
+                    isActive={isActive}
+                  />
+                );
+              })}
+            </SortableContext>
+          </DndContext>
+        </div>
+
+        {panes.length > 1 && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              removePane(paneId);
+            }}
+            className="shrink-0 p-1.5 mr-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded transition-all flex items-center justify-center cursor-pointer"
+            title="Close this pane"
+          >
+            <X size={14} />
+          </button>
+        )}
       </div>
 
-      {panes.length > 1 && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            removePane(paneId);
-          }}
-          className="shrink-0 p-1.5 mr-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded transition-all flex items-center justify-center cursor-pointer"
-          title="Close this pane"
-        >
-          <X size={14} />
-        </button>
-      )}
-
+      {/* Highlight bar rendered OUTSIDE the grayscale-filtered wrapper so its colour is never desaturated */}
       {highlightStyle && (
-        <div 
+        <div
           style={highlightStyle}
-          className="absolute bottom-0 left-0 right-0 h-[2px] z-10 pointer-events-none" 
+          className="absolute bottom-0 left-0 right-0 h-[2px] z-10 pointer-events-none"
         />
       )}
     </div>
   );
 };
+
 
 function getIcon(type: string, emoji?: string) {
   if (emoji) {

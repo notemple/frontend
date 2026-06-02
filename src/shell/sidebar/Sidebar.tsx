@@ -428,6 +428,80 @@ export const Sidebar = () => {
     return () => window.removeEventListener('click', handleClick);
   }, []);
 
+  // Keyboard navigation: ArrowUp / ArrowDown through visible sidebar items
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+      if (!isSidebarOpen) return;
+
+      // Don't steal keys from inputs, textareas, or the editor
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable
+      ) return;
+
+      e.preventDefault();
+
+      // Build a flat ordered list of all currently-visible navigable IDs
+      const ids: string[] = [
+        'section-daily-notes',
+        'section-tasks',
+        'section-tags',
+        'section-glance',
+        'section-wall',
+      ];
+
+      if (!collapsedFolders.has('section-favorites')) {
+        ids.push(...favoriteDocIds);
+      }
+
+      if (!collapsedFolders.has('section-folders')) {
+        for (const folderId of folderOrder) {
+          ids.push(`section-folder-${folderId}`);
+          if (!collapsedFolders.has(folderId)) {
+            const { documents: docs, documentOrder: order } = useDocumentStore.getState();
+            const folderDocs = order.filter(id => {
+              const doc = docs[id];
+              return doc && doc.folderId === folderId && !doc.isDeleted;
+            });
+            ids.push(...folderDocs);
+          }
+        }
+      }
+
+      if (!collapsedFolders.has('section-uncategorized')) {
+        ids.push(...uncategorizedDocIds);
+      }
+
+      ids.push('section-trash', 'section-help', 'section-settings');
+
+      // Get the truly current active doc from the store to avoid stale closure
+      const { panes: livePanes, activePaneId: liveActivePaneId } = useUiStore.getState();
+      const livePane = livePanes.find(p => p?.id === liveActivePaneId);
+      const currentDocId = livePane?.activeTabId || null;
+
+      const currentIdx = ids.indexOf(currentDocId || '');
+      let nextIdx: number;
+
+      if (currentIdx === -1) {
+        nextIdx = e.key === 'ArrowDown' ? 0 : ids.length - 1;
+      } else if (e.key === 'ArrowDown') {
+        nextIdx = Math.min(currentIdx + 1, ids.length - 1);
+      } else {
+        nextIdx = Math.max(currentIdx - 1, 0);
+      }
+
+      const nextId = ids[nextIdx];
+      if (nextId) openDocument(nextId);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSidebarOpen, collapsedFolders, favoriteDocIds, folderOrder, uncategorizedDocIds, openDocument]);
+
+
   // Track folder creation to automatically uncollapse the parent Folders section
   const prevFolderCountRef = useRef(folderOrder.length);
   useEffect(() => {

@@ -3,6 +3,22 @@ import { documentService } from '@/services/document.service';
 import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
 import type { NoteDocument, Folder } from '@/storage/core/types';
 export type { NoteDocument, Folder } from '@/storage/core/types';
+import { toDate, formatInTimeZone } from 'date-fns-tz';
+import { useSettingsStore } from '@/features/settings/store';
+
+export function getDailyNoteTitle(docId: string, timezone: string): string {
+  const dateStr = docId.replace('daily-note-', '');
+  try {
+    const date = toDate(`${dateStr}T00:00:00`, { timeZone: timezone });
+    if (isNaN(date.getTime())) {
+      return dateStr;
+    }
+    return formatInTimeZone(date, timezone, 'MMMM d, yyyy');
+  } catch (e) {
+    return dateStr;
+  }
+}
+
 
 interface DocumentStore {
   documents: Record<string, NoteDocument>;
@@ -70,7 +86,11 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       const folderColors = await documentService.getMetadata<Record<string, string>>("folderColors") || {};
 
       const documents: Record<string, NoteDocument> = {};
+      const { timezone } = useSettingsStore.getState();
       docs.forEach(d => {
+        if (d.id.startsWith('daily-note-')) {
+          d.title = getDailyNoteTitle(d.id, timezone);
+        }
         documents[d.id] = d;
       });
 
@@ -108,8 +128,14 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
 
   addDocument: async (doc) => {
     const isUpdating = !!get().documents[doc.id];
+    let finalTitle = doc.title;
+    if (doc.id.startsWith('daily-note-')) {
+      const { timezone } = useSettingsStore.getState();
+      finalTitle = getDailyNoteTitle(doc.id, timezone);
+    }
     const docWithMetadata = {
       ...doc,
+      title: finalTitle,
       createdAt: doc.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       author: doc.author || 'new user',
@@ -133,10 +159,18 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
     let newDoc: NoteDocument;
     let newOrder = get().documentOrder;
 
+    let finalTitle = updates.title;
+    if (id.startsWith('daily-note-')) {
+      const { timezone } = useSettingsStore.getState();
+      finalTitle = getDailyNoteTitle(id, timezone);
+    } else if (existing) {
+      finalTitle = updates.title !== undefined ? updates.title : existing.title;
+    }
+
     if (!existing) {
       newDoc = {
         id,
-        title: updates.title || '',
+        title: finalTitle || '',
         content: updates.content || '',
         tags: updates.tags || [],
         type: updates.type || 'page',
@@ -150,6 +184,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       newDoc = {
         ...existing,
         ...updates,
+        title: finalTitle,
         updatedAt: new Date().toISOString()
       };
     }

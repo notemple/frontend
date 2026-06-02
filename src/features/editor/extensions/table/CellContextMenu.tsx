@@ -15,9 +15,10 @@ import {
   ListBullets,
   CheckSquareOffset,
   PaintBrush,
-  Eraser
+  Eraser,
+  ArrowsOutSimple
 } from '@phosphor-icons/react';
-import { sortTableColumn, resetColumnSizes, clearSelectedCells } from './table-utils';
+import { sortTableColumn, resetColumnSizes, clearSelectedCells, toggleTableWidth } from './table-utils';
 
 interface CellContextMenuProps {
   editor: Editor;
@@ -233,6 +234,16 @@ export const CellContextMenu: React.FC<CellContextMenuProps> = ({
           <RadixContextMenu.Separator className="table-dark-menu-separator" />
 
           {/* Sizes & Reset */}
+          <RadixContextMenu.Item 
+            className="table-dark-menu-item"
+            onClick={() => toggleTableWidth(editor)}
+          >
+            <div className="flex items-center gap-2">
+              <ArrowsOutSimple size={14} />
+              <span>Toggle Full Width</span>
+            </div>
+          </RadixContextMenu.Item>
+          
           <RadixContextMenu.Item 
             className="table-dark-menu-item"
             onClick={handleResetSizes}

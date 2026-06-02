@@ -3,7 +3,8 @@
 .tiptap-table-wrapper {
   position: relative;
   margin: 1.5rem 0;
-  max-width: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
   overflow-x: auto;
   border-radius: 6px;
   scrollbar-width: thin;
@@ -25,6 +26,7 @@
   background: var(--muted-foreground);
 }
 
+.tiptap-table,
 .tiptap table {
   border-collapse: collapse;
   table-layout: fixed;
@@ -92,6 +94,7 @@ html.dark .tiptap table .selectedCell {
 .table-view-container {
   position: relative;
   width: 100%;
+  max-width: 100%;
 }
 
 /* Row and column select triggers */
@@ -197,3 +200,35 @@ html.dark .tiptap table .selectedCell {
 html.dark .formula-cell {
   background: rgba(189, 224, 254, 0.08);
 }
+
+/* ── Full Width Table Styling ─────────────────────────────────────────────── */
+.table-view-container.full-width-table {
+  width: calc(100% + 5rem) !important;
+  max-width: calc(100% + 5rem) !important;
+  margin-left: -2.5rem !important;
+  margin-right: -2.5rem !important;
+}
+
+@media (min-width: 640px) {
+  .table-view-container.full-width-table {
+    width: calc(100% + 7rem) !important;
+    max-width: calc(100% + 7rem) !important;
+    margin-left: -3.5rem !important;
+    margin-right: -3.5rem !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .table-view-container.full-width-table {
+    width: calc(100% + 9rem) !important;
+    max-width: calc(100% + 9rem) !important;
+    margin-left: -4.5rem !important;
+    margin-right: -4.5rem !important;
+  }
+}
+
+.table-view-container.full-width-table table,
+.table-view-container.full-width-table .tiptap-table {
+  width: 100% !important;
+}
+

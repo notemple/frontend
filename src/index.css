@@ -656,6 +656,8 @@ html.light .notemple-column:focus-within {
   min-height: 420px;
   cursor: text;
   outline: none;
+  width: 100%;
+  max-width: 100%;
 }
 
 

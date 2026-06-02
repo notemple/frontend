@@ -86,6 +86,20 @@ export const getSuggestionItems = ({ query, editor }: { query: string; editor?: 
     { title: 'Icon', icon: <Smiley size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
     { title: 'Code', icon: <CodeBlock size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleCodeBlock().run() },
     { title: 'Table', icon: <Table size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 4, withHeaderRow: true }).run() },
+    { 
+      title: 'Full-width table', 
+      icon: <Table size={16} />, 
+      group: 'Create a block', 
+      command: ({ editor, range }) => {
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .insertTable({ rows: 3, cols: 4, withHeaderRow: true })
+          .updateAttributes('table', { widthType: 'full-width' })
+          .run();
+      }
+    },
     { title: '2 Columns layout', icon: <ColumnsIcon size={16} />, group: 'Create a block', command: ({ editor, range }) => (editor.chain() as any).focus().deleteRange(range).insertColumns(2).run() },
     { title: '3 Columns layout', icon: <ColumnsIcon size={16} />, group: 'Create a block', command: ({ editor, range }) => (editor.chain() as any).focus().deleteRange(range).insertColumns(3).run() },
     

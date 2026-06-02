@@ -10,8 +10,11 @@ import {
   Plus,
   DotsThree,
   Copy,
-  Trash
+  Trash,
+  ArrowsOutSimple
 } from '@phosphor-icons/react';
+import { cn } from '@/shared/lib/utils';
+import { toggleTableWidth } from './table-utils';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import * as ContextMenu from '@radix-ui/react-context-menu';
 
@@ -137,7 +140,11 @@ export const TableView: React.FC<NodeViewProps> = ({
             setHoveredColumn(null);
             setHoveredRow(null);
           }}
-          className="table-view-container relative select-none w-full my-6 font-sans group/table"
+          className={cn(
+            "table-view-container relative select-none w-full my-6 font-sans group/table",
+            node.attrs.widthType === 'full-width' && "full-width-table"
+          )}
+          data-width-type={node.attrs.widthType || 'normal'}
         >
           {/* Hover Option Dropdown Trigger button - three-dot menu like todo lists */}
           <div className="opacity-0 group-hover/table:opacity-100 absolute right-3 top-3 transition-all duration-150 shrink-0 z-30 pointer-events-auto">
@@ -160,6 +167,15 @@ export const TableView: React.FC<NodeViewProps> = ({
                     <div className="flex items-center gap-2">
                       <Copy size={14} />
                       <span>Duplicate block</span>
+                    </div>
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item 
+                    className="table-dark-menu-item"
+                    onClick={() => toggleTableWidth(editor)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <ArrowsOutSimple size={14} />
+                      <span>Toggle Full Width</span>
                     </div>
                   </DropdownMenu.Item>
                   <DropdownMenu.Separator className="table-dark-menu-separator" />

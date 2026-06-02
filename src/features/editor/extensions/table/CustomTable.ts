@@ -20,6 +20,22 @@ export const CustomTable = TiptapTable.extend({
     return ReactNodeViewRenderer(TableView);
   },
 
+  // Configure custom attributes
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      widthType: {
+        default: 'normal',
+        parseHTML: element => element.getAttribute('data-width-type') || 'normal',
+        renderHTML: attributes => {
+          return {
+            'data-width-type': attributes.widthType,
+          };
+        },
+      },
+    };
+  },
+
   // Attach spreadsheet keyboard shortcuts automatically
   addExtensions() {
     return [

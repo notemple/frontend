@@ -17,9 +17,10 @@ import {
   Trash, 
   Layout, 
   PaintBrush,
-  Palette
+  Palette,
+  ArrowsOutSimple
 } from '@phosphor-icons/react';
-import { setCellBgColor } from './table-utils';
+import { setCellBgColor, toggleTableWidth } from './table-utils';
 import { cn } from '@/shared/lib/utils';
 
 interface FloatingToolbarProps {
@@ -183,6 +184,14 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({ editor }) => {
         title="Merge/Split cells"
       >
         <Layout size={14} />
+      </button>
+
+      <button
+        onClick={() => toggleTableWidth(editor)}
+        className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+        title="Toggle Full Width"
+      >
+        <ArrowsOutSimple size={14} />
       </button>
 
       {/* Background Color Picker */}

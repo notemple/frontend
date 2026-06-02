@@ -177,3 +177,30 @@ export interface TableMetadata {
     formulaExpression?: string;
   }>;
 }
+
+/**
+ * Toggle the width of the table between 'normal' and 'full-width'
+ */
+export const toggleTableWidth = (editor: Editor) => {
+  const { state } = editor.view;
+  const { selection } = state;
+  
+  // Find table node around selection
+  let tablePos = -1;
+  let tableNode: any = null;
+  
+  state.doc.nodesBetween(selection.from, selection.to, (node, pos) => {
+    if (node.type.name === 'table') {
+      tablePos = pos;
+      tableNode = node;
+      return false;
+    }
+  });
+
+  if (tablePos === -1 || !tableNode) return;
+
+  const currentWidthType = tableNode.attrs.widthType || 'normal';
+  const nextWidthType = currentWidthType === 'full-width' ? 'normal' : 'full-width';
+
+  editor.chain().focus().updateAttributes('table', { widthType: nextWidthType }).run();
+};

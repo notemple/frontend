@@ -28,7 +28,7 @@ import { DocumentPreviewPopup } from './components/DocumentPreviewPopup';
 import { ColumnsExtension } from './extensions/ColumnsExtension';
 import { ColumnExtension } from './extensions/ColumnExtension';
 import { SlashCommand, getSuggestionItems, renderItems } from './components/SlashCommand';
-import { useDocumentStore, type NoteDocument } from '@/features/documents/store';
+import { useDocumentStore, type NoteDocument, getDailyNoteTitle } from '@/features/documents/store';
 import { useUiStore } from '@/shared/store/uiStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Tag, TextB, TextItalic, TextStrikethrough, TextAUnderline, Code, ArrowsInSimple, Sparkle, FileText, Smiley, CaretUp, CaretDown, Trash } from '@phosphor-icons/react';
@@ -135,9 +135,13 @@ export const NotempleEditor = React.memo(({
     (state: any) => {
       const d = state.documents[documentId];
       if (!d) {
+        let fallbackTitle = '';
+        if (documentId.startsWith('daily-note-')) {
+          fallbackTitle = getDailyNoteTitle(documentId, timezone);
+        }
         return {
           id: documentId,
-          title: '',
+          title: fallbackTitle,
           content: '',
           type: 'page',
           updatedAt: '',
@@ -146,7 +150,7 @@ export const NotempleEditor = React.memo(({
       }
       return d;
     },
-    [documentId]
+    [documentId, timezone]
   );
   const document = useDocumentStore(useShallow(documentSelector));
   const isInitialized = useDocumentStore(state => state.isInitialized);
@@ -342,7 +346,7 @@ export const NotempleEditor = React.memo(({
     editorProps: {
       attributes: {
         class: cn(
-          'prose prose-sm sm:prose lg:prose-lg focus:outline-none w-full max-w-none',
+          'prose prose-sm sm:prose lg:prose-lg focus:outline-none w-full max-w-full',
           (localStyle.backdropColor || localStyle.textColor || localStyle.documentColor || localStyle.topSectionColor)
             ? ''
             : 'text-foreground prose-headings:text-foreground hover:prose-a:text-foreground prose-a:text-muted-foreground prose-strong:text-foreground prose-code:text-foreground prose-ol:text-foreground prose-ul:text-foreground prose-p:text-foreground/95'
@@ -445,7 +449,7 @@ export const NotempleEditor = React.memo(({
         editorProps: {
           attributes: {
             class: cn(
-              'prose prose-sm sm:prose lg:prose-lg focus:outline-none w-full max-w-none',
+              'prose prose-sm sm:prose lg:prose-lg focus:outline-none w-full max-w-full',
               hasStyle
                 ? ''
                 : 'text-foreground prose-headings:text-foreground hover:prose-a:text-foreground prose-a:text-muted-foreground prose-strong:text-foreground prose-code:text-foreground prose-ol:text-foreground prose-ul:text-foreground prose-p:text-foreground/95'
@@ -531,8 +535,18 @@ export const NotempleEditor = React.memo(({
         className={cn(
           "w-full mx-auto font-content flex flex-col shrink-0 z-10",
           hasCustomStyle
-            ? "max-w-full px-6 sm:px-8 md:px-10 py-5 sm:py-8 md:py-10 rounded-sm-sm shadow-sm-none relative border border-border min-h-[500px] md:min-h-[calc(100vh-160px)] overflow-hidden"
-            : cn("max-w-[1400px] h-full", isMinimized ? "py-6 px-8" : "py-10 px-6")
+            ? cn(
+                "max-w-full px-6 sm:px-8 md:px-10 py-5 sm:py-8 md:py-10 rounded-sm-sm shadow-sm-none relative border border-border min-w-0",
+                isMinimized 
+                  ? "min-h-full" 
+                  : "min-h-[500px] md:min-h-[calc(100vh-160px)] overflow-hidden"
+              )
+            : cn(
+                "max-w-[1400px] min-w-0", 
+                isMinimized 
+                  ? "py-6 px-8 min-h-full" 
+                  : "h-full overflow-hidden py-10 px-6"
+              )
         )}
         style={{
           background: localStyle.documentColor || (hasCustomStyle ? '#faf8f5' : 'transparent'),
@@ -654,10 +668,11 @@ export const NotempleEditor = React.memo(({
                 value={title}
                 onChange={handleTitleChange}
                 placeholder="Untitled Document"
-                className="text-5xl w-full font-medium font-content tracking-tight outline-none border-none bg-transparent placeholder:placeholder-opacity-20 flex-1"
+                className="text-5xl w-full font-medium font-content tracking-tight outline-none border-none bg-transparent placeholder:placeholder-opacity-20 flex-1 disabled:opacity-90 disabled:cursor-not-allowed"
                 style={{
                   color: document.topSectionTextColor || activeTextColor,
                 }}
+                disabled={documentId.startsWith('daily-note-')}
               />
             )}
           </div>
@@ -771,7 +786,7 @@ export const NotempleEditor = React.memo(({
         <EditorDndContext editor={editor!}>
         <div
           className={cn(
-            "flex-1 notemple-editor-wrapper font-content text-lg relative flex flex-col cursor-text",
+            "flex-1 notemple-editor-wrapper font-content text-lg relative flex flex-col cursor-text w-full max-w-full min-w-0",
             isMinimized ? "px-8" : (hasCustomStyle ? "px-4 sm:px-6 md:px-8" : "px-4")
           )}
           style={{

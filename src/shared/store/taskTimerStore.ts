@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { useSettingsStore } from '@/features/settings/store';
 import { formatInTimeZone } from 'date-fns-tz';
+import { useTaskStore } from '@/features/tasks/store';
 
 export interface TaskTimer {
   taskId: string;
@@ -56,6 +57,12 @@ export const useTaskTimerStore = create<TaskTimerState>((set, get) => {
     timers: initialTimers,
 
     startTimer: (taskId) => {
+      // Check if the task is completed/done
+      const task = useTaskStore.getState().tasks.find(t => t.id === taskId);
+      if (task && (task.status === 'done' || task.completed)) {
+        return; // Can't start timer on a done task
+      }
+
       set((state) => {
         const { timezone } = useSettingsStore.getState();
         const todayStr = formatInTimeZone(new Date(), timezone, 'yyyy-MM-dd');
@@ -74,6 +81,10 @@ export const useTaskTimerStore = create<TaskTimerState>((set, get) => {
           }
         };
         saveToStorage(updatedTimers);
+
+        // Automatically make the task's status 'in progress'
+        useTaskStore.getState().updateTask(taskId, { status: 'in progress' });
+
         return { timers: updatedTimers };
       });
     },
@@ -107,6 +118,10 @@ export const useTaskTimerStore = create<TaskTimerState>((set, get) => {
           }
         };
         saveToStorage(updatedTimers);
+
+        // Automatically change the status back to 'open'
+        useTaskStore.getState().updateTask(taskId, { status: 'open' });
+
         return { timers: updatedTimers };
       });
     },
@@ -146,3 +161,34 @@ export const useTaskTimerStore = create<TaskTimerState>((set, get) => {
     }
   };
 });
+
+// Subscribe to task store updates to pause timers when tasks are completed/done
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    useTaskStore.subscribe((state) => {
+      const timerState = useTaskTimerStore.getState();
+      const currentTimers = timerState.timers;
+      let changed = false;
+      const updatedTimers = { ...currentTimers };
+
+      Object.keys(updatedTimers).forEach(taskId => {
+        const timer = updatedTimers[taskId];
+        if (timer.isRunning) {
+          const task = state.tasks.find(t => t.id === taskId);
+          if (task && (task.status === 'done' || task.completed)) {
+            updatedTimers[taskId] = {
+              ...timer,
+              isRunning: false
+            };
+            changed = true;
+          }
+        }
+      });
+
+      if (changed) {
+        useTaskTimerStore.setState({ timers: updatedTimers });
+        localStorage.setItem('notemple-task-timers-state', JSON.stringify(updatedTimers));
+      }
+    });
+  }, 100);
+}

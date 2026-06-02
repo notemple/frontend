@@ -333,8 +333,9 @@ export const CustomTodoItemView: React.FC<NodeViewProps> = ({
                     ) : (
                       <button
                         onClick={(e) => { e.stopPropagation(); startTimer(taskId); }}
-                        className="p-0.5 rounded bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20 transition-all flex items-center justify-center shrink-0 cursor-pointer"
-                        title="Start stopwatch"
+                        disabled={task ? (task.status === 'done' || task.completed) : checked}
+                        className="p-0.5 rounded bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0"
+                        title={task ? (task.status === 'done' || task.completed) ? "Open task to start timer" : "Start stopwatch" : checked ? "Open task to start timer" : "Start stopwatch"}
                       >
                         <Play size={10} weight="fill" />
                       </button>

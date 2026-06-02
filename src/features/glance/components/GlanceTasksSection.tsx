@@ -118,7 +118,7 @@ export const GlanceTasksSection = () => {
                       e.stopPropagation();
                       updateTask(task.id, { completed: false });
                     }}
-                    className="w-4 h-4 rounded border flex items-center justify-center shrink-0 cursor-pointer bg-purple-500 border-purple-500 text-white"
+                    className="w-4 h-4 rounded border flex items-center justify-center shrink-0 cursor-pointer bg-emerald-500 border-emerald-500 text-white"
                   >
                     <Check size={10} weight="bold" />
                   </div>

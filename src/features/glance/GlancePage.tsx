@@ -208,7 +208,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
       <div className="w-96 flex-shrink-0 border-r border-border/50 flex flex-col gap-0 overflow-hidden">
 
         {/* Bar Graph — 24h timeline */}
-        <div className="flex-1 min-h-0 flex flex-col overflow-hidden p-5">
+        <div className="h-[280px] flex-shrink-0 flex flex-col overflow-hidden p-5">
           <div className="flex items-center justify-between mb-3 shrink-0">
             <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">
               Focus Time Today
@@ -304,7 +304,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
         <div className="h-px bg-border/40 shrink-0 mx-5" />
 
         {/* Recent Documents */}
-        <div className="flex-shrink-0 p-5 flex flex-col gap-2">
+        <div className="flex-1 min-h-0 p-5 flex flex-col gap-2 overflow-hidden">
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">
               Continue where you left
@@ -320,7 +320,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
           {recentDocs.length === 0 ? (
             <div className="text-xs text-muted-foreground/50 italic py-3 text-center">No documents yet.</div>
           ) : (
-            <div className="flex flex-col gap-1.5">
+            <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-1.5 pr-1">
               {recentDocs.map((doc: any) => {
                 const style = getColorStyle(doc.cardColor);
                 return (
@@ -345,13 +345,63 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
             </div>
           )}
         </div>
+
+        {/* Recent Captures */}
+        {captures.length > 0 && (
+          <>
+            {/* Divider */}
+            <div className="h-px bg-border/40 shrink-0 mx-5" />
+
+            <div className="flex-1 min-h-0 p-5 flex flex-col gap-2 overflow-hidden">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">
+                  Recent Captures
+                </h2>
+                <button
+                  onClick={() => openDocument("section-daily-notes", paneId)}
+                  className="text-[10px] font-semibold text-purple-500 hover:text-purple-600 transition-colors cursor-pointer"
+                >
+                  View Inbox →
+                </button>
+              </div>
+              <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-1.5 pr-1">
+                {captures.slice(0, 5).map((c) => (
+                  <div
+                    key={c.id}
+                    className="flex items-center justify-between px-3 py-2.5 rounded border border-border/50 bg-muted/10 hover:bg-muted/20 transition-all group cursor-pointer"
+                    onClick={() => {}}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="shrink-0">{getCaptureIcon(c.type)}</span>
+                      <span className="text-xs font-medium text-foreground/90 truncate">{c.content}</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 ml-3">
+                      <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-border/50 bg-muted/40 text-muted-foreground group-hover:hidden">
+                        {c.type}
+                      </span>
+                      <span className="text-[9px] text-muted-foreground/60 font-mono group-hover:hidden">
+                        {getRelativeTimeString(c.createdAt)}
+                      </span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); removeCapture(c.id); }}
+                        className="hidden group-hover:flex p-1 rounded hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground transition-colors cursor-pointer"
+                      >
+                        <Trash size={12} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* ── CENTER COLUMN: Greeting + Quick Capture + Recent Captures ─────── */}
-      <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-10 gap-6 overflow-y-auto no-scrollbar">
+      {/* ── CENTER COLUMN: Greeting + Quick Capture ─────── */}
+      <div className="relative flex-1 min-h-0 flex flex-col items-center justify-center px-10 overflow-y-auto no-scrollbar">
 
         {/* Greeting */}
-        <div className="text-center shrink-0">
+        <div className="absolute top-16 text-center shrink-0">
           <h1 className="text-3xl font-bold tracking-tight text-foreground/90">
             {greeting.text}{userName ? `, ${userName}` : ""} {greeting.emoji}
           </h1>
@@ -361,7 +411,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
         </div>
 
         {/* Quick Capture Box */}
-        <div className="w-full max-w-2xl bg-muted/10 border border-border/60 rounded-lg p-4 flex flex-col gap-3 shadow-sm focus-within:border-border/90 focus-within:shadow-md transition-all shrink-0">
+        <div className="w-full max-w-3xl bg-muted/10 border border-border/60 rounded-lg p-4 flex flex-col gap-3 shadow-sm focus-within:border-border/90 focus-within:shadow-md transition-all shrink-0">
           <textarea
             value={captureText}
             onChange={(e) => setCaptureText(e.target.value)}
@@ -410,51 +460,6 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
             </div>
           </div>
         </div>
-
-        {/* Recent Captures */}
-        {captures.length > 0 && (
-          <div className="w-full max-w-2xl shrink-0">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">
-                Recent Captures
-              </h2>
-              <button
-                onClick={() => openDocument("section-daily-notes", paneId)}
-                className="text-[10px] font-semibold text-purple-500 hover:text-purple-600 transition-colors cursor-pointer"
-              >
-                View Inbox →
-              </button>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              {captures.slice(0, 5).map((c) => (
-                <div
-                  key={c.id}
-                  className="flex items-center justify-between px-3 py-2.5 rounded border border-border/50 bg-muted/10 hover:bg-muted/20 transition-all group cursor-pointer"
-                  onClick={() => {}}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="shrink-0">{getCaptureIcon(c.type)}</span>
-                    <span className="text-xs font-medium text-foreground/90 truncate">{c.content}</span>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0 ml-3">
-                    <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-border/50 bg-muted/40 text-muted-foreground group-hover:hidden">
-                      {c.type}
-                    </span>
-                    <span className="text-[9px] text-muted-foreground/60 font-mono group-hover:hidden">
-                      {getRelativeTimeString(c.createdAt)}
-                    </span>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); removeCapture(c.id); }}
-                      className="hidden group-hover:flex p-1 rounded hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground transition-colors cursor-pointer"
-                    >
-                      <Trash size={12} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* ── RIGHT COLUMN: Completed + Incomplete + Upcoming Tasks ───────── */}

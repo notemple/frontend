@@ -174,12 +174,8 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
       .sort((a, b) => (timers[b.id]?.seconds ?? 0) - (timers[a.id]?.seconds ?? 0));
   }, [tasks, timers]);
 
-  const maxSeconds = useMemo(
-    () => Math.max(...timedTasks.map((t) => timers[t.id]?.seconds ?? 0), 1),
-    [timedTasks, timers]
-  );
-
   // Recent documents
+
   const recentDocs = useMemo(() => {
     return Object.values(documents)
       .filter((d: any) => d && !d.isDeleted && !d.id.startsWith("task-"))
@@ -209,68 +205,97 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
     <div className="h-full w-full flex gap-0 overflow-hidden bg-background font-sans text-foreground select-none">
 
       {/* ── LEFT COLUMN: Time Bar Graph + Recent Docs ─────────────────────── */}
-      <div className="w-72 flex-shrink-0 border-r border-border/50 flex flex-col gap-0 overflow-hidden">
+      <div className="w-96 flex-shrink-0 border-r border-border/50 flex flex-col gap-0 overflow-hidden">
 
-        {/* Bar Graph */}
+        {/* Bar Graph — 24h timeline */}
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden p-5">
-          <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70 mb-3 shrink-0">
-            Focus Time Today
-          </h2>
+          <div className="flex items-center justify-between mb-3 shrink-0">
+            <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">
+              Focus Time Today
+            </h2>
+            <span className="text-[10px] font-semibold text-muted-foreground/50 bg-muted/40 border border-border/40 px-2 py-0.5 rounded">
+              24h scale
+            </span>
+          </div>
 
           {timedTasks.length === 0 ? (
             <div className="flex-1 flex items-center justify-center text-xs text-muted-foreground/50 italic text-center px-4">
               Start a timer on a task to see focus time here.
             </div>
           ) : (
-            <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-2 pr-1">
-              {timedTasks.map((task) => {
-                const secs    = timers[task.id]?.seconds ?? 0;
-                const pct     = Math.min((secs / maxSeconds) * 100, 100);
-                const running = timers[task.id]?.isRunning;
-                return (
-                  <div
-                    key={task.id}
-                    onClick={() => openTaskEditor(task.id)}
-                    className="relative h-9 rounded-sm overflow-hidden border border-border/40 bg-muted/20 cursor-pointer group shrink-0"
-                  >
-                    {/* Fill bar */}
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${pct}%` }}
-                      transition={{ duration: 0.7, ease: "easeOut" }}
-                      className={cn(
-                        "absolute inset-y-0 left-0",
-                        running
-                          ? "bg-gradient-to-r from-emerald-500 to-emerald-400"
-                          : task.completed
-                          ? "bg-gradient-to-r from-purple-500/50 to-purple-400/40"
-                          : "bg-gradient-to-r from-purple-600 to-purple-500"
-                      )}
-                    />
-                    {/* Label */}
-                    <div className="absolute inset-0 flex items-center px-3 gap-2">
-                      {running && (
-                        <span className="relative flex h-1.5 w-1.5 shrink-0">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75" />
-                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
+            <div className="flex-1 min-h-0 flex flex-col min-w-0">
+              {/* Scrollable bars */}
+              <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-2 pr-1 pb-1">
+                {timedTasks.map((task) => {
+                  const secs    = timers[task.id]?.seconds ?? 0;
+                  const pct     = Math.min((secs / 86400) * 100, 100);
+                  const running = timers[task.id]?.isRunning;
+                  return (
+                    <div
+                      key={task.id}
+                      onClick={() => openTaskEditor(task.id)}
+                      className="relative h-9 rounded-sm overflow-hidden border border-border/40 bg-muted/20 cursor-pointer group shrink-0"
+                    >
+                      {/* 24h tick lines */}
+                      {[4, 8, 12, 16, 20].map((h) => (
+                        <div
+                          key={h}
+                          className="absolute top-0 bottom-0 w-px bg-border/25 pointer-events-none"
+                          style={{ left: `${(h / 24) * 100}%` }}
+                        />
+                      ))}
+                      {/* Fill bar */}
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct}%` }}
+                        transition={{ duration: 0.7, ease: "easeOut" }}
+                        className={cn(
+                          "absolute inset-y-0 left-0",
+                          running
+                            ? "bg-gradient-to-r from-emerald-500 to-emerald-400"
+                            : task.completed
+                            ? "bg-gradient-to-r from-purple-500/50 to-purple-400/40"
+                            : "bg-gradient-to-r from-purple-600 to-purple-500"
+                        )}
+                      />
+                      {/* Label */}
+                      <div className="absolute inset-0 flex items-center px-3 gap-2 z-10">
+                        {running && (
+                          <span className="relative flex h-1.5 w-1.5 shrink-0">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
+                          </span>
+                        )}
+                        <span className={cn(
+                          "text-[11px] font-semibold truncate flex-1 leading-none",
+                          pct > 30 ? "text-white drop-shadow-sm" : "text-foreground/80"
+                        )}>
+                          {task.title || "Untitled Task"}
                         </span>
-                      )}
-                      <span className={cn(
-                        "text-[11px] font-semibold truncate flex-1 leading-none",
-                        pct > 30 ? "text-white drop-shadow-sm" : "text-foreground/80"
-                      )}>
-                        {task.title || "Untitled Task"}
-                      </span>
-                      <span className={cn(
-                        "text-[10px] font-mono font-bold shrink-0",
-                        pct > 30 ? "text-white/80" : "text-muted-foreground/70"
-                      )}>
-                        {formatSeconds(secs)}
-                      </span>
+                        <span className={cn(
+                          "text-[10px] font-mono font-bold shrink-0",
+                          pct > 30 ? "text-white/80" : "text-muted-foreground/70"
+                        )}>
+                          {formatSeconds(secs)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+
+              {/* Hour ruler */}
+              <div className="relative h-4 shrink-0 mt-1 pr-1">
+                {[0, 4, 8, 12, 16, 20, 24].map((h) => (
+                  <span
+                    key={h}
+                    className="absolute text-[8px] font-bold text-muted-foreground/40 -translate-x-1/2"
+                    style={{ left: `${(h / 24) * 100}%` }}
+                  >
+                    {h}h
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -282,7 +307,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
         <div className="flex-shrink-0 p-5 flex flex-col gap-2">
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">
-              Recent Documents
+              Continue where you left
             </h2>
             <button
               onClick={() => openDocument("section-folders", paneId)}
@@ -336,7 +361,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
         </div>
 
         {/* Quick Capture Box */}
-        <div className="w-full max-w-xl bg-muted/10 border border-border/60 rounded-lg p-4 flex flex-col gap-3 shadow-sm focus-within:border-border/90 focus-within:shadow-md transition-all shrink-0">
+        <div className="w-full max-w-2xl bg-muted/10 border border-border/60 rounded-lg p-4 flex flex-col gap-3 shadow-sm focus-within:border-border/90 focus-within:shadow-md transition-all shrink-0">
           <textarea
             value={captureText}
             onChange={(e) => setCaptureText(e.target.value)}
@@ -388,7 +413,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
 
         {/* Recent Captures */}
         {captures.length > 0 && (
-          <div className="w-full max-w-xl shrink-0">
+          <div className="w-full max-w-2xl shrink-0">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">
                 Recent Captures
@@ -433,7 +458,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
       </div>
 
       {/* ── RIGHT COLUMN: Completed + Incomplete + Upcoming Tasks ───────── */}
-      <div className="w-72 flex-shrink-0 border-l border-border/50 flex flex-col overflow-hidden">
+      <div className="w-96 flex-shrink-0 border-l border-border/50 flex flex-col overflow-hidden">
 
         {/* Completed Today */}
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden p-5 border-b border-border/30">

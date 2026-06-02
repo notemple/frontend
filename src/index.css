@@ -559,7 +559,7 @@
 /* ── Multi-Column Layout System ───────────────────────────────────────────── */
 
 /* Columns Container Block */
-.notemple-columns {
+.templnote-columns {
   display: flex;
   gap: 1.25rem;
   width: 100%;
@@ -570,7 +570,7 @@
 }
 
 /* Individual Column Block */
-.notemple-column {
+.templnote-column {
   flex: 1 1 auto; /* Grows and shrinks depending on content size */
   min-width: 220px; /* Sensible min-width to avoid microscopic column widths */
   max-width: 100%; /* Guarantees no horizontal overflow */
@@ -583,13 +583,13 @@
 }
 
 /* Hover highlights on columns */
-.notemple-column:hover {
+.templnote-column:hover {
   border-color: rgba(255, 255, 255, 0.12);
   background-color: rgba(255, 255, 255, 0.015);
 }
 
 /* Focused/active column with cursor inside */
-.notemple-column:focus-within {
+.templnote-column:focus-within {
   border-color: rgba(168, 85, 247, 0.25);
   box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.1);
   background-color: rgba(168, 85, 247, 0.003);
@@ -600,37 +600,37 @@
   opacity: 0;
   transition: opacity 120ms ease-out;
 }
-.notemple-column:hover .column-toolbar {
+.templnote-column:hover .column-toolbar {
   opacity: 1;
 }
 
 /* Fit Content / Adaptive Column Widths */
-.notemple-column.width-auto {
+.templnote-column.width-auto {
   flex: 0 1 auto !important;
   width: auto !important;
   min-width: 120px !important;
 }
 
 /* Light Mode specific colors */
-html.light .notemple-column {
+html.light .templnote-column {
   border-color: rgba(0, 0, 0, 0.05);
   background-color: rgba(0, 0, 0, 0.003);
 }
 
-html.light .notemple-column:hover {
+html.light .templnote-column:hover {
   border-color: rgba(0, 0, 0, 0.1);
   background-color: rgba(0, 0, 0, 0.01);
 }
 
-html.light .notemple-column:focus-within {
+html.light .templnote-column:focus-within {
   border-color: rgba(168, 85, 247, 0.2);
   box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.06);
   background-color: rgba(168, 85, 247, 0.002);
 }
 
 /* Column Empty placeholder guides to make dragging or typing highly intuitive */
-.notemple-column:empty::before,
-.notemple-column > .ProseMirror-placeholder:only-child::before {
+.templnote-column:empty::before,
+.templnote-column > .ProseMirror-placeholder:only-child::before {
   content: 'Empty column — click to type...';
   color: var(--muted-foreground);
   font-size: 0.825rem;
@@ -643,8 +643,8 @@ html.light .notemple-column:focus-within {
 /* ── Immersive Full-Height Editor Canvas ───────────────────────────────────── */
 
 /* Make the intermediate wrappers stretch vertically to occupy all paper space */
-.notemple-editor-wrapper .tiptap,
-.notemple-editor-wrapper > div {
+.templnote-editor-wrapper .tiptap,
+.templnote-editor-wrapper > div {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -674,7 +674,7 @@ html.light .notemple-column:focus-within {
 
 .column-resize-handle:hover,
 .column-resize-handle:active {
-  background-color: rgba(168, 85, 247, 0.45) !important; /* Glow purple dragline matching Notemple visual style */
+  background-color: rgba(168, 85, 247, 0.45) !important; /* Glow purple dragline matching Templnote visual style */
   box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
 }
 
@@ -711,7 +711,7 @@ div[class*="bg-purple-500/80"] {
 .ProseMirror [data-type="image"]:hover,
 .ProseMirror [data-type="table"]:hover,
 .ProseMirror table:hover {
-  background-color: rgba(168, 85, 247, 0.02) !important; /* Extremely subtle transparent purple tint matching Notemple style */
+  background-color: rgba(168, 85, 247, 0.02) !important; /* Extremely subtle transparent purple tint matching Templnote style */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 0 1px rgba(168, 85, 247, 0.05) !important;
 }
 

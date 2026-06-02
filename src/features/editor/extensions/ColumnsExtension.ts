@@ -40,7 +40,7 @@ export const ColumnsExtension = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['div', { 'data-type': 'columns', class: 'notemple-columns', ...HTMLAttributes }, 0];
+    return ['div', { 'data-type': 'columns', class: 'templnote-columns', ...HTMLAttributes }, 0];
   },
 
   addNodeView() {

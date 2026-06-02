@@ -29,7 +29,7 @@ import {
 } from "@phosphor-icons/react";
 import { DndContext, useDroppable, useDraggable, PointerSensor, useSensor, useSensors, type DragEndEvent, DragOverlay, type DragStartEvent } from "@dnd-kit/core";
 import { motion, AnimatePresence } from "motion/react";
-import { NotempleEditor } from "@/features/editor/NotempleEditor";
+import { TemplnoteEditor } from "@/features/editor/TemplnoteEditor";
 import {
   isTaskDueToday,
   isTaskUpcoming,

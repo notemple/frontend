@@ -21,45 +21,12 @@ interface Release {
 
 const RELEASES: Release[] = [
   {
-    version: '1.3.0',
-    date: 'May 2026',
+    version: '0.0.1',
+    date: 'June 2, 2026',
     changes: [
-      'Added Glance page with focus timeline and task overview',
-      'Introduced quick capture box with AI model selection',
-      'Timer auto-sets tasks to "In Progress" when started',
-      'Green checkmark indicator for completed tasks',
-      'Refactored Glance components for improved reusability',
-    ],
-  },
-  {
-    version: '1.2.0',
-    date: 'April 2026',
-    changes: [
-      'Added Wall page for pinned notes',
-      'Improved drag-and-drop reordering in sidebar',
-      'Tag filtering in document search',
-      'Daily Notes improvements: scroll position persistence',
-    ],
-  },
-  {
-    version: '1.1.0',
-    date: 'March 2026',
-    changes: [
-      'Kanban board view for Tasks',
-      'Favorites section in sidebar',
-      'Folder color customization',
-      'Context menus for sidebar items',
-    ],
-  },
-  {
-    version: '1.0.0',
-    date: 'February 2026',
-    changes: [
-      'Initial release of Notemple',
-      'Rich text editor with slash commands',
-      'Nested folders and document management',
-      'Dark mode support',
-      'Settings page with account management',
+      'Initial beta release of Templnote',
+      'Basic document management and workspace layout options',
+      'Glance page with activity logs and quick capture',
     ],
   },
 ];
@@ -88,16 +55,16 @@ const KEYBOARD_SHORTCUTS: { category: string; shortcuts: { key: string; desc: st
 const TERMS = `Last updated: May 2026
 
 1. Acceptance of Terms
-By accessing or using Notemple, you agree to be bound by these Terms of Service. If you do not agree to all the terms, please do not use the application.
+By accessing or using Templnote, you agree to be bound by these Terms of Service. If you do not agree to all the terms, please do not use the application.
 
 2. Use of the Service
-Notemple is a personal productivity and note-taking application. You may use the service for lawful purposes only. You agree not to misuse the application or help anyone else do so.
+Templnote is a personal productivity and note-taking application. You may use the service for lawful purposes only. You agree not to misuse the application or help anyone else do so.
 
 3. Your Content
-You retain ownership of any notes, documents, and data you create within Notemple. We do not claim any intellectual property rights over your content. Your data is stored locally and/or synced as per your chosen settings.
+You retain ownership of any notes, documents, and data you create within Templnote. We do not claim any intellectual property rights over your content. Your data is stored locally and/or synced as per your chosen settings.
 
 4. Privacy
-We are committed to protecting your privacy. Notemple processes your data locally by default. Any cloud sync features are opt-in and governed by our Privacy Policy.
+We are committed to protecting your privacy. Templnote processes your data locally by default. Any cloud sync features are opt-in and governed by our Privacy Policy.
 
 5. Modifications
 We may update or modify the application at any time. We will provide reasonable notice of significant changes via in-app release notes.
@@ -106,7 +73,7 @@ We may update or modify the application at any time. We will provide reasonable 
 The service is provided "as is" without warranties of any kind, either express or implied. We do not warrant that the service will be error-free or uninterrupted.
 
 7. Limitation of Liability
-To the fullest extent permitted by law, Notemple and its developers shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the service.
+To the fullest extent permitted by law, Templnote and its developers shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the service.
 
 8. Termination
 We reserve the right to suspend or terminate your access to the service at our discretion, without notice, for conduct that we believe violates these Terms of Service.
@@ -115,7 +82,7 @@ We reserve the right to suspend or terminate your access to the service at our d
 These terms shall be governed by and construed in accordance with applicable laws, without regard to conflict of law principles.
 
 10. Contact
-If you have any questions about these Terms of Service, please reach out via the official Notemple support channels.`;
+If you have any questions about these Terms of Service, please reach out via the official Templnote support channels.`;
 
 // ── Sub-components ─────────────────────────────────────────────────────────
 
@@ -159,7 +126,7 @@ function ReleaseNotes({ selectedRelease, onSelectRelease }: { selectedRelease: s
     <div className="flex flex-col gap-6">
       <div>
         <h2 className="text-2xl font-bold text-foreground tracking-tight mb-1">Release Notes</h2>
-        <p className="text-sm text-muted-foreground">What's new in each version of Notemple.</p>
+        <p className="text-sm text-muted-foreground">What's new in each version of Templnote.</p>
       </div>
 
       {/* Version dropdown */}
@@ -203,7 +170,7 @@ function TermsOfService() {
     <div className="flex flex-col gap-6">
       <div>
         <h2 className="text-2xl font-bold text-foreground tracking-tight mb-1">Terms of Service</h2>
-        <p className="text-sm text-muted-foreground">Please read these terms carefully before using Notemple.</p>
+        <p className="text-sm text-muted-foreground">Please read these terms carefully before using Templnote.</p>
       </div>
       <div className="rounded-xl border border-border/50 bg-muted/20 p-6">
         {TERMS.split('\n\n').map((para, i) => {
@@ -231,7 +198,7 @@ const NAV_ITEMS: { id: NavItem; label: string; icon: React.ReactNode }[] = [
   { id: 'terms-of-service', label: 'Terms of Service', icon: <FileText size={15} /> },
 ];
 
-const APP_VERSION = '1.3.0';
+const APP_VERSION = '0.0.1';
 
 export const HelpPage: React.FC = () => {
   const [activeNav, setActiveNav] = useState<NavItem>('keyboard-shortcuts');
@@ -267,7 +234,7 @@ export const HelpPage: React.FC = () => {
 
         {/* Version badge */}
         <div className="px-3 pt-4 border-t border-border/40 mt-4">
-          <p className="text-[11px] text-muted-foreground">Notemple</p>
+          <p className="text-[11px] text-muted-foreground">Templnote</p>
           <p className="text-xs font-semibold text-foreground/60 mt-0.5">v{APP_VERSION}</p>
         </div>
       </div>

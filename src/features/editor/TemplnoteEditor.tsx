@@ -93,7 +93,7 @@ const getBacklinksForDocument = (currentDocId: string, documents: Record<string,
   return list;
 };
 
-export const NotempleEditor = React.memo(({ 
+export const TemplnoteEditor = React.memo(({ 
   documentId, 
   paneId, 
   isDailyNote, 
@@ -358,7 +358,7 @@ export const NotempleEditor = React.memo(({
       handleDrop: (view, event) => {
         if (!event.dataTransfer) return false;
 
-        const insertData = event.dataTransfer.getData('application/notemple-insert');
+        const insertData = event.dataTransfer.getData('application/templnote-insert');
         if (insertData) {
           const { label } = JSON.parse(insertData);
           const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY });
@@ -393,7 +393,7 @@ export const NotempleEditor = React.memo(({
           }
         }
 
-        const lineData = event.dataTransfer.getData('application/notemple-insert-line');
+        const lineData = event.dataTransfer.getData('application/templnote-insert-line');
         if (lineData) {
           const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY });
           if (coordinates) {
@@ -786,7 +786,7 @@ export const NotempleEditor = React.memo(({
         <EditorDndContext editor={editor!}>
         <div
           className={cn(
-            "flex-1 notemple-editor-wrapper font-content text-lg relative flex flex-col cursor-text w-full max-w-full min-w-0",
+            "flex-1 templnote-editor-wrapper font-content text-lg relative flex flex-col cursor-text w-full max-w-full min-w-0",
             isMinimized ? "px-8" : (hasCustomStyle ? "px-4 sm:px-6 md:px-8" : "px-4")
           )}
           style={{

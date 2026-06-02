@@ -18,7 +18,7 @@ interface CaptureStore {
   clearCaptures: () => void;
 }
 
-const STORAGE_KEY = 'notemple-quick-captures';
+const STORAGE_KEY = 'templnote-quick-captures';
 
 const getInitialCaptures = (): CaptureItem[] => {
   if (typeof window === 'undefined') return [];

@@ -72,7 +72,7 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
 
   // AI model select state
   const [selectedModel, setSelectedModel] = useState(() => {
-    return localStorage.getItem("notemple-selected-ai-model") || "Gemini 3.5 Flash";
+    return localStorage.getItem("templnote-selected-ai-model") || "Gemini 3.5 Flash";
   });
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const modelDropdownRef = useRef<HTMLDivElement>(null);
@@ -89,7 +89,7 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
 
   const handleSelectModel = (model: string) => {
     setSelectedModel(model);
-    localStorage.setItem("notemple-selected-ai-model", model);
+    localStorage.setItem("templnote-selected-ai-model", model);
     setIsModelDropdownOpen(false);
   };
 

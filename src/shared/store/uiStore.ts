@@ -66,7 +66,7 @@ export const useUiStore = create<UiState>()(
       isDailyNoteFullView: false,
       setDailyNoteFullView: (isDailyNoteFullView) => set({ isDailyNoteFullView }),
 
-      panes: [{ id: DEFAULT_PANE_ID, tabs: ['section-daily-notes'], activeTabId: 'section-daily-notes', width: 100 }],
+      panes: [{ id: DEFAULT_PANE_ID, tabs: ['section-glance'], activeTabId: 'section-glance', width: 100 }],
       activePaneId: DEFAULT_PANE_ID,
 
       appearance: getInitialAppearance(),
@@ -202,6 +202,22 @@ export const useUiStore = create<UiState>()(
         appearance: state.appearance,
         isNavbarManuallyHidden: state.isNavbarManuallyHidden,
       }),
+      onRehydrateStorage: () => {
+        return (state, error) => {
+          if (!error && state) {
+            const allPanesEmpty = !state.panes || state.panes.every(pane => !pane.tabs || pane.tabs.length === 0);
+            if (allPanesEmpty) {
+              state.panes = [{
+                id: 'pane-main',
+                tabs: ['section-glance'],
+                activeTabId: 'section-glance',
+                width: 100
+              }];
+              state.activePaneId = 'pane-main';
+            }
+          }
+        };
+      }
     }
   )
 );

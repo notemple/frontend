@@ -1,5 +1,5 @@
 /**
- * Decoupled AI service for Notemple editor.
+ * Decoupled AI service for Templnote editor.
  * Provides high-level abstractions for AI tasks without direct API bindings.
  * Fully prepared for future integration with OpenAI, Gemini, Claude, or local LLMs.
  */

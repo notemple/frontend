@@ -18,7 +18,7 @@ import { cn } from "@/shared/lib/utils";
 import { useDocumentStore } from "@/features/documents/store";
 import { useUiStore } from "@/shared/store/uiStore";
 import { useTaskStore } from "@/features/tasks/store";
-import { NotempleEditor } from "@/features/editor/NotempleEditor";
+import { TemplnoteEditor } from "@/features/editor/TemplnoteEditor";
 import { motion, AnimatePresence } from "motion/react";
 import { gsap } from "gsap";
 import { useSettingsStore } from "@/features/settings/store";
@@ -267,7 +267,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
     return (
       <div className="flex w-full h-full text-foreground bg-workspace overflow-hidden relative">
         <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar relative min-h-full">
-          <NotempleEditor
+          <TemplnoteEditor
             key={documentId}
             documentId={documentId}
             paneId={paneId}
@@ -507,8 +507,8 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                         Daily note
                       </div>
 
-                      {/* Use the NotempleEditor */}
-                      <NotempleEditor
+                      {/* Use the TemplnoteEditor */}
+                      <TemplnoteEditor
                         key={documentId}
                         documentId={documentId}
                         paneId={paneId}

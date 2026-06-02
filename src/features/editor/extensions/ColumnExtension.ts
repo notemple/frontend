@@ -45,6 +45,6 @@ export const ColumnExtension = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['div', { 'data-type': 'column', class: 'notemple-column', ...HTMLAttributes }, 0];
+    return ['div', { 'data-type': 'column', class: 'templnote-column', ...HTMLAttributes }, 0];
   },
 });

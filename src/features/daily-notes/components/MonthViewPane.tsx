@@ -7,7 +7,7 @@ import { cn } from '@/shared/lib/utils';
 import { useDocumentStore } from '@/features/documents/store';
 import { useUiStore } from '@/shared/store/uiStore';
 import { useTaskStore } from '@/features/tasks/store';
-import { NotempleEditor } from '@/features/editor/NotempleEditor';
+import { TemplnoteEditor } from '@/features/editor/TemplnoteEditor';
 import { useSettingsStore } from '@/features/settings/store';
 import { TaskEditorModal } from '@/features/tasks/components/TaskEditorModal';
 import { getCalendarDays, formatDisplayDate, isSameDayInTimezone, isSameMonthInTimezone, isSameDayString, getZonedYear, getZonedMonth, getZonedDate, setZonedYear, setZonedMonth, changeZonedMonth, addDaysInTimezone, getMonthDateInTimezone } from '@/shared/lib/time';

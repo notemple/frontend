@@ -6,7 +6,7 @@ export interface MetadataEntry {
   value: any;
 }
 
-export class NotempleDexieDB extends Dexie {
+export class TemplnoteDexieDB extends Dexie {
   documents!: Table<NoteDocument, string>;
   folders!: Table<Folder, string>;
   tasks!: Table<Task, string>;
@@ -25,4 +25,4 @@ export class NotempleDexieDB extends Dexie {
   }
 }
 
-export const db = new NotempleDexieDB();
+export const db = new TemplnoteDexieDB();

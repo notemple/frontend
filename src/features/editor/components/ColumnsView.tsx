@@ -21,7 +21,7 @@ export const ColumnsView = ({ node, editor, getPos }: NodeViewProps) => {
   // Measure DOM children widths and position overlay resize handles between columns
   const updateHandles = useCallback(() => {
     if (!containerRef.current) return;
-    const columns = Array.from(containerRef.current.querySelectorAll('.notemple-column')) as HTMLElement[];
+    const columns = Array.from(containerRef.current.querySelectorAll('.templnote-column')) as HTMLElement[];
     setColumnsList(columns);
     
     if (columns.length <= 1) {
@@ -65,7 +65,7 @@ export const ColumnsView = ({ node, editor, getPos }: NodeViewProps) => {
     const parentNode = editor.state.doc.nodeAt(parentPos);
     if (!parentNode) return;
 
-    const columns = Array.from(containerRef.current.querySelectorAll('.notemple-column')) as HTMLElement[];
+    const columns = Array.from(containerRef.current.querySelectorAll('.templnote-column')) as HTMLElement[];
     const containerWidth = containerRef.current.getBoundingClientRect().width;
 
     let tr = editor.state.tr;
@@ -91,7 +91,7 @@ export const ColumnsView = ({ node, editor, getPos }: NodeViewProps) => {
     event.stopPropagation();
     if (!containerRef.current || typeof getPos !== 'function') return;
 
-    const columns = Array.from(containerRef.current.querySelectorAll('.notemple-column')) as HTMLElement[];
+    const columns = Array.from(containerRef.current.querySelectorAll('.templnote-column')) as HTMLElement[];
     if (columns.length <= handleIndex + 1) return;
 
     const leftCol = columns[handleIndex];
@@ -416,7 +416,7 @@ export const ColumnsView = ({ node, editor, getPos }: NodeViewProps) => {
 
       {/* Actual inner columns DOM rendered inside flex card wrapper */}
       <div ref={containerRef} className="w-full">
-        <NodeViewContent className="notemple-columns flex gap-4 w-full" />
+        <NodeViewContent className="templnote-columns flex gap-4 w-full" />
       </div>
 
       {/* Column Toolbars via React Portals inside individual columns */}

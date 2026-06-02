@@ -3,7 +3,7 @@ import { useUiStore } from '@/shared/store/uiStore';
 import { useDocumentStore } from '@/features/documents/store';
 import { useShallow } from 'zustand/react/shallow';
 import { TabBar } from './TabBar';
-import { NotempleEditor } from '@/features/editor/NotempleEditor';
+import { TemplnoteEditor } from '@/features/editor/TemplnoteEditor';
 import { DailyNotesPage } from '@/features/daily-notes/DailyNotesPage';
 import { TasksPage } from '@/features/tasks/TasksPage';
 import { TagsPage } from '@/features/tags/TagsPage';
@@ -321,7 +321,7 @@ export const MainWorkspace = () => {
   React.useEffect(() => {
     const checkMidnightReset = () => {
       const todayDateStr = formatInTimeZone(new Date(), timezone, 'yyyy-MM-dd');
-      const lastResetDate = localStorage.getItem('notemple-focus-timer-last-date');
+      const lastResetDate = localStorage.getItem('templnote-focus-timer-last-date');
       
       if (lastResetDate !== todayDateStr) {
         // Reset the stopwatch and today's focus seconds to 0
@@ -333,13 +333,13 @@ export const MainWorkspace = () => {
         
         // Also sync it with localStorage directly
         try {
-          const saved = localStorage.getItem('notemple-focus-timer-state');
+          const saved = localStorage.getItem('templnote-focus-timer-state');
           if (saved) {
             const parsed = JSON.parse(saved);
             parsed.stopwatchSeconds = 0;
             parsed.pomodoroSecondsToday = 0;
             parsed.timerSecondsToday = 0;
-            localStorage.setItem('notemple-focus-timer-state', JSON.stringify(parsed));
+            localStorage.setItem('templnote-focus-timer-state', JSON.stringify(parsed));
           }
         } catch (e) {
           console.error("Failed to reset local storage timer state", e);
@@ -360,11 +360,11 @@ export const MainWorkspace = () => {
         });
         if (taskTimerChanged) {
           useTaskTimerStore.setState({ timers: updatedTimers });
-          localStorage.setItem('notemple-task-timers-state', JSON.stringify(updatedTimers));
+          localStorage.setItem('templnote-task-timers-state', JSON.stringify(updatedTimers));
         }
         
         // Save the date string
-        localStorage.setItem('notemple-focus-timer-last-date', todayDateStr);
+        localStorage.setItem('templnote-focus-timer-last-date', todayDateStr);
       }
     };
 
@@ -584,7 +584,7 @@ export const MainWorkspace = () => {
                 onDrop={(e) => {
                   e.preventDefault();
                   setDragOverPanes(prev => ({ ...prev, [pane.id]: false }));
-                  const docId = e.dataTransfer.getData('notemple/document-id') || e.dataTransfer.getData('text/plain');
+                  const docId = e.dataTransfer.getData('templnote/document-id') || e.dataTransfer.getData('text/plain');
                   if (docId) {
                     openDocument(docId, pane.id);
                   }
@@ -596,7 +596,7 @@ export const MainWorkspace = () => {
                     {pane.activeTabId?.startsWith('section-') ? (
                       <SectionPage paneId={pane.id} sectionId={pane.activeTabId} />
                     ) : pane.activeTabId ? (
-                      <NotempleEditor key={`${pane.id}-${pane.activeTabId}`} paneId={pane.id} documentId={pane.activeTabId} />
+                      <TemplnoteEditor key={`${pane.id}-${pane.activeTabId}`} paneId={pane.id} documentId={pane.activeTabId} />
                     ) : (
                       <EmptyPaneState paneId={pane.id} />
                     )}

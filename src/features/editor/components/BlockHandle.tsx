@@ -7,7 +7,7 @@
  *   [⠿]  – drag handle (useDraggable from dnd-kit) + click opens block options menu
  *
  * Positioning:
- *   The handle is absolutely positioned inside `.notemple-editor-wrapper` (which is
+ *   The handle is absolutely positioned inside `.templnote-editor-wrapper` (which is
  *   `position:relative`).  Left is anchored to the ProseMirror element's left edge
  *   minus 32 px so it always appears in the left gutter, even when the editor is
  *   centred with `mx-auto`.
@@ -83,7 +83,7 @@ export const BlockHandle = ({ editor }: BlockHandleProps) => {
         const blockRect = block.getBoundingClientRect();
         const editorRect = (pm as HTMLElement).getBoundingClientRect();
         // The CSS offset parent of .ProseMirror is the nearest `position:relative`
-        // ancestor, which is the .notemple-editor-wrapper div — same element that
+        // ancestor, which is the .templnote-editor-wrapper div — same element that
         // the handle is `absolute`-positioned inside.
         const offsetParent = (pm as HTMLElement).offsetParent as HTMLElement | null;
         const parentRect = offsetParent

@@ -30,7 +30,7 @@ export const RightSidebar = () => {
 
   return (
     <motion.div
-      className="notemple-sidebar-right h-full border-l border-border bg-background absolute right-0 top-0 bottom-0 flex flex-col overflow-hidden z-30 shadow-md"
+      className="templnote-sidebar-right h-full border-l border-border bg-background absolute right-0 top-0 bottom-0 flex flex-col overflow-hidden z-30 shadow-md"
       animate={{
         width: isRightSidebarOpen ? 320 : 0,
         opacity: isRightSidebarOpen ? 1 : 0

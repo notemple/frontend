@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { db } from '@/storage/dexie/db';
 
 type TimerMode = 'stopwatch' | 'timer' | 'pomodoro';
 
@@ -22,7 +23,7 @@ export interface TimerState {
   stop: () => void;
 }
 
-const STORAGE_KEY = 'notemple-focus-timer-state';
+const STORAGE_KEY = 'templnote-focus-timer-state';
 
 const DEFAULT_STATE = {
   mode: 'pomodoro' as TimerMode,
@@ -70,7 +71,7 @@ export const useFocusTimerStore = create<TimerState>((set, get) => {
       pomodoroSecondsToday: updates.pomodoroSecondsToday !== undefined ? updates.pomodoroSecondsToday : currentState.pomodoroSecondsToday,
       timerSecondsToday: updates.timerSecondsToday !== undefined ? updates.timerSecondsToday : currentState.timerSecondsToday,
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+    db.metadata.put({ key: STORAGE_KEY, value: dataToSave }).catch(e => console.error("Failed to save focus timer to Dexie", e));
   };
 
   return {
@@ -160,3 +161,23 @@ export const useFocusTimerStore = create<TimerState>((set, get) => {
     },
   };
 });
+
+// Asynchronously load focus timer state from Dexie database on startup
+if (typeof window !== 'undefined') {
+  db.metadata.get(STORAGE_KEY).then((entry) => {
+    if (entry && entry.value) {
+      const parsed = entry.value;
+      useFocusTimerStore.setState({
+        mode: parsed.mode || DEFAULT_STATE.mode,
+        stopwatchSeconds: typeof parsed.stopwatchSeconds === 'number' ? parsed.stopwatchSeconds : DEFAULT_STATE.stopwatchSeconds,
+        timerSeconds: typeof parsed.timerSeconds === 'number' ? parsed.timerSeconds : DEFAULT_STATE.timerSeconds,
+        timerPresetDuration: typeof parsed.timerPresetDuration === 'number' ? parsed.timerPresetDuration : DEFAULT_STATE.timerPresetDuration,
+        pomodoroSeconds: typeof parsed.pomodoroSeconds === 'number' ? parsed.pomodoroSeconds : DEFAULT_STATE.pomodoroSeconds,
+        pomodoroSecondsToday: typeof parsed.pomodoroSecondsToday === 'number' ? parsed.pomodoroSecondsToday : DEFAULT_STATE.pomodoroSecondsToday,
+        timerSecondsToday: typeof parsed.timerSecondsToday === 'number' ? parsed.timerSecondsToday : DEFAULT_STATE.timerSecondsToday,
+      });
+    }
+  }).catch((e) => {
+    console.error("Failed to load focus timer from Dexie", e);
+  });
+}

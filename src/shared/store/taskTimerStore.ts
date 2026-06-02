@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { useSettingsStore } from '@/features/settings/store';
 import { formatInTimeZone } from 'date-fns-tz';
 import { useTaskStore } from '@/features/tasks/store';
+import { db } from '@/storage/dexie/db';
 
 export interface TaskTimer {
   taskId: string;
@@ -20,7 +21,7 @@ interface TaskTimerState {
   hasRunningTimers: () => boolean;
 }
 
-const STORAGE_KEY = 'notemple-task-timers-state';
+const STORAGE_KEY = 'templnote-task-timers-state';
 
 const getInitialState = () => {
   if (typeof window === 'undefined') return {};
@@ -50,7 +51,7 @@ export const useTaskTimerStore = create<TaskTimerState>((set, get) => {
   const initialTimers = getInitialState();
 
   const saveToStorage = (timers: Record<string, TaskTimer>) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(timers));
+    db.metadata.put({ key: STORAGE_KEY, value: timers }).catch(e => console.error("Failed to save task timers to Dexie", e));
   };
 
   return {
@@ -187,8 +188,29 @@ if (typeof window !== 'undefined') {
 
       if (changed) {
         useTaskTimerStore.setState({ timers: updatedTimers });
-        localStorage.setItem('notemple-task-timers-state', JSON.stringify(updatedTimers));
+        db.metadata.put({ key: STORAGE_KEY, value: updatedTimers }).catch(e => console.error("Failed to save task timers to Dexie", e));
       }
     });
   }, 100);
+}
+
+// Asynchronously load task timers state from Dexie database on startup
+if (typeof window !== 'undefined') {
+  db.metadata.get(STORAGE_KEY).then((entry) => {
+    if (entry && entry.value) {
+      const parsed = entry.value;
+      const resetTimers: Record<string, TaskTimer> = {};
+      Object.keys(parsed).forEach(taskId => {
+        resetTimers[taskId] = {
+          ...parsed[taskId],
+          isRunning: false,
+          secondsToday: parsed[taskId].secondsToday || 0,
+          lastWorkedDate: parsed[taskId].lastWorkedDate || undefined
+        };
+      });
+      useTaskTimerStore.setState({ timers: resetTimers });
+    }
+  }).catch((e) => {
+    console.error("Failed to load task timers from Dexie", e);
+  });
 }

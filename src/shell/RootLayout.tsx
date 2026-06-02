@@ -198,7 +198,7 @@ export const RootLayout = () => {
         // Fallback default state tracking
         const store = useUiStore.getState();
         const activePane = store.panes.find(p => p.id === store.activePaneId) || store.panes[0];
-        const docId = activePane?.activeTabId || 'section-daily-notes';
+        const docId = activePane?.activeTabId || 'section-glance';
         window.history.replaceState({ docId, isFullView: false }, '', `#${docId}`);
       }
     };
@@ -231,7 +231,7 @@ export const RootLayout = () => {
     const unsubscribe = useUiStore.subscribe(
       (state) => {
         const activePane = state.panes.find(p => p.id === state.activePaneId) || state.panes[0];
-        const docId = activePane?.activeTabId || 'section-daily-notes';
+        const docId = activePane?.activeTabId || 'section-glance';
         const isFull = state.isDailyNoteFullView;
         const hash = isFull ? `#${docId}/full` : `#${docId}`;
         
@@ -267,7 +267,7 @@ export const RootLayout = () => {
       }
 
       // Close right sidebar if click is outside of it
-      const rightSidebar = document.querySelector('.notemple-sidebar-right');
+      const rightSidebar = document.querySelector('.templnote-sidebar-right');
       const rightSidebarToggle = target.closest('.right-sidebar-toggle');
 
       if (

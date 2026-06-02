@@ -57,7 +57,7 @@ export const BlockDragExtension = Extension.create({
                 const blockEnd = blockStart + blockNode.nodeSize;
 
                 dragSourcePos = { from: blockStart, to: blockEnd };
-                event.dataTransfer?.setData('application/notemple-block-drag', JSON.stringify(dragSourcePos));
+                event.dataTransfer?.setData('application/templnote-block-drag', JSON.stringify(dragSourcePos));
                 target.classList.add('prosemirror-dragging-block');
               }
               return false;

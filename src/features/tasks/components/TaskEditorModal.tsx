@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { TaskTitleInput } from "./TaskTitleInput";
 import { X, CaretDown, Check, Circle, Clock, CheckCircle, CalendarBlank, Flag } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "motion/react";
-import { NotempleEditor } from "@/features/editor/NotempleEditor";
+import { TemplnoteEditor } from "@/features/editor/TemplnoteEditor";
 import { useTaskStore } from "@/features/tasks/store";
 import { useShallow } from 'zustand/react/shallow';
 import { cn } from "@/shared/lib/utils";
@@ -213,7 +213,7 @@ export const TaskEditorModal = ({
             )}
 
             <div className="flex-1 w-full overflow-y-auto">
-              <NotempleEditor documentId={`task-${taskId}`} isDailyNote />
+              <TemplnoteEditor documentId={`task-${taskId}`} isDailyNote />
             </div>
           </motion.div>
         </motion.div>

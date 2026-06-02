@@ -246,7 +246,7 @@ const FolderDocumentsList = ({
             e.stopPropagation();
             setDraggedItem({ id: docId, type: 'document' });
             e.dataTransfer.setData('text/plain', docId);
-            e.dataTransfer.setData('notemple/document-id', docId);
+            e.dataTransfer.setData('templnote/document-id', docId);
             e.dataTransfer.effectAllowed = 'copyMove';
           }}
           onDragOver={(e) => e.preventDefault()}
@@ -608,7 +608,7 @@ export const Sidebar = () => {
             draggable
             onDragStart={(e) => {
               e.dataTransfer.setData('text/plain', 'section-daily-notes');
-              e.dataTransfer.setData('notemple/document-id', 'section-daily-notes');
+              e.dataTransfer.setData('templnote/document-id', 'section-daily-notes');
               e.dataTransfer.effectAllowed = 'copyMove';
             }}
           >
@@ -618,7 +618,7 @@ export const Sidebar = () => {
             draggable
             onDragStart={(e) => {
               e.dataTransfer.setData('text/plain', 'section-tasks');
-              e.dataTransfer.setData('notemple/document-id', 'section-tasks');
+              e.dataTransfer.setData('templnote/document-id', 'section-tasks');
               e.dataTransfer.effectAllowed = 'copyMove';
             }}
           >
@@ -628,7 +628,7 @@ export const Sidebar = () => {
             draggable
             onDragStart={(e) => {
               e.dataTransfer.setData('text/plain', 'section-tags');
-              e.dataTransfer.setData('notemple/document-id', 'section-tags');
+              e.dataTransfer.setData('templnote/document-id', 'section-tags');
               e.dataTransfer.effectAllowed = 'copyMove';
             }}
           >
@@ -638,7 +638,7 @@ export const Sidebar = () => {
             draggable
             onDragStart={(e) => {
               e.dataTransfer.setData('text/plain', 'section-glance');
-              e.dataTransfer.setData('notemple/document-id', 'section-glance');
+              e.dataTransfer.setData('templnote/document-id', 'section-glance');
               e.dataTransfer.effectAllowed = 'copyMove';
             }}
           >
@@ -648,7 +648,7 @@ export const Sidebar = () => {
             draggable
             onDragStart={(e) => {
               e.dataTransfer.setData('text/plain', 'section-wall');
-              e.dataTransfer.setData('notemple/document-id', 'section-wall');
+              e.dataTransfer.setData('templnote/document-id', 'section-wall');
               e.dataTransfer.effectAllowed = 'copyMove';
             }}
           >
@@ -684,7 +684,7 @@ export const Sidebar = () => {
                   onDragStart={(e) => {
                     e.stopPropagation();
                     e.dataTransfer.setData('text/plain', docId);
-                    e.dataTransfer.setData('notemple/document-id', docId);
+                    e.dataTransfer.setData('templnote/document-id', docId);
                     e.dataTransfer.effectAllowed = 'copyMove';
                   }}
                   onContextMenu={(e) => {
@@ -751,7 +751,7 @@ export const Sidebar = () => {
                       setDraggedItem({ id: folder.id, type: 'folder' });
                       const folderDocId = `section-folder-${folder.id}`;
                       e.dataTransfer.setData('text/plain', folderDocId);
-                      e.dataTransfer.setData('notemple/document-id', folderDocId);
+                      e.dataTransfer.setData('templnote/document-id', folderDocId);
                       e.dataTransfer.effectAllowed = 'copyMove';
                     }}
                     onDragOver={(e) => e.preventDefault()}
@@ -873,7 +873,7 @@ export const Sidebar = () => {
                     e.stopPropagation();
                     setDraggedItem({ id: docId, type: 'document' });
                     e.dataTransfer.setData('text/plain', docId);
-                    e.dataTransfer.setData('notemple/document-id', docId);
+                    e.dataTransfer.setData('templnote/document-id', docId);
                     e.dataTransfer.effectAllowed = 'copyMove';
                   }}
                   onDragOver={(e) => e.preventDefault()}
@@ -913,7 +913,7 @@ export const Sidebar = () => {
           draggable
           onDragStart={(e) => {
             e.dataTransfer.setData('text/plain', 'section-trash');
-            e.dataTransfer.setData('notemple/document-id', 'section-trash');
+            e.dataTransfer.setData('templnote/document-id', 'section-trash');
             e.dataTransfer.effectAllowed = 'copyMove';
           }}
         >
@@ -931,7 +931,7 @@ export const Sidebar = () => {
           draggable
           onDragStart={(e) => {
             e.dataTransfer.setData('text/plain', 'section-help');
-            e.dataTransfer.setData('notemple/document-id', 'section-help');
+            e.dataTransfer.setData('templnote/document-id', 'section-help');
             e.dataTransfer.effectAllowed = 'copyMove';
           }}
         >

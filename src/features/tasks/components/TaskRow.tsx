@@ -19,12 +19,14 @@ export const TaskRow = React.memo(({
   deleteTask,
   onOpen,
   onDatePickerOpenChange,
+  isSmallView = false,
 }: {
   task: Task;
   updateTask: any;
   deleteTask: (id: string) => void;
   onOpen: () => void;
   onDatePickerOpenChange?: (isOpen: boolean) => void;
+  isSmallView?: boolean;
 }) => {
   const [localTitle, setLocalTitle] = useState(task.title);
   
@@ -59,7 +61,7 @@ export const TaskRow = React.memo(({
     >
       <div className="absolute -left-8 top-1/2 -translate-y-1/2 w-4 h-[2px] bg-border group-hover:bg-muted-foreground group-hover:w-6 transition-all" />
 
-      <div className="flex items-center gap-4 flex-1">
+      <div className="flex items-center gap-4 flex-1 min-w-0">
         <div
           className={cn(
             "w-5 h-5 rounded-sm-sm border transition-all flex items-center justify-center cursor-pointer flex-shrink-0 shadow-sm-sm",
@@ -77,29 +79,35 @@ export const TaskRow = React.memo(({
           onChange={setLocalTitle}
           onBlur={handleBlur}
           isCompleted={task.completed}
+          isSmallView={isSmallView}
           className="text-base font-medium"
         />
 
         <div className="flex items-center gap-2">
-          {/* CustomDatePicker */}
-<CustomDatePicker
-            small
-            value={task.startDate || ""}
-            onChange={(v: string) => updateTask(task.id, { startDate: v })}
-            placeholder="Start"
-            icon={<CalendarBlank size={12} />}
-            onOpenChange={onDatePickerOpenChange}
-          />
+          {/* Date Pickers container: hidden in small views */}
+          {!isSmallView && (
+            <>
+              {/* CustomDatePicker */}
+              <CustomDatePicker
+                small
+                value={task.startDate || ""}
+                onChange={(v: string) => updateTask(task.id, { startDate: v })}
+                placeholder="Start"
+                icon={<CalendarBlank size={12} />}
+                onOpenChange={onDatePickerOpenChange}
+              />
 
-          {/* CustomDatePicker */}
-<CustomDatePicker
-            small
-            value={task.deadline || ""}
-            onChange={(v: string) => updateTask(task.id, { deadline: v })}
-            placeholder="Deadline"
-            icon={<Flag size={12} />}
-            onOpenChange={onDatePickerOpenChange}
-          />
+              {/* CustomDatePicker */}
+              <CustomDatePicker
+                small
+                value={task.deadline || ""}
+                onChange={(v: string) => updateTask(task.id, { deadline: v })}
+                placeholder="Deadline"
+                icon={<Flag size={12} />}
+                onOpenChange={onDatePickerOpenChange}
+              />
+            </>
+          )}
 
           {/* Time spent beside the date */}
           {timer.seconds >= 60 && (
@@ -117,14 +125,14 @@ export const TaskRow = React.memo(({
           )}
 
           {/* CustomStatusPicker */}
-<CustomStatusPicker
+          <CustomStatusPicker
             status={task.status || (task.completed ? "done" : "open")}
             onChange={(s: "open" | "in progress" | "done") => updateTask(task.id, { status: s })}
             onOpenChange={onDatePickerOpenChange}
           />
 
           {/* CustomPriorityPicker */}
-<CustomPriorityPicker
+          <CustomPriorityPicker
             priority={task.priority}
             onChange={(p: "low" | "medium" | "urgent" | undefined) => updateTask(task.id, { priority: p })}
             onOpenChange={onDatePickerOpenChange}

@@ -831,3 +831,17 @@ html.dark .neu-btn:active {
               inset -3px -3px 6px rgba(255, 255, 255, 0.015) !important;
   transform: translateY(1px) scale(0.98);
 }
+
+/* ── Horizontal Scrolling Marquee for long task titles ────────────────────── */
+@keyframes marqueeScroll {
+  0%, 20% {
+    transform: translateX(0);
+  }
+  80%, 100% {
+    transform: translateX(var(--scroll-amount));
+  }
+}
+
+.animate-marquee-scroll {
+  animation-name: marqueeScroll;
+}

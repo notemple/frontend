@@ -77,13 +77,15 @@ export const TaskTitleInput = ({
   onChange,
   onBlur,
   isCompleted,
-  className
+  className,
+  isSmallView = false,
 }: {
   value: string;
   onChange: (val: string) => void;
   onBlur: () => void;
   isCompleted: boolean;
   className?: string;
+  isSmallView?: boolean;
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const editableRef = useRef<HTMLDivElement>(null);
@@ -321,7 +323,7 @@ export const TaskTitleInput = ({
       <div
         onClick={() => setIsEditing(true)}
         className={cn(
-          "text-sm font-sans transition-all py-1.5 px-2 flex-1 rounded-sm-sm border border-transparent hover:border-border/30 hover:bg-muted/10 cursor-text select-none min-w-0 break-words leading-tight",
+          "text-sm font-sans transition-all py-1.5 px-2 flex-1 rounded-sm-sm border border-transparent hover:border-border/30 hover:bg-muted/10 cursor-text select-none min-w-0 truncate whitespace-nowrap leading-tight",
           isCompleted ? "line-through text-muted-foreground/40 font-medium" : "text-foreground font-semibold",
           className
         )}

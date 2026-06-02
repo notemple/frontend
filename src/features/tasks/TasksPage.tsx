@@ -192,6 +192,27 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
   useEffect(() => {
     localStorage.setItem("tasks-view-mode", viewMode);
   }, [viewMode]);
+
+  const [containerWidth, setContainerWidth] = useState<number>(1000);
+
+  useEffect(() => {
+    if (!parentRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerWidth(entry.contentRect.width);
+      }
+    });
+    observer.observe(parentRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const isSmallView = containerWidth < 900;
+
+  useEffect(() => {
+    if (isSmallView && viewMode === "kanban") {
+      setViewMode("list");
+    }
+  }, [isSmallView, viewMode]);
   const [isTaskInputOpen, setIsTaskInputOpen] = useState(false);
   const [activeTask, setActiveTask] = useState<string | null>(null);
   const [openDatePickerTaskId, setOpenDatePickerTaskId] = useState<string | null>(null);
@@ -369,36 +390,52 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
         </div>
 
         <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
-          <div className="flex items-center gap-2">
-            <TabButton
-              icon={<Sun size={16} className={activeTab === "Today" ? "text-foreground dark:text-blush-pop" : "text-muted-foreground"} />}
-              label="Today"
-              active={activeTab === "Today"}
-              onClick={() => setActiveTab("Today")}
-              colorScheme="amber"
-            />
-            <TabButton
-              icon={<CalendarBlank size={16} className={activeTab === "Upcoming" ? "text-foreground dark:text-sky-blue" : "text-muted-foreground"} />}
-              label="Upcoming"
-              active={activeTab === "Upcoming"}
-              onClick={() => setActiveTab("Upcoming")}
-              colorScheme="sky"
-            />
-            <TabButton
-              icon={<ClipboardText size={16} className={activeTab === "All Tasks" ? "text-foreground dark:text-pink-orchid" : "text-muted-foreground"} />}
-              label="All Tasks"
-              active={activeTab === "All Tasks"}
-              onClick={() => setActiveTab("All Tasks")}
-              colorScheme="purple"
-            />
-            <TabButton
-              icon={<Clock size={16} className={activeTab === "Overdue" ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground"} />}
-              label="Overdue"
-              active={activeTab === "Overdue"}
-              onClick={() => setActiveTab("Overdue")}
-              colorScheme="rose"
-            />
-          </div>
+          {isSmallView ? (
+            <div className="relative">
+              <select
+                value={activeTab}
+                onChange={(e) => setActiveTab(e.target.value as any)}
+                className="appearance-none bg-muted/65 hover:bg-muted border border-border/80 rounded-md px-3.5 py-1.5 pr-9 text-xs font-semibold text-foreground cursor-pointer focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all shadow-sm-sm"
+              >
+                <option value="Today">📅 Today</option>
+                <option value="Upcoming">🗓️ Upcoming</option>
+                <option value="All Tasks">📋 All Tasks</option>
+                <option value="Overdue">⚠️ Overdue</option>
+              </select>
+              <CaretDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <TabButton
+                icon={<Sun size={16} className={activeTab === "Today" ? "text-foreground dark:text-blush-pop" : "text-muted-foreground"} />}
+                label="Today"
+                active={activeTab === "Today"}
+                onClick={() => setActiveTab("Today")}
+                colorScheme="amber"
+              />
+              <TabButton
+                icon={<CalendarBlank size={16} className={activeTab === "Upcoming" ? "text-foreground dark:text-sky-blue" : "text-muted-foreground"} />}
+                label="Upcoming"
+                active={activeTab === "Upcoming"}
+                onClick={() => setActiveTab("Upcoming")}
+                colorScheme="sky"
+              />
+              <TabButton
+                icon={<ClipboardText size={16} className={activeTab === "All Tasks" ? "text-foreground dark:text-pink-orchid" : "text-muted-foreground"} />}
+                label="All Tasks"
+                active={activeTab === "All Tasks"}
+                onClick={() => setActiveTab("All Tasks")}
+                colorScheme="purple"
+              />
+              <TabButton
+                icon={<Clock size={16} className={activeTab === "Overdue" ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground"} />}
+                label="Overdue"
+                active={activeTab === "Overdue"}
+                onClick={() => setActiveTab("Overdue")}
+                colorScheme="rose"
+              />
+            </div>
+          )}
 
           <div className="flex items-center gap-3">
             <SortDropdown sortBy={sortBy} onChange={setSortBy} />
@@ -415,18 +452,20 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
                 <List size={14} weight={viewMode === "list" ? "bold" : "regular"} />
                 <span>List</span>
               </button>
-              <button
-                onClick={() => setViewMode("kanban")}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1 rounded-sm-sm text-xs font-semibold transition-all duration-200 cursor-pointer select-none",
-                  viewMode === "kanban"
-                    ? "bg-background text-foreground shadow-sm-sm border border-border/40 font-bold"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
-                )}
-              >
-                <Kanban size={14} weight={viewMode === "kanban" ? "bold" : "regular"} />
-                <span>Kanban</span>
-              </button>
+              {!isSmallView && (
+                <button
+                  onClick={() => setViewMode("kanban")}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1 rounded-sm-sm text-xs font-semibold transition-all duration-200 cursor-pointer select-none",
+                    viewMode === "kanban"
+                      ? "bg-background text-foreground shadow-sm-sm border border-border/40 font-bold"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                  )}
+                >
+                  <Kanban size={14} weight={viewMode === "kanban" ? "bold" : "regular"} />
+                  <span>Kanban</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -464,6 +503,7 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
                             deleteTask={deleteTask}
                             onOpen={() => setActiveTask(task.id)}
                             onDatePickerOpenChange={(isOpen) => setOpenDatePickerTaskId(isOpen ? task.id : null)}
+                            isSmallView={isSmallView}
                           />
                         </motion.div>
                       ))}
@@ -492,6 +532,7 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
                         deleteTask={deleteTask}
                         onOpen={() => setActiveTask(task.id)}
                         onDatePickerOpenChange={(isOpen) => setOpenDatePickerTaskId(isOpen ? task.id : null)}
+                        isSmallView={isSmallView}
                       />
                     </motion.div>
                   ))

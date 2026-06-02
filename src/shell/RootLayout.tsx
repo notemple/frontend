@@ -21,7 +21,7 @@ export const RootLayout = () => {
 
   useEffect(() => {
     const handleOpenTaskEditor = (e: CustomEvent) => {
-      setEditingTaskId(e.detail.id);
+      setEditingTaskId(e.detail.taskId || e.detail.id);
     };
     window.addEventListener('task-editor-open' as any, handleOpenTaskEditor as any);
     return () => window.removeEventListener('task-editor-open' as any, handleOpenTaskEditor as any);

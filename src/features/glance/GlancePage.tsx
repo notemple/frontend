@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { motion } from "motion/react";
 import { FocusTimeline } from "./components/FocusTimeline";
 import { RecentDocuments } from "./components/RecentDocuments";
 import { RecentCapturesList } from "./components/RecentCapturesList";
@@ -88,14 +89,29 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
   };
 
   const renderLeftColumn = () => {
-    if (!showLeftColumn && !isLeftOverlaid) return null;
-
+    const isLeftOpen = showLeftColumn || isLeftOverlaid;
     const overlayClass = !showLeftColumn
-      ? "absolute left-0 top-0 bottom-0 z-40 bg-background shadow-2xl border-r border-border/50 transition-all duration-300 animate-in slide-in-from-left duration-200"
-      : "border-r border-border/50";
+      ? "absolute left-0 top-0 bottom-0 z-40 bg-background shadow-2xl"
+      : "relative";
+    const borderClass = isLeftOpen ? "border-r border-border/50" : "border-r-0 border-transparent";
 
     return (
-      <div className={`w-96 flex-shrink-0 flex flex-col gap-0 overflow-hidden ${overlayClass}`}>
+      <motion.div
+        className={`flex-shrink-0 flex flex-col gap-0 overflow-hidden ${overlayClass} ${borderClass}`}
+        animate={{
+          width: isLeftOpen ? 384 : 0,
+          opacity: isLeftOpen ? 1 : 0
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 220,
+          damping: 26,
+          mass: 0.8
+        }}
+        style={{
+          pointerEvents: isLeftOpen ? "auto" : "none"
+        }}
+      >
         <FocusTimeline />
         <div className="h-px bg-border/40 shrink-0 mx-5" />
         <RecentDocuments paneId={paneId} />
@@ -104,21 +120,36 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
           captures={captures}
           onRemoveCapture={handleRemoveCapture}
         />
-      </div>
+      </motion.div>
     );
   };
 
   const renderRightColumn = () => {
-    if (!showRightColumn && !isRightOverlaid) return null;
-
+    const isRightOpen = showRightColumn || isRightOverlaid;
     const overlayClass = !showRightColumn
-      ? "absolute right-0 top-0 bottom-0 z-40 bg-background shadow-2xl border-l border-border/50 transition-all duration-300 animate-in slide-in-from-right duration-200"
-      : "border-l border-border/50";
+      ? "absolute right-0 top-0 bottom-0 z-40 bg-background shadow-2xl"
+      : "relative";
+    const borderClass = isRightOpen ? "border-l border-border/50" : "border-l-0 border-transparent";
 
     return (
-      <div className={`w-96 flex-shrink-0 flex flex-col overflow-hidden ${overlayClass}`}>
+      <motion.div
+        className={`flex-shrink-0 flex flex-col overflow-hidden ${overlayClass} ${borderClass}`}
+        animate={{
+          width: isRightOpen ? 384 : 0,
+          opacity: isRightOpen ? 1 : 0
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 220,
+          damping: 26,
+          mass: 0.8
+        }}
+        style={{
+          pointerEvents: isRightOpen ? "auto" : "none"
+        }}
+      >
         <GlanceTasksSection />
-      </div>
+      </motion.div>
     );
   };
 

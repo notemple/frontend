@@ -226,6 +226,36 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
     [tasks]
   );
 
+  const totalFocusSeconds = useMemo(() => {
+    return tasks.reduce((sum, t) => {
+      if (t.isDeleted) return sum;
+      return sum + (timers[t.id]?.seconds ?? 0);
+    }, 0);
+  }, [tasks, timers]);
+
+  const docsActivityToday = useMemo(() => {
+    return Object.values(documents).filter((d: any) => {
+      if (!d || d.isDeleted || d.id.startsWith("task-")) return false;
+      try {
+        if (d.createdAt) {
+          const cDate = new Date(d.createdAt);
+          if (!isNaN(cDate.getTime())) {
+            const cDateStr = formatInTimeZone(cDate, timezone, 'yyyy-MM-dd');
+            if (cDateStr === todayStr) return true;
+          }
+        }
+        if (d.updatedAt) {
+          const uDate = new Date(d.updatedAt);
+          if (!isNaN(uDate.getTime())) {
+            const uDateStr = formatInTimeZone(uDate, timezone, 'yyyy-MM-dd');
+            if (uDateStr === todayStr) return true;
+          }
+        }
+      } catch (e) {}
+      return false;
+    }).length;
+  }, [documents, todayStr, timezone]);
+
   const greeting = getGreeting();
 
   // ── Render ──────────────────────────────────────────────────────────────────
@@ -489,6 +519,30 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
             </div>
           </div>
         </div>
+
+        {/* Bottom minimal summary cards */}
+        <div className="absolute bottom-8 flex gap-3 items-center justify-center">
+          {/* Card 1: Focus Time */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded border border-border/40 bg-muted/10 shadow-sm-sm">
+            <Clock size={12} className="text-purple-500 shrink-0" />
+            <span className="text-[10px] font-semibold text-muted-foreground">Focus:</span>
+            <span className="text-[10px] font-bold text-foreground font-mono">{formatSeconds(totalFocusSeconds)}</span>
+          </div>
+
+          {/* Card 2: Tasks Completed */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded border border-border/40 bg-muted/10 shadow-sm-sm">
+            <CheckCircle size={12} className="text-emerald-500 shrink-0" />
+            <span className="text-[10px] font-semibold text-muted-foreground">Completed:</span>
+            <span className="text-[10px] font-bold text-foreground font-mono">{completedToday.length}</span>
+          </div>
+
+          {/* Card 3: Documents Edited + Created */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded border border-border/40 bg-muted/10 shadow-sm-sm">
+            <FileText size={12} className="text-blue-500 shrink-0" />
+            <span className="text-[10px] font-semibold text-muted-foreground">Docs Activity:</span>
+            <span className="text-[10px] font-bold text-foreground font-mono">{docsActivityToday}</span>
+          </div>
+        </div>
       </div>
 
       {/* ── RIGHT COLUMN: Completed + Incomplete + Upcoming Tasks ───────── */}
@@ -572,11 +626,6 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
                       {overdue && (
                         <span className={cn("text-[8px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider", s.badge)}>
                           Overdue
-                        </span>
-                      )}
-                      {task.priority && !overdue && (
-                        <span className={cn("text-[8px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider", s.badge)}>
-                          {task.priority}
                         </span>
                       )}
                     </div>

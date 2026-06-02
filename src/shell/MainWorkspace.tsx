@@ -315,6 +315,43 @@ export const MainWorkspace = () => {
     ? (isCursorNearTop || isNavbarHovered)
     : !isNavbarManuallyHidden;
 
+  const timezone = useSettingsStore((state) => state.timezone);
+
+  // Reset focus timer stopwatch each day at 00:00 in the top navbar
+  React.useEffect(() => {
+    const checkMidnightReset = () => {
+      const todayDateStr = formatInTimeZone(new Date(), timezone, 'yyyy-MM-dd');
+      const lastResetDate = localStorage.getItem('notemple-focus-timer-last-date');
+      
+      if (lastResetDate !== todayDateStr) {
+        // Reset the stopwatch state to 0
+        useFocusTimerStore.setState({ stopwatchSeconds: 0 });
+        
+        // Also sync it with localStorage directly
+        try {
+          const saved = localStorage.getItem('notemple-focus-timer-state');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            parsed.stopwatchSeconds = 0;
+            localStorage.setItem('notemple-focus-timer-state', JSON.stringify(parsed));
+          }
+        } catch (e) {
+          console.error("Failed to reset local storage timer state", e);
+        }
+        
+        // Save the date string
+        localStorage.setItem('notemple-focus-timer-last-date', todayDateStr);
+      }
+    };
+
+    // Run check immediately on mount/timezone change
+    checkMidnightReset();
+
+    // Run check every 1 second
+    const interval = setInterval(checkMidnightReset, 1000);
+    return () => clearInterval(interval);
+  }, [timezone]);
+
   const isTimerRunning = useFocusTimerStore((state) => state.isRunning);
   const tickTimer = useFocusTimerStore((state) => state.tick);
 

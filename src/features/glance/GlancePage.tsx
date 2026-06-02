@@ -9,6 +9,8 @@ import {
   Microphone,
   ArrowUp,
   Lightning,
+  CalendarBlank,
+  CheckSquare,
 } from "@phosphor-icons/react";
 import { motion } from "motion/react";
 import { useDocumentStore } from "@/features/documents/store";
@@ -46,11 +48,11 @@ const getGreeting = () => {
 
 const getCaptureIcon = (type: string) => {
   switch (type) {
-    case "Note": return <Sparkle size={13} className="text-amber-500" />;
-    case "Task": return <CheckCircle size={13} className="text-purple-500" />;
-    case "Doc":  return <FileText size={13} className="text-blue-500" />;
-    case "Link": return <Lightning size={13} className="text-emerald-500" />;
-    default:     return <Sparkle size={13} className="text-rose-500" />;
+    case "Note": return <CalendarBlank size={15} className="text-emerald-500/90 dark:text-emerald-400/90" />;
+    case "Task": return <CheckSquare size={15} className="text-blue-500/90 dark:text-blue-400/90" />;
+    case "Doc":  return <FileText size={15} className="text-blue-500" />;
+    case "Link": return <Lightning size={15} className="text-emerald-500" />;
+    default:     return <Sparkle size={15} className="text-rose-500" />;
   }
 };
 
@@ -113,7 +115,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
   // Quick capture
   const [captureText, setCaptureText] = useState("");
   const [activeType, setActiveType]   = useState<"Note" | "Task" | "Doc" | "Link" | "AI">("Note");
-  const [captures, setCaptures]       = useState<{ id: string; content: string; type: string; createdAt: string }[]>([]);
+  const [captures, setCaptures]       = useState<{ id: string; content: string; type: string; createdAt: string; itemId?: string }[]>([]);
 
   useEffect(() => {
     try {
@@ -129,15 +131,13 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
 
   const handleSubmitCapture = async () => {
     if (!captureText.trim()) return;
-    const entry = {
-      id: `capture-${Date.now()}`,
-      content: captureText.trim(),
-      type: activeType,
-      createdAt: new Date().toISOString(),
-    };
+    const captureId = `capture-${Date.now()}`;
+    let itemId: string | undefined = undefined;
+
     if (activeType === "Note") {
       const todayDateStr = formatInTimeZone(new Date(), timezone, "yyyy-MM-dd");
       const dailyNoteId = `daily-note-${todayDateStr}`;
+      itemId = dailyNoteId;
       const existingDoc = documents[dailyNoteId];
       const captureTextTrimmed = captureText.trim();
       let newContent = "";
@@ -154,6 +154,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
       openDocument(dailyNoteId, paneId);
     } else if (activeType === "Doc") {
       const newId = `doc-${crypto.randomUUID()}`;
+      itemId = newId;
       await addDocument({
         id: newId,
         title: captureText.trim().substring(0, 40),
@@ -164,8 +165,24 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
       });
       openDocument(newId, paneId);
     } else if (activeType === "Task") {
-      addTask({ title: captureText.trim(), completed: false, status: "open", list: "All Tasks" });
+      const newTaskId = `task-${crypto.randomUUID()}`;
+      itemId = newTaskId;
+      addTask({
+        id: newTaskId,
+        title: captureText.trim(),
+        completed: false,
+        status: "open",
+        list: "All Tasks"
+      });
     }
+    
+    const entry = {
+      id: captureId,
+      content: captureText.trim(),
+      type: activeType,
+      createdAt: new Date().toISOString(),
+      itemId,
+    };
     saveCaptures([entry, ...captures]);
     setCaptureText("");
   };
@@ -229,9 +246,15 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
   const totalFocusSeconds = useMemo(() => {
     return tasks.reduce((sum, t) => {
       if (t.isDeleted) return sum;
-      return sum + (timers[t.id]?.seconds ?? 0);
+      const isCompletedToday = completedToday.some((ct) => ct.id === t.id);
+      const isActiveToday = !t.completed && t.status !== "done" && !isTaskUpcoming(t.startDate || t.createdAt);
+      const isRunning = timers[t.id]?.isRunning;
+      if (isCompletedToday || isActiveToday || isRunning) {
+        return sum + (timers[t.id]?.seconds ?? 0);
+      }
+      return sum;
     }, 0);
-  }, [tasks, timers]);
+  }, [tasks, timers, completedToday]);
 
   const docsActivityToday = useMemo(() => {
     return Object.values(documents).filter((d: any) => {
@@ -255,6 +278,20 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
       return false;
     }).length;
   }, [documents, todayStr, timezone]);
+
+  const activeCaptures = useMemo(() => {
+    return captures.filter((c: any) => {
+      if (!c.itemId) return true;
+      if (c.type === "Note" || c.type === "Doc") {
+        const doc = documents[c.itemId];
+        if (!doc || doc.isDeleted) return false;
+      } else if (c.type === "Task") {
+        const task = tasks.find((t) => t.id === c.itemId);
+        if (!task || task.isDeleted) return false;
+      }
+      return true;
+    });
+  }, [captures, documents, tasks]);
 
   const greeting = getGreeting();
 
@@ -406,7 +443,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
         </div>
 
         {/* Recent Captures */}
-        {captures.length > 0 && (
+        {activeCaptures.length > 0 && (
           <>
             {/* Divider */}
             <div className="h-px bg-border/40 shrink-0 mx-5" />
@@ -424,15 +461,23 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
                 </button>
               </div>
               <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-1.5 pr-1">
-                {captures.slice(0, 5).map((c) => (
+                {activeCaptures.slice(0, 5).map((c) => (
                   <div
                     key={c.id}
                     className="flex items-center justify-between px-3 py-2.5 rounded border border-border/50 bg-muted/10 hover:bg-muted/20 transition-all group cursor-pointer"
-                    onClick={() => {}}
+                    onClick={() => {
+                      if ((c.type === "Note" || c.type === "Doc") && c.itemId) {
+                        openDocument(c.itemId, paneId);
+                      } else if (c.type === "Task" && c.itemId) {
+                        openTaskEditor(c.itemId);
+                      }
+                    }}
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="shrink-0">{getCaptureIcon(c.type)}</span>
-                      <span className="text-xs font-medium text-foreground/90 truncate">{c.content}</span>
+                      <span className="text-xs font-medium text-foreground/90 truncate">
+                        {c.type === "Note" && c.itemId ? (documents[c.itemId]?.title || c.content) : c.content}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0 ml-3">
                       <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-border/50 bg-muted/40 text-muted-foreground group-hover:hidden">
@@ -476,7 +521,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
             onChange={(e) => setCaptureText(e.target.value)}
             onKeyDown={handleCaptureKey}
             placeholder="Capture a thought, task, or note…"
-            className="w-full bg-transparent border-0 outline-none focus:ring-0 text-sm placeholder-muted-foreground/40 resize-none h-16 py-1 text-foreground/90"
+            className="w-full bg-transparent border-0 outline-none focus:ring-0 text-base placeholder-muted-foreground/40 resize-none h-16 py-1 text-foreground/90"
           />
           <div className="flex items-center justify-between border-t border-border/20 pt-3">
             {/* Type pills */}
@@ -487,7 +532,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
                   type="button"
                   onClick={() => setActiveType(type)}
                   className={cn(
-                    "px-2.5 py-1 rounded border flex items-center gap-1.5 text-xs font-medium transition-all cursor-pointer select-none",
+                    "px-3 py-1.5 rounded border flex items-center gap-2 text-sm font-medium transition-all cursor-pointer select-none",
                     activeType === type
                       ? "bg-purple-500/15 border-purple-500/40 text-purple-600 dark:text-purple-400 shadow-sm"
                       : "border-border/50 hover:border-border/80 hover:bg-muted/20 text-foreground/70"
@@ -500,21 +545,21 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
             </div>
             {/* Actions */}
             <div className="flex items-center gap-2">
-              <button type="button" className="p-1.5 rounded hover:bg-muted/20 text-muted-foreground/70 hover:text-foreground transition-colors cursor-pointer">
-                <Microphone size={15} />
+              <button type="button" className="p-2 rounded hover:bg-muted/20 text-muted-foreground/70 hover:text-foreground transition-colors cursor-pointer">
+                <Microphone size={17} />
               </button>
               <button
                 type="button"
                 onClick={handleSubmitCapture}
                 disabled={!captureText.trim()}
                 className={cn(
-                  "p-1.5 rounded flex items-center justify-center transition-all cursor-pointer",
+                  "p-2 rounded flex items-center justify-center transition-all cursor-pointer",
                   captureText.trim()
                     ? "bg-purple-500 hover:bg-purple-600 text-white shadow-sm"
                     : "bg-muted text-muted-foreground/30 cursor-not-allowed border border-border/30"
                 )}
               >
-                <ArrowUp size={15} weight="bold" />
+                <ArrowUp size={17} weight="bold" />
               </button>
             </div>
           </div>
@@ -523,24 +568,24 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
         {/* Bottom minimal summary cards */}
         <div className="absolute bottom-8 flex gap-3 items-center justify-center">
           {/* Card 1: Focus Time */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded border border-border/40 bg-muted/10 shadow-sm-sm">
-            <Clock size={12} className="text-purple-500 shrink-0" />
-            <span className="text-[10px] font-semibold text-muted-foreground">Focus:</span>
-            <span className="text-[10px] font-bold text-foreground font-mono">{formatSeconds(totalFocusSeconds)}</span>
+          <div className="flex items-center gap-2 px-4 py-2 rounded border border-border/40 bg-muted/10 shadow-sm-sm">
+            <Clock size={14} className="text-purple-500 shrink-0" />
+            <span className="text-xs font-semibold text-muted-foreground">Focus:</span>
+            <span className="text-xs font-bold text-foreground font-mono">{formatSeconds(totalFocusSeconds)}</span>
           </div>
 
           {/* Card 2: Tasks Completed */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded border border-border/40 bg-muted/10 shadow-sm-sm">
-            <CheckCircle size={12} className="text-emerald-500 shrink-0" />
-            <span className="text-[10px] font-semibold text-muted-foreground">Completed:</span>
-            <span className="text-[10px] font-bold text-foreground font-mono">{completedToday.length}</span>
+          <div className="flex items-center gap-2 px-4 py-2 rounded border border-border/40 bg-muted/10 shadow-sm-sm">
+            <CheckCircle size={14} className="text-emerald-500 shrink-0" />
+            <span className="text-xs font-semibold text-muted-foreground">Completed:</span>
+            <span className="text-xs font-bold text-foreground font-mono">{completedToday.length}</span>
           </div>
 
           {/* Card 3: Documents Edited + Created */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded border border-border/40 bg-muted/10 shadow-sm-sm">
-            <FileText size={12} className="text-blue-500 shrink-0" />
-            <span className="text-[10px] font-semibold text-muted-foreground">Docs Activity:</span>
-            <span className="text-[10px] font-bold text-foreground font-mono">{docsActivityToday}</span>
+          <div className="flex items-center gap-2 px-4 py-2 rounded border border-border/40 bg-muted/10 shadow-sm-sm">
+            <FileText size={14} className="text-blue-500 shrink-0" />
+            <span className="text-xs font-semibold text-muted-foreground">Docs Activity:</span>
+            <span className="text-xs font-bold text-foreground font-mono">{docsActivityToday}</span>
           </div>
         </div>
       </div>

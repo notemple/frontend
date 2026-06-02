@@ -36,9 +36,11 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
   addTask: async (task) => {
     const defaultStatus = task.completed ? 'done' : 'open';
+    const isCompleted = task.status === 'done' || (task.status === undefined && task.completed);
     const newTask: Task = {
       id: task.id || `task-${crypto.randomUUID()}`,
       createdAt: new Date().toISOString(),
+      completedAt: isCompleted ? new Date().toISOString() : undefined,
       ...task,
       status: task.status || defaultStatus
     };
@@ -58,6 +60,12 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       newUpdates.status = updates.completed ? 'done' : 'open';
     } else if (updates.status !== undefined && updates.completed === undefined) {
       newUpdates.completed = updates.status === 'done';
+    }
+
+    if (newUpdates.completed) {
+      newUpdates.completedAt = existing.completedAt || new Date().toISOString();
+    } else if (newUpdates.completed === false) {
+      newUpdates.completedAt = undefined;
     }
 
     const updatedTask: Task = { ...existing, ...newUpdates };

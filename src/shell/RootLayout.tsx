@@ -27,11 +27,38 @@ export const RootLayout = () => {
     return () => window.removeEventListener('task-editor-open' as any, handleOpenTaskEditor as any);
   }, []);
 
-  // Global keyboard shortcuts for toggling sidebars and cycling panes
+  // Global keyboard shortcuts for toggling sidebars and cycling panes/tabs
   useEffect(() => {
     const handleShortcut = (e: KeyboardEvent) => {
       const isCtrlOrMeta = e.ctrlKey || e.metaKey;
       if (isCtrlOrMeta && e.altKey) {
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          const { panes, activePaneId, setActiveTab } = useUiStore.getState();
+          const activePane = panes.find(p => p.id === activePaneId);
+          if (activePane && activePane.tabs.length > 1) {
+            const currentTabIndex = activePane.tabs.indexOf(activePane.activeTabId || '');
+            if (currentTabIndex !== -1) {
+              const prevIndex = (currentTabIndex - 1 + activePane.tabs.length) % activePane.tabs.length;
+              setActiveTab(activePane.tabs[prevIndex], activePane.id);
+            }
+          }
+          return;
+        }
+        if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          const { panes, activePaneId, setActiveTab } = useUiStore.getState();
+          const activePane = panes.find(p => p.id === activePaneId);
+          if (activePane && activePane.tabs.length > 1) {
+            const currentTabIndex = activePane.tabs.indexOf(activePane.activeTabId || '');
+            if (currentTabIndex !== -1) {
+              const nextIndex = (currentTabIndex + 1) % activePane.tabs.length;
+              setActiveTab(activePane.tabs[nextIndex], activePane.id);
+            }
+          }
+          return;
+        }
+
         const key = e.key.toLowerCase();
         if (key === 'l') {
           if (!autoHideSidebars) {

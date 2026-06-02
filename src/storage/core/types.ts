@@ -54,4 +54,6 @@ export interface Task {
   priority?: 'low' | 'medium' | 'urgent';
   isDeleted?: boolean;
   deletedAt?: string;
+  completedAt?: string;
 }
+

@@ -9,6 +9,7 @@ import { TasksPage } from '@/features/tasks/TasksPage';
 import { TagsPage } from '@/features/tags/TagsPage';
 import { TrashPage } from '@/features/trash/TrashPage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
+import { GlancePage } from '@/features/glance/GlancePage';
 import { cn, getItemColor, getFolderStyle, getFolderHexColor } from '@/shared/lib/utils';
 import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
 import { Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, CaretDown, FileText, Folder, Sun, Moon, Monitor, Clock, ArrowLeft, PlusCircle, Check, X, Plus, Trash } from '@phosphor-icons/react';
@@ -156,12 +157,7 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
     return <SettingsPage paneId={paneId} />;
   }
   if (sectionId === 'section-glance') {
-    return (
-      <div className="flex flex-col h-full w-full items-center justify-center p-8 bg-transparent select-none font-sans">
-        <h1 className="text-4xl font-bold tracking-tight text-foreground/80 mb-2">Glance</h1>
-        <p className="text-muted-foreground text-sm font-medium">Blank Page</p>
-      </div>
-    );
+    return <GlancePage paneId={paneId} />;
   }
   if (sectionId === 'section-wall') {
     return (

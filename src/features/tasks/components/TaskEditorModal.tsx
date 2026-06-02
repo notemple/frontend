@@ -7,6 +7,7 @@ import { useTaskStore } from "@/features/tasks/store";
 import { useShallow } from 'zustand/react/shallow';
 import { cn } from "@/shared/lib/utils";
 import { CustomDatePicker } from "./CustomDatePicker";
+import { CustomPriorityPicker } from "./CustomPriorityPicker";
 
 export const TaskEditorModal = ({
   taskId,
@@ -145,6 +146,13 @@ export const TaskEditorModal = ({
                       </>
                     )}
                   </div>
+                )}
+
+                {task && (
+                  <CustomPriorityPicker
+                    priority={task.priority}
+                    onChange={(val) => updateTask(task.id, { priority: val })}
+                  />
                 )}
               </div>
 

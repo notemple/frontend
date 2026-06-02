@@ -324,8 +324,12 @@ export const MainWorkspace = () => {
       const lastResetDate = localStorage.getItem('notemple-focus-timer-last-date');
       
       if (lastResetDate !== todayDateStr) {
-        // Reset the stopwatch state to 0
-        useFocusTimerStore.setState({ stopwatchSeconds: 0 });
+        // Reset the stopwatch and today's focus seconds to 0
+        useFocusTimerStore.setState({
+          stopwatchSeconds: 0,
+          pomodoroSecondsToday: 0,
+          timerSecondsToday: 0
+        });
         
         // Also sync it with localStorage directly
         try {
@@ -333,10 +337,30 @@ export const MainWorkspace = () => {
           if (saved) {
             const parsed = JSON.parse(saved);
             parsed.stopwatchSeconds = 0;
+            parsed.pomodoroSecondsToday = 0;
+            parsed.timerSecondsToday = 0;
             localStorage.setItem('notemple-focus-timer-state', JSON.stringify(parsed));
           }
         } catch (e) {
           console.error("Failed to reset local storage timer state", e);
+        }
+
+        // Also reset task timers' secondsToday to 0 for a new day
+        const taskTimerStore = useTaskTimerStore.getState();
+        const updatedTimers = { ...taskTimerStore.timers };
+        let taskTimerChanged = false;
+        Object.keys(updatedTimers).forEach(taskId => {
+          if (updatedTimers[taskId].secondsToday !== 0) {
+            updatedTimers[taskId] = {
+              ...updatedTimers[taskId],
+              secondsToday: 0
+            };
+            taskTimerChanged = true;
+          }
+        });
+        if (taskTimerChanged) {
+          useTaskTimerStore.setState({ timers: updatedTimers });
+          localStorage.setItem('notemple-task-timers-state', JSON.stringify(updatedTimers));
         }
         
         // Save the date string

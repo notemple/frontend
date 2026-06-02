@@ -11,11 +11,13 @@ import {
   Lightning,
   CalendarBlank,
   CheckSquare,
+  CaretDown,
 } from "@phosphor-icons/react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { useDocumentStore } from "@/features/documents/store";
 import { useTaskStore } from "@/features/tasks/store";
 import { useTaskTimerStore } from "@/shared/store/taskTimerStore";
+import { useFocusTimerStore } from "@/shared/store/focusTimerStore";
 import { useUiStore } from "@/shared/store/uiStore";
 import { useSettingsStore } from "@/features/settings/store";
 import { cn, getColorStyle } from "@/shared/lib/utils";
@@ -98,6 +100,21 @@ const getTaskStyle = (task: any) => {
   return PRIORITY_STYLE[task.priority ?? "none"] ?? PRIORITY_STYLE.none;
 };
 
+const MODEL_GROUPS = [
+  {
+    provider: "Gemini",
+    models: ["Gemini 3.5 Flash", "Gemini 3.5 Pro", "Gemini 3.1 Pro"]
+  },
+  {
+    provider: "Claude",
+    models: ["Claude 4.8 Opus", "Claude 4.7 Opus", "Claude 4.6 Sonnet"]
+  },
+  {
+    provider: "GPT (OpenAI)",
+    models: ["GPT-5.5", "GPT-5.4", "GPT-5.2"]
+  }
+];
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export const GlancePage = ({ paneId }: { paneId: string }) => {
@@ -112,10 +129,55 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
   const timezone       = useSettingsStore((s) => s.timezone);
   const userName       = useSettingsStore((s) => s.userName);
 
+  const {
+    stopwatchSeconds,
+    pomodoroSecondsToday,
+    timerSecondsToday,
+    isRunning: isFocusTimerRunning,
+    mode: focusTimerMode,
+  } = useFocusTimerStore();
+  const focusTimerSeconds = stopwatchSeconds + (pomodoroSecondsToday || 0) + (timerSecondsToday || 0);
+
+  const getFocusTimerGradient = () => {
+    switch (focusTimerMode) {
+      case 'stopwatch':
+        return "bg-gradient-to-r from-sky-500 to-sky-400";
+      case 'timer':
+        return "bg-gradient-to-r from-blue-500 to-blue-400";
+      case 'pomodoro':
+        return "bg-gradient-to-r from-rose-500 to-rose-400";
+      default:
+        return "bg-gradient-to-r from-purple-500 to-purple-400";
+    }
+  };
+
   // Quick capture
   const [captureText, setCaptureText] = useState("");
-  const [activeType, setActiveType]   = useState<"Note" | "Task" | "Doc" | "Link" | "AI">("Note");
+  const [activeType, setActiveType]   = useState<"Note" | "Task" | "Doc" | "Link">("Note");
   const [captures, setCaptures]       = useState<{ id: string; content: string; type: string; createdAt: string; itemId?: string }[]>([]);
+
+  // AI model select state
+  const [selectedModel, setSelectedModel] = useState(() => {
+    return localStorage.getItem("notemple-selected-ai-model") || "Gemini 3.5 Flash";
+  });
+  const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
+  const modelDropdownRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modelDropdownRef.current && !modelDropdownRef.current.contains(event.target as Node)) {
+        setIsModelDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelectModel = (model: string) => {
+    setSelectedModel(model);
+    localStorage.setItem("notemple-selected-ai-model", model);
+    setIsModelDropdownOpen(false);
+  };
 
   useEffect(() => {
     try {
@@ -203,12 +265,16 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
     [timezone]
   );
 
-  // Tasks with ≥ 5 min of tracked time, sorted descending
+  // Tasks worked on today (lastWorkedDate === todayStr) with >= 5 minutes (300s) worked today
   const timedTasks = useMemo(() => {
     return tasks
-      .filter((t) => !t.isDeleted && timers[t.id] && timers[t.id].seconds >= 300)
-      .sort((a, b) => (timers[b.id]?.seconds ?? 0) - (timers[a.id]?.seconds ?? 0));
-  }, [tasks, timers]);
+      .filter((t) => {
+        if (t.isDeleted) return false;
+        const timer = timers[t.id];
+        return timer && timer.lastWorkedDate === todayStr && (timer.secondsToday || 0) >= 300;
+      })
+      .sort((a, b) => (timers[b.id]?.secondsToday ?? 0) - (timers[a.id]?.secondsToday ?? 0));
+  }, [tasks, timers, todayStr]);
 
   // Recent documents
 
@@ -244,17 +310,16 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
   );
 
   const totalFocusSeconds = useMemo(() => {
-    return tasks.reduce((sum, t) => {
+    const taskFocusToday = tasks.reduce((sum, t) => {
       if (t.isDeleted) return sum;
-      const isCompletedToday = completedToday.some((ct) => ct.id === t.id);
-      const isActiveToday = !t.completed && t.status !== "done" && !isTaskUpcoming(t.startDate || t.createdAt);
-      const isRunning = timers[t.id]?.isRunning;
-      if (isCompletedToday || isActiveToday || isRunning) {
-        return sum + (timers[t.id]?.seconds ?? 0);
+      const timer = timers[t.id];
+      if (timer && timer.lastWorkedDate === todayStr) {
+        return sum + (timer.secondsToday || 0);
       }
       return sum;
     }, 0);
-  }, [tasks, timers, completedToday]);
+    return taskFocusToday + focusTimerSeconds;
+  }, [tasks, timers, todayStr, focusTimerSeconds]);
 
   const docsActivityToday = useMemo(() => {
     return Object.values(documents).filter((d: any) => {
@@ -314,16 +379,59 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
             </span>
           </div>
 
-          {timedTasks.length === 0 ? (
+          {(timedTasks.length === 0 && focusTimerSeconds < 300) ? (
             <div className="flex-1 flex items-center justify-center text-xs text-muted-foreground/50 italic text-center px-4">
-              Start a timer on a task to see focus time here.
+              Start a timer on a task or focus timer to see focus time here (shows after 5 mins of focus).
             </div>
           ) : (
             <div className="flex-1 min-h-0 flex flex-col min-w-0">
               {/* Scrollable bars */}
               <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-2 pr-1 pb-1">
+                {/* Focus Timer Bar */}
+                {focusTimerSeconds >= 300 && (
+                  <div
+                    className="relative h-9 rounded-sm overflow-hidden border border-border/40 bg-muted/20 group shrink-0"
+                  >
+                    {/* 24h tick lines */}
+                    {[4, 8, 12, 16, 20].map((h) => (
+                      <div
+                        key={h}
+                        className="absolute top-0 bottom-0 w-px bg-border/25 pointer-events-none"
+                        style={{ left: `${(h / 24) * 100}%` }}
+                      />
+                    ))}
+                    {/* Fill bar */}
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min((focusTimerSeconds / 86400) * 100, 100)}%` }}
+                      transition={{ duration: 0.7, ease: "easeOut" }}
+                      className={cn("absolute inset-y-0 left-0", getFocusTimerGradient())}
+                    />
+                    {/* Label */}
+                    <div className="absolute inset-0 flex items-center px-3 gap-2 z-10">
+                      {isFocusTimerRunning && (
+                        <span className="relative flex h-1.5 w-1.5 shrink-0">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-300 opacity-75" />
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-400" />
+                        </span>
+                      )}
+                      <span className={cn(
+                        "text-[11px] font-semibold truncate flex-1 leading-none",
+                        (focusTimerSeconds / 86400) * 100 > 30 ? "text-white drop-shadow-sm" : "text-foreground/80"
+                      )}>
+                        Focus Timer ({focusTimerMode === 'stopwatch' ? 'Stopwatch' : focusTimerMode === 'pomodoro' ? 'Pomodoro' : 'Timer'})
+                      </span>
+                      <span className={cn(
+                        "text-[10px] font-mono font-bold shrink-0",
+                        (focusTimerSeconds / 86400) * 100 > 30 ? "text-white/80" : "text-muted-foreground/70"
+                      )}>
+                        {formatSeconds(focusTimerSeconds)}
+                      </span>
+                    </div>
+                  </div>
+                )}
                 {timedTasks.map((task) => {
-                  const secs    = timers[task.id]?.seconds ?? 0;
+                  const secs    = timers[task.id]?.secondsToday ?? 0;
                   const pct     = Math.min((secs / 86400) * 100, 100);
                   const running = timers[task.id]?.isRunning;
                   return (
@@ -526,7 +634,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
           <div className="flex items-center justify-between border-t border-border/20 pt-3">
             {/* Type pills */}
             <div className="flex items-center gap-1.5 flex-wrap">
-              {(["Note", "Task", "Doc", "Link", "AI"] as const).map((type) => (
+              {(["Note", "Task", "Doc", "Link"] as const).map((type) => (
                 <button
                   key={type}
                   type="button"
@@ -545,9 +653,60 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
             </div>
             {/* Actions */}
             <div className="flex items-center gap-2">
+              {/* AI Model Dropdown */}
+              <div className="relative" ref={modelDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-border/50 bg-muted/10 hover:bg-muted/20 hover:border-border/80 text-xs font-semibold text-muted-foreground/80 hover:text-foreground transition-all cursor-pointer select-none"
+                  title="Select AI Model"
+                >
+                  <span>{selectedModel}</span>
+                  <CaretDown size={10} className="text-muted-foreground/60" />
+                </button>
+
+                <AnimatePresence>
+                  {isModelDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 5 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 bottom-full mb-1.5 w-48 bg-popover/95 backdrop-blur-md border border-border rounded shadow-lg py-1.5 z-50 text-[11px] max-h-80 overflow-y-auto no-scrollbar"
+                    >
+                      {MODEL_GROUPS.map((group) => (
+                        <div key={group.provider} className="flex flex-col">
+                          <div className="px-2.5 py-1 text-[9px] font-bold text-muted-foreground/50 uppercase tracking-wider border-b border-border/30 mb-1">
+                            {group.provider}
+                          </div>
+                          {group.models.map((model) => (
+                            <button
+                              key={model}
+                              type="button"
+                              onClick={() => handleSelectModel(model)}
+                              className={cn(
+                                "w-full px-2.5 py-1.5 text-left flex items-center justify-between hover:bg-muted/50 transition-all font-medium cursor-pointer",
+                                selectedModel === model ? "text-purple-500 font-semibold" : "text-foreground/80"
+                              )}
+                            >
+                              <span>{model}</span>
+                              {selectedModel === model && <Check size={11} className="text-purple-500" />}
+                            </button>
+                          ))}
+                          <div className="h-1.5" />
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Mic Icon */}
               <button type="button" className="p-2 rounded hover:bg-muted/20 text-muted-foreground/70 hover:text-foreground transition-colors cursor-pointer">
                 <Microphone size={17} />
               </button>
+
+              {/* Submit Button */}
               <button
                 type="button"
                 onClick={handleSubmitCapture}

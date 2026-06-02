@@ -10,6 +10,10 @@ export interface TimerState {
   timerPresetDuration: number;
   pomodoroSeconds: number;
   
+  // Daily focus accumulators (reset at midnight)
+  pomodoroSecondsToday: number;
+  timerSecondsToday: number;
+  
   setMode: (mode: TimerMode) => void;
   setIsRunning: (running: boolean) => void;
   tick: () => void;
@@ -26,6 +30,8 @@ const DEFAULT_STATE = {
   timerSeconds: 300,
   timerPresetDuration: 300,
   pomodoroSeconds: 1500,
+  pomodoroSecondsToday: 0,
+  timerSecondsToday: 0,
 };
 
 const getInitialState = () => {
@@ -40,6 +46,8 @@ const getInitialState = () => {
         timerSeconds: typeof parsed.timerSeconds === 'number' ? parsed.timerSeconds : DEFAULT_STATE.timerSeconds,
         timerPresetDuration: typeof parsed.timerPresetDuration === 'number' ? parsed.timerPresetDuration : DEFAULT_STATE.timerPresetDuration,
         pomodoroSeconds: typeof parsed.pomodoroSeconds === 'number' ? parsed.pomodoroSeconds : DEFAULT_STATE.pomodoroSeconds,
+        pomodoroSecondsToday: typeof parsed.pomodoroSecondsToday === 'number' ? parsed.pomodoroSecondsToday : DEFAULT_STATE.pomodoroSecondsToday,
+        timerSecondsToday: typeof parsed.timerSecondsToday === 'number' ? parsed.timerSecondsToday : DEFAULT_STATE.timerSecondsToday,
       };
     }
   } catch (e) {
@@ -59,6 +67,8 @@ export const useFocusTimerStore = create<TimerState>((set, get) => {
       timerSeconds: updates.timerSeconds !== undefined ? updates.timerSeconds : currentState.timerSeconds,
       timerPresetDuration: updates.timerPresetDuration !== undefined ? updates.timerPresetDuration : currentState.timerPresetDuration,
       pomodoroSeconds: updates.pomodoroSeconds !== undefined ? updates.pomodoroSeconds : currentState.pomodoroSeconds,
+      pomodoroSecondsToday: updates.pomodoroSecondsToday !== undefined ? updates.pomodoroSecondsToday : currentState.pomodoroSecondsToday,
+      timerSecondsToday: updates.timerSecondsToday !== undefined ? updates.timerSecondsToday : currentState.timerSecondsToday,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
   };
@@ -83,22 +93,24 @@ export const useFocusTimerStore = create<TimerState>((set, get) => {
         set({ stopwatchSeconds: nextSecs });
         saveToStorage({ stopwatchSeconds: nextSecs });
       } else if (state.mode === 'timer') {
+        const nextSecsToday = state.timerSecondsToday + 1;
         if (state.timerSeconds <= 1) {
-          set({ timerSeconds: 0, isRunning: false });
-          saveToStorage({ timerSeconds: 0 });
+          set({ timerSeconds: 0, isRunning: false, timerSecondsToday: nextSecsToday });
+          saveToStorage({ timerSeconds: 0, timerSecondsToday: nextSecsToday });
         } else {
           const nextSecs = state.timerSeconds - 1;
-          set({ timerSeconds: nextSecs });
-          saveToStorage({ timerSeconds: nextSecs });
+          set({ timerSeconds: nextSecs, timerSecondsToday: nextSecsToday });
+          saveToStorage({ timerSeconds: nextSecs, timerSecondsToday: nextSecsToday });
         }
       } else if (state.mode === 'pomodoro') {
+        const nextSecsToday = state.pomodoroSecondsToday + 1;
         if (state.pomodoroSeconds <= 1) {
-          set({ pomodoroSeconds: 0, isRunning: false });
-          saveToStorage({ pomodoroSeconds: 0 });
+          set({ pomodoroSeconds: 0, isRunning: false, pomodoroSecondsToday: nextSecsToday });
+          saveToStorage({ pomodoroSeconds: 0, pomodoroSecondsToday: nextSecsToday });
         } else {
           const nextSecs = state.pomodoroSeconds - 1;
-          set({ pomodoroSeconds: nextSecs });
-          saveToStorage({ pomodoroSeconds: nextSecs });
+          set({ pomodoroSeconds: nextSecs, pomodoroSecondsToday: nextSecsToday });
+          saveToStorage({ pomodoroSeconds: nextSecs, pomodoroSecondsToday: nextSecsToday });
         }
       }
     },

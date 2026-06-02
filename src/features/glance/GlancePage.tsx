@@ -19,6 +19,9 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
     itemId?: string;
   }[]>([]);
 
+  const [isLeftOverlaid, setIsLeftOverlaid] = useState(false);
+  const [isRightOverlaid, setIsRightOverlaid] = useState(false);
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem("glance-captures");
@@ -53,24 +56,81 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
   const showLeftColumn = containerWidth >= 1150;
   const showRightColumn = containerWidth >= 950;
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+
+    // Trigger hover overlay for left column
+    if (!showLeftColumn) {
+      if (x <= 40) {
+        setIsLeftOverlaid(true);
+      } else if (x > 384) {
+        setIsLeftOverlaid(false);
+      }
+    }
+
+    // Trigger hover overlay for right column
+    if (!showRightColumn) {
+      const rightBoundary = containerWidth - 40;
+      const rightCloseBoundary = containerWidth - 384;
+      if (x >= rightBoundary) {
+        setIsRightOverlaid(true);
+      } else if (x < rightCloseBoundary) {
+        setIsRightOverlaid(false);
+      }
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsLeftOverlaid(false);
+    setIsRightOverlaid(false);
+  };
+
+  const renderLeftColumn = () => {
+    if (!showLeftColumn && !isLeftOverlaid) return null;
+
+    const overlayClass = !showLeftColumn
+      ? "absolute left-0 top-0 bottom-0 z-40 bg-background shadow-2xl border-r border-border/50 transition-all duration-300 animate-in slide-in-from-left duration-200"
+      : "border-r border-border/50";
+
+    return (
+      <div className={`w-96 flex-shrink-0 flex flex-col gap-0 overflow-hidden ${overlayClass}`}>
+        <FocusTimeline />
+        <div className="h-px bg-border/40 shrink-0 mx-5" />
+        <RecentDocuments paneId={paneId} />
+        <RecentCapturesList
+          paneId={paneId}
+          captures={captures}
+          onRemoveCapture={handleRemoveCapture}
+        />
+      </div>
+    );
+  };
+
+  const renderRightColumn = () => {
+    if (!showRightColumn && !isRightOverlaid) return null;
+
+    const overlayClass = !showRightColumn
+      ? "absolute right-0 top-0 bottom-0 z-40 bg-background shadow-2xl border-l border-border/50 transition-all duration-300 animate-in slide-in-from-right duration-200"
+      : "border-l border-border/50";
+
+    return (
+      <div className={`w-96 flex-shrink-0 flex flex-col overflow-hidden ${overlayClass}`}>
+        <GlanceTasksSection />
+      </div>
+    );
+  };
+
   return (
     <div
       ref={containerRef}
-      className="h-full w-full flex gap-0 overflow-hidden bg-background font-sans text-foreground select-none"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="h-full w-full flex gap-0 overflow-hidden bg-background font-sans text-foreground select-none relative"
     >
-      {/* ── LEFT COLUMN: Time Bar Graph + Recent Docs ── */}
-      {showLeftColumn && (
-        <div className="w-96 flex-shrink-0 border-r border-border/50 flex flex-col gap-0 overflow-hidden">
-          <FocusTimeline />
-          <div className="h-px bg-border/40 shrink-0 mx-5" />
-          <RecentDocuments paneId={paneId} />
-          <RecentCapturesList
-            paneId={paneId}
-            captures={captures}
-            onRemoveCapture={handleRemoveCapture}
-          />
-        </div>
-      )}
+      {/* ── LEFT COLUMN ── */}
+      {renderLeftColumn()}
 
       {/* ── CENTER COLUMN: Greeting + Quick Capture ── */}
       <div className="relative flex-1 min-h-0 flex flex-col items-center justify-center px-10 overflow-y-auto no-scrollbar">
@@ -79,11 +139,15 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
         <DailyActivitySummary />
       </div>
 
-      {/* ── RIGHT COLUMN: Completed + Incomplete + Upcoming Tasks ── */}
-      {showRightColumn && (
-        <div className="w-96 flex-shrink-0 border-l border-border/50 flex flex-col overflow-hidden">
-          <GlanceTasksSection />
-        </div>
+      {/* ── RIGHT COLUMN ── */}
+      {renderRightColumn()}
+
+      {/* Hover edge visual cues */}
+      {!showLeftColumn && !isLeftOverlaid && (
+        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-r from-teal-500/20 to-transparent pointer-events-none hover:from-teal-500/40 transition-all duration-300" />
+      )}
+      {!showRightColumn && !isRightOverlaid && (
+        <div className="absolute right-0 top-0 bottom-0 w-1.5 bg-gradient-to-l from-teal-500/20 to-transparent pointer-events-none hover:from-teal-500/40 transition-all duration-300" />
       )}
     </div>
   );

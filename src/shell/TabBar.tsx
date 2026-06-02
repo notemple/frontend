@@ -78,6 +78,7 @@ function getSectionColor(tabId: string, type: string, folderColor?: string): str
   if (tabId === 'section-tags') return '#f59e0b'; // Amber
   if (tabId === 'section-glance') return '#6366f1'; // Indigo
   if (tabId === 'section-wall') return '#ec4899'; // Pink
+  if (tabId === 'section-help') return '#14b8a6'; // Teal
   if (tabId === 'section-favorites') return '#eab308'; // Yellow/Gold
   if (tabId === 'section-folders') return '#8b5cf6'; // Purple
   if (tabId === 'section-uncategorized') return '#64748b'; // Slate
@@ -104,6 +105,7 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
       if (tabId === 'section-tags') return { title: 'Tags', type: 'tags', icon: undefined };
       if (tabId === 'section-glance') return { title: 'Glance', type: 'glance', icon: undefined };
       if (tabId === 'section-wall') return { title: 'Wall', type: 'wall', icon: undefined };
+      if (tabId === 'section-help') return { title: 'Help', type: 'help', icon: undefined };
       if (tabId === 'section-favorites') return { title: 'Favorites', type: 'favorites', icon: undefined };
       if (tabId === 'section-folders') return { title: 'Folders', type: 'folders', icon: undefined };
       if (tabId === 'section-uncategorized') return { title: 'Uncategorized', type: 'folders', icon: undefined };

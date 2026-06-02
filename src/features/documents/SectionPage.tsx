@@ -10,6 +10,7 @@ import { TagsPage } from '@/features/tags/TagsPage';
 import { TrashPage } from '@/features/trash/TrashPage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
 import { GlancePage } from '@/features/glance/GlancePage';
+import { HelpPage } from '@/features/help/HelpPage';
 import { cn, getItemColor, getFolderStyle, getFolderHexColor } from '@/shared/lib/utils';
 import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
 import { Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, CaretDown, FileText, Folder, Sun, Moon, Monitor, Clock, ArrowLeft, PlusCircle, Check, X, Plus, Trash } from '@phosphor-icons/react';
@@ -166,6 +167,9 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
         <p className="text-muted-foreground text-sm font-medium">Blank Page</p>
       </div>
     );
+  }
+  if (sectionId === 'section-help') {
+    return <HelpPage />;
   }
 
 

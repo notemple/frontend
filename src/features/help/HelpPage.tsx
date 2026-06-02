@@ -1,0 +1,287 @@
+import React, { useState } from 'react';
+import {
+  Keyboard,
+  FileText,
+  Tag,
+  CaretDown,
+  CaretRight,
+} from '@phosphor-icons/react';
+
+// ── Types ──────────────────────────────────────────────────────────────────
+
+type NavItem = 'keyboard-shortcuts' | 'release-notes' | 'terms-of-service';
+
+interface Release {
+  version: string;
+  date: string;
+  changes: string[];
+}
+
+// ── Data ───────────────────────────────────────────────────────────────────
+
+const RELEASES: Release[] = [
+  {
+    version: '1.3.0',
+    date: 'May 2026',
+    changes: [
+      'Added Glance page with focus timeline and task overview',
+      'Introduced quick capture box with AI model selection',
+      'Timer auto-sets tasks to "In Progress" when started',
+      'Green checkmark indicator for completed tasks',
+      'Refactored Glance components for improved reusability',
+    ],
+  },
+  {
+    version: '1.2.0',
+    date: 'April 2026',
+    changes: [
+      'Added Wall page for pinned notes',
+      'Improved drag-and-drop reordering in sidebar',
+      'Tag filtering in document search',
+      'Daily Notes improvements: scroll position persistence',
+    ],
+  },
+  {
+    version: '1.1.0',
+    date: 'March 2026',
+    changes: [
+      'Kanban board view for Tasks',
+      'Favorites section in sidebar',
+      'Folder color customization',
+      'Context menus for sidebar items',
+    ],
+  },
+  {
+    version: '1.0.0',
+    date: 'February 2026',
+    changes: [
+      'Initial release of Notemple',
+      'Rich text editor with slash commands',
+      'Nested folders and document management',
+      'Dark mode support',
+      'Settings page with account management',
+    ],
+  },
+];
+
+const KEYBOARD_SHORTCUTS: { category: string; shortcuts: { key: string; desc: string }[] }[] = [
+  {
+    category: 'General',
+    shortcuts: [
+      { key: 'Ctrl + Alt + L', desc: 'Toggle left sidebar' },
+      { key: 'Ctrl + Alt + R', desc: 'Toggle right sidebar' },
+      { key: 'Ctrl + Alt + T', desc: 'Toggle top navbar' },
+    ],
+  },
+  {
+    category: 'Navigation',
+    shortcuts: [
+      { key: 'Ctrl + Alt + ← / →', desc: 'Change tab item' },
+      { key: 'Ctrl + Alt + H / J', desc: 'Change pane' },
+      { key: 'Ctrl + Alt + N', desc: 'Split pane' },
+      { key: 'Ctrl + Alt + Q', desc: 'Close active pane' },
+      { key: 'Ctrl + K', desc: 'Document search' },
+    ],
+  },
+];
+
+const TERMS = `Last updated: May 2026
+
+1. Acceptance of Terms
+By accessing or using Notemple, you agree to be bound by these Terms of Service. If you do not agree to all the terms, please do not use the application.
+
+2. Use of the Service
+Notemple is a personal productivity and note-taking application. You may use the service for lawful purposes only. You agree not to misuse the application or help anyone else do so.
+
+3. Your Content
+You retain ownership of any notes, documents, and data you create within Notemple. We do not claim any intellectual property rights over your content. Your data is stored locally and/or synced as per your chosen settings.
+
+4. Privacy
+We are committed to protecting your privacy. Notemple processes your data locally by default. Any cloud sync features are opt-in and governed by our Privacy Policy.
+
+5. Modifications
+We may update or modify the application at any time. We will provide reasonable notice of significant changes via in-app release notes.
+
+6. Disclaimer of Warranties
+The service is provided "as is" without warranties of any kind, either express or implied. We do not warrant that the service will be error-free or uninterrupted.
+
+7. Limitation of Liability
+To the fullest extent permitted by law, Notemple and its developers shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the service.
+
+8. Termination
+We reserve the right to suspend or terminate your access to the service at our discretion, without notice, for conduct that we believe violates these Terms of Service.
+
+9. Governing Law
+These terms shall be governed by and construed in accordance with applicable laws, without regard to conflict of law principles.
+
+10. Contact
+If you have any questions about these Terms of Service, please reach out via the official Notemple support channels.`;
+
+// ── Sub-components ─────────────────────────────────────────────────────────
+
+function KeyboardShortcuts() {
+  return (
+    <div className="flex flex-col gap-8">
+      <div>
+        <h2 className="text-2xl font-bold text-foreground tracking-tight mb-1">Keyboard Shortcuts</h2>
+        <p className="text-sm text-muted-foreground">Boost your productivity with these handy shortcuts.</p>
+      </div>
+      {KEYBOARD_SHORTCUTS.map((section) => (
+        <div key={section.category} className="flex flex-col gap-2">
+          <h3 className="text-xs font-semibold uppercase tracking-widest text-teal-500 dark:text-teal-400 mb-1">
+            {section.category}
+          </h3>
+          <div className="rounded-xl border border-border/50 overflow-hidden">
+            {section.shortcuts.map((s, i) => (
+              <div
+                key={s.key}
+                className={`flex items-center justify-between px-4 py-2.5 ${
+                  i !== 0 ? 'border-t border-border/30' : ''
+                } hover:bg-muted/30 transition-colors`}
+              >
+                <span className="text-sm text-foreground/80">{s.desc}</span>
+                <kbd className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-muted border border-border/60 text-[11px] font-mono text-muted-foreground shadow-sm">
+                  {s.key}
+                </kbd>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ReleaseNotes({ selectedRelease, onSelectRelease }: { selectedRelease: string; onSelectRelease: (v: string) => void }) {
+  const release = RELEASES.find((r) => r.version === selectedRelease) || RELEASES[0];
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h2 className="text-2xl font-bold text-foreground tracking-tight mb-1">Release Notes</h2>
+        <p className="text-sm text-muted-foreground">What's new in each version of Notemple.</p>
+      </div>
+
+      {/* Version dropdown */}
+      <div className="relative w-48">
+        <select
+          value={selectedRelease}
+          onChange={(e) => onSelectRelease(e.target.value)}
+          className="w-full appearance-none bg-muted/50 border border-border/60 rounded-lg px-3 py-2 pr-8 text-sm text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500/60 transition-all"
+        >
+          {RELEASES.map((r) => (
+            <option key={r.version} value={r.version}>
+              v{r.version} — {r.date}
+            </option>
+          ))}
+        </select>
+        <CaretDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+      </div>
+
+      {/* Release card */}
+      <div className="rounded-xl border border-border/50 bg-muted/20 p-6 flex flex-col gap-4">
+        <div className="flex items-center gap-3">
+          <span className="text-lg font-bold text-foreground">v{release.version}</span>
+          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{release.date}</span>
+        </div>
+        <div className="h-px bg-border/40" />
+        <ul className="flex flex-col gap-2">
+          {release.changes.map((change, i) => (
+            <li key={i} className="flex items-start gap-2.5 text-sm text-foreground/80">
+              <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-teal-500 flex-shrink-0" />
+              {change}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function TermsOfService() {
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h2 className="text-2xl font-bold text-foreground tracking-tight mb-1">Terms of Service</h2>
+        <p className="text-sm text-muted-foreground">Please read these terms carefully before using Notemple.</p>
+      </div>
+      <div className="rounded-xl border border-border/50 bg-muted/20 p-6">
+        {TERMS.split('\n\n').map((para, i) => {
+          const isHeading = /^\d+\./.test(para);
+          return (
+            <div key={i} className={isHeading ? 'mt-5 first:mt-0' : 'mt-2'}>
+              {isHeading ? (
+                <h3 className="text-sm font-semibold text-foreground mb-1">{para}</h3>
+              ) : (
+                <p className="text-sm text-foreground/70 leading-relaxed">{para}</p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Main Page ──────────────────────────────────────────────────────────────
+
+const NAV_ITEMS: { id: NavItem; label: string; icon: React.ReactNode }[] = [
+  { id: 'keyboard-shortcuts', label: 'Keyboard Shortcuts', icon: <Keyboard size={15} /> },
+  { id: 'release-notes', label: 'Release Notes', icon: <Tag size={15} /> },
+  { id: 'terms-of-service', label: 'Terms of Service', icon: <FileText size={15} /> },
+];
+
+const APP_VERSION = '1.3.0';
+
+export const HelpPage: React.FC = () => {
+  const [activeNav, setActiveNav] = useState<NavItem>('keyboard-shortcuts');
+  const [selectedRelease, setSelectedRelease] = useState(RELEASES[0].version);
+
+  return (
+    <div className="h-full w-full flex overflow-hidden bg-background font-sans text-foreground select-none">
+      {/* ── LEFT SIDEBAR ──────────────────────────────────────────── */}
+      <div className="w-60 flex-shrink-0 border-r border-border/50 flex flex-col py-6 px-3">
+        <div className="px-2 mb-4">
+          <h1 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Help &amp; Info</h1>
+        </div>
+
+        <nav className="flex flex-col gap-0.5 flex-1">
+          {NAV_ITEMS.map((item) => {
+            const isActive = activeNav === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveNav(item.id)}
+                className={`flex items-center gap-2.5 w-full text-left px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
+                  isActive
+                    ? 'bg-teal-500/10 dark:bg-teal-500/15 text-teal-600 dark:text-teal-400 font-medium border border-teal-500/30 dark:border-teal-500/20'
+                    : 'text-foreground/70 hover:bg-muted/50 hover:text-foreground border border-transparent'
+                }`}
+              >
+                <span className={isActive ? 'text-teal-500' : 'text-muted-foreground'}>{item.icon}</span>
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Version badge */}
+        <div className="px-3 pt-4 border-t border-border/40 mt-4">
+          <p className="text-[11px] text-muted-foreground">Notemple</p>
+          <p className="text-xs font-semibold text-foreground/60 mt-0.5">v{APP_VERSION}</p>
+        </div>
+      </div>
+
+      {/* ── CENTER CONTENT ────────────────────────────────────────── */}
+      <div className="flex-1 overflow-y-auto no-scrollbar">
+        <div className="max-w-2xl mx-auto px-10 py-10">
+          {activeNav === 'keyboard-shortcuts' && <KeyboardShortcuts />}
+          {activeNav === 'release-notes' && (
+            <ReleaseNotes selectedRelease={selectedRelease} onSelectRelease={setSelectedRelease} />
+          )}
+          {activeNav === 'terms-of-service' && <TermsOfService />}
+        </div>
+      </div>
+    </div>
+  );
+};

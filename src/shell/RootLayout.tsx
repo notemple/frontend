@@ -84,6 +84,16 @@ export const RootLayout = () => {
           if (index !== -1 && index < panes.length - 1) {
             setActivePane(panes[index + 1].id);
           }
+        } else if (key === 'n') {
+          e.preventDefault();
+          const { activePaneId, addPane } = useUiStore.getState();
+          addPane(`pane-${Date.now()}`, activePaneId || undefined);
+        } else if (key === 'q') {
+          e.preventDefault();
+          const { activePaneId, removePane, panes } = useUiStore.getState();
+          if (activePaneId && panes.length > 1) {
+            removePane(activePaneId);
+          }
         }
       }
     };

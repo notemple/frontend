@@ -26,7 +26,8 @@ import {
   PencilSimple,
   Tag,
   Eye,
-  SquaresFour
+  SquaresFour,
+  Question
 } from '@phosphor-icons/react';
 import { SidebarItem } from "./SidebarItem";
 import { SidebarFolderItem } from "./SidebarFolderItem";
@@ -924,6 +925,24 @@ export const Sidebar = () => {
             onClick={() => handleDocClick('section-trash')}
             activeBgClass="bg-red-500/10 dark:bg-red-500/5 border-red-500/20 dark:border-red-500/10 border"
             activeTextClass="!text-red-600 dark:!text-red-400 font-semibold"
+          />
+        </div>
+        <div
+          draggable
+          onDragStart={(e) => {
+            e.dataTransfer.setData('text/plain', 'section-help');
+            e.dataTransfer.setData('notemple/document-id', 'section-help');
+            e.dataTransfer.effectAllowed = 'copyMove';
+          }}
+        >
+          <SidebarItem
+            icon={<Question size={16} className={isDocActive('section-help') ? "text-current" : "text-teal-500/90 dark:text-teal-400/90"} />}
+            label="Help"
+            isOpen={isSidebarOpen}
+            highlight={isDocActive('section-help')}
+            onClick={() => handleDocClick('section-help')}
+            activeBgClass="bg-teal-500/10 dark:bg-teal-500/20 border-teal-500/50 dark:border-teal-500/30 border"
+            activeTextClass="!text-teal-600 dark:!text-teal-400 font-semibold"
           />
         </div>
         <SidebarItem 

@@ -282,7 +282,8 @@ export const TabBar = ({ paneId }: { paneId: string }) => {
     activeHighlightGradient,
     inactiveHighlightType,
     inactiveHighlightColor,
-    inactiveHighlightGradient
+    inactiveHighlightGradient,
+    grayscaleInactiveTabs = true
   } = useSettingsStore();
 
   const pane = panes.find(p => p?.id === paneId);
@@ -342,7 +343,9 @@ export const TabBar = ({ paneId }: { paneId: string }) => {
       <div
         className={cn(
           "flex items-center h-10 border-b border-border bg-background overflow-x-auto overflow-y-hidden select-none justify-between relative",
-          activePaneId === paneId ? "opacity-100" : "opacity-70 grayscale hover:grayscale-0"
+          activePaneId === paneId 
+            ? "opacity-100" 
+            : cn("opacity-70 hover:opacity-100 transition-opacity", grayscaleInactiveTabs && "grayscale hover:grayscale-0")
         )}
         onClick={() => setActivePane(paneId)}
       >

@@ -18,16 +18,16 @@ import { useSettingsStore } from "@/features/settings/store";
 import { cn } from "@/shared/lib/utils";
 import { formatInTimeZone } from "date-fns-tz";
 
-const getCaptureIcon = (type: string) => {
+const getCaptureIcon = (type: string, activeColor?: string) => {
   switch (type) {
     case "Note":
-      return <CalendarBlank size={16} className="text-emerald-500" />;
+      return <CalendarBlank size={16} className={activeColor ? "" : "text-emerald-500"} style={activeColor ? { color: activeColor } : undefined} />;
     case "Task":
-      return <CheckSquare size={16} className="text-sky-500" />;
+      return <CheckSquare size={16} className={activeColor ? "" : "text-sky-500"} style={activeColor ? { color: activeColor } : undefined} />;
     case "Doc":
-      return <FileText size={16} className="text-purple-500" />;
+      return <FileText size={16} className={activeColor ? "" : "text-purple-500"} style={activeColor ? { color: activeColor } : undefined} />;
     case "Link":
-      return <Lightning size={16} className="text-amber-500" />;
+      return <Lightning size={16} className={activeColor ? "" : "text-amber-500"} style={activeColor ? { color: activeColor } : undefined} />;
     default:
       return null;
   }
@@ -66,6 +66,43 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
   const addTask = useTaskStore((s) => s.addTask);
   const openDocument = useUiStore((s) => s.openDocument);
   const timezone = useSettingsStore((s) => s.timezone);
+
+  const activePaneId = useUiStore((s) => s.activePaneId);
+  const isCurrentActive = activePaneId === paneId;
+
+  const { 
+    activeHighlightType, 
+    activeHighlightColor, 
+    activeHighlightGradient,
+    inactiveHighlightType,
+    inactiveHighlightColor,
+    inactiveHighlightGradient
+  } = useSettingsStore();
+
+  const paneHighlightBg = React.useMemo(() => {
+    if (isCurrentActive) {
+      return activeHighlightType === 'gradient' ? activeHighlightGradient : activeHighlightColor;
+    } else {
+      const bg = inactiveHighlightType === 'gradient' ? inactiveHighlightGradient : inactiveHighlightColor;
+      return bg && bg !== 'none' && bg !== 'transparent' ? bg : activeHighlightColor;
+    }
+  }, [
+    isCurrentActive, 
+    activeHighlightType, 
+    activeHighlightColor, 
+    activeHighlightGradient,
+    inactiveHighlightType,
+    inactiveHighlightColor,
+    inactiveHighlightGradient
+  ]);
+
+  const paneHighlightSolid = React.useMemo(() => {
+    if (isCurrentActive) {
+      return activeHighlightColor;
+    } else {
+      return inactiveHighlightColor && inactiveHighlightColor !== 'transparent' ? inactiveHighlightColor : activeHighlightColor;
+    }
+  }, [isCurrentActive, activeHighlightColor, inactiveHighlightColor]);
 
   const [captureText, setCaptureText] = useState("");
   const [activeType, setActiveType] = useState<"Note" | "Task" | "Doc" | "Link">("Note");
@@ -175,15 +212,24 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
               key={type}
               type="button"
               onClick={() => setActiveType(type)}
+              style={activeType === type ? { color: paneHighlightSolid, borderColor: 'transparent' } : undefined}
               className={cn(
-                "px-3 py-1.5 rounded border flex items-center gap-2 text-sm font-medium transition-all cursor-pointer select-none",
+                "relative px-3 py-1.5 rounded border flex items-center gap-2 text-sm font-medium transition-all cursor-pointer select-none overflow-hidden",
                 activeType === type
-                  ? "bg-purple-500/15 border-purple-500/40 text-purple-600 dark:text-purple-400 shadow-sm"
+                  ? "shadow-sm-sm"
                   : "border-border/50 hover:border-border/80 hover:bg-muted/20 text-foreground/70"
               )}
             >
-              {getCaptureIcon(type)}
-              <span>{type}</span>
+              {activeType === type && (
+                <div 
+                  style={{ background: paneHighlightBg }} 
+                  className="absolute inset-0 opacity-[0.12] dark:opacity-[0.18] pointer-events-none" 
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-2">
+                {getCaptureIcon(type, activeType === type ? paneHighlightSolid : undefined)}
+                <span>{type}</span>
+              </span>
             </button>
           ))}
         </div>
@@ -247,14 +293,21 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
             type="button"
             onClick={handleSubmitCapture}
             disabled={!captureText.trim()}
+            style={captureText.trim() ? { color: paneHighlightSolid } : undefined}
             className={cn(
-              "p-2 rounded flex items-center justify-center transition-all cursor-pointer",
+              "relative p-2 rounded flex items-center justify-center transition-all cursor-pointer overflow-hidden",
               captureText.trim()
-                ? "bg-purple-500 hover:bg-purple-600 text-white shadow-sm"
+                ? "shadow-sm hover:opacity-90 border border-transparent"
                 : "bg-muted text-muted-foreground/30 cursor-not-allowed border border-border/30"
             )}
           >
-            <ArrowUp size={17} weight="bold" />
+            {captureText.trim() && (
+              <div 
+                style={{ background: paneHighlightBg }} 
+                className="absolute inset-0 opacity-[0.12] dark:opacity-[0.18] pointer-events-none" 
+              />
+            )}
+            <ArrowUp size={17} weight="bold" className="relative z-10" />
           </button>
         </div>
       </div>

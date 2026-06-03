@@ -27,6 +27,8 @@ import { EditorDndContext } from './components/EditorDndContext';
 import { DocumentPreviewPopup } from './components/DocumentPreviewPopup';
 import { ColumnsExtension } from './extensions/ColumnsExtension';
 import { ColumnExtension } from './extensions/ColumnExtension';
+import { AiBlock } from './extensions/AiBlock';
+import { BackspaceEmptyBlock } from './extensions/BackspaceEmptyBlock';
 import { SlashCommand, getSuggestionItems, renderItems } from './components/SlashCommand';
 import { useDocumentStore, type NoteDocument, getDailyNoteTitle } from '@/features/documents/store';
 import { useUiStore } from '@/shared/store/uiStore';
@@ -50,7 +52,7 @@ const allExistingTagsSelector = (state: any) => {
   lastDocumentsTags = state.documents;
   lastCreatedTags = state.createdTags;
   const set = new Set<string>();
-  
+
   // 1. Add user-created tags (from Tags page)
   state.createdTags?.forEach((tag: string) => {
     if (tag && tag.trim()) set.add(tag);
@@ -71,13 +73,13 @@ const getBacklinksForDocument = (currentDocId: string, documents: Record<string,
   const list: { id: string; title: string; excerpt: string; updatedAt: string }[] = [];
   Object.values(documents).forEach(doc => {
     if (doc.id === currentDocId || doc.isDeleted || !doc.content) return;
-    
+
     // Parse references
     const parser = new DOMParser();
     const htmlDoc = parser.parseFromString(doc.content, 'text/html');
     const hasRef = Array.from(htmlDoc.querySelectorAll('span[data-reference][data-type="document"]'))
       .some(span => span.getAttribute('data-id') === currentDocId);
-      
+
     if (hasRef) {
       // Extract a clean excerpt around the reference or from the beginning
       const cleanText = htmlDoc.body.textContent || '';
@@ -93,18 +95,18 @@ const getBacklinksForDocument = (currentDocId: string, documents: Record<string,
   return list;
 };
 
-export const TemplnoteEditor = React.memo(({ 
-  documentId, 
-  paneId, 
-  isDailyNote, 
-  isMinimized = false, 
-  onClosePopup 
-}: { 
-  documentId: string; 
-  paneId?: string; 
-  isDailyNote?: boolean; 
-  isMinimized?: boolean; 
-  onClosePopup?: () => void; 
+export const TemplnoteEditor = React.memo(({
+  documentId,
+  paneId,
+  isDailyNote,
+  isMinimized = false,
+  onClosePopup
+}: {
+  documentId: string;
+  paneId?: string;
+  isDailyNote?: boolean;
+  isMinimized?: boolean;
+  onClosePopup?: () => void;
 }) => {
   const updateDocument = useDocumentStore(state => state.updateDocument);
   const { openDocument, setSelectedDailyNoteDate, closeDocument } = useUiStore(
@@ -232,7 +234,7 @@ export const TemplnoteEditor = React.memo(({
     if (!localStyle.documentColor) return '#111827'; // Default light beige paper
 
     const clean = localStyle.documentColor.toLowerCase();
-    
+
     // Check if it's a gradient
     if (clean.includes('gradient')) {
       // If it contains dark colors/gradients, it is dark paper
@@ -251,7 +253,7 @@ export const TemplnoteEditor = React.memo(({
       }
       return '#111827';
     }
-    
+
     // Check solid hex brightness
     if (clean.startsWith('#')) {
       const hex = clean.substring(1);
@@ -263,7 +265,7 @@ export const TemplnoteEditor = React.memo(({
         return brightness < 130 ? '#ffffff' : '#111827';
       }
     }
-    
+
     return '#111827';
   }, [localStyle.textColor, localStyle.documentColor, hasCustomStyle]);
 
@@ -290,7 +292,11 @@ export const TemplnoteEditor = React.memo(({
     }),
     CustomCodeBlock,
     Placeholder.configure({
-      placeholder: 'Press "/" for commands, or start typing...',
+      placeholder: "press '/' for commands '@' for mentions or press 'tab' for ai",
+      showOnlyCurrent: true,
+    }),
+    AiBlock.configure({
+      paneId: paneId || '',
     }),
     TaskList,
     CustomTodoItem.configure({
@@ -329,13 +335,14 @@ export const TemplnoteEditor = React.memo(({
     TableCell,
     ColumnsExtension,
     ColumnExtension,
+    BackspaceEmptyBlock,
     SlashCommand.configure({
       suggestion: {
         items: getSuggestionItems,
         render: renderItems,
       },
     }),
-  ], []);
+  ], [paneId]);
 
   const debouncedUpdateRef = useRef<any>(null);
 
@@ -517,8 +524,8 @@ export const TemplnoteEditor = React.memo(({
       <div
         className={cn(
           "w-full overflow-y-auto no-scrollbar flex flex-col relative flex-1 h-full",
-          isMinimized 
-            ? "border border-border rounded-sm-sm bg-muted/20 hover:bg-muted/30 hover:border-muted-foreground/20 focus-within:border-rose-500/35 focus-within:bg-background transition-all duration-200" 
+          isMinimized
+            ? "border border-border rounded-sm-sm bg-muted/20 hover:bg-muted/30 hover:border-muted-foreground/20 focus-within:border-rose-500/35 focus-within:bg-background transition-all duration-200"
             : "",
           hasCustomStyle ? "p-3 sm:p-5 md:p-8 lg:p-10 transition-[padding] duration-300" : ""
         )}
@@ -531,379 +538,379 @@ export const TemplnoteEditor = React.memo(({
           <div className="absolute inset-0 bg-white/85 pointer-events-none z-0" style={{ transition: 'background-color 0.15s ease' }} />
         )}
 
-      <div
-        className={cn(
-          "w-full mx-auto font-content flex flex-col shrink-0 z-10",
-          hasCustomStyle
-            ? cn(
+        <div
+          className={cn(
+            "w-full mx-auto font-content flex flex-col shrink-0 z-10",
+            hasCustomStyle
+              ? cn(
                 "max-w-full px-6 sm:px-8 md:px-10 py-5 sm:py-8 md:py-10 rounded-sm-sm shadow-sm-none relative border border-border min-w-0",
-                isMinimized 
-                  ? "min-h-full" 
+                isMinimized
+                  ? "min-h-full"
                   : "min-h-[500px] md:min-h-[calc(100vh-160px)] overflow-hidden"
               )
-            : cn(
-                "max-w-[1400px] min-w-0", 
-                isMinimized 
-                  ? "py-6 px-8 min-h-full" 
+              : cn(
+                "max-w-[1400px] min-w-0",
+                isMinimized
+                  ? "py-6 px-8 min-h-full"
                   : "h-full overflow-hidden py-10 px-6"
               )
-        )}
-        style={{
-          background: localStyle.documentColor || (hasCustomStyle ? '#faf8f5' : 'transparent'),
-          color: activeTextColor,
-          fontFamily: localStyle.fontFamily || undefined,
-          ['--tw-prose-body' as any]: activeTextColor,
-          ['--tw-prose-headings' as any]: activeTextColor,
-          ['--tw-prose-links' as any]: activeTextColor,
-          ['--tw-prose-bold' as any]: activeTextColor,
-          ['--tw-prose-quotes' as any]: activeTextColor,
-          ['--tw-prose-code' as any]: activeTextColor,
-        }}
-      >
-        {hasCustomStyle && (
-          <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} />
-        )}
+          )}
+          style={{
+            background: localStyle.documentColor || (hasCustomStyle ? '#faf8f5' : 'transparent'),
+            color: activeTextColor,
+            fontFamily: localStyle.fontFamily || undefined,
+            ['--tw-prose-body' as any]: activeTextColor,
+            ['--tw-prose-headings' as any]: activeTextColor,
+            ['--tw-prose-links' as any]: activeTextColor,
+            ['--tw-prose-bold' as any]: activeTextColor,
+            ['--tw-prose-quotes' as any]: activeTextColor,
+            ['--tw-prose-code' as any]: activeTextColor,
+          }}
+        >
+          {hasCustomStyle && (
+            <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} />
+          )}
 
-        <div 
-          className={cn(
-            "relative z-10 transition-all duration-300",
-            localStyle.topSectionColor
-              ? (
+          <div
+            className={cn(
+              "relative z-10 transition-all duration-300",
+              localStyle.topSectionColor
+                ? (
                   hasCustomStyle
                     ? "-mx-6 -mt-5 sm:-mx-8 sm:-mt-8 md:-mx-10 md:-mt-10 px-6 py-5 sm:px-8 sm:py-6 md:px-10 md:py-8 border-b border-border/30 rounded-t-sm-sm rounded-b-none mb-6"
                     : (
-                        isMinimized
-                          ? "-mx-8 -mt-6 px-8 py-6 border-b border-border/30 rounded-t-sm-sm rounded-b-none mb-6"
-                          : "-mx-6 -mt-10 px-6 py-10 border-b border-border/30 rounded-t-sm-sm rounded-b-none mb-8"
-                      )
+                      isMinimized
+                        ? "-mx-8 -mt-6 px-8 py-6 border-b border-border/30 rounded-t-sm-sm rounded-b-none mb-6"
+                        : "-mx-6 -mt-10 px-6 py-10 border-b border-border/30 rounded-t-sm-sm rounded-b-none mb-8"
+                    )
                 )
-              : (
-                  isMinimized 
-                    ? "mb-6 px-8" 
+                : (
+                  isMinimized
+                    ? "mb-6 px-8"
                     : (hasCustomStyle ? "mb-8 px-4 sm:px-6 md:px-8" : "mb-8 px-4")
                 )
-          )}
-          style={{
-            background: localStyle.topSectionColor || undefined,
-          }}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em]" style={{ color: document.topSectionTextColor || activeMutedColor }}>
-              <span>{document.type}</span>
-              <span>/</span>
-              <span>{formatDisplayDate(document.updatedAt, "MMM d, yyyy")}</span>
+            )}
+            style={{
+              background: localStyle.topSectionColor || undefined,
+            }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em]" style={{ color: document.topSectionTextColor || activeMutedColor }}>
+                <span>{document.type}</span>
+                <span>/</span>
+                <span>{formatDisplayDate(document.updatedAt, "MMM d, yyyy")}</span>
+              </div>
+
+              {documentId.startsWith('daily-note-') && !isDailyNote && (
+                <button
+                  onClick={handleBackToDailyNotes}
+                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-sm-sm border border-border bg-muted/40 hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all cursor-pointer shadow-sm-sm select-none"
+                  title="Back to Daily Notes view"
+                >
+                  <ArrowsInSimple size={14} />
+                  <span>Daily Notes</span>
+                </button>
+              )}
             </div>
 
-            {documentId.startsWith('daily-note-') && !isDailyNote && (
-              <button
-                onClick={handleBackToDailyNotes}
-                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-sm-sm border border-border bg-muted/40 hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all cursor-pointer shadow-sm-sm select-none"
-                title="Back to Daily Notes view"
-              >
-                <ArrowsInSimple size={14} />
-                <span>Daily Notes</span>
-              </button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-4">
-            {isDailyNote ? null : (
-              <div className="relative shrink-0 self-center animate-fade-in" ref={emojiPickerRef}>
-                <button
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  className="w-12 h-12 rounded-sm-sm border border-transparent hover:border-border flex items-center justify-center opacity-60 hover:opacity-100 hover:bg-muted/30 hover:shadow-sm-sm transition-all cursor-pointer select-none"
-                  title={document.icon ? "Change Emoji" : "Add Emoji"}
-                >
-                  {document.icon ? (
-                    <span className="text-[26px] leading-none flex items-center justify-center font-sans">{document.icon}</span>
-                  ) : (
-                    <Smiley size={24} style={{ color: document.topSectionTextColor || activeTextColor }} />
-                  )}
-                </button>
-                {showEmojiPicker && (
-                  <div className="absolute top-full left-0 mt-2 w-64 bg-background border border-border shadow-sm-sm z-50 overflow-hidden text-sans text-foreground rounded-sm-sm">
-                    <div className="p-2 border-b border-border bg-muted/30 flex items-center justify-between">
-                      <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Select Emoji</span>
-                      {document.icon && (
-                        <button
-                          onClick={() => {
-                            updateDocument(documentId, { icon: undefined });
-                            setShowEmojiPicker(false);
-                          }}
-                          className="text-[10px] text-red-500 hover:text-red-400 font-semibold cursor-pointer"
-                        >
-                          Remove
-                        </button>
-                      )}
+            <div className="flex items-center gap-4">
+              {isDailyNote ? null : (
+                <div className="relative shrink-0 self-center animate-fade-in" ref={emojiPickerRef}>
+                  <button
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className="w-12 h-12 rounded-sm-sm border border-transparent hover:border-border flex items-center justify-center opacity-60 hover:opacity-100 hover:bg-muted/30 hover:shadow-sm-sm transition-all cursor-pointer select-none"
+                    title={document.icon ? "Change Emoji" : "Add Emoji"}
+                  >
+                    {document.icon ? (
+                      <span className="text-[26px] leading-none flex items-center justify-center font-sans">{document.icon}</span>
+                    ) : (
+                      <Smiley size={24} style={{ color: document.topSectionTextColor || activeTextColor }} />
+                    )}
+                  </button>
+                  {showEmojiPicker && (
+                    <div className="absolute top-full left-0 mt-2 w-64 bg-background border border-border shadow-sm-sm z-50 overflow-hidden text-sans text-foreground rounded-sm-sm">
+                      <div className="p-2 border-b border-border bg-muted/30 flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Select Emoji</span>
+                        {document.icon && (
+                          <button
+                            onClick={() => {
+                              updateDocument(documentId, { icon: undefined });
+                              setShowEmojiPicker(false);
+                            }}
+                            className="text-[10px] text-red-500 hover:text-red-400 font-semibold cursor-pointer"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-6 gap-1 p-2.5 max-h-48 overflow-y-auto no-scrollbar">
+                        {['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
+                          '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
+                          '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸',
+                          '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️',
+                          '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡',
+                          '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓',
+                          '🤗', '🤔', '🫣', '🤭', '🫢', '🫡', '🤫', '🫠', '✍️', '📝',
+                          '📚', '💻', '💡', '🚀', '🔥', '⭐️', '🎯', '🎨', '🧠', '💼',
+                          '📅', '📌', '❤️', '👍', '🎉', '🌟', '✨', '🌍', '🐱', '🍕'
+                        ].map(emoji => (
+                          <button
+                            key={emoji}
+                            onClick={() => {
+                              updateDocument(documentId, { icon: emoji });
+                              setShowEmojiPicker(false);
+                            }}
+                            className="w-8 h-8 flex items-center justify-center text-[18px] hover:bg-muted rounded transition-colors cursor-pointer select-none"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <div className="grid grid-cols-6 gap-1 p-2.5 max-h-48 overflow-y-auto no-scrollbar">
-                      {['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
-                        '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
-                        '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸',
-                        '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️',
-                        '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡',
-                        '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓',
-                        '🤗', '🤔', '🫣', '🤭', '🫢', '🫡', '🤫', '🫠', '✍️', '📝',
-                        '📚', '💻', '💡', '🚀', '🔥', '⭐️', '🎯', '🎨', '🧠', '💼',
-                        '📅', '📌', '❤️', '👍', '🎉', '🌟', '✨', '🌍', '🐱', '🍕'
-                      ].map(emoji => (
-                        <button
-                          key={emoji}
-                          onClick={() => {
-                            updateDocument(documentId, { icon: emoji });
-                            setShowEmojiPicker(false);
-                          }}
-                          className="w-8 h-8 flex items-center justify-center text-[18px] hover:bg-muted rounded transition-colors cursor-pointer select-none"
-                        >
-                          {emoji}
-                        </button>
-                      ))}
+                  )}
+                </div>
+              )}
+              {isDailyNote ? null : (
+                <input
+                  value={title}
+                  onChange={handleTitleChange}
+                  placeholder="Untitled Document"
+                  className="text-5xl w-full font-medium font-content tracking-tight outline-none border-none bg-transparent placeholder:placeholder-opacity-20 flex-1 disabled:opacity-90 disabled:cursor-not-allowed"
+                  style={{
+                    color: document.topSectionTextColor || activeTextColor,
+                  }}
+                  disabled={documentId.startsWith('daily-note-')}
+                />
+              )}
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2 relative group/tags font-sans">
+              {tags.map(tag => {
+                const tagStyle = getTagStyle(tag, tagColors);
+                return (
+                  <span
+                    key={tag}
+                    className="tag-element flex items-center gap-1 border text-xs px-3 py-1 transition-colors shadow-sm-sm font-medium rounded-sm-sm"
+                    style={{
+                      backgroundColor: 'var(--tag-bg)',
+                      borderColor: 'var(--tag-border)',
+                      color: 'var(--tag-text)',
+                      ...tagStyle
+                    }}
+                  >
+                    <Tag size={12} weight="fill" className="opacity-60 text-[color:var(--tag-text)]" />
+                    {tag}
+                    <button
+                      onClick={() => {
+                        const newTags = tags.filter(t => t !== tag);
+                        setTags(newTags);
+                        updateDocument(documentId, { tags: newTags });
+                      }}
+                      className="ml-1 opacity-45 hover:opacity-100 transition-colors cursor-pointer text-xs font-semibold"
+                    >
+                      &times;
+                    </button>
+                  </span>
+                );
+              })}
+              <div className="relative" ref={tagsDropdownRef}>
+                {tags.length === 0 ? (
+                  <button
+                    onClick={() => setShowTagsDropdown(!showTagsDropdown)}
+                    className="flex items-center gap-1 bg-transparent border border-dashed text-xs px-3 py-1 transition-all font-mono"
+                    style={{
+                      borderColor: hasCustomStyle ? (activeTextColor === '#ffffff' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)') : 'var(--border)',
+                      color: activeMutedColor
+                    }}
+                  >
+                    <Tag size={12} />
+                    Add tag
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setShowTagsDropdown(!showTagsDropdown)}
+                    className={cn(
+                      "flex items-center justify-center border border-dashed text-xs w-7 h-7 transition-all",
+                      showTagsDropdown ? "opacity-100" : "opacity-0 group-hover/tags:opacity-100"
+                    )}
+                    style={{
+                      borderColor: hasCustomStyle ? (activeTextColor === '#ffffff' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)') : 'var(--border)',
+                      color: activeMutedColor
+                    }}
+                    title="Add Tag"
+                  >
+                    +
+                  </button>
+                )}
+                {showTagsDropdown && (
+                  <div className="absolute top-full left-0 mt-2 w-56 bg-background border border-border shadow-sm-sm z-50 overflow-hidden text-sans text-foreground">
+                    <div className="max-h-40 overflow-y-auto no-scrollbar p-2.5 flex flex-col gap-1.5">
+                      {allExistingTags.filter(t => !tags.includes(t)).length === 0 && (
+                        <div className="px-3 py-2 text-xs text-muted-foreground/60">No existing tags.</div>
+                      )}
+                      {allExistingTags.filter(t => !tags.includes(t)).map(tag => {
+                        const tagStyle = getTagStyle(tag, tagColors);
+                        return (
+                          <button
+                            key={tag}
+                            onClick={() => handleAddTag(tag)}
+                            className="tag-element w-full text-left px-2.5 py-1.5 text-xs transition-colors cursor-pointer flex items-center gap-2 border rounded-sm-sm hover:brightness-95 dark:hover:brightness-110 select-none"
+                            style={{
+                              backgroundColor: 'var(--tag-bg)',
+                              color: 'var(--tag-text)',
+                              borderColor: 'var(--tag-border)',
+                              ...tagStyle
+                            }}
+                          >
+                            <Tag size={12} weight="fill" className="opacity-75 text-[color:var(--tag-text)]" />
+                            <span className="font-semibold truncate">{tag}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="p-2 box-border border-t border-border bg-muted/50">
+                      <input
+                        autoFocus
+                        type="text"
+                        placeholder="Create new tag..."
+                        className="w-full bg-transparent px-2 py-1.5 outline-none text-xs text-foreground placeholder:text-muted-foreground/40 border border-transparent focus:border-border transition-all"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                            handleAddTag(e.currentTarget.value.trim());
+                            e.currentTarget.value = '';
+                          } else if (e.key === 'Escape') {
+                            setShowTagsDropdown(false);
+                          }
+                        }}
+                      />
                     </div>
                   </div>
                 )}
               </div>
-            )}
-            {isDailyNote ? null : (
-              <input
-                value={title}
-                onChange={handleTitleChange}
-                placeholder="Untitled Document"
-                className="text-5xl w-full font-medium font-content tracking-tight outline-none border-none bg-transparent placeholder:placeholder-opacity-20 flex-1 disabled:opacity-90 disabled:cursor-not-allowed"
-                style={{
-                  color: document.topSectionTextColor || activeTextColor,
-                }}
-                disabled={documentId.startsWith('daily-note-')}
-              />
-            )}
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-2 relative group/tags font-sans">
-            {tags.map(tag => {
-              const tagStyle = getTagStyle(tag, tagColors);
-              return (
-                <span
-                  key={tag}
-                  className="tag-element flex items-center gap-1 border text-xs px-3 py-1 transition-colors shadow-sm-sm font-medium rounded-sm-sm"
-                  style={{
-                    backgroundColor: 'var(--tag-bg)',
-                    borderColor: 'var(--tag-border)',
-                    color: 'var(--tag-text)',
-                    ...tagStyle
-                  }}
-                >
-                  <Tag size={12} weight="fill" className="opacity-60 text-[color:var(--tag-text)]" />
-                  {tag}
-                  <button
-                    onClick={() => {
-                      const newTags = tags.filter(t => t !== tag);
-                      setTags(newTags);
-                      updateDocument(documentId, { tags: newTags });
-                    }}
-                    className="ml-1 opacity-45 hover:opacity-100 transition-colors cursor-pointer text-xs font-semibold"
-                  >
-                    &times;
-                  </button>
-                </span>
-              );
-            })}
-            <div className="relative" ref={tagsDropdownRef}>
-              {tags.length === 0 ? (
-                <button
-                  onClick={() => setShowTagsDropdown(!showTagsDropdown)}
-                  className="flex items-center gap-1 bg-transparent border border-dashed text-xs px-3 py-1 transition-all font-mono"
-                  style={{
-                    borderColor: hasCustomStyle ? (activeTextColor === '#ffffff' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)') : 'var(--border)',
-                    color: activeMutedColor
-                  }}
-                >
-                  <Tag size={12} />
-                  Add tag
-                </button>
-              ) : (
-                <button
-                  onClick={() => setShowTagsDropdown(!showTagsDropdown)}
-                  className={cn(
-                    "flex items-center justify-center border border-dashed text-xs w-7 h-7 transition-all",
-                    showTagsDropdown ? "opacity-100" : "opacity-0 group-hover/tags:opacity-100"
-                  )}
-                  style={{
-                    borderColor: hasCustomStyle ? (activeTextColor === '#ffffff' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)') : 'var(--border)',
-                    color: activeMutedColor
-                  }}
-                  title="Add Tag"
-                >
-                  +
-                </button>
-              )}
-              {showTagsDropdown && (
-                <div className="absolute top-full left-0 mt-2 w-56 bg-background border border-border shadow-sm-sm z-50 overflow-hidden text-sans text-foreground">
-                  <div className="max-h-40 overflow-y-auto no-scrollbar p-2.5 flex flex-col gap-1.5">
-                    {allExistingTags.filter(t => !tags.includes(t)).length === 0 && (
-                      <div className="px-3 py-2 text-xs text-muted-foreground/60">No existing tags.</div>
-                    )}
-                    {allExistingTags.filter(t => !tags.includes(t)).map(tag => {
-                      const tagStyle = getTagStyle(tag, tagColors);
-                      return (
-                        <button
-                          key={tag}
-                          onClick={() => handleAddTag(tag)}
-                          className="tag-element w-full text-left px-2.5 py-1.5 text-xs transition-colors cursor-pointer flex items-center gap-2 border rounded-sm-sm hover:brightness-95 dark:hover:brightness-110 select-none"
-                          style={{
-                            backgroundColor: 'var(--tag-bg)',
-                            color: 'var(--tag-text)',
-                            borderColor: 'var(--tag-border)',
-                            ...tagStyle
-                          }}
-                        >
-                          <Tag size={12} weight="fill" className="opacity-75 text-[color:var(--tag-text)]" />
-                          <span className="font-semibold truncate">{tag}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="p-2 box-border border-t border-border bg-muted/50">
-                    <input
-                      autoFocus
-                      type="text"
-                      placeholder="Create new tag..."
-                      className="w-full bg-transparent px-2 py-1.5 outline-none text-xs text-foreground placeholder:text-muted-foreground/40 border border-transparent focus:border-border transition-all"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                          handleAddTag(e.currentTarget.value.trim());
-                          e.currentTarget.value = '';
-                        } else if (e.key === 'Escape') {
-                          setShowTagsDropdown(false);
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
             </div>
           </div>
-        </div>
 
-        <EditorDndContext editor={editor!}>
-        <div
-          className={cn(
-            "flex-1 templnote-editor-wrapper font-content text-lg relative flex flex-col cursor-text w-full max-w-full min-w-0",
-            isMinimized ? "px-8" : (hasCustomStyle ? "px-4 sm:px-6 md:px-8" : "px-4")
-          )}
-          style={{
-            color: activeTextColor,
-            fontFamily: localStyle.fontFamily || undefined
-          }}
-        >
-          {editor && (
-            <BlockHandle editor={editor} />
-          )}
-          {editor && (
-            <BubbleMenu
-              editor={editor}
-              options={{ placement: 'top' }}
-              className="flex items-center gap-1 bg-background border border-border rounded-sm-sm shadow-sm-sm p-1.5 font-sans"
+          <EditorDndContext editor={editor!}>
+            <div
+              className={cn(
+                "flex-1 templnote-editor-wrapper font-content text-lg relative flex flex-col cursor-text w-full max-w-full min-w-0",
+                isMinimized ? "px-8" : (hasCustomStyle ? "px-4 sm:px-6 md:px-8" : "px-4")
+              )}
+              style={{
+                color: activeTextColor,
+                fontFamily: localStyle.fontFamily || undefined
+              }}
             >
-              <button
-                onClick={() => editor.chain().focus().toggleBold().run()}
-                className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive('bold') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
-              >
-                <TextB size={16} />
-              </button>
-              <button
-                onClick={() => editor.chain().focus().toggleItalic().run()}
-                className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive('italic') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
-              >
-                <TextItalic size={16} />
-              </button>
-              <button
-                onClick={() => editor.chain().focus().toggleUnderline().run()}
-                className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive('underline') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
-              >
-                <TextAUnderline size={16} />
-              </button>
-              <button
-                onClick={() => editor.chain().focus().toggleStrike().run()}
-                className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive('strike') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
-              >
-                <TextStrikethrough size={16} />
-              </button>
-              <div className="w-px h-4 bg-border mx-1" />
-              <button
-                onClick={() => editor.chain().focus().toggleCode().run()}
-                className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive('code') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
-              >
-                <Code size={16} />
-              </button>
-              <div className="w-px h-4 bg-border mx-1" />
-              <button
-                onClick={async () => {
-                  const { from, to } = editor.state.selection;
-                  const selectedText = editor.state.doc.textBetween(from, to, ' ');
-                  if (selectedText) {
-                    const res = await aiService.rewrite(selectedText, 'improved');
-                    if (res.success) {
-                      editor.chain().focus().insertContentAt({ from, to }, res.text).run();
-                    }
-                  }
-                }}
-                className="p-1.5 rounded-sm-sm transition-colors text-purple-500 hover:bg-purple-500/10 cursor-pointer"
-                title="AI Polish selected text"
-              >
-                <Sparkle size={16} />
-              </button>
-            </BubbleMenu>
-          )}
-          <EditorContent editor={editor} />
-          {editor && <FloatingToolbar editor={editor} />}
-          <DocumentPreviewPopup />
+              {editor && (
+                <BlockHandle editor={editor} />
+              )}
+              {editor && (
+                <BubbleMenu
+                  editor={editor}
+                  options={{ placement: 'top' }}
+                  className="flex items-center gap-1 bg-background border border-border rounded-sm-sm shadow-sm-sm p-1.5 font-sans"
+                >
+                  <button
+                    onClick={() => editor.chain().focus().toggleBold().run()}
+                    className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive('bold') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
+                  >
+                    <TextB size={16} />
+                  </button>
+                  <button
+                    onClick={() => editor.chain().focus().toggleItalic().run()}
+                    className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive('italic') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
+                  >
+                    <TextItalic size={16} />
+                  </button>
+                  <button
+                    onClick={() => editor.chain().focus().toggleUnderline().run()}
+                    className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive('underline') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
+                  >
+                    <TextAUnderline size={16} />
+                  </button>
+                  <button
+                    onClick={() => editor.chain().focus().toggleStrike().run()}
+                    className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive('strike') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
+                  >
+                    <TextStrikethrough size={16} />
+                  </button>
+                  <div className="w-px h-4 bg-border mx-1" />
+                  <button
+                    onClick={() => editor.chain().focus().toggleCode().run()}
+                    className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive('code') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
+                  >
+                    <Code size={16} />
+                  </button>
+                  <div className="w-px h-4 bg-border mx-1" />
+                  <button
+                    onClick={async () => {
+                      const { from, to } = editor.state.selection;
+                      const selectedText = editor.state.doc.textBetween(from, to, ' ');
+                      if (selectedText) {
+                        const res = await aiService.rewrite(selectedText, 'improved');
+                        if (res.success) {
+                          editor.chain().focus().insertContentAt({ from, to }, res.text).run();
+                        }
+                      }
+                    }}
+                    className="p-1.5 rounded-sm-sm transition-colors text-purple-500 hover:bg-purple-500/10 cursor-pointer"
+                    title="AI Polish selected text"
+                  >
+                    <Sparkle size={16} />
+                  </button>
+                </BubbleMenu>
+              )}
+              <EditorContent editor={editor} />
+              {editor && <FloatingToolbar editor={editor} />}
+              <DocumentPreviewPopup />
 
-          {/* Backlinks panel */}
-          {!isMinimized && backlinks.length > 0 && (
-            <div className="mt-32 pb-8 pt-8 border-t border-border/25 font-sans shrink-0 z-10 relative">
-              <button
-                onClick={() => setShowBacklinks(!showBacklinks)}
-                className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest hover:text-foreground transition-colors cursor-pointer select-none mb-4"
-              >
-                <FileText size={14} className="opacity-70" />
-                <span>Backlinks ({backlinks.length})</span>
-                {showBacklinks ? <CaretUp size={14} className="opacity-75" /> : <CaretDown size={14} className="opacity-75" />}
-              </button>
-              
-              {showBacklinks && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
-                  {backlinks.map(link => {
-                    const targetDoc = documents[link.id];
-                    return (
-                      <div
-                        key={link.id}
-                        onClick={() => openDocument(link.id)}
-                        className="group/backlink p-4 rounded-sm-sm border border-border/50 bg-muted/20 hover:bg-muted/40 hover:border-border transition-all duration-200 cursor-pointer flex flex-col gap-1.5 shadow-sm-sm"
-                      >
-                        <div className="flex items-center gap-2 text-[13px] font-semibold text-foreground group-hover/backlink:text-blue-500 transition-colors">
-                          {targetDoc?.icon ? (
-                            <span className="text-[14px] leading-none shrink-0 font-sans">{targetDoc.icon}</span>
-                          ) : (
-                            <FileText size={14} className="text-muted-foreground shrink-0" />
-                          )}
-                          <span className="truncate">{link.title}</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                          {link.excerpt}
-                        </p>
-                        <div className="text-[10px] text-muted-foreground/50 font-mono mt-1">
-                          Updated {formatDisplayDate(link.updatedAt, "MMM d, h:mm a")}
-                        </div>
-                      </div>
-                    );
-                  })}
+              {/* Backlinks panel */}
+              {!isMinimized && backlinks.length > 0 && (
+                <div className="mt-32 pb-8 pt-8 border-t border-border/25 font-sans shrink-0 z-10 relative">
+                  <button
+                    onClick={() => setShowBacklinks(!showBacklinks)}
+                    className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest hover:text-foreground transition-colors cursor-pointer select-none mb-4"
+                  >
+                    <FileText size={14} className="opacity-70" />
+                    <span>Backlinks ({backlinks.length})</span>
+                    {showBacklinks ? <CaretUp size={14} className="opacity-75" /> : <CaretDown size={14} className="opacity-75" />}
+                  </button>
+
+                  {showBacklinks && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+                      {backlinks.map(link => {
+                        const targetDoc = documents[link.id];
+                        return (
+                          <div
+                            key={link.id}
+                            onClick={() => openDocument(link.id)}
+                            className="group/backlink p-4 rounded-sm-sm border border-border/50 bg-muted/20 hover:bg-muted/40 hover:border-border transition-all duration-200 cursor-pointer flex flex-col gap-1.5 shadow-sm-sm"
+                          >
+                            <div className="flex items-center gap-2 text-[13px] font-semibold text-foreground group-hover/backlink:text-blue-500 transition-colors">
+                              {targetDoc?.icon ? (
+                                <span className="text-[14px] leading-none shrink-0 font-sans">{targetDoc.icon}</span>
+                              ) : (
+                                <FileText size={14} className="text-muted-foreground shrink-0" />
+                              )}
+                              <span className="truncate">{link.title}</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                              {link.excerpt}
+                            </p>
+                            <div className="text-[10px] text-muted-foreground/50 font-mono mt-1">
+                              Updated {formatDisplayDate(link.updatedAt, "MMM d, h:mm a")}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
+          </EditorDndContext>
         </div>
-        </EditorDndContext>
       </div>
-    </div>
 
       {document.isDeleted && (
         <div className="absolute bottom-4 right-4 z-40 bg-red-600 dark:bg-red-700 text-white rounded-md p-3 px-4 shadow-lg flex items-center gap-3 animate-fade-in text-xs font-sans font-medium animate-in slide-in-from-bottom-2">

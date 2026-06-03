@@ -257,8 +257,8 @@ export const CustomTodoItemView: React.FC<NodeViewProps> = ({
               className={cn(
                 "w-4 h-4 rounded-full border flex items-center justify-center shrink-0 cursor-pointer mt-1 select-none transition-all duration-150 active:scale-90",
                 checked 
-                  ? (node.attrs.isGreenTodo ? "bg-green-500 border-green-500" : "bg-blush-pop border-blush-pop") + " shadow-sm-sm animate-none" 
-                  : "border-muted-foreground/30 bg-card-bg " + (node.attrs.isGreenTodo ? "hover:border-green-500" : "hover:border-blush-pop")
+                  ? "bg-green-500 border-green-500 shadow-sm-sm animate-none" 
+                  : "border-muted-foreground/30 bg-card-bg hover:border-green-500"
               )}
             >
               {checked && <Check size={10} weight="bold" className="text-white" />}

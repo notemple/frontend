@@ -15,6 +15,7 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
     spaceIcon,
     autoHideNavbar,
     autoHideSidebars,
+    grayscaleInactiveTabs,
     setTimezone, 
     setTimeFormat, 
     setWeekStartDay,
@@ -22,7 +23,8 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
     setSpaceName,
     setSpaceIcon,
     setAutoHideNavbar,
-    setAutoHideSidebars
+    setAutoHideSidebars,
+    setGrayscaleInactiveTabs
   } = useSettingsStore();
   const mounted = useIsMounted();
 
@@ -222,6 +224,27 @@ export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: 
                     <motion.div 
                       layout 
                       className={cn("w-4.5 h-4.5 rounded-full shadow-sm-sm", autoHideSidebars ? "bg-white" : "bg-muted-foreground/60")} 
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  </button>
+                </div>
+
+                {/* Grayscale Inactive Tabs Setting */}
+                <div className="flex items-center justify-between py-2.5 border-t border-border/85 mt-1">
+                  <div className="flex flex-col gap-0.5">
+                    <label className="text-sm font-semibold text-foreground">Grayscale Inactive Tabs</label>
+                    <span className="text-xs text-muted-foreground">Desaturate tab items in inactive panes to help visual focus</span>
+                  </div>
+                  <button
+                    onClick={() => setGrayscaleInactiveTabs(!grayscaleInactiveTabs)}
+                    className={cn(
+                      "w-10 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none cursor-pointer flex items-center shadow-inner relative border border-border/40",
+                      grayscaleInactiveTabs ? "bg-rose-500/80 dark:bg-rose-500/60 justify-end" : "bg-muted justify-start"
+                    )}
+                  >
+                    <motion.div 
+                      layout 
+                      className={cn("w-4.5 h-4.5 rounded-full shadow-sm-sm", grayscaleInactiveTabs ? "bg-white" : "bg-muted-foreground/60")} 
                       transition={{ type: "spring", stiffness: 500, damping: 30 }}
                     />
                   </button>

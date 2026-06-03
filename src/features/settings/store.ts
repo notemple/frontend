@@ -14,6 +14,7 @@ export interface SettingsStore {
   userProfileIcon: string;
   autoHideNavbar: boolean;
   autoHideSidebars: boolean;
+  grayscaleInactiveTabs: boolean;
 
   // Active/Inactive Pane highlight options
   activeHighlightType: 'solid' | 'gradient';
@@ -35,6 +36,7 @@ export interface SettingsStore {
   setUserProfileIcon: (icon: string) => void;
   setAutoHideNavbar: (autoHide: boolean) => void;
   setAutoHideSidebars: (autoHide: boolean) => void;
+  setGrayscaleInactiveTabs: (grayscale: boolean) => void;
 
   setActiveHighlightType: (type: 'solid' | 'gradient') => void;
   setActiveHighlightColor: (color: string) => void;
@@ -59,6 +61,7 @@ export const useSettingsStore = create<SettingsStore>()(
       userProfileIcon: 'N',
       autoHideNavbar: false,
       autoHideSidebars: false,
+      grayscaleInactiveTabs: true,
 
       // Initial highlight preferences
       activeHighlightType: 'solid',
@@ -80,6 +83,7 @@ export const useSettingsStore = create<SettingsStore>()(
       setUserProfileIcon: (userProfileIcon) => set({ userProfileIcon }),
       setAutoHideNavbar: (autoHideNavbar) => set({ autoHideNavbar }),
       setAutoHideSidebars: (autoHideSidebars) => set({ autoHideSidebars }),
+      setGrayscaleInactiveTabs: (grayscaleInactiveTabs) => set({ grayscaleInactiveTabs }),
 
       setActiveHighlightType: (activeHighlightType) => set({ activeHighlightType }),
       setActiveHighlightColor: (activeHighlightColor) => set({ activeHighlightColor }),

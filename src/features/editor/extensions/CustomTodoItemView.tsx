@@ -17,7 +17,8 @@ import {
   CheckCircle,
   Play,
   Pause,
-  Stop
+  Stop,
+  CheckSquareOffset
 } from '@phosphor-icons/react';
 import { cn } from '@/shared/lib/utils';
 import { CustomDatePicker } from '@/features/tasks/components/CustomDatePicker';
@@ -57,6 +58,8 @@ export const CustomTodoItemView: React.FC<NodeViewProps> = ({
   useEffect(() => {
     // Proactively initialize store
     useTaskStore.getState().initialize();
+
+    if (node.attrs.isGreenTodo) return;
 
     if (!taskId) {
       const newTaskId = `task-${crypto.randomUUID()}`;
@@ -124,6 +127,7 @@ export const CustomTodoItemView: React.FC<NodeViewProps> = ({
   // Debounced title sync from Tiptap node content to Task Store
   const prevTextRef = useRef(node.textContent);
   useEffect(() => {
+    if (node.attrs.isGreenTodo) return;
     const text = node.textContent;
     if (text === prevTextRef.current) return;
     prevTextRef.current = text;
@@ -139,7 +143,7 @@ export const CustomTodoItemView: React.FC<NodeViewProps> = ({
 
   // Two-way sync: Update editor attributes if store task changes from task page
   useEffect(() => {
-    if (!task) return;
+    if (node.attrs.isGreenTodo || !task) return;
     
     const updates: any = {};
     if (task.completed !== checked) {
@@ -219,6 +223,28 @@ export const CustomTodoItemView: React.FC<NodeViewProps> = ({
     }
   };
 
+  const handleTurnIntoTask = () => {
+    const newTaskId = `task-${crypto.randomUUID()}`;
+    const todayStr = new Date().toLocaleDateString('sv-SE');
+    
+    useTaskStore.getState().addTask({
+      id: newTaskId,
+      title: node.textContent || 'New Todo Task',
+      completed: !!checked,
+      status: status || (checked ? 'done' : 'open'),
+      priority: priority === 'none' ? undefined : (priority as any),
+      startDate: todayStr,
+      deadline: dueDate || undefined,
+      list: 'All Tasks'
+    });
+
+    updateAttributes({
+      isGreenTodo: false,
+      taskId: newTaskId,
+      startDate: todayStr
+    });
+  };
+
   return (
     <ContextMenu.Root>
       <ContextMenu.Trigger asChild>
@@ -231,8 +257,8 @@ export const CustomTodoItemView: React.FC<NodeViewProps> = ({
               className={cn(
                 "w-4 h-4 rounded-full border flex items-center justify-center shrink-0 cursor-pointer mt-1 select-none transition-all duration-150 active:scale-90",
                 checked 
-                  ? "bg-blush-pop border-blush-pop shadow-sm-sm animate-none" 
-                  : "border-muted-foreground/30 hover:border-blush-pop bg-card-bg"
+                  ? (node.attrs.isGreenTodo ? "bg-green-500 border-green-500" : "bg-blush-pop border-blush-pop") + " shadow-sm-sm animate-none" 
+                  : "border-muted-foreground/30 bg-card-bg " + (node.attrs.isGreenTodo ? "hover:border-green-500" : "hover:border-blush-pop")
               )}
             >
               {checked && <Check size={10} weight="bold" className="text-white" />}
@@ -248,112 +274,114 @@ export const CustomTodoItemView: React.FC<NodeViewProps> = ({
               />
 
               {/* Bottom Metadata Picker Row */}
-              <div className="flex items-center gap-1.5 flex-wrap mt-1 select-none font-sans">
-                
-                {/* Start Date */}
-                <CustomDatePicker
-                  small
-                  value={startDate || ""}
-                  onChange={(val) => {
-                    updateAttributes({ startDate: val || null });
-                    if (taskId) {
-                      useTaskStore.getState().updateTask(taskId, { startDate: val || undefined });
-                    }
-                  }}
-                  placeholder="Start"
-                  icon={<CalendarBlank size={11} />}
-                />
+              {!node.attrs.isGreenTodo && (
+                <div className="flex items-center gap-1.5 flex-wrap mt-1 select-none font-sans">
+                  
+                  {/* Start Date */}
+                  <CustomDatePicker
+                    small
+                    value={startDate || ""}
+                    onChange={(val) => {
+                      updateAttributes({ startDate: val || null });
+                      if (taskId) {
+                        useTaskStore.getState().updateTask(taskId, { startDate: val || undefined });
+                      }
+                    }}
+                    placeholder="Start"
+                    icon={<CalendarBlank size={11} />}
+                  />
 
-                {/* Deadline (dueDate) */}
-                <CustomDatePicker
-                  small
-                  value={dueDate || ""}
-                  onChange={(val) => {
-                    updateAttributes({ dueDate: val || null });
-                    if (taskId) {
-                      useTaskStore.getState().updateTask(taskId, { deadline: val || undefined });
-                    }
-                  }}
-                  placeholder="Deadline"
-                  icon={<Flag size={11} />}
-                />
+                  {/* Deadline (dueDate) */}
+                  <CustomDatePicker
+                    small
+                    value={dueDate || ""}
+                    onChange={(val) => {
+                      updateAttributes({ dueDate: val || null });
+                      if (taskId) {
+                        useTaskStore.getState().updateTask(taskId, { deadline: val || undefined });
+                      }
+                    }}
+                    placeholder="Deadline"
+                    icon={<Flag size={11} />}
+                  />
 
-                {/* Status */}
-                <CustomStatusPicker
-                  status={(status as any) || (checked ? "done" : "open")}
-                  onChange={(val) => {
-                    updateAttributes({ 
-                      status: val,
-                      checked: val === "done"
-                    });
-                    if (taskId) {
-                      useTaskStore.getState().updateTask(taskId, { 
+                  {/* Status */}
+                  <CustomStatusPicker
+                    status={(status as any) || (checked ? "done" : "open")}
+                    onChange={(val) => {
+                      updateAttributes({ 
                         status: val,
-                        completed: val === "done"
+                        checked: val === "done"
                       });
-                    }
-                  }}
-                />
+                      if (taskId) {
+                        useTaskStore.getState().updateTask(taskId, { 
+                          status: val,
+                          completed: val === "done"
+                        });
+                      }
+                    }}
+                  />
 
-                {/* Priority */}
-                <CustomPriorityPicker
-                  small
-                  priority={priority === "none" ? undefined : (priority as any)}
-                  onChange={(val) => {
-                    updateAttributes({ priority: val || "none" });
-                    if (taskId) {
-                      useTaskStore.getState().updateTask(taskId, { priority: val || undefined });
-                    }
-                  }}
-                />
+                  {/* Priority */}
+                  <CustomPriorityPicker
+                    small
+                    priority={priority === "none" ? undefined : (priority as any)}
+                    onChange={(val) => {
+                      updateAttributes({ priority: val || "none" });
+                      if (taskId) {
+                        useTaskStore.getState().updateTask(taskId, { priority: val || undefined });
+                      }
+                    }}
+                  />
 
-                {/* Inline Stopwatch Task Timer Widget */}
-                {taskId && (
-                  <div className="flex items-center gap-1 ml-1.5 pl-1.5 border-l border-border/60 shrink-0 font-sans">
-                    {timer.seconds > 0 && (
-                      <span className="text-[10px] font-semibold font-mono text-muted-foreground/80 tracking-tight select-none">
-                        {(() => {
-                          const hrs = Math.floor(timer.seconds / 3600);
-                          const mins = Math.floor((timer.seconds % 3600) / 60);
-                          const secs = timer.seconds % 60;
-                          const pad = (n: number) => n.toString().padStart(2, '0');
-                          return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
-                        })()}
-                      </span>
-                    )}
-                    
-                    {timer.isRunning ? (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); pauseTimer(taskId); }}
-                        className="p-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-all flex items-center justify-center shrink-0 cursor-pointer"
-                        title="Pause stopwatch"
-                      >
-                        <Pause size={10} weight="bold" />
-                      </button>
-                    ) : (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); startTimer(taskId); }}
-                        disabled={task ? (task.status === 'done' || task.completed) : checked}
-                        className="p-0.5 rounded bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0"
-                        title={task ? (task.status === 'done' || task.completed) ? "Open task to start timer" : "Start stopwatch" : checked ? "Open task to start timer" : "Start stopwatch"}
-                      >
-                        <Play size={10} weight="fill" />
-                      </button>
-                    )}
-                    
-                    {timer.seconds > 0 && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); stopTimer(taskId); }}
-                        className="p-0.5 rounded bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-all flex items-center justify-center shrink-0 cursor-pointer"
-                        title="Stop & Reset"
-                      >
-                        <Stop size={10} weight="fill" />
-                      </button>
-                    )}
-                  </div>
-                )}
+                  {/* Inline Stopwatch Task Timer Widget */}
+                  {taskId && (
+                    <div className="flex items-center gap-1 ml-1.5 pl-1.5 border-l border-border/60 shrink-0 font-sans">
+                      {timer.seconds > 0 && (
+                        <span className="text-[10px] font-semibold font-mono text-muted-foreground/80 tracking-tight select-none">
+                          {(() => {
+                            const hrs = Math.floor(timer.seconds / 3600);
+                            const mins = Math.floor((timer.seconds % 3600) / 60);
+                            const secs = timer.seconds % 60;
+                            const pad = (n: number) => n.toString().padStart(2, '0');
+                            return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+                          })()}
+                        </span>
+                      )}
+                      
+                      {timer.isRunning ? (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); pauseTimer(taskId); }}
+                          className="p-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-all flex items-center justify-center shrink-0 cursor-pointer"
+                          title="Pause stopwatch"
+                        >
+                          <Pause size={10} weight="bold" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); startTimer(taskId); }}
+                          disabled={task ? (task.status === 'done' || task.completed) : checked}
+                          className="p-0.5 rounded bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0"
+                          title={task ? (task.status === 'done' || task.completed) ? "Open task to start timer" : "Start stopwatch" : checked ? "Open task to start timer" : "Start stopwatch"}
+                        >
+                          <Play size={10} weight="fill" />
+                        </button>
+                      )}
+                      
+                      {timer.seconds > 0 && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); stopTimer(taskId); }}
+                          className="p-0.5 rounded bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-all flex items-center justify-center shrink-0 cursor-pointer"
+                          title="Stop & Reset"
+                        >
+                          <Stop size={10} weight="fill" />
+                        </button>
+                      )}
+                    </div>
+                  )}
 
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Hover Option Dropdown Trigger button */}
@@ -391,6 +419,17 @@ export const CustomTodoItemView: React.FC<NodeViewProps> = ({
                         <span>{checked ? 'Mark Uncompleted' : 'Mark Completed'}</span>
                       </div>
                     </DropdownMenu.Item>
+                    {node.attrs.isGreenTodo && (
+                      <DropdownMenu.Item 
+                        className="table-dark-menu-item"
+                        onClick={handleTurnIntoTask}
+                      >
+                        <div className="flex items-center gap-2">
+                          <CheckSquareOffset size={14} className="text-rose-500/95" />
+                          <span>Turn into Task</span>
+                        </div>
+                      </DropdownMenu.Item>
+                    )}
                     <DropdownMenu.Item 
                       className="table-dark-menu-item"
                       onClick={handleDuplicate}
@@ -420,6 +459,17 @@ export const CustomTodoItemView: React.FC<NodeViewProps> = ({
 
       <ContextMenu.Portal>
         <ContextMenu.Content className="table-dark-menu z-50 animate-fade-in">
+          {node.attrs.isGreenTodo && (
+            <ContextMenu.Item 
+              className="table-dark-menu-item"
+              onClick={handleTurnIntoTask}
+            >
+              <div className="flex items-center gap-2">
+                <CheckSquareOffset size={14} className="text-rose-500/95" />
+                <span>Turn into Task</span>
+              </div>
+            </ContextMenu.Item>
+          )}
           <ContextMenu.Item 
             className="table-dark-menu-item"
             onClick={handleDuplicate}

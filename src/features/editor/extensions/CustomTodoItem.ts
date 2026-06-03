@@ -69,6 +69,12 @@ export const CustomTodoItem = TaskItem.extend({
           'data-checked': attributes.checked,
         }),
       },
+      isGreenTodo: {
+        default: false,
+        keepOnSplit: true,
+        parseHTML: element => element.getAttribute('data-green-todo') === 'true',
+        renderHTML: attributes => ({ 'data-green-todo': attributes.isGreenTodo }),
+      },
       taskId: {
         default: null,
         keepOnSplit: false,

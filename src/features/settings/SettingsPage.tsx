@@ -29,10 +29,10 @@ function parseGradient(gradientStr: string) {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const SettingsPage = ({ paneId }: { paneId: string }) => {
-  const { 
-    timezone, 
-    timeFormat, 
-    weekStartDay, 
+  const {
+    timezone,
+    timeFormat,
+    weekStartDay,
     roundness,
     spaceName,
     spaceIcon,
@@ -41,7 +41,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
     autoHideNavbar,
     autoHideSidebars,
     grayscaleInactiveTabs,
-    
+
     // Highlight options
     activeHighlightType,
     activeHighlightColor,
@@ -50,8 +50,8 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
     inactiveHighlightColor,
     inactiveHighlightGradient,
 
-    setTimezone, 
-    setTimeFormat, 
+    setTimezone,
+    setTimeFormat,
     setWeekStartDay,
     setRoundness,
     setSpaceName,
@@ -69,7 +69,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
     setInactiveHighlightColor,
     setInactiveHighlightGradient
   } = useSettingsStore();
-  
+
   const mounted = useIsMounted();
 
   // Simple list of timezones
@@ -115,7 +115,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
   return (
     <div id="settings-scroll-container" className="h-full w-full overflow-y-auto p-6 md:p-10 font-sans flex flex-col bg-transparent no-scrollbar select-none relative z-0">
       <div className="w-full max-w-2xl mx-auto flex flex-col gap-8">
-        
+
         {/* Sleek Page Header */}
         <div className="flex items-center gap-4 border-b border-border/80 pb-5">
           <div className="w-12 h-12 rounded-2xl bg-zinc-500/10 dark:bg-zinc-400/5 border border-border flex items-center justify-center text-zinc-500 dark:text-zinc-400 shadow-sm-sm shrink-0">
@@ -129,16 +129,16 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
 
         {/* Settings Form Grid */}
         <div className="flex flex-col gap-6">
-          
+
           {/* Card: Space details */}
           <div className="p-5 border border-border/80 bg-card/30 rounded-xl flex flex-col gap-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/60 font-mono">Space Details</h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-muted-foreground">Space Name</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={spaceName}
                   onChange={(e) => setSpaceName(e.target.value)}
                   className="w-full bg-muted/40 border border-border text-foreground px-3 py-1.5 text-sm outline-none transition-all focus:border-accent hover:border-border/80 focus:bg-muted/20"
@@ -146,8 +146,8 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-muted-foreground">Space Icon</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   maxLength={2}
                   value={spaceIcon}
                   onChange={(e) => setSpaceIcon(e.target.value)}
@@ -159,8 +159,8 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-border/25 pt-4 mt-2">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-muted-foreground">User Name</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
                   className="w-full bg-muted/40 border border-border text-foreground px-3 py-1.5 text-sm outline-none transition-all focus:border-accent hover:border-border/80 focus:bg-muted/20"
@@ -168,8 +168,8 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-muted-foreground">Email Address</label>
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   value={userEmail}
                   onChange={(e) => setUserEmail(e.target.value)}
                   className="w-full bg-muted/40 border border-border text-foreground px-3 py-1.5 text-sm outline-none transition-all focus:border-accent hover:border-border/80 focus:bg-muted/20"
@@ -181,7 +181,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
           {/* Card: Pane Highlight Customization */}
           <div id="onboarding-color-presets" className="p-5 border border-border/80 bg-card/30 rounded-xl flex flex-col gap-5">
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/60 font-mono">Pane Highlight Style</h3>
-            
+
             {/* Active Pane Control */}
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
@@ -290,12 +290,12 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-muted/20 p-3 rounded-lg border border-border/60">
                     <div className="flex flex-col gap-1">
                       <span className="text-[10px] font-bold text-muted-foreground uppercase font-mono">Gradient Preview</span>
-                      <div 
-                        className="w-24 h-6 rounded border border-border" 
+                      <div
+                        className="w-24 h-6 rounded border border-border"
                         style={{ background: `linear-gradient(to right, ${activeCustomColors.start}, ${activeCustomColors.end})` }}
                       />
                     </div>
-                    
+
                     <div className="flex flex-wrap gap-4 items-center">
                       {/* Start Color */}
                       <div className="flex items-center gap-2">
@@ -481,12 +481,12 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-muted/20 p-3 rounded-lg border border-border/60">
                       <div className="flex flex-col gap-1">
                         <span className="text-[10px] font-bold text-muted-foreground uppercase font-mono">Gradient Preview</span>
-                        <div 
-                          className="w-24 h-6 rounded border border-border" 
+                        <div
+                          className="w-24 h-6 rounded border border-border"
                           style={{ background: `linear-gradient(to right, ${inactiveCustomColors.start}, ${inactiveCustomColors.end})` }}
                         />
                       </div>
-                      
+
                       <div className="flex flex-wrap gap-4 items-center">
                         {/* Start Color */}
                         <div className="flex items-center gap-2">
@@ -548,11 +548,11 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
           {/* Card: Time & Date Options */}
           <div className="p-5 border border-border/80 bg-card/30 rounded-xl flex flex-col gap-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/60 font-mono">Date & Time</h3>
-            
+
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-muted-foreground">Timezone</label>
-              <select 
-                value={timezone} 
+              <select
+                value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
                 className="w-full md:w-80 bg-muted/40 border border-border text-foreground px-3 py-1.5 text-sm outline-none transition-all focus:border-accent hover:border-border/80 focus:bg-muted/20 cursor-pointer"
               >
@@ -574,8 +574,8 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
                   <button
                     className={cn(
                       "flex-1 text-xs py-1.5 rounded-sm font-medium transition-all select-none cursor-pointer border",
-                      timeFormat === '12h' 
-                        ? 'bg-card text-foreground border-border/85 shadow-sm-sm font-semibold' 
+                      timeFormat === '12h'
+                        ? 'bg-card text-foreground border-border/85 shadow-sm-sm font-semibold'
                         : 'text-muted-foreground border-transparent hover:text-foreground'
                     )}
                     onClick={() => setTimeFormat('12h')}
@@ -585,8 +585,8 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
                   <button
                     className={cn(
                       "flex-1 text-xs py-1.5 rounded-sm font-medium transition-all select-none cursor-pointer border",
-                      timeFormat === '24h' 
-                        ? 'bg-card text-foreground border-border/85 shadow-sm-sm font-semibold' 
+                      timeFormat === '24h'
+                        ? 'bg-card text-foreground border-border/85 shadow-sm-sm font-semibold'
                         : 'text-muted-foreground border-transparent hover:text-foreground'
                     )}
                     onClick={() => setTimeFormat('24h')}
@@ -602,8 +602,8 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
                   <button
                     className={cn(
                       "flex-1 text-xs py-1.5 rounded-sm font-medium transition-all select-none cursor-pointer border",
-                      weekStartDay === 0 
-                        ? 'bg-card text-foreground border-border/85 shadow-sm-sm font-semibold' 
+                      weekStartDay === 0
+                        ? 'bg-card text-foreground border-border/85 shadow-sm-sm font-semibold'
                         : 'text-muted-foreground border-transparent hover:text-foreground'
                     )}
                     onClick={() => setWeekStartDay(0)}
@@ -613,8 +613,8 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
                   <button
                     className={cn(
                       "flex-1 text-xs py-1.5 rounded-sm font-medium transition-all select-none cursor-pointer border",
-                      weekStartDay === 1 
-                        ? 'bg-card text-foreground border-border/85 shadow-sm-sm font-semibold' 
+                      weekStartDay === 1
+                        ? 'bg-card text-foreground border-border/85 shadow-sm-sm font-semibold'
                         : 'text-muted-foreground border-transparent hover:text-foreground'
                     )}
                     onClick={() => setWeekStartDay(1)}
@@ -629,15 +629,15 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
           {/* Card: Customization Preferences */}
           <div className="p-5 border border-border/80 bg-card/30 rounded-xl flex flex-col gap-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/60 font-mono">Workspace Preferences</h3>
-            
+
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-muted-foreground">App Roundness</label>
               <div className="flex bg-muted/50 p-0.5 rounded-sm-sm border border-border/60">
                 <button
                   className={cn(
                     "flex-1 text-xs py-1.5 rounded-sm font-medium transition-all select-none cursor-pointer border",
-                    roundness === 'rounded-none' 
-                      ? 'bg-card text-foreground border-border/85 shadow-sm-sm font-semibold' 
+                    roundness === 'rounded-none'
+                      ? 'bg-card text-foreground border-border/85 shadow-sm-sm font-semibold'
                       : 'text-muted-foreground border-transparent hover:text-foreground'
                   )}
                   onClick={() => setRoundness('rounded-none')}
@@ -647,8 +647,8 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
                 <button
                   className={cn(
                     "flex-1 text-xs py-1.5 rounded-sm font-medium transition-all select-none cursor-pointer border",
-                    roundness === 'rounded-md' 
-                      ? 'bg-card text-foreground border-border/85 shadow-sm-sm font-semibold' 
+                    roundness === 'rounded-md'
+                      ? 'bg-card text-foreground border-border/85 shadow-sm-sm font-semibold'
                       : 'text-muted-foreground border-transparent hover:text-foreground'
                   )}
                   onClick={() => setRoundness('rounded-md')}
@@ -658,8 +658,8 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
                 <button
                   className={cn(
                     "flex-1 text-xs py-1.5 rounded-sm font-medium transition-all select-none cursor-pointer border",
-                    roundness === 'rounded-lg' 
-                      ? 'bg-card text-foreground border-border/85 shadow-sm-sm font-semibold' 
+                    roundness === 'rounded-lg'
+                      ? 'bg-card text-foreground border-border/85 shadow-sm-sm font-semibold'
                       : 'text-muted-foreground border-transparent hover:text-foreground'
                   )}
                   onClick={() => setRoundness('rounded-lg')}
@@ -675,6 +675,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
                 <div className="flex flex-col gap-0.5">
                   <label className="text-sm font-semibold text-foreground">Auto-Hide Top Navbar</label>
                   <span className="text-xs text-muted-foreground">Slides open when cursor is near the top edge</span>
+                  <span className="text-xs text-muted-foreground">while turned off, use ctrl + alt + t</span>
                 </div>
                 <button
                   onClick={() => setAutoHideNavbar(!autoHideNavbar)}
@@ -683,9 +684,9 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
                     autoHideNavbar ? "bg-rose-500/80 dark:bg-rose-500/60 justify-end" : "bg-muted justify-start"
                   )}
                 >
-                  <motion.div 
-                    layout 
-                    className={cn("w-4.5 h-4.5 rounded-full shadow-sm-sm", autoHideNavbar ? "bg-white" : "bg-muted-foreground/60")} 
+                  <motion.div
+                    layout
+                    className={cn("w-4.5 h-4.5 rounded-full shadow-sm-sm", autoHideNavbar ? "bg-white" : "bg-muted-foreground/60")}
                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                   />
                 </button>
@@ -696,6 +697,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
                 <div className="flex flex-col gap-0.5">
                   <label className="text-sm font-semibold text-foreground">Auto-Hide Sidebars</label>
                   <span className="text-xs text-muted-foreground">Slides open when cursor hovers near left or right screen edges</span>
+                  <span className="text-xs text-muted-foreground">while turned off, use ctrl + alt + l and ctrl + alt + r for left and right</span>
                 </div>
                 <button
                   onClick={() => setAutoHideSidebars(!autoHideSidebars)}
@@ -704,9 +706,9 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
                     autoHideSidebars ? "bg-rose-500/80 dark:bg-rose-500/60 justify-end" : "bg-muted justify-start"
                   )}
                 >
-                  <motion.div 
-                    layout 
-                    className={cn("w-4.5 h-4.5 rounded-full shadow-sm-sm", autoHideSidebars ? "bg-white" : "bg-muted-foreground/60")} 
+                  <motion.div
+                    layout
+                    className={cn("w-4.5 h-4.5 rounded-full shadow-sm-sm", autoHideSidebars ? "bg-white" : "bg-muted-foreground/60")}
                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                   />
                 </button>
@@ -726,9 +728,9 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
                   grayscaleInactiveTabs ? "bg-rose-500/80 dark:bg-rose-500/60 justify-end" : "bg-muted justify-start"
                 )}
               >
-                <motion.div 
-                  layout 
-                  className={cn("w-4.5 h-4.5 rounded-full shadow-sm-sm", grayscaleInactiveTabs ? "bg-white" : "bg-muted-foreground/60")} 
+                <motion.div
+                  layout
+                  className={cn("w-4.5 h-4.5 rounded-full shadow-sm-sm", grayscaleInactiveTabs ? "bg-white" : "bg-muted-foreground/60")}
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 />
               </button>

@@ -1,14 +1,7 @@
-
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useEffect } from 'react';
 import { SidebarItem } from './SidebarItem';
-import { CaretDown, CaretRight, Folder, Hash, CheckSquareOffset, FileText, Plus, SidebarSimple, DotsThree, Trash, TextT, Palette, Check, ArrowBendDownRight, CalendarBlank } from '@phosphor-icons/react';
-import { cn, getFolderStyle, getFolderHexColor } from '@/shared/lib/utils';
+import { Folder } from '@phosphor-icons/react';
 import { useDocumentStore } from '@/features/documents/store';
-import { useUiStore } from '@/shared/store/uiStore';
-import { formatDisplayDate } from '@/shared/lib/time';
-import { useSettingsStore } from '@/features/settings/store';
-import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
 
 export const SidebarFolderItem = ({
   folderId,
@@ -39,6 +32,7 @@ export const SidebarFolderItem = ({
   useEffect(() => {
     if (isRenaming) {
       originalNameRef.current = folderName;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTempName(folderName);
     }
   }, [isRenaming, folderName]);
@@ -101,6 +95,7 @@ export const SidebarFolderItem = ({
       highlight={highlight}
       onClick={onClick}
       rightElement={rightElement}
+      highlightColor={folderColor}
     />
   );
 };

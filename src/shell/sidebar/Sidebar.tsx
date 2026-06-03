@@ -126,6 +126,7 @@ const SidebarDocumentItem = ({
       isOpen={isOpen}
       highlight={isActive}
       onClick={onClick}
+      highlightColor={doc.cardColor}
     />
   );
 };
@@ -721,7 +722,7 @@ export const Sidebar = () => {
       <div className="flex-1 space-y-6 min-w-0">
         {/* Core Actions */}
         <div className="space-y-[2px]">
-          <SidebarItem icon={<Plus size={16} className={isDocActive('new-note') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="New Note" isOpen={isSidebarOpen} highlight={isDocActive('new-note')} onClick={handleNewNoteClick} activeBgClass="bg-blush-pop/70 dark:bg-blush-pop/20 border-blush-pop/50 dark:border-blush-pop/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+          <SidebarItem icon={<Plus size={16} className={isDocActive('new-note') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="New Note" isOpen={isSidebarOpen} highlight={isDocActive('new-note')} onClick={handleNewNoteClick} activeBgClass="bg-blush-pop/90 dark:bg-blush-pop/35 border-blush-pop/75 dark:border-blush-pop/50 border" activeTextClass="!text-black dark:!text-white font-semibold" />
           <SidebarItem icon={<MagnifyingGlass size={16} className="text-sky-500/80 dark:text-sky-400/80" />} label="Search" isOpen={isSidebarOpen} />
           <SidebarItem icon={<Sparkle size={16} className="text-purple-500/90 dark:text-purple-400/90" />} label="Ask AI" isOpen={isSidebarOpen} />
           <div
@@ -732,7 +733,7 @@ export const Sidebar = () => {
               e.dataTransfer.effectAllowed = 'copyMove';
             }}
           >
-            <SidebarItem icon={<CalendarBlank size={16} className={isDocActive('section-daily-notes') ? "text-current" : "text-emerald-500/90 dark:text-emerald-400/90"} />} label="Daily Notes" isOpen={isSidebarOpen} highlight={isDocActive('section-daily-notes')} onClick={() => handleDocClick('section-daily-notes')} activeBgClass="bg-icy-blue/70 dark:bg-icy-blue/20 border-icy-blue/50 dark:border-icy-blue/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+            <SidebarItem icon={<CalendarBlank size={16} className={isDocActive('section-daily-notes') ? "text-current" : "text-emerald-500/90 dark:text-emerald-400/90"} />} label="Daily Notes" isOpen={isSidebarOpen} highlight={isDocActive('section-daily-notes')} onClick={() => handleDocClick('section-daily-notes')} activeBgClass="bg-icy-blue/90 dark:bg-icy-blue/35 border-icy-blue/75 dark:border-icy-blue/50 border" activeTextClass="!text-black dark:!text-white font-semibold" />
           </div>
           <div
             draggable
@@ -742,7 +743,7 @@ export const Sidebar = () => {
               e.dataTransfer.effectAllowed = 'copyMove';
             }}
           >
-            <SidebarItem icon={<CheckSquare size={16} className={isDocActive('section-tasks') ? "text-current" : "text-blue-500/90 dark:text-blue-400/90"} />} label="Tasks" isOpen={isSidebarOpen} highlight={isDocActive('section-tasks')} onClick={() => handleDocClick('section-tasks')} activeBgClass="bg-sky-blue/70 dark:bg-sky-blue/20 border-sky-blue/50 dark:border-sky-blue/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+            <SidebarItem icon={<CheckSquare size={16} className={isDocActive('section-tasks') ? "text-current" : "text-blue-500/90 dark:text-blue-400/90"} />} label="Tasks" isOpen={isSidebarOpen} highlight={isDocActive('section-tasks')} onClick={() => handleDocClick('section-tasks')} activeBgClass="bg-sky-blue/90 dark:bg-sky-blue/35 border-sky-blue/75 dark:border-sky-blue/50 border" activeTextClass="!text-black dark:!text-white font-semibold" />
           </div>
           <div
             draggable
@@ -752,7 +753,7 @@ export const Sidebar = () => {
               e.dataTransfer.effectAllowed = 'copyMove';
             }}
           >
-            <SidebarItem icon={<Tag size={16} className={isDocActive('section-tags') ? "text-current" : "text-purple-500/90 dark:text-purple-400/90"} />} label="Tags" isOpen={isSidebarOpen} highlight={isDocActive('section-tags')} onClick={() => handleDocClick('section-tags')} activeBgClass="bg-pink-orchid/70 dark:bg-pink-orchid/20 border-pink-orchid/50 dark:border-pink-orchid/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+            <SidebarItem icon={<Tag size={16} className={isDocActive('section-tags') ? "text-current" : "text-purple-500/90 dark:text-purple-400/90"} />} label="Tags" isOpen={isSidebarOpen} highlight={isDocActive('section-tags')} onClick={() => handleDocClick('section-tags')} activeBgClass="bg-pink-orchid/90 dark:bg-pink-orchid/35 border-pink-orchid/75 dark:border-pink-orchid/50 border" activeTextClass="!text-black dark:!text-white font-semibold" />
           </div>
           <div
             draggable
@@ -762,7 +763,7 @@ export const Sidebar = () => {
               e.dataTransfer.effectAllowed = 'copyMove';
             }}
           >
-            <SidebarItem icon={<Eye size={16} className={isDocActive('section-glance') ? "text-current" : "text-amber-500/90 dark:text-amber-400/90"} />} label="Glance" isOpen={isSidebarOpen} highlight={isDocActive('section-glance')} onClick={() => handleDocClick('section-glance')} activeBgClass="bg-blush-pop/70 dark:bg-blush-pop/20 border-blush-pop/50 dark:border-blush-pop/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+            <SidebarItem icon={<Eye size={16} className={isDocActive('section-glance') ? "text-current" : "text-amber-500/90 dark:text-amber-400/90"} />} label="Glance" isOpen={isSidebarOpen} highlight={isDocActive('section-glance')} onClick={() => handleDocClick('section-glance')} activeBgClass="bg-blush-pop/90 dark:bg-blush-pop/35 border-blush-pop/75 dark:border-blush-pop/50 border" activeTextClass="!text-black dark:!text-white font-semibold" />
           </div>
           <div
             draggable
@@ -772,7 +773,7 @@ export const Sidebar = () => {
               e.dataTransfer.effectAllowed = 'copyMove';
             }}
           >
-            <SidebarItem icon={<SquaresFour size={16} className={isDocActive('section-wall') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="Wall" isOpen={isSidebarOpen} highlight={isDocActive('section-wall')} onClick={() => handleDocClick('section-wall')} activeBgClass="bg-pink-orchid/70 dark:bg-pink-orchid/20 border-pink-orchid/50 dark:border-pink-orchid/30 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+            <SidebarItem icon={<SquaresFour size={16} className={isDocActive('section-wall') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="Wall" isOpen={isSidebarOpen} highlight={isDocActive('section-wall')} onClick={() => handleDocClick('section-wall')} activeBgClass="bg-pink-orchid/90 dark:bg-pink-orchid/35 border-pink-orchid/75 dark:border-pink-orchid/50 border" activeTextClass="!text-black dark:!text-white font-semibold" />
           </div>
         </div>
 
@@ -1043,7 +1044,7 @@ export const Sidebar = () => {
             isOpen={isSidebarOpen}
             highlight={isDocActive('section-trash')}
             onClick={() => handleDocClick('section-trash')}
-            activeBgClass="bg-red-500/10 dark:bg-red-500/5 border-red-500/20 dark:border-red-500/10 border"
+            activeBgClass="bg-red-500/20 dark:bg-red-500/15 border-red-500/40 dark:border-red-500/30 border"
             activeTextClass="!text-red-600 dark:!text-red-400 font-semibold"
           />
         </div>
@@ -1061,7 +1062,7 @@ export const Sidebar = () => {
             isOpen={isSidebarOpen}
             highlight={isDocActive('section-help')}
             onClick={() => handleDocClick('section-help')}
-            activeBgClass="bg-teal-500/10 dark:bg-teal-500/20 border-teal-500/50 dark:border-teal-500/30 border"
+            activeBgClass="bg-teal-500/20 dark:bg-teal-500/35 border-teal-500/70 dark:border-teal-500/50 border"
             activeTextClass="!text-teal-600 dark:!text-teal-400 font-semibold"
           />
         </div>
@@ -1071,7 +1072,7 @@ export const Sidebar = () => {
           isOpen={isSidebarOpen} 
           highlight={isDocActive('section-settings')}
           onClick={() => openDocument('section-settings', activePaneId || undefined)} 
-          activeBgClass="bg-slate-500/10 dark:bg-slate-500/5 border-slate-500/20 dark:border-slate-500/10 border"
+          activeBgClass="bg-slate-500/20 dark:bg-slate-500/15 border-slate-500/45 dark:border-slate-500/30 border"
           activeTextClass="!text-slate-600 dark:!text-slate-400 font-semibold"
         />
       </div>

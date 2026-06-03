@@ -65,7 +65,7 @@ export const useSettingsStore = create<SettingsStore>()(
 
       // Initial highlight preferences
       activeHighlightType: 'solid',
-      activeHighlightColor: '#0ea5e9', // Sky blue
+      activeHighlightColor: '#A2D2FF', // Pastel Sky blue
       activeHighlightGradient: 'linear-gradient(to right, #3b82f6, #8b5cf6)', // Blue to Purple
       inactiveHighlightType: 'solid',
       inactiveHighlightColor: 'transparent',

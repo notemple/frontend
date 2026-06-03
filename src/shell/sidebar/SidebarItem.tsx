@@ -1,13 +1,7 @@
-
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { CaretDown, CaretRight, Folder, Hash, CheckSquareOffset, FileText, Plus, SidebarSimple, DotsThree, Trash, TextT, Palette, Check, ArrowBendDownRight, CalendarBlank } from '@phosphor-icons/react';
-import { cn, getFolderStyle, getFolderHexColor } from '@/shared/lib/utils';
-import { useDocumentStore } from '@/features/documents/store';
-import { useUiStore } from '@/shared/store/uiStore';
-import { formatDisplayDate } from '@/shared/lib/time';
+import React from 'react';
+import { motion } from 'motion/react';
+import { cn, hexToRgb, rgbToHsl } from '@/shared/lib/utils';
 import { useSettingsStore } from '@/features/settings/store';
-import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
 
 export const SidebarItem = ({
   icon,
@@ -17,7 +11,8 @@ export const SidebarItem = ({
   onClick,
   rightElement,
   activeBgClass = "bg-muted border border-border shadow-sm-sm",
-  activeTextClass = "!text-black dark:!text-foreground font-semibold"
+  activeTextClass = "!text-black dark:!text-foreground font-semibold",
+  highlightColor
 }: {
   icon?: React.ReactNode,
   label: string,
@@ -26,8 +21,43 @@ export const SidebarItem = ({
   onClick?: () => void,
   rightElement?: React.ReactNode,
   activeBgClass?: string,
-  activeTextClass?: string
+  activeTextClass?: string,
+  highlightColor?: string | null
 }) => {
+  const activeHighlightColor = useSettingsStore(state => state.activeHighlightColor);
+
+  const dynamicStyles = React.useMemo(() => {
+    const colorHex = highlightColor || activeHighlightColor;
+    if (!colorHex || colorHex === 'transparent' || colorHex === 'none') {
+      return undefined;
+    }
+    try {
+      const rgb = hexToRgb(colorHex);
+      const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+      return {
+        '--sidebar-highlight-bg-light': `hsla(${hsl.h}, ${hsl.s}%, 55%, 0.25)`,
+        '--sidebar-highlight-border-light': `hsla(${hsl.h}, ${hsl.s}%, 55%, 0.45)`,
+        '--sidebar-highlight-text-light': `hsla(${hsl.h}, ${hsl.s}%, 22%, 1)`,
+
+        '--sidebar-highlight-bg-dark': `hsla(${hsl.h}, ${hsl.s}%, 55%, 0.25)`,
+        '--sidebar-highlight-border-dark': `hsla(${hsl.h}, ${hsl.s}%, 55%, 0.45)`,
+        '--sidebar-highlight-text-dark': `hsla(${hsl.h}, ${hsl.s}%, 85%, 1)`,
+      } as React.CSSProperties;
+    } catch {
+      return undefined;
+    }
+  }, [highlightColor, activeHighlightColor]);
+
+  const isDefaultBg = activeBgClass === "bg-muted border border-border shadow-sm-sm";
+  
+  const bgClass = isDefaultBg && dynamicStyles
+    ? "bg-[var(--sidebar-highlight-bg-light)] dark:bg-[var(--sidebar-highlight-bg-dark)] border-[var(--sidebar-highlight-border-light)] dark:border-[var(--sidebar-highlight-border-dark)] border shadow-sm-sm"
+    : activeBgClass;
+
+  const textClass = isDefaultBg && dynamicStyles
+    ? "text-[var(--sidebar-highlight-text-light)] dark:text-[var(--sidebar-highlight-text-dark)] font-semibold"
+    : activeTextClass;
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -41,18 +71,19 @@ export const SidebarItem = ({
       tabIndex={0}
       onClick={onClick}
       onKeyDown={handleKeyDown}
+      style={dynamicStyles}
       className={cn(
         "relative flex items-center w-full py-1.5 text-[13px] outline-none group/item rounded-sm-sm transition-all duration-100 ease-out active:scale-[0.98] border border-transparent cursor-pointer select-none",
         isOpen ? "px-2 gap-3" : "px-0 justify-center items-center gap-0",
         highlight
-          ? activeTextClass
+          ? textClass
           : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
       )}
     >
       {highlight && (
         <motion.div
           layoutId="activeSidebarHighlight"
-          className={cn("absolute inset-0 rounded-sm-sm -z-0 border", activeBgClass)}
+          className={cn("absolute inset-0 rounded-sm-sm -z-0 border", bgClass)}
           transition={{ type: "spring", stiffness: 380, damping: 32 }}
         />
       )}
@@ -62,7 +93,7 @@ export const SidebarItem = ({
       <div
         className={cn(
           "shrink-0 flex items-center justify-center w-5 h-5 relative z-10 transition-transform duration-100 group-hover/item:scale-[1.05]",
-          highlight ? activeTextClass : "text-muted-foreground group-hover/item:text-foreground"
+          highlight ? textClass : "text-muted-foreground group-hover/item:text-foreground"
         )}
       >
         {icon}
@@ -76,7 +107,7 @@ export const SidebarItem = ({
         <span
           className={cn(
             "truncate whitespace-nowrap overflow-hidden flex-1 text-left font-medium tracking-tight",
-            highlight ? activeTextClass : ""
+            highlight ? textClass : ""
           )}
         >
           {label}

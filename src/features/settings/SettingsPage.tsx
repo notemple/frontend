@@ -27,6 +27,7 @@ function parseGradient(gradientStr: string) {
   return { start: '#3b82f6', end: '#8b5cf6' };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const SettingsPage = ({ paneId }: { paneId: string }) => {
   const { 
     timezone, 
@@ -88,7 +89,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
   ];
 
   const solidPresets = [
-    { name: 'Sky Blue', value: '#0ea5e9' },
+    { name: 'Sky Blue', value: '#A2D2FF' },
     { name: 'Emerald', value: '#10b981' },
     { name: 'Blue', value: '#3b82f6' },
     { name: 'Rose', value: '#f43f5e' },
@@ -234,7 +235,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
                     <div className="relative w-6 h-6 rounded border border-border overflow-hidden cursor-pointer flex items-center justify-center bg-muted/40 hover:border-foreground transition-all">
                       <input
                         type="color"
-                        value={activeHighlightColor.startsWith('#') && activeHighlightColor.length === 7 ? activeHighlightColor : '#0ea5e9'}
+                        value={activeHighlightColor.startsWith('#') && activeHighlightColor.length === 7 ? activeHighlightColor : '#A2D2FF'}
                         onChange={(e) => setActiveHighlightColor(e.target.value)}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       />
@@ -245,7 +246,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
                       value={activeHighlightColor}
                       onChange={(e) => setActiveHighlightColor(e.target.value)}
                       className="w-20 bg-muted/40 border border-border text-foreground px-1.5 py-0.5 text-[11px] font-mono outline-none rounded"
-                      placeholder="#0ea5e9"
+                      placeholder="#A2D2FF"
                     />
                   </div>
                 </div>

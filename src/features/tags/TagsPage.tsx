@@ -18,6 +18,7 @@ import {
 import { cn, getItemColor, getTagStyle, getTagHexColor, } from '@/shared/lib/utils';
 import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
 import { formatDisplayDate } from '@/shared/lib/time';
+import { DeleteTagDialog } from './components/DeleteTagDialog';
 
 export const TagsPage = ({ paneId }: { paneId: string }) => {
   const renameTag = useDocumentStore(state => state.renameTag);
@@ -37,6 +38,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
 
   const [isCreatingTag, setIsCreatingTag] = useState(false);
   const [newTagName, setNewTagName] = useState('');
+  const [deletingTag, setDeletingTag] = useState<string | null>(null);
 
   // Automatically close context menu on window click
   useEffect(() => {
@@ -138,12 +140,7 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
   };
 
   const handleDeleteTag = (tag: string) => {
-    if (confirm(`Are you sure you want to delete the tag "${tag}" globally? This removes it from all documents.`)) {
-      deleteTag(tag);
-      if (selectedTag === tag) {
-        setSelectedTag(null);
-      }
-    }
+    setDeletingTag(tag);
   };
 
   return (
@@ -456,6 +453,20 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
           </button>
         </div>
       )}
+      <DeleteTagDialog
+        isOpen={!!deletingTag}
+        tag={deletingTag || ''}
+        onClose={() => setDeletingTag(null)}
+        onConfirm={() => {
+          if (deletingTag) {
+            deleteTag(deletingTag);
+            if (selectedTag === deletingTag) {
+              setSelectedTag(null);
+            }
+            setDeletingTag(null);
+          }
+        }}
+      />
     </div>
   );
 };

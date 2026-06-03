@@ -4,11 +4,13 @@ import { RootLayout } from '@/shell/RootLayout';
 import { useDocumentStore } from '@/features/documents/store';
 import { useTaskStore } from '@/features/tasks/store';
 import { useSettingsStore } from '@/features/settings/store';
+import { OnboardingScreen } from '@/features/onboarding/OnboardingScreen';
 
 const queryClient = new QueryClient();
 
 export default function App() {
   const roundness = useSettingsStore(state => state.roundness);
+  const isOnboardingCompleted = useSettingsStore(state => state.isOnboardingCompleted);
 
   useEffect(() => {
     // Bootstrap local-first IndexedDB storage stores
@@ -26,6 +28,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <RootLayout />
+      {!isOnboardingCompleted && <OnboardingScreen />}
     </QueryClientProvider>
   );
 }

@@ -516,6 +516,7 @@ export const TemplnoteEditor = React.memo(({
 
   return (
     <div
+      id="onboarding-editor"
       className={cn(
         "relative w-full overflow-hidden flex flex-col",
         isMinimized ? "h-[450px]" : "h-full"

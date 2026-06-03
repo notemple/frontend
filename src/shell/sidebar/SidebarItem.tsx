@@ -12,7 +12,8 @@ export const SidebarItem = ({
   rightElement,
   activeBgClass = "bg-muted border border-border shadow-sm-sm",
   activeTextClass = "!text-black dark:!text-foreground font-semibold",
-  highlightColor
+  highlightColor,
+  id
 }: {
   icon?: React.ReactNode,
   label: string,
@@ -22,7 +23,8 @@ export const SidebarItem = ({
   rightElement?: React.ReactNode,
   activeBgClass?: string,
   activeTextClass?: string,
-  highlightColor?: string | null
+  highlightColor?: string | null,
+  id?: string
 }) => {
   const activeHighlightColor = useSettingsStore(state => state.activeHighlightColor);
 
@@ -67,6 +69,7 @@ export const SidebarItem = ({
 
   return (
     <div
+      id={id}
       role="button"
       tabIndex={0}
       onClick={onClick}

@@ -196,7 +196,7 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
   };
 
   return (
-    <div className="w-full max-w-3xl bg-muted/10 border border-border/60 rounded-lg p-4 flex flex-col gap-3 shadow-sm focus-within:border-border/90 focus-within:shadow-md transition-all shrink-0">
+    <div id="onboarding-quick-capture" className="w-full max-w-3xl bg-muted/10 border border-border/60 rounded-lg p-4 flex flex-col gap-3 shadow-sm focus-within:border-border/90 focus-within:shadow-md transition-all shrink-0">
       <textarea
         value={captureText}
         onChange={(e) => setCaptureText(e.target.value)}

@@ -15,6 +15,7 @@ export interface SettingsStore {
   autoHideNavbar: boolean;
   autoHideSidebars: boolean;
   grayscaleInactiveTabs: boolean;
+  isOnboardingCompleted: boolean;
 
   // Active/Inactive Pane highlight options
   activeHighlightType: 'solid' | 'gradient';
@@ -37,6 +38,7 @@ export interface SettingsStore {
   setAutoHideNavbar: (autoHide: boolean) => void;
   setAutoHideSidebars: (autoHide: boolean) => void;
   setGrayscaleInactiveTabs: (grayscale: boolean) => void;
+  setIsOnboardingCompleted: (completed: boolean) => void;
 
   setActiveHighlightType: (type: 'solid' | 'gradient') => void;
   setActiveHighlightColor: (color: string) => void;
@@ -62,6 +64,7 @@ export const useSettingsStore = create<SettingsStore>()(
       autoHideNavbar: false,
       autoHideSidebars: false,
       grayscaleInactiveTabs: true,
+      isOnboardingCompleted: false,
 
       // Initial highlight preferences
       activeHighlightType: 'solid',
@@ -84,6 +87,7 @@ export const useSettingsStore = create<SettingsStore>()(
       setAutoHideNavbar: (autoHideNavbar) => set({ autoHideNavbar }),
       setAutoHideSidebars: (autoHideSidebars) => set({ autoHideSidebars }),
       setGrayscaleInactiveTabs: (grayscaleInactiveTabs) => set({ grayscaleInactiveTabs }),
+      setIsOnboardingCompleted: (isOnboardingCompleted) => set({ isOnboardingCompleted }),
 
       setActiveHighlightType: (activeHighlightType) => set({ activeHighlightType }),
       setActiveHighlightColor: (activeHighlightColor) => set({ activeHighlightColor }),

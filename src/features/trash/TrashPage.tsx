@@ -6,12 +6,12 @@ import { useUiStore } from '@/shared/store/uiStore';
 import { formatDisplayDate } from '@/shared/lib/time';
 import { cn } from '@/shared/lib/utils';
 import { useShallow } from 'zustand/react/shallow';
-import { 
-  Trash, 
-  ArrowCounterClockwise, 
-  FileText, 
-  Folder as FolderIcon, 
-  CheckSquare, 
+import {
+  Trash,
+  ArrowCounterClockwise,
+  FileText,
+  Folder as FolderIcon,
+  CheckSquare,
   Warning,
   Sparkle,
   ArrowLeft
@@ -178,7 +178,7 @@ export const TrashPage = ({ paneId }: { paneId: string }) => {
   return (
     <div className="flex flex-col h-full overflow-y-auto no-scrollbar relative w-full items-center p-8 bg-transparent font-sans">
       <div className="absolute inset-0 bg-gradient-to-b from-foreground/[0.01] to-transparent pointer-events-none" />
-      
+
       <div
         className="w-full max-w-[1000px] mx-auto flex flex-col gap-8 pt-6 flex-1"
       >
@@ -200,14 +200,14 @@ export const TrashPage = ({ paneId }: { paneId: string }) => {
                 <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 p-1 px-2.5 rounded-sm shadow-sm-sm animate-fade-in">
                   <Warning size={14} className="text-red-500" />
                   <span className="text-xs font-semibold text-red-600 dark:text-red-400 select-none">Confirm empty permanently?</span>
-                  <button 
-                    onClick={handleEmptyTrash} 
+                  <button
+                    onClick={handleEmptyTrash}
                     className="text-xs bg-red-600 hover:bg-red-700 text-white font-bold px-2 py-0.5 rounded-sm cursor-pointer shadow-sm"
                   >
                     Yes
                   </button>
-                  <button 
-                    onClick={() => setShowConfirmEmpty(false)} 
+                  <button
+                    onClick={() => setShowConfirmEmpty(false)}
                     className="text-xs hover:bg-muted/80 text-foreground font-semibold px-2 py-0.5 rounded-sm border border-border cursor-pointer"
                   >
                     No
@@ -240,9 +240,6 @@ export const TrashPage = ({ paneId }: { paneId: string }) => {
           <div className="flex-1 flex flex-col items-center justify-center py-20 animate-fade-in">
             <div className="w-20 h-20 rounded-full bg-muted/50 border border-border flex items-center justify-center text-muted-foreground/30 mb-6 relative group shadow-sm-sm">
               <Trash size={38} className="text-muted-foreground/40 group-hover:scale-110 transition-transform duration-300" />
-              <div className="absolute -top-1 -right-1 bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 p-1 rounded-full shadow-sm">
-                <Sparkle size={12} weight="fill" />
-              </div>
             </div>
             <h3 className="text-base font-bold text-foreground mb-1 select-none">Trash is empty</h3>
             <p className="text-sm text-muted-foreground text-center max-w-sm leading-relaxed">

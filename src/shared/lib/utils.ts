@@ -132,3 +132,29 @@ export function getFolderHexColor(
 ): string | null {
   return folderColors?.[folderId] ?? null;
 }
+
+export function getFolderActiveHexColor(
+  folderId: string,
+  folderColors?: Record<string, string>,
+  folderName?: string
+): string {
+  const customHex = folderColors?.[folderId];
+  if (customHex) return customHex;
+
+  const name = folderName || 'Untitled';
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const colorIndex = Math.abs(hash) % CARD_COLORS.length;
+  
+  const hexMap = [
+    '#E06C81', // Index 0
+    '#D98F3E', // Index 1
+    '#6BAB90', // Index 2
+    '#77A5BD', // Index 3
+    '#957FBD', // Index 4
+    '#D179A4', // Index 5
+  ];
+  return hexMap[colorIndex];
+}

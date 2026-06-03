@@ -13,16 +13,19 @@ import { GlancePage } from '@/features/glance/GlancePage';
 import { HelpPage } from '@/features/help/HelpPage';
 import { cn, getItemColor, getFolderStyle, getFolderHexColor } from '@/shared/lib/utils';
 import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
-import { Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, CaretDown, FileText, Folder, Sun, Moon, Monitor, Clock, ArrowLeft, PlusCircle, Check, X, Plus, Trash } from '@phosphor-icons/react';
+import { Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, CaretDown, FileText, Folder, Sun, Moon, Monitor, Clock, ArrowLeft, PlusCircle, Check, X, Plus, Trash, TextT } from '@phosphor-icons/react';
 import { useShallow } from 'zustand/react/shallow';
 import { SectionGridItem } from './components/SectionGridItem';
 import { ColorPicker } from '@/shared/ui/ColorPicker';
+import { DeleteFolderDialog } from '@/shell/sidebar/DeleteFolderDialog';
 
 const EMPTY_ARRAY: any[] = [];
 
 export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: string }) => {
   const openDocument = useUiStore(state => state.openDocument);
   const createFolder = useDocumentStore(state => state.createFolder);
+  const deleteFolder = useDocumentStore(state => state.deleteFolder);
+  const deleteDocument = useDocumentStore(state => state.deleteDocument);
   const addDocument = useDocumentStore(state => state.addDocument);
   const updateDocument = useDocumentStore(state => state.updateDocument);
   const folderColors = useDocumentStore(state => state.folderColors) || {};
@@ -30,6 +33,22 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
 
   const [isCreatingFolder, setIsCreatingFolder] = React.useState(false);
   const [newFolderName, setNewFolderName] = React.useState('');
+
+  const [deleteFolderDialogOpen, setDeleteFolderDialogOpen] = React.useState(false);
+  const [deletingFolderId, setDeletingFolderId] = React.useState<string | null>(null);
+  const [deletingFolderName, setDeletingFolderName] = React.useState('');
+  const [deletingFolderFilesCount, setDeletingFolderFilesCount] = React.useState(0);
+  const [renamingItemId, setRenamingItemId] = React.useState<string | null>(null);
+
+  const handleConfirmDeleteFolder = (
+    action: 'delete' | 'uncategorize' | 'move',
+    targetFolderId?: string
+  ) => {
+    if (!deletingFolderId) return;
+    deleteFolder(deletingFolderId, { type: action, targetFolderId });
+    setDeleteFolderDialogOpen(false);
+    setDeletingFolderId(null);
+  };
 
   // Context menu for folder colour picking
   const [folderContextMenu, setFolderContextMenu] = React.useState<{
@@ -277,6 +296,9 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
               folderColors={folderColors}
               onFolderContextMenu={sectionId === 'section-folders' ? handleFolderContextMenu : undefined}
               onDocumentContextMenu={sectionId !== 'section-folders' ? handleDocumentContextMenu : undefined}
+              isRenaming={renamingItemId === itemId}
+              onRenameComplete={() => setRenamingItemId(null)}
+              onRenameCancel={() => setRenamingItemId(null)}
             />
           ))}
           {items.length === 0 && (
@@ -340,27 +362,43 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
             </div>
           </div>
 
-          {/* Reset option */}
-          {getFolderHexColor(folderContextMenu.folderId, folderColors) && (
-            <button
-              className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:bg-muted flex items-center gap-2 transition-colors cursor-pointer"
-              onClick={() => {
-                const newColors = { ...folderColors };
-                delete newColors[folderContextMenu.folderId];
-                // Use setFolderColor with an empty string as sentinel — store ignores it if we need a delete action
-                // Instead directly patch store
-                useDocumentStore.setState(state => {
-                  const nc = { ...state.folderColors };
-                  delete nc[folderContextMenu.folderId];
-                  return { folderColors: nc };
-                });
-                setFolderContextMenu(null);
-              }}
-            >
-              <Trash size={14} className="text-muted-foreground" />
-              Reset to Default
-            </button>
-          )}
+          {/* Rename Option */}
+          <button
+            className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted flex items-center gap-2 transition-colors cursor-pointer"
+            onClick={() => {
+              setRenamingItemId(folderContextMenu.folderId);
+              setFolderContextMenu(null);
+            }}
+          >
+            <TextT size={14} className="text-muted-foreground" />
+            Rename Folder
+          </button>
+
+          {/* Delete Option */}
+          <button
+            className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-muted flex items-center gap-2 transition-colors cursor-pointer border-t border-border"
+            onClick={() => {
+              const folderId = folderContextMenu.folderId;
+              const folder = folders.find((f: any) => f?.id === folderId);
+              const folderName = folder ? folder.name : 'Folder';
+              const folderDocsCount = Object.values(documents || {}).filter(
+                (doc: any) => doc?.folderId === folderId && !doc?.isDeleted
+              ).length;
+
+              if (folderDocsCount > 0) {
+                setDeletingFolderId(folderId);
+                setDeletingFolderName(folderName);
+                setDeletingFolderFilesCount(folderDocsCount);
+                setDeleteFolderDialogOpen(true);
+              } else {
+                deleteFolder(folderId);
+              }
+              setFolderContextMenu(null);
+            }}
+          >
+            <Trash size={14} className="text-red-500" />
+            Delete Folder
+          </button>
         </div>
       )}
       {/* Document Colour Context Menu */}
@@ -379,20 +417,42 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
             label="Document Color"
           />
           {/* Reset option */}
-          {documents[documentContextMenu.docId]?.cardColor && (
-            <button
-              className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:bg-muted flex items-center gap-2 transition-colors cursor-pointer"
-              onClick={() => {
-                updateDocument(documentContextMenu.docId, { cardColor: undefined });
-                setDocumentContextMenu(null);
-              }}
-            >
-              <Trash size={14} className="text-muted-foreground" />
-              Reset to Default
-            </button>
-          )}
+
+
+          {/* Rename Option */}
+          <button
+            className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted flex items-center gap-2 transition-colors cursor-pointer border-t border-border"
+            onClick={() => {
+              setRenamingItemId(documentContextMenu.docId);
+              setDocumentContextMenu(null);
+            }}
+          >
+            <TextT size={14} className="text-muted-foreground" />
+            Rename Note
+          </button>
+
+          {/* Delete Option */}
+          <button
+            className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-muted flex items-center gap-2 transition-colors cursor-pointer border-t border-border"
+            onClick={() => {
+              deleteDocument(documentContextMenu.docId);
+              setDocumentContextMenu(null);
+            }}
+          >
+            <Trash size={14} className="text-red-500" />
+            Delete Note
+          </button>
         </div>
       )}
+
+      <DeleteFolderDialog
+        isOpen={deleteFolderDialogOpen}
+        onClose={() => setDeleteFolderDialogOpen(false)}
+        folderId={deletingFolderId || ''}
+        folderName={deletingFolderName}
+        fileCount={deletingFolderFilesCount}
+        onConfirm={handleConfirmDeleteFolder}
+      />
     </div>
   );
 };

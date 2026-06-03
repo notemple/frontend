@@ -1,17 +1,11 @@
-
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useUiStore } from '@/shared/store/uiStore';
 import { useDocumentStore } from '@/features/documents/store';
 import { useSettingsStore } from '@/features/settings/store';
-import { DailyNotesPage } from '@/features/daily-notes/DailyNotesPage';
-import { TasksPage } from '@/features/tasks/TasksPage';
-import { TagsPage } from '@/features/tags/TagsPage';
 import { cn, getItemColor, getFolderStyle, getFolderHexColor, getColorStyle } from '@/shared/lib/utils';
-import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
-import { Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, CaretDown, FileText, Folder, Sun, Moon, Monitor, Clock, ArrowLeft, PlusCircle, Check, X, Plus, Trash } from '@phosphor-icons/react';
+import { CaretDown, FileText, Folder } from '@phosphor-icons/react';
 import { useShallow } from 'zustand/react/shallow';
-import { ColorPicker } from '@/shared/ui/ColorPicker';
 
 export const SectionGridItem = React.memo(({
   itemId,
@@ -20,6 +14,9 @@ export const SectionGridItem = React.memo(({
   folderColors,
   onFolderContextMenu,
   onDocumentContextMenu,
+  isRenaming = false,
+  onRenameComplete,
+  onRenameCancel,
 }: {
   itemId: string;
   itemType: 'page' | 'folder';
@@ -27,6 +24,9 @@ export const SectionGridItem = React.memo(({
   folderColors?: Record<string, string>;
   onFolderContextMenu?: (e: React.MouseEvent, folderId: string) => void;
   onDocumentContextMenu?: (e: React.MouseEvent, docId: string) => void;
+  isRenaming?: boolean;
+  onRenameComplete?: (newName: string) => void;
+  onRenameCancel?: () => void;
 }) => {
   const openDocument = useUiStore(state => state.openDocument);
 
@@ -43,8 +43,25 @@ export const SectionGridItem = React.memo(({
     [itemId, itemType]
   );
   const item = useDocumentStore(useShallow(detailsSelector));
+  const [tempTitle, setTempTitle] = useState(item?.title || '');
+
+  useEffect(() => {
+    if (isRenaming && item) {
+      setTempTitle(item.title || '');
+    }
+  }, [isRenaming, item?.title]);
 
   if (!item) return null;
+
+  const handleRenameSubmit = () => {
+    const finalTitle = tempTitle.trim() ? tempTitle : (item.title || 'Untitled');
+    if (itemType === 'folder') {
+      useDocumentStore.getState().updateFolder(itemId, finalTitle);
+    } else {
+      useDocumentStore.getState().updateDocument(itemId, { title: finalTitle });
+    }
+    if (onRenameComplete) onRenameComplete(finalTitle);
+  };
 
   // Resolve colour: prefer custom folder/document colour, fall back to hash-based default.
   const customStyle = itemType === 'folder'
@@ -68,6 +85,7 @@ export const SectionGridItem = React.memo(({
   return (
     <div
       onClick={() => {
+        if (isRenaming) return;
         if (itemType === 'folder') {
           openDocument(`section-folder-${itemId}`, paneId);
         } else {
@@ -75,6 +93,7 @@ export const SectionGridItem = React.memo(({
         }
       }}
       onContextMenu={(e) => {
+        if (isRenaming) return;
         if (itemType === 'folder') {
           if (onFolderContextMenu) onFolderContextMenu(e, itemId);
         } else {
@@ -106,15 +125,32 @@ export const SectionGridItem = React.memo(({
               <span className="text-[18px] leading-none flex items-center justify-center font-sans">{(item as any).icon}</span>
             ) : <FileText size={20} weight="duotone" className={customStyle ? 'text-[color:var(--folder-text)]' : ''} />}
         </div>
-        <span className={cn(
-          "font-medium text-sm truncate transition-colors leading-none pr-1 text-foreground/80",
-          customStyle ? '' : cn("group-hover:", iconTextClass)
-        )}>
-          {item.title || 'Untitled'}
-        </span>
+        {isRenaming ? (
+          <input
+            autoFocus
+            value={tempTitle}
+            onChange={(e) => setTempTitle(e.target.value)}
+            onBlur={handleRenameSubmit}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleRenameSubmit();
+              } else if (e.key === 'Escape') {
+                if (onRenameCancel) onRenameCancel();
+              }
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full bg-background/50 border border-border text-foreground px-1.5 py-0.5 text-xs font-medium outline-none rounded min-w-0"
+          />
+        ) : (
+          <span className={cn(
+            "font-medium text-sm truncate transition-colors leading-none pr-1 text-foreground/80",
+            customStyle ? '' : cn("group-hover:", iconTextClass)
+          )}>
+            {item.title || 'Untitled'}
+          </span>
+        )}
       </div>
     </div>
   );
 });
 SectionGridItem.displayName = 'SectionGridItem';
-

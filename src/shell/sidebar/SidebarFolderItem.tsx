@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SidebarItem } from './SidebarItem';
 import { Folder } from '@phosphor-icons/react';
 import { useDocumentStore } from '@/features/documents/store';
+import { getFolderActiveHexColor } from '@/shared/lib/utils';
 
 export const SidebarFolderItem = ({
   folderId,
@@ -28,6 +29,9 @@ export const SidebarFolderItem = ({
 }) => {
   const [tempName, setTempName] = useState(folderName);
   const originalNameRef = React.useRef(folderName);
+
+  const folderColors = useDocumentStore(state => state.folderColors) || {};
+  const activeFolderHighlightColor = getFolderActiveHexColor(folderId, folderColors, folderName);
 
   useEffect(() => {
     if (isRenaming) {
@@ -95,7 +99,7 @@ export const SidebarFolderItem = ({
       highlight={highlight}
       onClick={onClick}
       rightElement={rightElement}
-      highlightColor={folderColor}
+      highlightColor={activeFolderHighlightColor}
     />
   );
 };

@@ -345,7 +345,7 @@ export const TabBar = ({ paneId }: { paneId: string }) => {
           "flex items-center h-10 border-b border-border bg-background overflow-x-auto overflow-y-hidden select-none justify-between relative",
           activePaneId === paneId 
             ? "opacity-100" 
-            : cn("opacity-70 hover:opacity-100 transition-opacity", grayscaleInactiveTabs && "grayscale hover:grayscale-0")
+            : cn("opacity-100", grayscaleInactiveTabs && "grayscale hover:grayscale-0")
         )}
         onClick={() => setActivePane(paneId)}
       >

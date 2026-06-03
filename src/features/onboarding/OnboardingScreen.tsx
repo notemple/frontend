@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Sparkle, Eye, CalendarBlank, CheckSquare, Tag, CaretRight, 
-  ArrowRight, ArrowLeft, GoogleLogo, GithubLogo, Envelope, Check, CircleNotch, List,
-  Terminal, GraduationCap, Palette, Microscope, RocketLaunch, User
+import {
+  CaretRight, ArrowRight, ArrowLeft, GoogleLogo, GithubLogo, Envelope, Check, CircleNotch,
+  Terminal, GraduationCap, Palette, Microscope, RocketLaunch, User,
+  FileText, X
 } from '@phosphor-icons/react';
 import { useSettingsStore } from '@/features/settings/store';
 import { useUiStore } from '@/shared/store/uiStore';
@@ -14,21 +14,22 @@ import { taskService } from '@/services/task.service';
 import { cn } from '@/shared/lib/utils';
 
 const STYLE_PRESETS = [
-  { id: 'Developer', title: 'Developer', description: 'Build projects, write documentation, and capture code snippets.', icon: <Terminal size={22} className="text-[#CDB4DB]" /> },
-  { id: 'Student', title: 'Student', description: 'Track assignments, organize class lectures, and manage study guides.', icon: <GraduationCap size={22} className="text-[#CDB4DB]" /> },
-  { id: 'Creator', title: 'Creator', description: 'Draft scripts, outline content ideas, and structure creative assets.', icon: <Palette size={22} className="text-[#CDB4DB]" /> },
-  { id: 'Researcher', title: 'Researcher', description: 'Compile references, document experiments, and analyze findings.', icon: <Microscope size={22} className="text-[#CDB4DB]" /> },
-  { id: 'Startup', title: 'Startup', description: 'Organize team syncs, write product requirements, and track roadmap.', icon: <RocketLaunch size={22} className="text-[#CDB4DB]" /> },
-  { id: 'Personal', title: 'Personal', description: 'Journal daily thoughts, set life goals, and coordinate daily tasks.', icon: <User size={22} className="text-[#CDB4DB]" /> }
+  { id: 'Developer', title: 'Developer', description: 'Build projects, write documentation, and capture code snippets.', icon: <Terminal size={22} className="text-[#BDE0FE]" />, activeColor: '#BDE0FE' },
+  { id: 'Student', title: 'Student', description: 'Track assignments, organize class lectures, and manage study guides.', icon: <GraduationCap size={22} className="text-[#B5EAD7]" />, activeColor: '#B5EAD7' },
+  { id: 'Creator', title: 'Creator', description: 'Draft scripts, outline content ideas, and structure creative assets.', icon: <Palette size={22} className="text-[#FFC8DD]" />, activeColor: '#FFC8DD' },
+  { id: 'Researcher', title: 'Researcher', description: 'Compile references, document experiments, and analyze findings.', icon: <Microscope size={22} className="text-[#95E1D3]" />, activeColor: '#95E1D3' },
+  { id: 'Startup', title: 'Startup', description: 'Organize team syncs, write product requirements, and track roadmap.', icon: <RocketLaunch size={22} className="text-[#FFDAC1]" />, activeColor: '#FFDAC1' },
+  { id: 'Personal', title: 'Personal', description: 'Journal daily thoughts, set life goals, and coordinate daily tasks.', icon: <User size={22} className="text-[#FFF5C3]" />, activeColor: '#FFF5C3' }
 ];
 
 export const OnboardingScreen = () => {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
   const [workspaceName, setWorkspaceName] = useState('');
   const [selectedStyle, setSelectedStyle] = useState<'Developer' | 'Student' | 'Creator' | 'Researcher' | 'Startup' | 'Personal'>('Personal');
+  const [selectedLoginIndex, setSelectedLoginIndex] = useState(0);
   const [creationProgress, setCreationProgress] = useState(0);
   const [creationComplete, setCreationComplete] = useState(false);
-  
+
   // Tutorial State
   const [tutorialIndex, setTutorialIndex] = useState(0);
   const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
@@ -37,12 +38,216 @@ export const OnboardingScreen = () => {
 
   const nameInputRef = useRef<HTMLInputElement>(null);
 
+  const [activeTags, setActiveTags] = useState<string[]>([]);
+  const [activePages, setActivePages] = useState<{ id: string; title: string }[]>([]);
+
+  const handleRemoveTag = React.useCallback((tag: string) => {
+    setActiveTags(prev => prev.filter(t => t !== tag));
+  }, []);
+
+  const handleRemovePage = React.useCallback((id: string) => {
+    setActivePages(prev => prev.filter(p => p.id !== id));
+  }, []);
+
+  const resetSeedingDefaults = React.useCallback(() => {
+    let tags: string[];
+    let pages: { id: string; title: string }[];
+
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+
+    if (selectedStyle === 'Developer') {
+      tags = ['development', 'backlog', 'bugs', 'docs', 'releases'];
+      pages = [
+        { id: 'welcome-doc', title: 'Welcome to Glance' },
+        { id: 'doc-dev-roadmap', title: 'Project Roadmap' },
+        { id: 'doc-dev-setup', title: 'Local Setup Guide' },
+        { id: 'doc-dev-api', title: 'API Reference Documentation' },
+        { id: 'daily-note', title: `Daily Standup — ${yyyy}-${mm}-${dd}` }
+      ];
+    } else if (selectedStyle === 'Student') {
+      tags = ['lectures', 'homework', 'exams', 'readings', 'schedule'];
+      pages = [
+        { id: 'welcome-doc', title: 'Welcome to Glance' },
+        { id: 'doc-stud-overview', title: 'Semester Overview' },
+        { id: 'doc-stud-prep', title: 'Exam Preparation' },
+        { id: 'doc-stud-schedule', title: 'Class Schedule' },
+        { id: 'daily-note', title: `Daily Study Log — ${yyyy}-${mm}-${dd}` }
+      ];
+    } else if (selectedStyle === 'Creator') {
+      tags = ['ideas', 'drafts', 'production', 'editing', 'published'];
+      pages = [
+        { id: 'welcome-doc', title: 'Welcome to Glance' },
+        { id: 'doc-creat-calendar', title: 'Content Calendar' },
+        { id: 'doc-creat-script', title: 'Video Script: Desk Setup' },
+        { id: 'doc-creat-brand', title: 'Brand Identity Guide' },
+        { id: 'daily-note', title: `Creative Session Log — ${yyyy}-${mm}-${dd}` }
+      ];
+    } else if (selectedStyle === 'Researcher') {
+      tags = ['literature', 'experiments', 'data', 'writing', 'references'];
+      pages = [
+        { id: 'welcome-doc', title: 'Welcome to Glance' },
+        { id: 'doc-res-thesis', title: 'Thesis Outline' },
+        { id: 'doc-res-log', title: 'Experiment Logs' },
+        { id: 'doc-res-grant', title: 'Grant Proposal Outline' },
+        { id: 'daily-note', title: `Research Notes — ${yyyy}-${mm}-${dd}` }
+      ];
+    } else if (selectedStyle === 'Startup') {
+      tags = ['strategy', 'product', 'growth', 'fundraising', 'meetings'];
+      pages = [
+        { id: 'welcome-doc', title: 'Welcome to Glance' },
+        { id: 'doc-start-onepager', title: 'One Pager Strategy' },
+        { id: 'doc-start-prd', title: 'Product Spec: Onboarding' },
+        { id: 'doc-start-pitch', title: 'Pitch Deck Outline' },
+        { id: 'daily-note', title: `Daily Sync — ${yyyy}-${mm}-${dd}` }
+      ];
+    } else {
+      tags = ['journal', 'goals', 'finance', 'health', 'reminders'];
+      pages = [
+        { id: 'welcome-doc', title: 'Welcome to Glance' },
+        { id: 'doc-pers-goals', title: 'Yearly Goals' },
+        { id: 'doc-pers-reading', title: 'Reading List' },
+        { id: 'doc-pers-health', title: 'Weekly Fitness Planner' },
+        { id: 'daily-note', title: `Daily Journal — ${yyyy}-${mm}-${dd}` }
+      ];
+    }
+
+    setActiveTags(tags);
+    setActivePages(pages);
+  }, [selectedStyle]);
+
+  useEffect(() => {
+    resetSeedingDefaults();
+  }, [resetSeedingDefaults]);
+
+  const nextStep = React.useCallback(() => {
+    if (step === 1) setStep(2);
+    else if (step === 2) setStep(3);
+    else if (step === 3) setStep(4);
+  }, [step]);
+
+  const handleBack = React.useCallback(() => {
+    if (step === 1 || step === 4) return;
+    window.history.back();
+  }, [step]);
+
   // Auto-focus input when entering Step 2
   useEffect(() => {
     if (step === 2) {
       setTimeout(() => {
         nameInputRef.current?.focus();
       }, 300);
+    }
+  }, [step]);
+
+  // Centralized keyboard navigation for all steps
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Backspace navigates to the previous step if the user is not actively typing or if the focused input field is empty
+      if (e.key === 'Backspace') {
+        const activeEl = document.activeElement as HTMLInputElement | HTMLTextAreaElement | null;
+        const isInputField = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
+        const isContentEditable = activeEl && activeEl.getAttribute('contenteditable') === 'true';
+        const isCurrentlyEmpty = isInputField ? !activeEl.value : (isContentEditable ? !activeEl.textContent : true);
+
+        if ((!isInputField && !isContentEditable) || isCurrentlyEmpty) {
+          handleBack();
+          e.preventDefault();
+          return;
+        }
+      }
+
+      // Step 1: Login elements Up/Down navigation
+      if (step === 1) {
+        if (e.key === 'ArrowDown') {
+          setSelectedLoginIndex((prev) => (prev + 1) % 3);
+          e.preventDefault();
+        } else if (e.key === 'ArrowUp') {
+          setSelectedLoginIndex((prev) => (prev - 1 + 3) % 3);
+          e.preventDefault();
+        } else if (e.key === 'Enter') {
+          nextStep();
+          e.preventDefault();
+        }
+      }
+
+      // Step 3: Style presets Up/Down/Left/Right grid navigation
+      if (step === 3) {
+        const currentIndex = STYLE_PRESETS.findIndex(p => p.id === selectedStyle);
+        if (currentIndex !== -1) {
+          const row = Math.floor(currentIndex / 2);
+          const col = currentIndex % 2;
+          let newIndex = currentIndex;
+
+          if (e.key === 'ArrowRight') {
+            if (col === 0) newIndex = currentIndex + 1;
+            e.preventDefault();
+          } else if (e.key === 'ArrowLeft') {
+            if (col === 1) newIndex = currentIndex - 1;
+            e.preventDefault();
+          } else if (e.key === 'ArrowDown') {
+            if (row < 2) newIndex = currentIndex + 2;
+            e.preventDefault();
+          } else if (e.key === 'ArrowUp') {
+            if (row > 0) newIndex = currentIndex - 2;
+            e.preventDefault();
+          } else if (e.key === 'Enter') {
+            nextStep();
+            e.preventDefault();
+          }
+
+          if (newIndex !== currentIndex && newIndex >= 0 && newIndex < STYLE_PRESETS.length) {
+            setSelectedStyle(STYLE_PRESETS[newIndex].id as any);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [step, selectedStyle, selectedLoginIndex, nextStep, handleBack]);
+
+  // Sync onboarding steps with browser history (History API) to support browser back button navigation
+  useEffect(() => {
+    window.history.replaceState({ onboardingStep: 1, tutorialIndex: 0 }, '');
+
+    const handlePopState = (e: PopStateEvent) => {
+      if (e.state && e.state.onboardingStep !== undefined) {
+        setStep(e.state.onboardingStep);
+        setTutorialIndex(e.state.tutorialIndex ?? 0);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  // Track last pushed history state to prevent redundant history pushes
+  const lastPushedState = useRef({ step, tutorialIndex });
+
+  useEffect(() => {
+    if (step !== lastPushedState.current.step || tutorialIndex !== lastPushedState.current.tutorialIndex) {
+      const isForward = step > lastPushedState.current.step ||
+        (step === lastPushedState.current.step && tutorialIndex > lastPushedState.current.tutorialIndex);
+
+      if (isForward && step !== 4) {
+        window.history.pushState({ onboardingStep: step, tutorialIndex }, '');
+      }
+      lastPushedState.current = { step, tutorialIndex };
+    }
+  }, [step, tutorialIndex]);
+
+  // Reset database seeding progress if navigating back before Step 4
+  useEffect(() => {
+    if (step < 4) {
+      setCreationComplete(false);
+      setCreationProgress(0);
     }
   }, [step]);
 
@@ -77,7 +282,7 @@ export const OnboardingScreen = () => {
 
     updateSpotlight();
     window.addEventListener('resize', updateSpotlight);
-    
+
     const interval = setInterval(updateSpotlight, 350);
 
     return () => {
@@ -91,7 +296,7 @@ export const OnboardingScreen = () => {
     if (step !== 4) return;
 
     let progressInterval: any;
-    
+
     const runSetup = async () => {
       let currentProgress = 0;
       progressInterval = setInterval(() => {
@@ -115,8 +320,10 @@ export const OnboardingScreen = () => {
         const createdFolders: { id: string; name: string }[] = [];
         const createdDocs: any[] = [];
         const createdTasks: any[] = [];
+        const styleTags: string[] = [];
 
         if (selectedStyle === 'Developer') {
+          styleTags.push('development', 'backlog', 'bugs', 'docs', 'releases');
           createdFolders.push(
             { id: 'folder-dev-projects', name: 'Projects' },
             { id: 'folder-dev-docs', name: 'Documentation' },
@@ -145,8 +352,18 @@ export const OnboardingScreen = () => {
               content: `<h1>Setup Guide</h1><p>Follow these quick commands to spin up the local development environment:</p><pre><code># Install packages\nbun install\n\n# Spin up dev server\nbun run dev</code></pre>`
             },
             {
+              id: 'doc-dev-api',
+              title: 'API Reference Documentation',
+              folderId: 'folder-dev-docs',
+              tags: ['docs', 'development'],
+              content: `<h1>API Reference Documentation</h1><p>Internal microservice endpoints specifications and schema structures.</p><h3>Endpoints</h3><ul><li><strong>GET /api/v1/notes:</strong> Retrieve paginated note listings.</li><li><strong>POST /api/v1/notes:</strong> Create a new workspace note.</li></ul><h3>Response Format</h3><pre><code>{
+  "status": "success",
+  "data": { "id": "note-123", "title": "Untitled" }
+}</code></pre>`
+            },
+            {
               id: dailyNoteId,
-              title: '', 
+              title: '',
               folderId: null,
               tags: ['daily-notes'],
               content: `<h1>Daily Standup — ${yyyy}-${mm}-${dd}</h1><h3>Yesterday's progress:</h3><ul><li>Implemented premium onboarding screen overlays</li></ul><h3>Today's focus:</h3><ul><li>Add automated unit test suites</li></ul><h3>Blockers:</h3><p>None.</p>`
@@ -158,6 +375,7 @@ export const OnboardingScreen = () => {
             { title: 'Write unit tests for storage schemas', list: 'All Tasks', completed: false, priority: 'low' }
           );
         } else if (selectedStyle === 'Student') {
+          styleTags.push('lectures', 'homework', 'exams', 'readings', 'schedule');
           createdFolders.push(
             { id: 'folder-stud-classes', name: 'Classes' },
             { id: 'folder-stud-assign', name: 'Assignments' },
@@ -186,6 +404,13 @@ export const OnboardingScreen = () => {
               content: `<h1>Exam Prep Checklist</h1><p>Study guides and self-assessment items.</p><ul><li>[ ] CS 101: Review sorting algorithms</li><li>[ ] Math 202: Solve practice problem set 4</li></ul>`
             },
             {
+              id: 'doc-stud-schedule',
+              title: 'Class Schedule',
+              folderId: 'folder-stud-classes',
+              tags: ['schedule', 'lectures'],
+              content: `<h1>Class Schedule & Info</h1><p>Overview of course syllabi, office hours, and lecture locations.</p><h3>Fall Semester</h3><ul><li><strong>CS 101:</strong> Professor John Doe, office hours Mon/Wed 2-4 PM.</li><li><strong>MATH 202:</strong> Professor Jane Smith, office hours Tue/Thu 1-3 PM.</li></ul>`
+            },
+            {
               id: dailyNoteId,
               title: '',
               folderId: null,
@@ -199,6 +424,7 @@ export const OnboardingScreen = () => {
             { title: 'Email professor about research project topic', list: 'All Tasks', completed: false, priority: 'low' }
           );
         } else if (selectedStyle === 'Creator') {
+          styleTags.push('ideas', 'drafts', 'production', 'editing', 'published');
           createdFolders.push(
             { id: 'folder-creat-ideas', name: 'Ideas & Drafts' },
             { id: 'folder-creat-calendar', name: 'Content Calendar' },
@@ -227,6 +453,13 @@ export const OnboardingScreen = () => {
               content: `<h1>Video Script: Minimal Desk Setup</h1><h3>Hook Intro</h3><p>Show visual b-roll of a clean desk in warm lighting. Fade in audio.</p><blockquote>"A focused workspace leads directly to a focused mind."</blockquote>`
             },
             {
+              id: 'doc-creat-brand',
+              title: 'Brand Identity Guide',
+              folderId: 'folder-creat-assets',
+              tags: ['ideas', 'drafts'],
+              content: `<h1>Brand Identity & Assets Guide</h1><p>Standard design elements, typography guidelines, and active visual palettes.</p><h3>Color System</h3><ul><li>Primary Accent: Pastel Blue (<code>#BDE0FE</code>)</li><li>Secondary Accent: Pastel Mint (<code>#B5EAD7</code>)</li></ul><h3>Typography</h3><p>Use sans-serif clean geometric fonts for headings, and standard proportional serif for reading bodies.</p>`
+            },
+            {
               id: dailyNoteId,
               title: '',
               folderId: null,
@@ -240,6 +473,7 @@ export const OnboardingScreen = () => {
             { title: 'Reach out to sponsor contacts', list: 'All Tasks', completed: false, priority: 'low' }
           );
         } else if (selectedStyle === 'Researcher') {
+          styleTags.push('literature', 'experiments', 'data', 'writing', 'references');
           createdFolders.push(
             { id: 'folder-res-lit', name: 'Literature Review' },
             { id: 'folder-res-exp', name: 'Experiments' },
@@ -268,6 +502,13 @@ export const OnboardingScreen = () => {
               content: `<h1>Experiment Logbook</h1><p>Testing replication latency metrics across varying network speeds.</p><ul><li><strong>Test Run 1:</strong> Success (average response 18ms)</li><li><strong>Test Run 2:</strong> 40% packet drops simulated</li></ul>`
             },
             {
+              id: 'doc-res-grant',
+              title: 'Grant Proposal Outline',
+              folderId: 'folder-res-ref',
+              tags: ['writing', 'references'],
+              content: `<h1>NSF Grant Proposal Draft</h1><p>Outline of research objectives, budget allocations, and key milestones.</p><h3>Executive Summary</h3><p>Research into scalable conflict-free replicated data storage architectures to optimize local-first web applications.</p><h3>Proposed Budget</h3><ul><li>Research assistants: $45,000</li><li>Travel and conferences: $5,000</li></ul>`
+            },
+            {
               id: dailyNoteId,
               title: '',
               folderId: null,
@@ -281,6 +522,7 @@ export const OnboardingScreen = () => {
             { title: 'Format thesis bibliography entries', list: 'All Tasks', completed: false, priority: 'low' }
           );
         } else if (selectedStyle === 'Startup') {
+          styleTags.push('strategy', 'product', 'growth', 'fundraising', 'meetings');
           createdFolders.push(
             { id: 'folder-start-strategy', name: 'Pitch & Strategy' },
             { id: 'folder-start-team', name: 'Team Updates' },
@@ -309,6 +551,13 @@ export const OnboardingScreen = () => {
               content: `<h1>Product Specs: Onboarding Experience</h1><h3>User Experience Target</h3><p>Frictionless onboarding that guides users in less than 60 seconds.</p>`
             },
             {
+              id: 'doc-start-pitch',
+              title: 'Pitch Deck Outline',
+              folderId: 'folder-start-strategy',
+              tags: ['strategy', 'fundraising'],
+              content: `<h1>Startup Seed Pitch Narrative</h1><p>Slide outline, talking points, and data projections for the seed funding round.</p><h3>Slide List</h3><ul><li><strong>Slide 1: Problem:</strong> Information fragmentation in knowledge teams.</li><li><strong>Slide 2: Solution:</strong> Local-first collaborative workspace templnote.</li><li><strong>Slide 3: Market Size:</strong> $12B TAM in SaaS workspace automation.</li></ul>`
+            },
+            {
               id: dailyNoteId,
               title: '',
               folderId: null,
@@ -323,6 +572,7 @@ export const OnboardingScreen = () => {
           );
         } else {
           // Personal Default
+          styleTags.push('journal', 'goals', 'finance', 'health', 'reminders');
           createdFolders.push(
             { id: 'folder-pers-journal', name: 'Journal' },
             { id: 'folder-pers-goals', name: 'Goals' },
@@ -351,6 +601,13 @@ export const OnboardingScreen = () => {
               content: `<h1>Reading List</h1><p>Books to explore this year.</p><ul><li>[x] Atomic Habits by James Clear</li><li>[ ] Designing Data-Intensive Applications by Martin Kleppmann</li></ul>`
             },
             {
+              id: 'doc-pers-health',
+              title: 'Weekly Fitness Planner',
+              folderId: 'folder-pers-admin',
+              tags: ['health', 'goals'],
+              content: `<h1>Weekly Fitness & Health Tracker</h1><p>Daily routines, workout sheets, and caloric targets.</p><h3>Weekly Routine</h3><ul><li>🏃‍♂️ Monday: Cardio run, 5km track.</li><li>🏋️‍♂️ Wednesday: Core strength lifting.</li><li>🧘‍♂️ Friday: Mindfulness stretching.</li></ul>`
+            },
+            {
               id: dailyNoteId,
               title: '',
               folderId: null,
@@ -368,18 +625,33 @@ export const OnboardingScreen = () => {
         for (const folder of createdFolders) {
           await documentService.saveFolder(folder);
         }
-        
+
         const folderIds = createdFolders.map(f => f.id);
-        const docIds = createdDocs.map(d => d.id);
+        const activePageIds = activePages.map(p => p.id);
+        const filteredDocs = createdDocs.filter(d => 
+          activePageIds.includes(d.id.startsWith('daily-note-') ? 'daily-note' : d.id)
+        );
+        const filteredStyleTags = styleTags.filter(t => activeTags.includes(t));
+
+        const docIds = filteredDocs.map(d => d.id);
         await documentService.setMetadata("folderOrder", folderIds);
         await documentService.setMetadata("documentOrder", docIds);
+        await documentService.setMetadata("createdTags", filteredStyleTags);
 
-        for (const doc of createdDocs) {
+        for (const doc of filteredDocs) {
+          const docTags = doc.tags ? doc.tags.filter((t: string) => {
+            const isStyleTag = styleTags.includes(t);
+            if (isStyleTag && !activeTags.includes(t)) {
+              return false;
+            }
+            return true;
+          }) : [];
+
           await documentService.saveDocument({
             id: doc.id,
             title: doc.title,
             content: doc.content,
-            tags: doc.tags,
+            tags: docTags,
             folderId: doc.folderId,
             type: doc.id.startsWith('daily-note-') ? 'daily-note' : 'page',
             updatedAt: new Date().toISOString(),
@@ -427,6 +699,7 @@ export const OnboardingScreen = () => {
           folders: finalFolders,
           documentOrder: finalDocs.map(d => d.id),
           folderOrder: finalFolders.map(f => f.id),
+          createdTags: filteredStyleTags,
           isInitialized: true
         });
 
@@ -456,32 +729,7 @@ export const OnboardingScreen = () => {
     return () => {
       clearInterval(progressInterval);
     };
-  }, [step]);
-
-  const nextStep = () => {
-    if (step === 1) setStep(2);
-    else if (step === 2) setStep(3);
-    else if (step === 3) setStep(4);
-  };
-
-  const handleBack = () => {
-    if (step === 2) {
-      setStep(1);
-    } else if (step === 3) {
-      setStep(2);
-    } else if (step === 5) {
-      if (tutorialIndex > 0) {
-        setTutorialIndex(tutorialIndex - 1);
-      } else {
-        setCreationComplete(false);
-        setCreationProgress(0);
-        setStep(3);
-      }
-    } else if (step === 6) {
-      setStep(5);
-      setTutorialIndex(2);
-    }
-  };
+  }, [step, selectedStyle, workspaceName, activeTags, activePages]);
 
   const handleFinishOnboarding = () => {
     setIsOnboardingCompleted(true);
@@ -505,7 +753,8 @@ export const OnboardingScreen = () => {
   return (
     <>
       {/* Inline styles for custom hardware-accelerated floating animation of the background */}
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes floatGraffiti {
           0% { transform: scale(1.15) translateY(-30px); }
           50% { transform: scale(1.15) translateY(30px); }
@@ -539,8 +788,9 @@ export const OnboardingScreen = () => {
             className={pageContainerClass}
           >
             {/* LEFT SIDE (60%): Forms for Welcome, Name and Style */}
-            <div className="w-full md:w-[60%] h-full bg-[#050505] flex flex-col items-center justify-center p-8 md:p-16 relative z-10">
-              
+            <div className="w-full md:w-[60%] h-full bg-[#050505] flex flex-col items-center justify-start overflow-y-auto p-8 md:p-16 relative z-10 no-scrollbar">
+              <div className="my-auto w-full flex flex-col items-center">
+
               {/* Step 1: Welcome / Sign-in */}
               {step === 1 && (
                 <motion.div
@@ -551,27 +801,45 @@ export const OnboardingScreen = () => {
                   transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                   className="w-full max-w-xs flex flex-col space-y-3"
                 >
-                  <button 
+                  <button
                     onClick={nextStep}
-                    className="w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-zinc-950/70 hover:bg-[#CDB4DB]/10 border border-[#CDB4DB]/20 hover:border-[#CDB4DB]/45 rounded-lg text-sm text-[#CDB4DB] hover:text-white transition-all duration-200 cursor-pointer active:scale-[0.99] font-medium"
+                    onMouseEnter={() => setSelectedLoginIndex(0)}
+                    className={cn(
+                      "w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-zinc-950/70 border rounded-lg text-sm transition-all duration-200 cursor-pointer active:scale-[0.99] font-medium",
+                      selectedLoginIndex === 0
+                        ? "bg-[#FFB7B2]/10 border-[#FFB7B2]/50 text-white"
+                        : "border-[#FFB7B2]/20 text-[#FFB7B2] hover:bg-[#FFB7B2]/10 hover:border-[#FFB7B2]/50 hover:text-white"
+                    )}
                   >
-                    <GoogleLogo size={18} className="text-[#CDB4DB]/80" />
+                    <GoogleLogo size={18} className="text-[#FFB7B2]/80" />
                     Continue with Google
                   </button>
 
-                  <button 
+                  <button
                     onClick={nextStep}
-                    className="w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-zinc-950/70 hover:bg-[#CDB4DB]/10 border border-[#CDB4DB]/20 hover:border-[#CDB4DB]/45 rounded-lg text-sm text-[#CDB4DB] hover:text-white transition-all duration-200 cursor-pointer active:scale-[0.99] font-medium"
+                    onMouseEnter={() => setSelectedLoginIndex(1)}
+                    className={cn(
+                      "w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-zinc-950/70 border rounded-lg text-sm transition-all duration-200 cursor-pointer active:scale-[0.99] font-medium",
+                      selectedLoginIndex === 1
+                        ? "bg-[#BDE0FE]/10 border-[#BDE0FE]/50 text-white"
+                        : "border-[#BDE0FE]/20 text-[#BDE0FE] hover:bg-[#BDE0FE]/10 hover:border-[#BDE0FE]/50 hover:text-white"
+                    )}
                   >
-                    <GithubLogo size={18} className="text-[#CDB4DB]/80" />
+                    <GithubLogo size={18} className="text-[#BDE0FE]/80" />
                     Continue with GitHub
                   </button>
 
-                  <button 
+                  <button
                     onClick={nextStep}
-                    className="w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-zinc-950/70 hover:bg-[#CDB4DB]/10 border border-[#CDB4DB]/20 hover:border-[#CDB4DB]/45 rounded-lg text-sm text-[#CDB4DB] hover:text-white transition-all duration-200 cursor-pointer active:scale-[0.99] font-medium"
+                    onMouseEnter={() => setSelectedLoginIndex(2)}
+                    className={cn(
+                      "w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-zinc-950/70 border rounded-lg text-sm transition-all duration-200 cursor-pointer active:scale-[0.99] font-medium",
+                      selectedLoginIndex === 2
+                        ? "bg-[#B5EAD7]/10 border-[#B5EAD7]/50 text-white"
+                        : "border-[#B5EAD7]/20 text-[#B5EAD7] hover:bg-[#B5EAD7]/10 hover:border-[#B5EAD7]/50 hover:text-white"
+                    )}
                   >
-                    <Envelope size={18} className="text-[#CDB4DB]/80" />
+                    <Envelope size={18} className="text-[#B5EAD7]/80" />
                     Continue with Email
                   </button>
                 </motion.div>
@@ -588,7 +856,7 @@ export const OnboardingScreen = () => {
                   className="w-full max-w-sm flex flex-col items-center space-y-8 text-center"
                 >
                   <div className="space-y-3">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[#CDB4DB]">Step 2 of 3</span>
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[#BDE0FE]">Step 2 of 3</span>
                     <h1 className="text-2xl font-semibold tracking-tight text-zinc-100 font-sans">
                       What should we call your workspace?
                     </h1>
@@ -601,19 +869,21 @@ export const OnboardingScreen = () => {
                       value={workspaceName}
                       onChange={(e) => setWorkspaceName(e.target.value)}
                       placeholder="e.g. Personal Space, Startup Lab"
-                      className="w-full bg-transparent border-b border-[#CDB4DB]/30 focus:border-[#CDB4DB] outline-none text-lg text-center pb-2 text-zinc-100 placeholder-zinc-700 transition-colors"
+                      className="w-full bg-transparent border-b border-[#BDE0FE]/30 focus:border-[#BDE0FE] outline-none text-lg text-center pb-2 text-zinc-100 placeholder-zinc-700 transition-colors"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && workspaceName.trim()) {
+                          e.preventDefault();
+                          e.stopPropagation();
                           nextStep();
                         }
                       }}
                     />
-                    
+
                     {workspaceName.trim() && (
                       <motion.div
                         initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center text-[10px] text-[#CDB4DB]/70 font-mono"
+                        className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center text-[10px] text-[#BDE0FE]/70 font-mono"
                       >
                         press Enter ↵
                       </motion.div>
@@ -623,7 +893,7 @@ export const OnboardingScreen = () => {
                   <button
                     disabled={!workspaceName.trim()}
                     onClick={nextStep}
-                    className="px-6 py-2 bg-[#CDB4DB] hover:bg-[#b8a0c5] disabled:opacity-40 disabled:pointer-events-none text-zinc-950 text-sm font-semibold rounded-lg flex items-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95"
+                    className="px-6 py-2 bg-[#BDE0FE] hover:bg-[#aed0ed] disabled:opacity-40 disabled:pointer-events-none text-zinc-950 text-sm font-semibold rounded-lg flex items-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95"
                   >
                     Continue
                     <ArrowRight size={14} weight="bold" />
@@ -633,62 +903,153 @@ export const OnboardingScreen = () => {
 
               {/* Step 3: Choose Style */}
               {step === 3 && (
-                <motion.div
-                  key="step3"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                  className="w-full max-w-lg flex flex-col items-center space-y-6 text-center"
-                >
-                  <div className="space-y-2">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[#CDB4DB]">Step 3 of 3</span>
-                    <h1 className="text-2xl font-semibold tracking-tight text-zinc-100 font-sans">
-                      Choose your style
-                    </h1>
-                    <p className="text-xs text-zinc-400 font-sans">
-                      This personalizes folders, default templates, and sample layouts.
-                    </p>
-                  </div>
-
-                  {/* Cards Grid */}
-                  <div className="w-full grid grid-cols-2 gap-3 pt-2">
-                    {STYLE_PRESETS.map((preset) => {
-                      const isSelected = selectedStyle === preset.id;
-                      return (
-                        <button
-                          key={preset.id}
-                          onClick={() => setSelectedStyle(preset.id as any)}
-                          className={cn(
-                            "flex flex-col items-start text-left p-4 rounded-xl border bg-zinc-950/60 hover:bg-zinc-900/30 transition-all duration-200 cursor-pointer group active:scale-[0.98]",
-                            isSelected 
-                              ? "border-[#CDB4DB] bg-[#CDB4DB]/[0.03]" 
-                              : "border-zinc-900 hover:border-[#CDB4DB]/20"
-                          )}
-                        >
-                          <span className="mb-3 block">{preset.icon}</span>
-                          <span className={cn(
-                            "text-xs font-semibold mb-1 transition-colors",
-                            isSelected ? "text-[#CDB4DB]" : "text-zinc-300 group-hover:text-zinc-200"
-                          )}>
-                            {preset.title}
-                          </span>
-                          <span className="text-[10px] leading-relaxed text-zinc-500 font-sans">
-                            {preset.description}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <button
-                    onClick={nextStep}
-                    className="px-6 py-2.5 bg-[#CDB4DB] hover:bg-[#b8a0c5] text-zinc-950 text-sm font-semibold rounded-lg flex items-center gap-2 transition-all cursor-pointer active:scale-[0.98] shadow-sm"
+                <>
+                  <motion.div
+                    key="step3"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -15 }}
+                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                    className="w-full max-w-lg flex flex-col items-center space-y-6 text-center"
                   >
-                    Create Workspace
-                    <ArrowRight size={14} weight="bold" />
-                  </button>
-                </motion.div>
+                    <div className="space-y-2">
+                      <span
+                        className="text-[11px] font-semibold uppercase tracking-wider transition-colors"
+                        style={{ color: STYLE_PRESETS.find(p => p.id === selectedStyle)?.activeColor || '#BDE0FE' }}
+                      >
+                        Step 3 of 3
+                      </span>
+                      <h1 className="text-2xl font-semibold tracking-tight text-zinc-100 font-sans">
+                        Choose your style
+                      </h1>
+                      <p className="text-xs text-zinc-400 font-sans">
+                        This personalizes folders, default templates, and sample layouts.
+                      </p>
+                    </div>
+
+                    {/* Cards Grid */}
+                    <div className="w-full grid grid-cols-2 gap-3 pt-2">
+                      {STYLE_PRESETS.map((preset) => {
+                        const isSelected = selectedStyle === preset.id;
+                        return (
+                          <button
+                            key={preset.id}
+                            onClick={() => setSelectedStyle(preset.id as any)}
+                            className={cn(
+                              "flex flex-col items-start text-left p-4 rounded-xl border bg-zinc-950/60 hover:bg-zinc-900/30 transition-all duration-200 cursor-pointer group active:scale-[0.98]",
+                              isSelected
+                                ? ""
+                                : "border-zinc-900 hover:border-zinc-800"
+                            )}
+                            style={isSelected ? { borderColor: preset.activeColor, backgroundColor: `${preset.activeColor}08` } : undefined}
+                          >
+                            <span className="mb-3 block">{preset.icon}</span>
+                            <span
+                              className={cn(
+                                "text-xs font-semibold mb-1 transition-colors",
+                                isSelected ? "" : "text-zinc-300 group-hover:text-zinc-200"
+                              )}
+                              style={isSelected ? { color: preset.activeColor } : undefined}
+                            >
+                              {preset.title}
+                            </span>
+                            <span className="text-[10px] leading-relaxed text-zinc-500 font-sans">
+                              {preset.description}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      onClick={nextStep}
+                      className="px-6 py-2.5 text-zinc-950 text-sm font-semibold rounded-lg flex items-center gap-2 transition-all cursor-pointer active:scale-[0.98] shadow-sm"
+                      style={{
+                        backgroundColor: STYLE_PRESETS.find(p => p.id === selectedStyle)?.activeColor || '#BDE0FE'
+                      }}
+                    >
+                      Create Workspace
+                      <ArrowRight size={14} weight="bold" />
+                    </button>
+                  </motion.div>
+
+                  {/* Seeding Customizer: Outside of style options div, horizontal single rows, all visible */}
+                  <div className="w-full max-w-xl flex flex-col space-y-3 pt-5 border-t border-zinc-900/40 mt-8 mx-auto">
+                    {/* Tags Row */}
+                    <div className="flex flex-row items-center gap-4 py-1.5">
+                      <span
+                        className="text-xs font-bold font-mono tracking-wider w-16 shrink-0 transition-colors text-left"
+                        style={{ color: STYLE_PRESETS.find(p => p.id === selectedStyle)?.activeColor || '#BDE0FE' }}
+                      >
+                        TAGS
+                      </span>
+                      <div className="flex flex-row flex-wrap gap-1.5 flex-1 items-center">
+                        {activeTags.length === 0 ? (
+                          <span className="text-[11px] text-zinc-600 italic">No tags will be created</span>
+                        ) : (
+                          activeTags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="inline-flex items-center gap-1.5 text-[11px] font-mono bg-zinc-950/60 border border-zinc-900 text-zinc-400 hover:text-zinc-300 hover:border-zinc-800 py-1 px-3 rounded-full transition-all whitespace-nowrap"
+                            >
+                              #{tag}
+                              <button
+                                onClick={() => handleRemoveTag(tag)}
+                                className="text-zinc-600 hover:text-red-400 p-0.5 transition-colors cursor-pointer flex items-center justify-center"
+                              >
+                                <X size={9} weight="bold" />
+                              </button>
+                            </span>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Pages Row */}
+                    <div className="flex flex-row items-center gap-4 py-1.5 pt-2.5 border-t border-zinc-900/10">
+                      <span
+                        className="text-xs font-bold font-mono tracking-wider w-16 shrink-0 transition-colors text-left"
+                        style={{ color: STYLE_PRESETS.find(p => p.id === selectedStyle)?.activeColor || '#BDE0FE' }}
+                      >
+                        PAGES
+                      </span>
+                      <div className="flex flex-row flex-wrap gap-1.5 flex-1 items-center">
+                        {activePages.length === 0 ? (
+                          <span className="text-[11px] text-zinc-600 italic">No pages will be created</span>
+                        ) : (
+                          activePages.map((page) => (
+                            <span
+                              key={page.id}
+                              className="inline-flex items-center gap-1.5 text-[11px] font-sans bg-zinc-950/60 border border-zinc-900 text-zinc-300 hover:text-zinc-200 hover:border-zinc-800 py-1 px-3 rounded-full transition-all whitespace-nowrap"
+                              title={page.title}
+                            >
+                              <FileText size={11} className="text-zinc-500 flex-shrink-0" />
+                              <span>{page.title}</span>
+                              <button
+                                onClick={() => handleRemovePage(page.id)}
+                                className="text-zinc-600 hover:text-red-400 p-0.5 transition-colors cursor-pointer flex items-center justify-center"
+                              >
+                                <X size={9} weight="bold" />
+                              </button>
+                            </span>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Reset Button */}
+                    {(activeTags.length < 5 || activePages.length < 5) && (
+                      <div className="pt-2 text-center">
+                        <button
+                          onClick={resetSeedingDefaults}
+                          className="text-[9px] font-bold text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer uppercase tracking-wider underline active:scale-95"
+                        >
+                          Reset Seeding Defaults
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
 
               {/* Step 4: Loading / Setup State */}
@@ -700,7 +1061,10 @@ export const OnboardingScreen = () => {
                   exit={{ opacity: 0 }}
                   className="w-full max-w-sm flex flex-col items-center space-y-6 text-center"
                 >
-                  <div className="w-12 h-12 flex items-center justify-center rounded-full bg-zinc-950/80 border border-[#CDB4DB]/20 relative">
+                  <div
+                    className="w-12 h-12 flex items-center justify-center rounded-full bg-zinc-950/80 border relative transition-colors duration-300"
+                    style={{ borderColor: creationComplete ? '#B5EAD7' : (STYLE_PRESETS.find(p => p.id === selectedStyle)?.activeColor || '#BDE0FE') }}
+                  >
                     <AnimatePresence mode="wait">
                       {!creationComplete ? (
                         <motion.div
@@ -709,7 +1073,7 @@ export const OnboardingScreen = () => {
                           animate={{ opacity: 1, rotate: 360 }}
                           exit={{ opacity: 0 }}
                           transition={{ rotate: { repeat: Infinity, duration: 1.2, ease: "linear" } }}
-                          className="text-[#CDB4DB]"
+                          style={{ color: STYLE_PRESETS.find(p => p.id === selectedStyle)?.activeColor || '#BDE0FE' }}
                         >
                           <CircleNotch size={20} className="animate-spin" />
                         </motion.div>
@@ -718,7 +1082,7 @@ export const OnboardingScreen = () => {
                           key="check-icon"
                           initial={{ scale: 0.5, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
-                          className="text-[#CDB4DB]"
+                          className="text-[#B5EAD7]"
                         >
                           <Check size={20} weight="bold" />
                         </motion.div>
@@ -737,91 +1101,96 @@ export const OnboardingScreen = () => {
 
                   <div className="w-48 h-1 bg-zinc-950 rounded-full overflow-hidden border border-zinc-900">
                     <motion.div
-                      className="h-full bg-[#CDB4DB]"
+                      className="h-full bg-[#BDE0FE]"
                       initial={{ width: '0%' }}
                       animate={{ width: `${creationProgress}%` }}
                       transition={{ ease: 'easeOut' }}
+                      style={{
+                        background: `linear-gradient(to right, ${STYLE_PRESETS.find(p => p.id === selectedStyle)?.activeColor || '#BDE0FE'}, #B5EAD7)`
+                      }}
                     />
                   </div>
                 </motion.div>
               )}
+              </div>
             </div>
 
             {/* RIGHT SIDE (40%): Floating Graffiti Background + welcome to notemple story */}
             <div className="hidden md:flex w-[40%] h-full overflow-hidden border-l border-zinc-900 flex-col justify-between p-12 text-left bg-zinc-950 relative z-10">
               <div className="graffiti-backdrop" />
               <div className="graffiti-ambient-overlay" />
-              
-              <div className="relative z-10 flex flex-col h-full justify-between">
-                {/* welcome to notemple Header */}
-                <div>
-                  <span className="text-[9px] font-semibold text-[#CDB4DB]/80 tracking-[0.25em] uppercase font-mono">
-                    notemple
-                  </span>
-                  <h2 className="text-xl font-medium tracking-tight text-white mt-1.5 font-sans">
-                    welcome to notemple
+
+              <div className="relative z-10 flex flex-col h-full justify-between text-left">
+                {/* Brand title: split-line templ + note at the top taking full width */}
+                <div className="w-full pt-4">
+                  <h1 className="text-[16vw] md:text-[6.5vw] font-black leading-[0.8] tracking-tighter bg-gradient-to-br from-[#BDE0FE] via-[#FFC8DD] to-[#B5EAD7] bg-clip-text text-transparent font-sans lowercase select-none">
+                    templ<br />
+                    note
+                  </h1>
+                  <h2 className="text-[10px] font-semibold tracking-[0.25em] text-zinc-500 uppercase font-mono mt-4">
+                    AI-Enhanced Minimal Workspace
                   </h2>
                 </div>
 
-                {/* Narrative step texts */}
-                <div className="my-auto space-y-4 max-w-xs">
+                {/* Narrative step texts: positioned bottom-left */}
+                <div className="mt-auto mb-6 max-w-sm mr-auto text-left w-full">
                   <AnimatePresence mode="wait">
                     {step === 1 && (
                       <motion.div
                         key="story-1"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.3 }}
-                        className="space-y-3"
+                        className="space-y-2.5 flex flex-col items-start"
                       >
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-[#CDB4DB]/95 font-mono">Welcome</h3>
-                        <p className="text-xs leading-relaxed text-zinc-400 font-sans">
-                          Notemple is designed to be a friction-free environment for your notes, focus, and tasks. A place to write, plan, and think without clutter.
+                        <h3 className="text-xl md:text-2xl font-bold tracking-tight text-[#FFB7B2]">Welcome</h3>
+                        <p className="text-sm md:text-base leading-relaxed text-zinc-400 font-sans max-w-[280px] md:max-w-xs">
+                          Templnote is designed to be a friction-free environment for your notes, focus, and tasks. A place to write, plan, and think without clutter.
                         </p>
                       </motion.div>
                     )}
                     {step === 2 && (
                       <motion.div
                         key="story-2"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.3 }}
-                        className="space-y-3"
+                        className="space-y-2.5 flex flex-col items-start"
                       >
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-[#CDB4DB]/95 font-mono">Our Story</h3>
-                        <p className="text-xs leading-relaxed text-zinc-400 font-sans">
-                          Notemple was built from a simple realization: modern productivity tools have too many boxes and templates. We wanted a place that feels like a clean physical notebook, but runs on an intelligent local-first sync engine.
+                        <h3 className="text-xl md:text-2xl font-bold tracking-tight text-[#BDE0FE]">Our Story</h3>
+                        <p className="text-sm md:text-base leading-relaxed text-zinc-400 font-sans max-w-[280px] md:max-w-xs">
+                          Templnote was built from a simple realization: modern productivity tools have too many boxes and templates. We wanted a place that feels like a clean physical notebook, but runs on an intelligent local-first sync engine.
                         </p>
                       </motion.div>
                     )}
                     {step === 3 && (
                       <motion.div
                         key="story-3"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.3 }}
-                        className="space-y-3"
+                        className="space-y-2.5 flex flex-col items-start"
                       >
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-[#CDB4DB]/95 font-mono">How It's Better</h3>
-                        <p className="text-xs leading-relaxed text-zinc-400 font-sans">
-                          By aligning folders, default templates, and daily notes with your selected workspace style, Notemple adapts to you from the start. No complex configurations, no empty space. Just write.
+                        <h3 className="text-xl md:text-2xl font-bold tracking-tight text-[#B5EAD7]">How It's Better</h3>
+                        <p className="text-sm md:text-base leading-relaxed text-zinc-400 font-sans max-w-[280px] md:max-w-xs">
+                          By aligning folders, default templates, and daily notes with your selected workspace style, Templnote adapts to you from the start. No complex configurations, no empty space. Just write.
                         </p>
                       </motion.div>
                     )}
                     {step === 4 && (
                       <motion.div
                         key="story-4"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.3 }}
-                        className="space-y-3"
+                        className="space-y-2.5 flex flex-col items-start"
                       >
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-[#CDB4DB]/95 font-mono">Workspace Seeding</h3>
-                        <p className="text-xs leading-relaxed text-zinc-400 font-sans">
+                        <h3 className="text-xl md:text-2xl font-bold tracking-tight text-[#FFDAC1]">Workspace Seeding</h3>
+                        <p className="text-sm md:text-base leading-relaxed text-zinc-400 font-sans max-w-[280px] md:max-w-xs">
                           We are seeding your database with folders and daily note templates tailored to your profile. This will take only a second.
                         </p>
                       </motion.div>
@@ -830,8 +1199,8 @@ export const OnboardingScreen = () => {
                 </div>
 
                 {/* Footer copyright */}
-                <div className="text-[9px] text-zinc-600 font-mono tracking-wider">
-                  © 2026 Notemple Inc.
+                <div className="text-[9px] text-zinc-600 font-mono tracking-wider text-left w-full">
+                  © 2026 Templnote Inc.
                 </div>
               </div>
             </div>
@@ -866,13 +1235,14 @@ export const OnboardingScreen = () => {
           {/* Spotlight borders utilizing soft pastel colors */}
           {spotlightRect && (
             <div
-              className="absolute border border-[#CDB4DB]/50 rounded-lg pointer-events-none z-[9999]"
+              className="absolute border rounded-lg pointer-events-none z-[9999]"
               style={{
                 top: spotlightRect.y - 8,
                 left: spotlightRect.x - 8,
                 width: spotlightRect.width + 16,
                 height: spotlightRect.height + 16,
-                boxShadow: '0 0 15px rgba(205, 180, 219, 0.15)',
+                borderColor: `${['#BDE0FE', '#FFC8DD', '#B5EAD7'][tutorialIndex]}80`,
+                boxShadow: `0 0 15px ${['#BDE0FE', '#FFC8DD', '#B5EAD7'][tutorialIndex]}20`,
                 transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)'
               }}
             />
@@ -880,9 +1250,10 @@ export const OnboardingScreen = () => {
 
           {/* Tooltip Card */}
           <div
-            className="fixed w-[320px] bg-zinc-950/95 border border-[#CDB4DB]/20 rounded-xl p-5 shadow-lg pointer-events-auto z-[9999] flex flex-col space-y-4"
+            className="fixed w-[320px] bg-zinc-950/95 border rounded-xl p-5 shadow-lg pointer-events-auto z-[9999] flex flex-col space-y-4"
             style={{
               transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+              borderColor: `${['#BDE0FE', '#FFC8DD', '#B5EAD7'][tutorialIndex]}30`,
               ...(spotlightRect ? {
                 top: (window.innerHeight - spotlightRect.bottom > 220) ? spotlightRect.bottom + 16 : undefined,
                 bottom: (window.innerHeight - spotlightRect.bottom <= 220 && spotlightRect.top > 220) ? (window.innerHeight - spotlightRect.top) + 16 : undefined,
@@ -895,17 +1266,20 @@ export const OnboardingScreen = () => {
             }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-semibold text-[#CDB4DB] tracking-wider uppercase font-mono">
+              <span
+                className="text-[10px] font-semibold tracking-wider uppercase font-mono transition-colors"
+                style={{ color: ['#BDE0FE', '#FFC8DD', '#B5EAD7'][tutorialIndex] }}
+              >
                 Tutorial {tutorialIndex + 1} of 3
               </span>
               <div className="flex gap-1">
                 {[0, 1, 2].map((i) => (
-                  <div 
-                    key={i} 
-                    className={cn(
-                      "w-1.5 h-1.5 rounded-full transition-colors", 
-                      i === tutorialIndex ? "bg-[#CDB4DB]" : "bg-zinc-800"
-                    )} 
+                  <div
+                    key={i}
+                    className="w-1.5 h-1.5 rounded-full transition-all"
+                    style={{
+                      backgroundColor: i === tutorialIndex ? ['#BDE0FE', '#FFC8DD', '#B5EAD7'][tutorialIndex] : '#27272a'
+                    }}
                   />
                 ))}
               </div>
@@ -927,7 +1301,7 @@ export const OnboardingScreen = () => {
             <div className="flex items-center justify-between pt-1">
               <button
                 onClick={skipTutorial}
-                className="text-[11px] text-zinc-500 hover:text-[#CDB4DB]/85 font-medium transition-colors cursor-pointer"
+                className="text-[11px] text-zinc-500 hover:text-zinc-300 font-medium transition-colors cursor-pointer"
               >
                 Skip Tutorial
               </button>
@@ -935,13 +1309,16 @@ export const OnboardingScreen = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleBack}
-                  className="px-2.5 py-1.5 bg-zinc-950 text-[#CDB4DB]/70 hover:text-white text-[11px] font-semibold rounded-md border border-[#CDB4DB]/20 hover:border-[#CDB4DB]/45 transition-all cursor-pointer active:scale-95"
+                  className="px-2.5 py-1.5 bg-zinc-950 text-[#BDE0FE]/70 hover:text-white text-[11px] font-semibold rounded-md border border-zinc-900 hover:border-zinc-800 transition-all cursor-pointer active:scale-95"
                 >
                   Back
                 </button>
                 <button
                   onClick={nextTutorial}
-                  className="px-3.5 py-1.5 bg-[#CDB4DB] text-zinc-950 hover:bg-[#b8a0c5] text-[11px] font-semibold rounded-md flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                  className="px-3.5 py-1.5 text-zinc-950 text-[11px] font-semibold rounded-md flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                  style={{
+                    backgroundColor: ['#BDE0FE', '#FFC8DD', '#B5EAD7'][tutorialIndex]
+                  }}
                 >
                   {tutorialIndex === 2 ? "Get Started" : "Next"}
                   <CaretRight size={12} weight="bold" />
@@ -960,7 +1337,7 @@ export const OnboardingScreen = () => {
           animate={{ opacity: 1 }}
           className={pageContainerClass}
           style={{
-            background: 'radial-gradient(circle at center, rgba(205, 180, 219, 0.04) 0%, #050505 85%)'
+            background: 'radial-gradient(circle at center, rgba(189, 224, 254, 0.04) 0%, #050505 85%)'
           }}
         >
           <motion.div
@@ -969,9 +1346,9 @@ export const OnboardingScreen = () => {
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             className="w-full max-w-sm flex flex-col items-center text-center space-y-8 relative z-10"
           >
-            <div className="relative w-16 h-16 flex items-center justify-center rounded-full bg-zinc-950 border border-[#CDB4DB]/30 shadow-md">
-              <div className="absolute inset-0 rounded-full bg-[#CDB4DB]/5 animate-pulse" />
-              <Check className="text-[#CDB4DB] relative z-10" size={24} weight="bold" />
+            <div className="relative w-16 h-16 flex items-center justify-center rounded-full bg-zinc-950 border border-[#B5EAD7]/30 shadow-md">
+              <div className="absolute inset-0 rounded-full bg-[#B5EAD7]/5 animate-pulse" />
+              <Check className="text-[#B5EAD7] relative z-10" size={24} weight="bold" />
             </div>
 
             <div className="space-y-2">
@@ -985,7 +1362,7 @@ export const OnboardingScreen = () => {
 
             <button
               onClick={handleFinishOnboarding}
-              className="w-full max-w-xs py-2.5 px-4 bg-[#CDB4DB] hover:bg-[#b8a0c5] text-zinc-950 text-sm font-semibold rounded-lg shadow-sm hover:shadow-purple-500/10 active:scale-[0.99] transition-all cursor-pointer"
+              className="w-full max-w-xs py-2.5 px-4 bg-[#B5EAD7] hover:bg-[#a3d8c4] text-zinc-950 text-sm font-semibold rounded-lg shadow-sm hover:shadow-green-500/10 active:scale-[0.99] transition-all cursor-pointer"
             >
               Open Workspace
             </button>
@@ -996,7 +1373,7 @@ export const OnboardingScreen = () => {
       {step > 1 && step !== 4 && step !== 5 && (
         <button
           onClick={handleBack}
-          className="absolute top-8 left-8 flex items-center gap-2 text-xs font-semibold text-zinc-500 hover:text-[#CDB4DB] transition-colors cursor-pointer group z-[99999] pointer-events-auto"
+          className="absolute top-8 left-8 flex items-center gap-2 text-xs font-semibold text-zinc-500 hover:text-[#BDE0FE] transition-colors cursor-pointer group z-[99999] pointer-events-auto"
         >
           <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-0.5" />
           Back

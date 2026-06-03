@@ -318,6 +318,10 @@ export const TabBar = ({ paneId }: { paneId: string }) => {
 
   if (!pane) return null;
 
+  const uniqueTabs = React.useMemo(() => {
+    return pane.tabs.filter((tabId, index, self) => !!tabId && self.indexOf(tabId) === index);
+  }, [pane.tabs]);
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (active.id !== over?.id && over) {
@@ -356,10 +360,10 @@ export const TabBar = ({ paneId }: { paneId: string }) => {
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={pane.tabs}
+              items={uniqueTabs}
               strategy={horizontalListSortingStrategy}
             >
-              {pane.tabs.map(tabId => {
+              {uniqueTabs.map(tabId => {
                 const isActive = pane.activeTabId === tabId;
                 return (
                   <SortableTab

@@ -262,6 +262,7 @@ export const RootLayout = () => {
         leftSidebar &&
         !leftSidebar.contains(target) &&
         !leftSidebarToggle &&
+        !useUiStore.getState().isTutorialActive &&
         useUiStore.getState().isSidebarOpen
       ) {
         useUiStore.getState().setSidebarOpen(false);

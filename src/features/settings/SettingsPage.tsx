@@ -216,7 +216,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
               </div>
 
               {activeHighlightType === 'solid' ? (
-                <div className="flex flex-wrap gap-2 items-center">
+                <div id="onboarding-color-presets" className="flex flex-wrap gap-2 items-center">
                   {solidPresets.map(color => (
                     <button
                       key={color.value}
@@ -691,7 +691,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
             </div>
 
             {/* Toggle Sidebars */}
-            <div className="flex items-center justify-between py-3 border-t border-border/25 mt-1">
+            <div id="onboarding-autohide-toggle" className="flex items-center justify-between py-3 border-t border-border/25 mt-1">
               <div className="flex flex-col gap-0.5">
                 <label className="text-sm font-semibold text-foreground">Auto-Hide Sidebars</label>
                 <span className="text-xs text-muted-foreground">Slides open when cursor hovers near left or right screen edges</span>

@@ -3,33 +3,198 @@ import { CaretRight, X } from '@phosphor-icons/react';
 import { useUiStore } from '@/shared/store/uiStore';
 import { useShallow } from 'zustand/react/shallow';
 
+interface TutorialStep {
+  targetId: string;
+  title: string;
+  description: string;
+  color: string;
+  sidebarOpen: boolean;
+  page?: string;
+}
+
+const TUTORIAL_STEPS: TutorialStep[] = [
+  {
+    targetId: 'onboarding-quick-capture',
+    title: 'Quick Capture Box',
+    description: 'Capture thoughts instantly using natural language or slash commands.',
+    color: '#BDE0FE',
+    sidebarOpen: false,
+    page: 'section-glance'
+  },
+  {
+    targetId: 'onboarding-editor',
+    title: 'The Document Editor',
+    description: 'Use / commands to add tables, tasks, quotes, toggles, and more.',
+    color: '#FFC8DD',
+    sidebarOpen: false,
+    page: 'welcome-doc'
+  },
+  {
+    targetId: 'onboarding-ask-ai',
+    title: 'Mentions & AI Companion',
+    description: 'Use @ to reference documents, tasks, tags, and ask AI to organize your workspace.',
+    color: '#B5EAD7',
+    sidebarOpen: true
+  },
+  {
+    targetId: 'onboarding-tab-bar',
+    title: 'Splitting & Quitting Workspaces',
+    description: 'Split your workspace using Ctrl + Alt + N (Cmd + Alt + N on Mac) and close panes with Ctrl + Alt + Q (Cmd + Alt + Q on Mac).',
+    color: '#FFDAC1',
+    sidebarOpen: false,
+    page: 'welcome-doc'
+  },
+  {
+    targetId: 'onboarding-command-palette',
+    title: 'Document Search & Navigation',
+    description: 'Bring up the search bar and command palette by pressing Ctrl + K (or Cmd + K on Mac).',
+    color: '#E8C5E5',
+    sidebarOpen: false
+  },
+  {
+    targetId: 'onboarding-tasks-tab',
+    title: 'Tasks Management',
+    description: 'Access the unified Tasks page from the sidebar to keep track of your to-dos across the workspace.',
+    color: '#FFB7B2',
+    sidebarOpen: true
+  },
+  {
+    targetId: 'onboarding-add-task-button',
+    title: 'Creating Tasks',
+    description: 'Click the add button to create a new task. Tasks can be tagged, prioritized, and linked to other notes.',
+    color: '#C7CEEA',
+    sidebarOpen: false,
+    page: 'section-tasks'
+  },
+  {
+    targetId: 'onboarding-settings-tab',
+    title: 'Settings & Customization',
+    description: 'Open the Settings page from the bottom of the sidebar to customize your workspace preferences.',
+    color: '#FFF5C3',
+    sidebarOpen: true
+  },
+  {
+    targetId: 'onboarding-color-presets',
+    title: 'Highlight Colors Selection',
+    description: 'Choose from solid or gradient preset colors to personalize the active window highlights.',
+    color: '#BDE0FE',
+    sidebarOpen: false,
+    page: 'section-settings'
+  },
+  {
+    targetId: 'onboarding-autohide-toggle',
+    title: 'Auto-Hide Sidebars Switch',
+    description: 'Toggle this switch to auto-collapse the sidebars, sliding them open only when you hover near the screen edges.',
+    color: '#FFDAC1',
+    sidebarOpen: false,
+    page: 'section-settings'
+  }
+];
+
 export const SpotlightTutorial = () => {
   const {
     isTutorialActive,
     setIsTutorialActive,
     tutorialIndex,
-    setTutorialIndex
+    setTutorialIndex,
+    panes
   } = useUiStore(useShallow(state => ({
     isTutorialActive: state.isTutorialActive,
     setIsTutorialActive: state.setIsTutorialActive,
     tutorialIndex: state.tutorialIndex,
-    setTutorialIndex: state.setTutorialIndex
+    setTutorialIndex: state.setTutorialIndex,
+    panes: state.panes
   })));
 
   const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
+
+  // States for interactive keyboard steps
+  const [splitState, setSplitState] = useState<'wait-split' | 'wait-quit' | 'done'>('wait-split');
+  const [searchState, setSearchState] = useState<'wait-open' | 'wait-arrows' | 'done'>('wait-open');
+  const [arrowPressCount, setArrowPressCount] = useState(0);
+
+  // Reset interactive sub-states on step changes
+  useEffect(() => {
+    if (tutorialIndex === 3) {
+      setSplitState('wait-split');
+    } else if (tutorialIndex === 4) {
+      setSearchState('wait-open');
+      setArrowPressCount(0);
+    }
+  }, [tutorialIndex]);
 
   // Sync index stage adjustments (opening sections or expanding sidebar)
   useEffect(() => {
     if (!isTutorialActive) return;
 
-    if (tutorialIndex === 0) {
-      useUiStore.getState().openDocument('section-glance');
-    } else if (tutorialIndex === 1) {
-      useUiStore.getState().openDocument('welcome-doc');
-    } else if (tutorialIndex === 2) {
-      useUiStore.setState({ isSidebarOpen: true });
+    const step = TUTORIAL_STEPS[tutorialIndex];
+    if (step) {
+      if (step.page) {
+        useUiStore.getState().openDocument(step.page);
+      }
+      useUiStore.setState({ isSidebarOpen: step.sidebarOpen });
     }
   }, [tutorialIndex, isTutorialActive]);
+
+  // Watch pane length changes to drive workspace split/quit step progression
+  useEffect(() => {
+    if (!isTutorialActive || tutorialIndex !== 3) return;
+
+    if (splitState === 'wait-split' && panes.length > 1) {
+      setSplitState('wait-quit');
+    } else if (splitState === 'wait-quit' && panes.length === 1) {
+      setSplitState('done');
+      // Auto-advance to the search step after a short delay
+      const timer = setTimeout(() => {
+        setTutorialIndex(4);
+      }, 700);
+      return () => clearTimeout(timer);
+    }
+  }, [panes.length, splitState, tutorialIndex, isTutorialActive, setTutorialIndex]);
+
+  // Detect when Command Palette overlay becomes open
+  useEffect(() => {
+    if (!isTutorialActive || tutorialIndex !== 4) return;
+
+    const checkPalette = () => {
+      const palette = document.getElementById('onboarding-command-palette');
+      if (palette && searchState === 'wait-open') {
+        setSearchState('wait-arrows');
+      }
+    };
+
+    const interval = setInterval(checkPalette, 150);
+    return () => clearInterval(interval);
+  }, [searchState, tutorialIndex, isTutorialActive]);
+
+  // Intercept Arrow keys in Command Palette step to drive completion
+  useEffect(() => {
+    if (!isTutorialActive || tutorialIndex !== 4 || searchState !== 'wait-arrows') return;
+
+    const handleArrowKeys = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        setArrowPressCount(prev => {
+          const nextCount = prev + 1;
+          if (nextCount >= 2) {
+            setSearchState('done');
+          }
+          return nextCount;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleArrowKeys, true);
+    return () => window.removeEventListener('keydown', handleArrowKeys, true);
+  }, [searchState, tutorialIndex, isTutorialActive]);
+
+  // Focus body when tutorial completes or is skipped to restore keyboard focus
+  useEffect(() => {
+    return () => {
+      setTimeout(() => {
+        document.body.focus();
+      }, 50);
+    };
+  }, []);
 
   // Handle Spotlight coordinates updating dynamically
   useEffect(() => {
@@ -39,12 +204,13 @@ export const SpotlightTutorial = () => {
     }
 
     const updateRect = () => {
-      let targetId = '';
-      if (tutorialIndex === 0) targetId = 'onboarding-quick-capture';
-      else if (tutorialIndex === 1) targetId = 'onboarding-editor';
-      else if (tutorialIndex === 2) targetId = 'onboarding-ask-ai';
+      const step = TUTORIAL_STEPS[tutorialIndex];
+      if (!step) {
+        setSpotlightRect(null);
+        return;
+      }
 
-      const el = document.getElementById(targetId);
+      const el = document.getElementById(step.targetId);
       if (el) {
         setSpotlightRect(el.getBoundingClientRect());
       } else {
@@ -64,6 +230,9 @@ export const SpotlightTutorial = () => {
 
   if (!isTutorialActive) return null;
 
+  const currentStep = TUTORIAL_STEPS[tutorialIndex];
+  if (!currentStep) return null;
+
   const handleBack = () => {
     if (tutorialIndex > 0) {
       setTutorialIndex(tutorialIndex - 1);
@@ -71,7 +240,7 @@ export const SpotlightTutorial = () => {
   };
 
   const nextTutorial = () => {
-    if (tutorialIndex < 2) {
+    if (tutorialIndex < TUTORIAL_STEPS.length - 1) {
       setTutorialIndex(tutorialIndex + 1);
     } else {
       setIsTutorialActive(false);
@@ -81,6 +250,34 @@ export const SpotlightTutorial = () => {
   const skipTutorial = () => {
     setIsTutorialActive(false);
   };
+
+  const getStepDescription = () => {
+    if (tutorialIndex === 3) {
+      if (splitState === 'wait-split') {
+        return 'Split your workspace now by pressing Ctrl + Alt + N (or Cmd + Alt + N on Mac).';
+      }
+      if (splitState === 'wait-quit') {
+        return 'Perfect! Now close/quit the split pane by pressing Ctrl + Alt + Q (or Cmd + Alt + Q on Mac).';
+      }
+      return 'Great job! Workspace split and close shortcuts completed.';
+    }
+    if (tutorialIndex === 4) {
+      if (searchState === 'wait-open') {
+        return 'Bring up the search bar and command palette by pressing Ctrl + K (or Cmd + K on Mac).';
+      }
+      if (searchState === 'wait-arrows') {
+        return 'Awesome! Use the Up and Down Arrow keys to navigate through the commands and documents.';
+      }
+      return 'Nice! Press Esc to close the command palette, or click Next to continue.';
+    }
+    return currentStep.description;
+  };
+
+  const showNextButton = (() => {
+    if (tutorialIndex === 3) return false; // Split/quit is automated
+    if (tutorialIndex === 4 && searchState !== 'done') return false; // Must open and navigate first
+    return true;
+  })();
 
   return (
     <div className="fixed inset-0 z-[9998] pointer-events-none">
@@ -113,8 +310,8 @@ export const SpotlightTutorial = () => {
             left: spotlightRect.x - 8,
             width: spotlightRect.width + 16,
             height: spotlightRect.height + 16,
-            borderColor: `${['#BDE0FE', '#FFC8DD', '#B5EAD7'][tutorialIndex]}80`,
-            boxShadow: `0 0 15px ${['#BDE0FE', '#FFC8DD', '#B5EAD7'][tutorialIndex]}20`,
+            borderColor: `${currentStep.color}80`,
+            boxShadow: `0 0 15px ${currentStep.color}20`,
             transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)'
           }}
         />
@@ -125,7 +322,7 @@ export const SpotlightTutorial = () => {
         className="fixed w-[320px] bg-zinc-950/95 border rounded-xl p-5 shadow-lg pointer-events-auto z-[9999] flex flex-col space-y-4 font-sans text-white"
         style={{
           transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
-          borderColor: `${['#BDE0FE', '#FFC8DD', '#B5EAD7'][tutorialIndex]}30`,
+          borderColor: `${currentStep.color}30`,
           ...(spotlightRect ? {
             top: (window.innerHeight - spotlightRect.bottom > 220) ? spotlightRect.bottom + 16 : undefined,
             bottom: (window.innerHeight - spotlightRect.bottom <= 220 && spotlightRect.top > 220) ? (window.innerHeight - spotlightRect.top) + 16 : undefined,
@@ -140,17 +337,17 @@ export const SpotlightTutorial = () => {
         <div className="flex items-center justify-between">
           <span
             className="text-[10px] font-semibold tracking-wider uppercase font-mono transition-colors"
-            style={{ color: ['#BDE0FE', '#FFC8DD', '#B5EAD7'][tutorialIndex] }}
+            style={{ color: currentStep.color }}
           >
-            Tutorial {tutorialIndex + 1} of 3
+            Tutorial {tutorialIndex + 1} of {TUTORIAL_STEPS.length}
           </span>
           <div className="flex gap-1">
-            {[0, 1, 2].map((i) => (
+            {Array.from({ length: TUTORIAL_STEPS.length }).map((_, i) => (
               <div
                 key={i}
                 className="w-1.5 h-1.5 rounded-full transition-all"
                 style={{
-                  backgroundColor: i === tutorialIndex ? ['#BDE0FE', '#FFC8DD', '#B5EAD7'][tutorialIndex] : '#27272a'
+                  backgroundColor: i === tutorialIndex ? currentStep.color : '#27272a'
                 }}
               />
             ))}
@@ -159,14 +356,10 @@ export const SpotlightTutorial = () => {
 
         <div className="space-y-1.5">
           <h3 className="text-xs font-semibold text-zinc-100">
-            {tutorialIndex === 0 && "Quick Capture Box"}
-            {tutorialIndex === 1 && "The Document Editor"}
-            {tutorialIndex === 2 && "Mentions & AI Companion"}
+            {currentStep.title}
           </h3>
           <p className="text-[11px] leading-relaxed text-zinc-400">
-            {tutorialIndex === 0 && "Capture thoughts instantly using natural language or slash commands."}
-            {tutorialIndex === 1 && "Use / commands to add tables, tasks, quotes, toggles, and more."}
-            {tutorialIndex === 2 && "Use @ to reference documents, tasks, tags, and ask AI to organize your workspace."}
+            {getStepDescription()}
           </p>
         </div>
 
@@ -182,24 +375,27 @@ export const SpotlightTutorial = () => {
             {tutorialIndex > 0 && (
               <button
                 onClick={handleBack}
-                className="px-2.5 py-1.5 bg-zinc-950 text-[#BDE0FE]/70 hover:text-white text-[11px] font-semibold rounded-md border border-zinc-900 hover:border-zinc-800 transition-all cursor-pointer active:scale-95"
+                className="px-2.5 py-1.5 bg-zinc-950 text-zinc-400 hover:text-white text-[11px] font-semibold rounded-md border border-zinc-900 hover:border-zinc-800 transition-all cursor-pointer active:scale-95"
               >
                 Back
               </button>
             )}
-            <button
-              onClick={nextTutorial}
-              className="px-3.5 py-1.5 text-zinc-950 text-[11px] font-semibold rounded-md flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
-              style={{
-                backgroundColor: ['#BDE0FE', '#FFC8DD', '#B5EAD7'][tutorialIndex]
-              }}
-            >
-              {tutorialIndex === 2 ? "Get Started" : "Next"}
-              <CaretRight size={12} weight="bold" />
-            </button>
+            {showNextButton && (
+              <button
+                onClick={nextTutorial}
+                className="px-3.5 py-1.5 text-zinc-950 text-[11px] font-semibold rounded-md flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                style={{
+                  backgroundColor: currentStep.color
+                }}
+              >
+                {tutorialIndex === TUTORIAL_STEPS.length - 1 ? "Get Started" : "Next"}
+                <CaretRight size={12} weight="bold" />
+              </button>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 };
+

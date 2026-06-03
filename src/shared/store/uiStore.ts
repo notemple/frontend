@@ -88,7 +88,7 @@ export const useUiStore = create<UiState>()(
       tutorialIndex: 0,
       setTutorialIndex: (tutorialIndex) => set({ tutorialIndex }),
       startTutorial: () => {
-        set({ isTutorialActive: true, tutorialIndex: 0, isSidebarOpen: true });
+        set({ isTutorialActive: true, tutorialIndex: 0, isSidebarOpen: false });
         get().openDocument('section-glance');
       },
 

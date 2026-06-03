@@ -354,6 +354,7 @@ export const CommandPalette = () => {
             className="fixed inset-0 bg-transparent backdrop-blur-[2px] z-50 pointer-events-auto"
           />
           <motion.div
+            id="onboarding-command-palette"
             initial={{ opacity: 0, scale: 0.97, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: 10 }}

@@ -752,7 +752,7 @@ export const Sidebar = () => {
               e.dataTransfer.effectAllowed = 'copyMove';
             }}
           >
-            <SidebarItem icon={<CheckSquare size={16} className={isDocActive('section-tasks') ? "text-current" : "text-blue-500/90 dark:text-blue-400/90"} />} label="Tasks" isOpen={isSidebarOpen} highlight={isDocActive('section-tasks')} onClick={() => handleDocClick('section-tasks')} activeBgClass="bg-sky-blue/90 dark:bg-sky-blue/35 border-sky-blue/75 dark:border-sky-blue/50 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+            <SidebarItem id="onboarding-tasks-tab" icon={<CheckSquare size={16} className={isDocActive('section-tasks') ? "text-current" : "text-blue-500/90 dark:text-blue-400/90"} />} label="Tasks" isOpen={isSidebarOpen} highlight={isDocActive('section-tasks')} onClick={() => handleDocClick('section-tasks')} activeBgClass="bg-sky-blue/90 dark:bg-sky-blue/35 border-sky-blue/75 dark:border-sky-blue/50 border" activeTextClass="!text-black dark:!text-white font-semibold" />
           </div>
           <div
             draggable
@@ -1088,6 +1088,7 @@ export const Sidebar = () => {
           />
         </div>
         <SidebarItem 
+          id="onboarding-settings-tab"
           icon={<Gear size={16} className={isDocActive('section-settings') ? "text-current" : "text-slate-500/70 dark:text-slate-400/70"} />} 
           label="Settings" 
           isOpen={isSidebarOpen} 

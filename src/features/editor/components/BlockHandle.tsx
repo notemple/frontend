@@ -49,6 +49,7 @@ export const BlockHandle = ({ editor }: BlockHandleProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [handlePosition, setHandlePosition] = useState({ top: 0, left: 0 });
   const [aiLoading, setAiLoading] = useState(false);
+  const [plusHovered, setPlusHovered] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // ── dnd-kit drag handle ──────────────────────────────────────────────────────
@@ -237,24 +238,42 @@ export const BlockHandle = ({ editor }: BlockHandleProps) => {
       <div className="absolute right-[-44px] top-0 bottom-0 w-[44px] pointer-events-auto" />
 
       <div className="flex items-center gap-0.5 relative z-10">
-        {/* ── Add paragraph below ── */}
-        <button
-          onClick={() => {
-            runOnCurrentBlock(() => {
-              const rect = activeElement!.getBoundingClientRect();
-              const coords = editor.view.posAtCoords({ left: rect.left + 8, top: rect.top + 8 });
-              if (coords) {
-                const $pos = editor.state.doc.resolve(coords.pos);
-                const blockEnd = $pos.start(1) - 1 + $pos.node(1).nodeSize;
-                editor.chain().focus().insertContentAt(blockEnd, { type: 'paragraph' }).run();
-              }
-            });
-          }}
-          className="w-5 h-5 rounded-sm bg-background/90 border border-border/40 text-muted-foreground/60 hover:text-foreground hover:bg-muted flex items-center justify-center cursor-pointer transition-all active:scale-90"
-          title="Add block below"
-        >
-          <Plus size={12} weight="bold" />
-        </button>
+        {/* ── Add paragraph below or above (Alt) ── */}
+        <div className="relative flex items-center justify-center">
+          <button
+            onClick={(e) => {
+              setPlusHovered(false);
+              const isAlt = e.altKey;
+              runOnCurrentBlock(() => {
+                const rect = activeElement!.getBoundingClientRect();
+                const coords = editor.view.posAtCoords({ left: rect.left + 8, top: rect.top + 8 });
+                if (coords) {
+                  const $pos = editor.state.doc.resolve(coords.pos);
+                  if (isAlt) {
+                    const blockStart = $pos.start(1) - 1;
+                    editor.chain().focus().insertContentAt(blockStart, { type: 'paragraph' }).run();
+                  } else {
+                    const blockEnd = $pos.start(1) - 1 + $pos.node(1).nodeSize;
+                    editor.chain().focus().insertContentAt(blockEnd, { type: 'paragraph' }).run();
+                  }
+                }
+              });
+            }}
+            onMouseEnter={() => setPlusHovered(true)}
+            onMouseLeave={() => setPlusHovered(false)}
+            className="w-5 h-5 rounded-sm bg-background/90 border border-border/40 text-muted-foreground/60 hover:text-foreground hover:bg-muted flex items-center justify-center cursor-pointer transition-all active:scale-90"
+          >
+            <Plus size={12} weight="bold" />
+          </button>
+
+          {plusHovered && (
+            <div className="absolute bottom-full left-0 mb-2 bg-card border border-border shadow-md rounded-md px-2.5 py-1.5 text-[10px] text-foreground font-sans whitespace-nowrap z-50 pointer-events-none flex flex-col gap-0.5 items-center text-center">
+              <span className="font-semibold text-foreground/90 leading-none">Click to add a block</span>
+              <span className="text-muted-foreground/60 text-[9px] leading-none">Alt-click to add block above</span>
+              <div className="w-1.5 h-1.5 bg-card border-r border-b border-border rotate-45 absolute top-full left-2.5 -translate-x-1/2 -translate-y-[4px]" />
+            </div>
+          )}
+        </div>
 
         {/* ── Drag handle / menu trigger ── */}
         <button

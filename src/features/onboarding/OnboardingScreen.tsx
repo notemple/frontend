@@ -61,7 +61,7 @@ export const OnboardingScreen = () => {
     if (selectedStyle === 'Developer') {
       tags = ['development', 'backlog', 'bugs', 'docs', 'releases'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Glance' },
+        { id: 'welcome-doc', title: 'Welcome to Templnote' },
         { id: 'doc-dev-roadmap', title: 'Project Roadmap' },
         { id: 'doc-dev-setup', title: 'Local Setup Guide' },
         { id: 'doc-dev-api', title: 'API Reference Documentation' },
@@ -70,7 +70,7 @@ export const OnboardingScreen = () => {
     } else if (selectedStyle === 'Student') {
       tags = ['lectures', 'homework', 'exams', 'readings', 'schedule'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Glance' },
+        { id: 'welcome-doc', title: 'Welcome to Templnote' },
         { id: 'doc-stud-overview', title: 'Semester Overview' },
         { id: 'doc-stud-prep', title: 'Exam Preparation' },
         { id: 'doc-stud-schedule', title: 'Class Schedule' },
@@ -79,7 +79,7 @@ export const OnboardingScreen = () => {
     } else if (selectedStyle === 'Creator') {
       tags = ['ideas', 'drafts', 'production', 'editing', 'published'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Glance' },
+        { id: 'welcome-doc', title: 'Welcome to Templnote' },
         { id: 'doc-creat-calendar', title: 'Content Calendar' },
         { id: 'doc-creat-script', title: 'Video Script: Desk Setup' },
         { id: 'doc-creat-brand', title: 'Brand Identity Guide' },
@@ -88,7 +88,7 @@ export const OnboardingScreen = () => {
     } else if (selectedStyle === 'Researcher') {
       tags = ['literature', 'experiments', 'data', 'writing', 'references'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Glance' },
+        { id: 'welcome-doc', title: 'Welcome to Templnote' },
         { id: 'doc-res-thesis', title: 'Thesis Outline' },
         { id: 'doc-res-log', title: 'Experiment Logs' },
         { id: 'doc-res-grant', title: 'Grant Proposal Outline' },
@@ -97,7 +97,7 @@ export const OnboardingScreen = () => {
     } else if (selectedStyle === 'Startup') {
       tags = ['strategy', 'product', 'growth', 'fundraising', 'meetings'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Glance' },
+        { id: 'welcome-doc', title: 'Welcome to Templnote' },
         { id: 'doc-start-onepager', title: 'One Pager Strategy' },
         { id: 'doc-start-prd', title: 'Product Spec: Onboarding' },
         { id: 'doc-start-pitch', title: 'Pitch Deck Outline' },
@@ -106,7 +106,7 @@ export const OnboardingScreen = () => {
     } else {
       tags = ['journal', 'goals', 'finance', 'health', 'reminders'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Glance' },
+        { id: 'welcome-doc', title: 'Welcome to Templnote' },
         { id: 'doc-pers-goals', title: 'Yearly Goals' },
         { id: 'doc-pers-reading', title: 'Reading List' },
         { id: 'doc-pers-health', title: 'Weekly Fitness Planner' },
@@ -332,10 +332,10 @@ export const OnboardingScreen = () => {
           createdDocs.push(
             {
               id: 'welcome-doc',
-              title: 'Welcome to Glance',
+              title: 'Welcome to Templnote',
               folderId: null,
               tags: ['guide', 'dev'],
-              content: `<h1>Welcome to your Developer Workspace</h1><p>Glance is your calm, intelligent workspace for ideas, tasks, and code snippet references.</p><h3>Pro Tips:</h3><ul><li>Type <strong>/</strong> in this editor to insert tables, quotes, toggles, or code blocks.</li><li>Type <strong>@</strong> to link to other documents, tasks, or tags.</li><li>Press <strong>Tab</strong> to activate AI autocomplete on any paragraph.</li></ul>`
+              content: `<h1>Welcome to your Developer Workspace</h1><p>Templnote is your calm, intelligent workspace for ideas, tasks, and code snippet references.</p><h3>Pro Tips:</h3><ul><li>Type <strong>/</strong> in this editor to insert tables, quotes, toggles, or code blocks.</li><li>Type <strong>@</strong> to link to other documents, tasks, or tags.</li><li>Press <strong>Tab</strong> to activate AI autocomplete on any paragraph.</li></ul>`
             },
             {
               id: 'doc-dev-roadmap',
@@ -384,10 +384,10 @@ export const OnboardingScreen = () => {
           createdDocs.push(
             {
               id: 'welcome-doc',
-              title: 'Welcome to Glance',
+              title: 'Welcome to Templnote',
               folderId: null,
               tags: ['guide', 'school'],
-              content: `<h1>Welcome to your Student Workspace</h1><p>Glance helps you keep track of classes, notes, and deadlines without clutter. Here is your initial setup:</p><ul><li>Use folders to group notes by subject.</li><li>Create daily notes to structure your study sessions.</li></ul>`
+              content: `<h1>Welcome to your Student Workspace</h1><p>Templnote helps you keep track of classes, notes, and deadlines without clutter. Here is your initial setup:</p><ul><li>Use folders to group notes by subject.</li><li>Create daily notes to structure your study sessions.</li></ul>`
             },
             {
               id: 'doc-stud-overview',
@@ -433,7 +433,7 @@ export const OnboardingScreen = () => {
           createdDocs.push(
             {
               id: 'welcome-doc',
-              title: 'Welcome to Glance',
+              title: 'Welcome to Templnote',
               folderId: null,
               tags: ['guide', 'creative'],
               content: `<h1>Welcome to your Creator Workspace</h1><p>Brainstorm video concepts, draft scripts, and track your publications easily.</p>`
@@ -482,7 +482,7 @@ export const OnboardingScreen = () => {
           createdDocs.push(
             {
               id: 'welcome-doc',
-              title: 'Welcome to Glance',
+              title: 'Welcome to Templnote',
               folderId: null,
               tags: ['guide', 'research'],
               content: `<h1>Welcome to your Research Workspace</h1><p>Record lab findings, link academic references, and write thesis drafts.</p>`
@@ -531,7 +531,7 @@ export const OnboardingScreen = () => {
           createdDocs.push(
             {
               id: 'welcome-doc',
-              title: 'Welcome to Glance',
+              title: 'Welcome to Templnote',
               folderId: null,
               tags: ['guide', 'startup'],
               content: `<h1>Welcome to your Startup Workspace</h1><p>Align team targets, draft strategy documents, and manage software specifications.</p>`
@@ -541,7 +541,7 @@ export const OnboardingScreen = () => {
               title: 'One Pager Strategy',
               folderId: 'folder-start-strategy',
               tags: ['strategy'],
-              content: `<h1>Glance Strategy One-Pager</h1><p>Building the next-generation intelligent local-first productivity workspace for writers and developer teams.</p><h3>Target Audience</h3><p>Knowledge workers, developers, and writers seeking high-focus local-first tools.</p>`
+              content: `<h1>Templnote Strategy One-Pager</h1><p>Building the next-generation intelligent local-first productivity workspace for writers and developer teams.</p><h3>Target Audience</h3><p>Knowledge workers, developers, and writers seeking high-focus local-first tools.</p>`
             },
             {
               id: 'doc-start-prd',
@@ -581,10 +581,10 @@ export const OnboardingScreen = () => {
           createdDocs.push(
             {
               id: 'welcome-doc',
-              title: 'Welcome to Glance',
+              title: 'Welcome to Templnote',
               folderId: null,
               tags: ['guide', 'personal'],
-              content: `<h1>Welcome to Glance</h1><p>This is your personal workspace for daily journals, goal-tracking, and managing tasks.</p>`
+              content: `<h1>Welcome to Templnote</h1><p>This is your personal workspace for daily journals, goal-tracking, and managing tasks.</p>`
             },
             {
               id: 'doc-pers-goals',
@@ -788,7 +788,7 @@ export const OnboardingScreen = () => {
             className={pageContainerClass}
           >
             {/* LEFT SIDE (60%): Forms for Welcome, Name and Style */}
-            <div className="w-full md:w-[60%] h-full bg-[#050505] flex flex-col items-center justify-start overflow-y-auto p-8 md:p-16 relative z-10 no-scrollbar">
+            <div className="w-full md:w-[60%] h-full bg-[#050505] flex flex-col items-center justify-start overflow-y-auto p-6 md:p-10 relative z-10 no-scrollbar">
               <div className="my-auto w-full flex flex-col items-center">
 
               {/* Step 1: Welcome / Sign-in */}
@@ -910,7 +910,7 @@ export const OnboardingScreen = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -15 }}
                     transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                    className="w-full max-w-lg flex flex-col items-center space-y-6 text-center"
+                    className="w-full max-w-2xl flex flex-col items-center space-y-4 text-center"
                   >
                     <div className="space-y-2">
                       <span
@@ -953,7 +953,7 @@ export const OnboardingScreen = () => {
                             >
                               {preset.title}
                             </span>
-                            <span className="text-[10px] leading-relaxed text-zinc-500 font-sans">
+                            <span className="text-[11px] leading-relaxed text-zinc-500 font-sans">
                               {preset.description}
                             </span>
                           </button>
@@ -974,7 +974,7 @@ export const OnboardingScreen = () => {
                   </motion.div>
 
                   {/* Seeding Customizer: Outside of style options div, horizontal single rows, all visible */}
-                  <div className="w-full max-w-xl flex flex-col space-y-3 pt-5 border-t border-zinc-900/40 mt-8 mx-auto">
+                  <div className="w-full max-w-2xl flex flex-col space-y-3 pt-5 border-t border-zinc-900/40 mt-6 mx-auto">
                     {/* Tags Row */}
                     <div className="flex flex-row items-center gap-4 py-1.5">
                       <span
@@ -1042,7 +1042,7 @@ export const OnboardingScreen = () => {
                       <div className="pt-2 text-center">
                         <button
                           onClick={resetSeedingDefaults}
-                          className="text-[9px] font-bold text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer uppercase tracking-wider underline active:scale-95"
+                          className="text-[10px] font-bold text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer uppercase tracking-wider underline active:scale-95"
                         >
                           Reset Seeding Defaults
                         </button>

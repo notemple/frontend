@@ -113,7 +113,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
         }}
       >
         <FocusTimeline />
-        <div className="h-px bg-border/40 shrink-0 mx-5" />
+        <div className="h-px bg-border/25 shrink-0 mx-5" />
         <RecentDocuments paneId={paneId} />
         <RecentCapturesList
           paneId={paneId}

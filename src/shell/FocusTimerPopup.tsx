@@ -245,12 +245,12 @@ export const FocusTimerPopup = ({ onClose }: { onClose: () => void }) => {
 
       {/* Active Task Timers List */}
       {runningTimersList.length > 0 && (
-        <div className="w-full border-t border-border/40 pt-3 mt-1 flex flex-col gap-2 max-h-[140px] overflow-y-auto no-scrollbar">
+        <div className="w-full border-t border-border/25 pt-3 mt-1 flex flex-col gap-2 max-h-[140px] overflow-y-auto no-scrollbar">
           <div className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-wider pl-1">
             Running Tasks
           </div>
           {runningTimersList.map(({ task, timer }) => (
-            <div key={task.id} className="flex items-center justify-between bg-muted/30 border border-border/40 rounded px-2.5 py-1.5 w-full gap-2 shrink-0">
+            <div key={task.id} className="flex items-center justify-between bg-muted/30 border border-border/25 rounded px-2.5 py-1.5 w-full gap-2 shrink-0">
               <div className="flex flex-col min-w-0 flex-1">
                 <span className="text-[11px] font-semibold text-foreground truncate leading-none mb-0.5">{task.title || 'Untitled Task'}</span>
                 <span className="text-[9px] text-muted-foreground/60 leading-none">Task stopwatch</span>

@@ -153,7 +153,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-border/40 pt-4 mt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-border/25 pt-4 mt-2">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-muted-foreground">User Name</label>
                 <input 
@@ -350,7 +350,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
             </div>
 
             {/* Inactive Pane Control */}
-            <div className="flex flex-col gap-3 border-t border-border/40 pt-4 mt-1">
+            <div className="flex flex-col gap-3 border-t border-border/25 pt-4 mt-1">
               <div className="flex items-center justify-between">
                 <div className="flex flex-col gap-0.5">
                   <label className="text-xs font-bold text-foreground">Inactive Pane Highlight</label>
@@ -564,7 +564,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-border/40 pt-4 mt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-border/25 pt-4 mt-2">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-muted-foreground">Time Format</label>
                 <div className="flex bg-muted/50 p-0.5 rounded-sm-sm border border-border/60">
@@ -667,7 +667,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
             </div>
 
             {/* Toggle Navbar */}
-            <div className="flex items-center justify-between py-3 border-t border-border/40 mt-2">
+            <div className="flex items-center justify-between py-3 border-t border-border/25 mt-2">
               <div className="flex flex-col gap-0.5">
                 <label className="text-sm font-semibold text-foreground">Auto-Hide Top Navbar</label>
                 <span className="text-xs text-muted-foreground">Slides open when cursor is near the top edge</span>
@@ -688,7 +688,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
             </div>
 
             {/* Toggle Sidebars */}
-            <div className="flex items-center justify-between py-3 border-t border-border/40 mt-1">
+            <div className="flex items-center justify-between py-3 border-t border-border/25 mt-1">
               <div className="flex flex-col gap-0.5">
                 <label className="text-sm font-semibold text-foreground">Auto-Hide Sidebars</label>
                 <span className="text-xs text-muted-foreground">Slides open when cursor hovers near left or right screen edges</span>

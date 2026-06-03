@@ -859,7 +859,7 @@ export const TemplnoteEditor = React.memo(({
 
           {/* Backlinks panel */}
           {!isMinimized && backlinks.length > 0 && (
-            <div className="mt-32 pb-8 pt-8 border-t border-border/40 font-sans shrink-0 z-10 relative">
+            <div className="mt-32 pb-8 pt-8 border-t border-border/25 font-sans shrink-0 z-10 relative">
               <button
                 onClick={() => setShowBacklinks(!showBacklinks)}
                 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest hover:text-foreground transition-colors cursor-pointer select-none mb-4"

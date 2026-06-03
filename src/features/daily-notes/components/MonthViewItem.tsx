@@ -63,7 +63,7 @@ export const MonthViewItem = ({ docId, onClick }: { docId: string; onClick: () =
           dangerouslySetInnerHTML={{ __html: doc.content }}
         />
       </div>
-      <div className="flex flex-wrap items-center gap-1.5 text-muted-foreground text-xs mt-auto pt-2 border-t border-border/40 font-sans">
+      <div className="flex flex-wrap items-center gap-1.5 text-muted-foreground text-xs mt-auto pt-2 border-t border-border/25 font-sans">
         <Tag size={12} className="shrink-0 text-muted-foreground opacity-60" />
         {doc.tags && doc.tags.length > 0 ? (
           <div className="flex flex-wrap gap-1">

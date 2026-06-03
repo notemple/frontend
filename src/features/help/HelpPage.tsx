@@ -151,7 +151,7 @@ function ReleaseNotes({ selectedRelease, onSelectRelease }: { selectedRelease: s
           <span className="text-lg font-bold text-foreground">v{release.version}</span>
           <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{release.date}</span>
         </div>
-        <div className="h-px bg-border/40" />
+        <div className="h-px bg-border/25" />
         <ul className="flex flex-col gap-2">
           {release.changes.map((change, i) => (
             <li key={i} className="flex items-start gap-2.5 text-sm text-foreground/80">
@@ -233,7 +233,7 @@ export const HelpPage: React.FC = () => {
         </nav>
 
         {/* Version badge */}
-        <div className="px-3 pt-4 border-t border-border/40 mt-4">
+        <div className="px-3 pt-4 border-t border-border/25 mt-4">
           <p className="text-[11px] text-muted-foreground">Templnote</p>
           <p className="text-xs font-semibold text-foreground/60 mt-0.5">v{APP_VERSION}</p>
         </div>

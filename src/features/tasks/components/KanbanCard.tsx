@@ -114,7 +114,7 @@ export const KanbanCard = ({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-1 w-full pt-1.5 border-t border-border/40">
+      <div className="flex items-center justify-between gap-1 w-full pt-1.5 border-t border-border/25">
         <div className="flex items-center gap-1.5 min-w-0" onPointerDown={(e) => e.stopPropagation()}>
           <CustomDatePicker
             small

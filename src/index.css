@@ -36,23 +36,23 @@
     
     --workspace-bg: #050505;
     --card-bg: #121212;
-    --card-border: #1a1a1a;
+    --card-border: #222222;
     
     --muted: #121212;
     --muted-foreground: #a1a1aa;
     --body-text: #e4e4e7;
     
-    --border: #1a1a1a;
+    --border: #222222;
     
     --accent: #e4e4e7;
     --accent-foreground: #050505;
     
     --background-topbar: #050505;
     --background-calendar: #050505;
-    --border-calendar: #1a1a1a;
+    --border-calendar: #222222;
     
     --task-row-bg: #121212;
-    --task-row-border: #1a1a1a;
+    --task-row-border: #222222;
     --task-row-hover-bg: rgba(18, 18, 18, 0.8);
 
     --pink-orchid: #CDB4DB;
@@ -88,17 +88,17 @@
     --muted-foreground: #7c786f; /* Secondary text */
     --body-text: #3f3d39; /* Body text */
     
-    --border: rgba(0,0,0,0.05); /* Border-Based Depth System: subtle structural borders */
+    --border: rgba(0,0,0,0.035); /* Border-Based Depth System: subtle structural borders */
     
     --accent: #1e1e1c; 
     --accent-foreground: #fcfbf9;
     
     --background-topbar: linear-gradient(to bottom, rgba(252, 251, 249, 0.72), rgba(252, 251, 249, 0.45));
     --background-calendar: rgba(0, 0, 0, 0.015);
-    --border-calendar: rgba(0, 0, 0, 0.05);
+    --border-calendar: rgba(0, 0, 0, 0.035);
     
     --task-row-bg: rgba(252, 251, 249, 0.55);
-    --task-row-border: rgba(0, 0, 0, 0.06);
+    --task-row-border: rgba(0, 0, 0, 0.045);
     --task-row-hover-bg: rgba(252, 251, 249, 0.85);
   }
 }

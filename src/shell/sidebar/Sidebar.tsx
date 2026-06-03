@@ -4,7 +4,7 @@ import { gsap } from 'gsap';
 import { useUiStore } from '@/shared/store/uiStore';
 import { useDocumentStore } from '@/features/documents/store';
 import { useShallow } from 'zustand/react/shallow';
-import { cn, getFolderHexColor } from '@/shared/lib/utils';
+import { cn, getFolderHexColor, getFolderActiveHexColor } from '@/shared/lib/utils';
 
 import { DeleteFolderDialog } from './DeleteFolderDialog';
 import { ColorPicker } from '@/shared/ui/ColorPicker';
@@ -27,7 +27,8 @@ import {
   Tag,
   Eye,
   SquaresFour,
-  Question
+  Question,
+  GraduationCap
 } from '@phosphor-icons/react';
 import { SidebarItem } from "./SidebarItem";
 import { SidebarFolderItem } from "./SidebarFolderItem";
@@ -81,6 +82,8 @@ const SidebarDocumentItem = ({
 
   if (!doc) return null;
 
+  const cardColor = doc.cardColor || getFolderActiveHexColor(docId, {}, doc.title || 'Untitled');
+
   if (isRenaming) {
     return (
       <div
@@ -88,7 +91,7 @@ const SidebarDocumentItem = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="shrink-0 text-muted-foreground">
-          {getIconForType(doc.type || 'page', doc.icon, doc.cardColor)}
+          {getIconForType(doc.type || 'page', doc.icon, cardColor)}
         </div>
         <input
           autoFocus
@@ -121,12 +124,12 @@ const SidebarDocumentItem = ({
 
   return (
     <SidebarItem
-      icon={getIconForType(doc.type || 'page', doc.icon, doc.cardColor)}
+      icon={getIconForType(doc.type || 'page', doc.icon, cardColor)}
       label={doc.title || 'Untitled'}
       isOpen={isOpen}
       highlight={isActive}
       onClick={onClick}
-      highlightColor={doc.cardColor}
+      highlightColor={cardColor}
     />
   );
 };
@@ -490,6 +493,12 @@ export const Sidebar = () => {
           toggleFolderCollapse(folderId);
           return;
         }
+        if (currentDocId === 'section-tutorial') {
+          e.preventDefault();
+          useUiStore.getState().startTutorial();
+          setKbFocusId(null);
+          return;
+        }
         // Regular item — open it and clear the keyboard cursor
         e.preventDefault();
         openDocument(currentDocId);
@@ -534,7 +543,7 @@ export const Sidebar = () => {
         ids.push(...uncategorizedDocIds);
       }
 
-      ids.push('section-trash', 'section-help', 'section-settings');
+      ids.push('section-trash', 'section-tutorial', 'section-help', 'section-settings');
 
       const currentIdx = ids.indexOf(currentDocId || '');
       let nextIdx: number;
@@ -1048,6 +1057,18 @@ export const Sidebar = () => {
             activeTextClass="!text-red-600 dark:!text-red-400 font-semibold"
           />
         </div>
+        <SidebarItem
+          id="section-tutorial"
+          icon={<GraduationCap size={16} className={isDocActive('section-tutorial') ? "text-current" : "text-yellow-500/90 dark:text-yellow-400/90"} />}
+          label="Tutorial"
+          isOpen={isSidebarOpen}
+          highlight={isDocActive('section-tutorial')}
+          onClick={() => {
+            useUiStore.getState().startTutorial();
+          }}
+          activeBgClass="bg-yellow-500/20 dark:bg-yellow-500/15 border-yellow-500/40 dark:border-yellow-500/30 border"
+          activeTextClass="!text-yellow-600 dark:!text-yellow-400 font-semibold"
+        />
         <div
           draggable
           onDragStart={(e) => {

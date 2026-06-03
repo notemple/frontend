@@ -7,6 +7,7 @@ import { useUiStore } from '@/shared/store/uiStore';
 import { useShallow } from 'zustand/react/shallow';
 import { TaskEditorModal } from "@/features/tasks/components/TaskEditorModal";
 import { useSettingsStore } from '@/features/settings/store';
+import { SpotlightTutorial } from '@/features/onboarding/components/SpotlightTutorial';
 
 export const RootLayout = () => {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
@@ -293,6 +294,7 @@ export const RootLayout = () => {
       <MainWorkspace />
       <RightSidebar />
       <CommandPalette />
+      <SpotlightTutorial />
       {editingTaskId && (
         <TaskEditorModal 
           taskId={editingTaskId} 

@@ -39,6 +39,11 @@ interface UiState {
   setNavbarManuallyHidden: (hidden: boolean) => void;
 
   updatePaneWidths: (widths: { [paneId: string]: number }) => void;
+  isTutorialActive: boolean;
+  setIsTutorialActive: (active: boolean) => void;
+  tutorialIndex: number;
+  setTutorialIndex: (index: number) => void;
+  startTutorial: () => void;
 }
 
 const DEFAULT_PANE_ID = 'pane-main';
@@ -77,6 +82,15 @@ export const useUiStore = create<UiState>()(
 
       isNavbarManuallyHidden: false,
       setNavbarManuallyHidden: (isNavbarManuallyHidden) => set({ isNavbarManuallyHidden }),
+
+      isTutorialActive: false,
+      setIsTutorialActive: (isTutorialActive) => set({ isTutorialActive }),
+      tutorialIndex: 0,
+      setTutorialIndex: (tutorialIndex) => set({ tutorialIndex }),
+      startTutorial: () => {
+        set({ isTutorialActive: true, tutorialIndex: 0, isSidebarOpen: true });
+        get().openDocument('section-glance');
+      },
 
       updatePaneWidths: (widths) => set((state) => ({
         panes: state.panes.map(pane => ({

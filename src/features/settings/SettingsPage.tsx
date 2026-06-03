@@ -179,7 +179,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
           </div>
 
           {/* Card: Pane Highlight Customization */}
-          <div className="p-5 border border-border/80 bg-card/30 rounded-xl flex flex-col gap-5">
+          <div id="onboarding-color-presets" className="p-5 border border-border/80 bg-card/30 rounded-xl flex flex-col gap-5">
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/60 font-mono">Pane Highlight Style</h3>
             
             {/* Active Pane Control */}
@@ -216,7 +216,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
               </div>
 
               {activeHighlightType === 'solid' ? (
-                <div id="onboarding-color-presets" className="flex flex-wrap gap-2 items-center">
+                <div className="flex flex-wrap gap-2 items-center">
                   {solidPresets.map(color => (
                     <button
                       key={color.value}
@@ -669,47 +669,49 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
               </div>
             </div>
 
-            {/* Toggle Navbar */}
-            <div className="flex items-center justify-between py-3 border-t border-border/25 mt-2">
-              <div className="flex flex-col gap-0.5">
-                <label className="text-sm font-semibold text-foreground">Auto-Hide Top Navbar</label>
-                <span className="text-xs text-muted-foreground">Slides open when cursor is near the top edge</span>
+            {/* Toggle Navbar + Sidebars Auto-Hide — wrapped for onboarding spotlight */}
+            <div id="onboarding-autohide-toggle" className="flex flex-col border-t border-border/25 mt-2">
+              <div className="flex items-center justify-between py-3">
+                <div className="flex flex-col gap-0.5">
+                  <label className="text-sm font-semibold text-foreground">Auto-Hide Top Navbar</label>
+                  <span className="text-xs text-muted-foreground">Slides open when cursor is near the top edge</span>
+                </div>
+                <button
+                  onClick={() => setAutoHideNavbar(!autoHideNavbar)}
+                  className={cn(
+                    "w-10 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none cursor-pointer flex items-center shadow-inner relative border border-border/40",
+                    autoHideNavbar ? "bg-rose-500/80 dark:bg-rose-500/60 justify-end" : "bg-muted justify-start"
+                  )}
+                >
+                  <motion.div 
+                    layout 
+                    className={cn("w-4.5 h-4.5 rounded-full shadow-sm-sm", autoHideNavbar ? "bg-white" : "bg-muted-foreground/60")} 
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                </button>
               </div>
-              <button
-                onClick={() => setAutoHideNavbar(!autoHideNavbar)}
-                className={cn(
-                  "w-10 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none cursor-pointer flex items-center shadow-inner relative border border-border/40",
-                  autoHideNavbar ? "bg-rose-500/80 dark:bg-rose-500/60 justify-end" : "bg-muted justify-start"
-                )}
-              >
-                <motion.div 
-                  layout 
-                  className={cn("w-4.5 h-4.5 rounded-full shadow-sm-sm", autoHideNavbar ? "bg-white" : "bg-muted-foreground/60")} 
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                />
-              </button>
-            </div>
 
-            {/* Toggle Sidebars */}
-            <div id="onboarding-autohide-toggle" className="flex items-center justify-between py-3 border-t border-border/25 mt-1">
-              <div className="flex flex-col gap-0.5">
-                <label className="text-sm font-semibold text-foreground">Auto-Hide Sidebars</label>
-                <span className="text-xs text-muted-foreground">Slides open when cursor hovers near left or right screen edges</span>
+              {/* Toggle Sidebars */}
+              <div className="flex items-center justify-between py-3 border-t border-border/25">
+                <div className="flex flex-col gap-0.5">
+                  <label className="text-sm font-semibold text-foreground">Auto-Hide Sidebars</label>
+                  <span className="text-xs text-muted-foreground">Slides open when cursor hovers near left or right screen edges</span>
+                </div>
+                <button
+                  onClick={() => setAutoHideSidebars(!autoHideSidebars)}
+                  className={cn(
+                    "w-10 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none cursor-pointer flex items-center shadow-inner relative border border-border/40",
+                    autoHideSidebars ? "bg-rose-500/80 dark:bg-rose-500/60 justify-end" : "bg-muted justify-start"
+                  )}
+                >
+                  <motion.div 
+                    layout 
+                    className={cn("w-4.5 h-4.5 rounded-full shadow-sm-sm", autoHideSidebars ? "bg-white" : "bg-muted-foreground/60")} 
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                </button>
               </div>
-              <button
-                onClick={() => setAutoHideSidebars(!autoHideSidebars)}
-                className={cn(
-                  "w-10 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none cursor-pointer flex items-center shadow-inner relative border border-border/40",
-                  autoHideSidebars ? "bg-rose-500/80 dark:bg-rose-500/60 justify-end" : "bg-muted justify-start"
-                )}
-              >
-                <motion.div 
-                  layout 
-                  className={cn("w-4.5 h-4.5 rounded-full shadow-sm-sm", autoHideSidebars ? "bg-white" : "bg-muted-foreground/60")} 
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                />
-              </button>
-            </div>
+            </div>{/* end onboarding-autohide-toggle */}
 
             {/* Toggle Grayscale Inactive Tabs */}
             <div className="flex items-center justify-between py-3 border-t border-border/25 mt-1">

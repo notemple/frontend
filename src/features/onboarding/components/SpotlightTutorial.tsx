@@ -199,21 +199,31 @@ export const SpotlightTutorial = () => {
     return () => clearInterval(iv);
   }, [searchPhase, tutorialIndex, isTutorialActive]);
 
-  // ── Step 4: count arrow key presses once palette is open
+  // ── Step 4: count arrow key presses once palette is open (pure increment only)
   useEffect(() => {
     if (!isTutorialActive || tutorialIndex !== 4 || searchPhase !== 'wait-arrows') return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-        setArrowCount((n) => {
-          const next = n + 1;
-          if (next >= 3) setSearchPhase('done');
-          return next;
-        });
+        setArrowCount((n) => n + 1);
       }
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
   }, [searchPhase, tutorialIndex, isTutorialActive]);
+
+  // ── Step 4: transition to 'done' once enough arrows have been pressed
+  useEffect(() => {
+    if (tutorialIndex === 4 && searchPhase === 'wait-arrows' && arrowCount >= 3) {
+      setSearchPhase('done');
+    }
+  }, [arrowCount, searchPhase, tutorialIndex]);
+
+  // ── Step 4: auto-advance to step 5 once search sequence is done
+  useEffect(() => {
+    if (!isTutorialActive || tutorialIndex !== 4 || searchPhase !== 'done') return;
+    const t = setTimeout(() => setTutorialIndex(5), 900);
+    return () => clearTimeout(t);
+  }, [searchPhase, tutorialIndex, isTutorialActive, setTutorialIndex]);
 
   // ── Restore focus on unmount
   useEffect(() => {
@@ -225,7 +235,15 @@ export const SpotlightTutorial = () => {
     if (!isTutorialActive) { setSpotlightRect(null); return; }
     const step = TUTORIAL_STEPS[tutorialIndex];
     if (!step) { setSpotlightRect(null); return; }
-    const el = document.getElementById(step.targetId);
+
+    // Step 4: spotlight the palette when open, otherwise fall back to tab bar
+    let targetId = step.targetId;
+    if (tutorialIndex === 4) {
+      const paletteEl = document.getElementById('onboarding-command-palette');
+      targetId = paletteEl ? 'onboarding-command-palette' : 'onboarding-tab-bar';
+    }
+
+    const el = document.getElementById(targetId);
     setSpotlightRect(el ? el.getBoundingClientRect() : null);
   }, [tutorialIndex, isTutorialActive]);
 
@@ -245,17 +263,18 @@ export const SpotlightTutorial = () => {
 
   const isInteractive = currentStep.interactive === true;
 
-  const skipTutorial = () => setIsTutorialActive(false);
+  const skipStep = () => {
+    if (tutorialIndex < TUTORIAL_STEPS.length - 1) setTutorialIndex(tutorialIndex + 1);
+    else setIsTutorialActive(false);
+  };
   const handleBack = () => { if (tutorialIndex > 0) setTutorialIndex(tutorialIndex - 1); };
   const nextTutorial = () => {
     if (tutorialIndex < TUTORIAL_STEPS.length - 1) setTutorialIndex(tutorialIndex + 1);
     else setIsTutorialActive(false);
   };
 
-  // Whether the Next button is shown
-  const showNext =
-    tutorialIndex !== 3 &&                                   // split step: auto-advance
-    !(tutorialIndex === 4 && searchPhase !== 'done');         // search step: must complete
+  // Whether the Next button is shown (hidden for interactive auto-advance steps)
+  const showNext = tutorialIndex !== 3 && tutorialIndex !== 4;
 
   // ── Dynamic description for interactive steps
   const description = (() => {
@@ -267,7 +286,7 @@ export const SpotlightTutorial = () => {
     if (tutorialIndex === 4) {
       if (searchPhase === 'wait-open') return null;
       if (searchPhase === 'wait-arrows') return null;
-      return 'Nice work! Press Esc to close the palette, then click Next.';
+      return '🎉 Great work! Moving to the next step…';
     }
     return currentStep.description;
   })();
@@ -471,10 +490,10 @@ export const SpotlightTutorial = () => {
         {/* Footer */}
         <div className="flex items-center justify-between pt-0.5">
           <button
-            onClick={skipTutorial}
+            onClick={skipStep}
             className="text-[11px] text-zinc-600 hover:text-zinc-300 font-medium transition-colors cursor-pointer bg-transparent border-none"
           >
-            Skip Tutorial
+            Skip Step
           </button>
 
           <div className="flex items-center gap-2">

@@ -94,15 +94,34 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
         documents[d.id] = d;
       });
 
-      // If documentOrder is empty but we have documents, populate it to prevent empty sidebar
-      const finalDocOrder = documentOrder.length === 0 && docs.length > 0
-        ? docs.map(d => d.id)
-        : documentOrder;
+      // Ensure all loaded documents that are not deleted are in documentOrder
+      const documentOrderSet = new Set(documentOrder);
+      const missingDocIds = docs
+        .filter(d => d && !d.isDeleted && !documentOrderSet.has(d.id))
+        .map(d => d.id);
+      
+      const finalDocOrder = [...documentOrder, ...missingDocIds];
+
+      if (missingDocIds.length > 0 || documentOrder.length === 0) {
+        await documentService.setMetadata("documentOrder", finalDocOrder);
+      }
+
+      // Ensure all loaded folders that are not deleted are in folderOrder
+      const folderOrderSet = new Set(folderOrder);
+      const missingFolderIds = folders
+        .filter(f => f && !f.isDeleted && !folderOrderSet.has(f.id))
+        .map(f => f.id);
+      
+      const finalFolderOrder = [...folderOrder, ...missingFolderIds];
+
+      if (missingFolderIds.length > 0 || folderOrder.length === 0) {
+        await documentService.setMetadata("folderOrder", finalFolderOrder);
+      }
 
       set({
         documents,
         folders,
-        folderOrder,
+        folderOrder: finalFolderOrder,
         documentOrder: finalDocOrder,
         createdTags,
         tagColors,
@@ -143,7 +162,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
     };
 
     const newDocs = { ...get().documents, [doc.id]: docWithMetadata };
-    const newOrder = isUpdating ? get().documentOrder : [...get().documentOrder, doc.id];
+    const newOrder = get().documentOrder.includes(doc.id) ? get().documentOrder : [...get().documentOrder, doc.id];
 
     set({
       documents: newDocs,
@@ -187,6 +206,9 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
         title: finalTitle,
         updatedAt: new Date().toISOString()
       };
+      if (!get().documentOrder.includes(id)) {
+        newOrder = [...get().documentOrder, id];
+      }
     }
 
     set({
@@ -195,7 +217,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
     });
 
     await documentService.saveDocument(newDoc);
-    if (!existing) {
+    if (!existing || newOrder !== get().documentOrder) {
       await documentService.setMetadata("documentOrder", newOrder);
     }
   },

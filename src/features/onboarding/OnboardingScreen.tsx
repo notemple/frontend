@@ -1,31 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import {
-  CaretRight, ArrowRight, ArrowLeft, GoogleLogo, GithubLogo, Envelope, Check, CircleNotch,
-  Terminal, GraduationCap, Palette, Microscope, RocketLaunch, User,
-  FileText, X
-} from '@phosphor-icons/react';
+import { ArrowLeft } from '@phosphor-icons/react';
 import { useSettingsStore } from '@/features/settings/store';
 import { useUiStore } from '@/shared/store/uiStore';
 import { useDocumentStore } from '@/features/documents/store';
 import { useTaskStore } from '@/features/tasks/store';
 import { documentService } from '@/services/document.service';
 import { taskService } from '@/services/task.service';
-import { cn } from '@/shared/lib/utils';
 
-const STYLE_PRESETS = [
-  { id: 'Developer', title: 'Developer', description: 'Build projects, write documentation, and capture code snippets.', icon: <Terminal size={22} className="text-[#BDE0FE]" />, activeColor: '#BDE0FE' },
-  { id: 'Student', title: 'Student', description: 'Track assignments, organize class lectures, and manage study guides.', icon: <GraduationCap size={22} className="text-[#B5EAD7]" />, activeColor: '#B5EAD7' },
-  { id: 'Creator', title: 'Creator', description: 'Draft scripts, outline content ideas, and structure creative assets.', icon: <Palette size={22} className="text-[#FFC8DD]" />, activeColor: '#FFC8DD' },
-  { id: 'Researcher', title: 'Researcher', description: 'Compile references, document experiments, and analyze findings.', icon: <Microscope size={22} className="text-[#95E1D3]" />, activeColor: '#95E1D3' },
-  { id: 'Startup', title: 'Startup', description: 'Organize team syncs, write product requirements, and track roadmap.', icon: <RocketLaunch size={22} className="text-[#FFDAC1]" />, activeColor: '#FFDAC1' },
-  { id: 'Personal', title: 'Personal', description: 'Journal daily thoughts, set life goals, and coordinate daily tasks.', icon: <User size={22} className="text-[#FFF5C3]" />, activeColor: '#FFF5C3' }
-];
+import { LoginStep } from './components/LoginStep';
+import { NameStep } from './components/NameStep';
+import { StyleStep, STYLE_PRESETS } from './components/StyleStep';
+import type { PresetStyle } from './components/StyleStep';
+import { SeedingStep } from './components/SeedingStep';
+import { DoneStep } from './components/DoneStep';
+import { StoryPanel } from './components/StoryPanel';
 
 export const OnboardingScreen = () => {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [workspaceName, setWorkspaceName] = useState('');
-  const [selectedStyle, setSelectedStyle] = useState<'Developer' | 'Student' | 'Creator' | 'Researcher' | 'Startup' | 'Personal'>('Personal');
+  const [selectedStyle, setSelectedStyle] = useState<PresetStyle>('Personal');
   const [selectedLoginIndex, setSelectedLoginIndex] = useState(0);
   const [creationProgress, setCreationProgress] = useState(0);
   const [creationComplete, setCreationComplete] = useState(false);
@@ -195,7 +189,7 @@ export const OnboardingScreen = () => {
           }
 
           if (newIndex !== currentIndex && newIndex >= 0 && newIndex < STYLE_PRESETS.length) {
-            setSelectedStyle(STYLE_PRESETS[newIndex].id as any);
+            setSelectedStyle(STYLE_PRESETS[newIndex].id as PresetStyle);
           }
         }
       }
@@ -733,470 +727,58 @@ export const OnboardingScreen = () => {
             {/* LEFT SIDE (60%): Forms for Welcome, Name and Style */}
             <div className="w-full md:w-[60%] h-full bg-[#050505] flex flex-col items-center justify-start overflow-y-auto p-6 md:p-10 relative z-10 no-scrollbar">
               <div className="my-auto w-full flex flex-col items-center">
-
-              {/* Step 1: Welcome / Sign-in */}
-              {step === 1 && (
-                <motion.div
-                  key="step1"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                  className="w-full max-w-xs flex flex-col space-y-3"
-                >
-                  <button
-                    onClick={nextStep}
-                    onMouseEnter={() => setSelectedLoginIndex(0)}
-                    className={cn(
-                      "w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-zinc-950/70 border rounded-lg text-sm transition-all duration-200 cursor-pointer active:scale-[0.99] font-medium",
-                      selectedLoginIndex === 0
-                        ? "bg-[#FFB7B2]/10 border-[#FFB7B2]/50 text-white"
-                        : "border-[#FFB7B2]/20 text-[#FFB7B2] hover:bg-[#FFB7B2]/10 hover:border-[#FFB7B2]/50 hover:text-white"
-                    )}
-                  >
-                    <GoogleLogo size={18} className="text-[#FFB7B2]/80" />
-                    Continue with Google
-                  </button>
-
-                  <button
-                    onClick={nextStep}
-                    onMouseEnter={() => setSelectedLoginIndex(1)}
-                    className={cn(
-                      "w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-zinc-950/70 border rounded-lg text-sm transition-all duration-200 cursor-pointer active:scale-[0.99] font-medium",
-                      selectedLoginIndex === 1
-                        ? "bg-[#BDE0FE]/10 border-[#BDE0FE]/50 text-white"
-                        : "border-[#BDE0FE]/20 text-[#BDE0FE] hover:bg-[#BDE0FE]/10 hover:border-[#BDE0FE]/50 hover:text-white"
-                    )}
-                  >
-                    <GithubLogo size={18} className="text-[#BDE0FE]/80" />
-                    Continue with GitHub
-                  </button>
-
-                  <button
-                    onClick={nextStep}
-                    onMouseEnter={() => setSelectedLoginIndex(2)}
-                    className={cn(
-                      "w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-zinc-950/70 border rounded-lg text-sm transition-all duration-200 cursor-pointer active:scale-[0.99] font-medium",
-                      selectedLoginIndex === 2
-                        ? "bg-[#B5EAD7]/10 border-[#B5EAD7]/50 text-white"
-                        : "border-[#B5EAD7]/20 text-[#B5EAD7] hover:bg-[#B5EAD7]/10 hover:border-[#B5EAD7]/50 hover:text-white"
-                    )}
-                  >
-                    <Envelope size={18} className="text-[#B5EAD7]/80" />
-                    Continue with Email
-                  </button>
-                </motion.div>
-              )}
-
-              {/* Step 2: Workspace Name */}
-              {step === 2 && (
-                <motion.div
-                  key="step2"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                  className="w-full max-w-sm flex flex-col items-center space-y-8 text-center"
-                >
-                  <div className="space-y-3">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[#BDE0FE]">Step 2 of 3</span>
-                    <h1 className="text-2xl font-semibold tracking-tight text-zinc-100 font-sans">
-                      What should we call your workspace?
-                    </h1>
-                  </div>
-
-                  <div className="w-full relative max-w-sm pt-4">
-                    <input
-                      ref={nameInputRef}
-                      type="text"
-                      value={workspaceName}
-                      onChange={(e) => setWorkspaceName(e.target.value)}
-                      placeholder="e.g. Personal Space, Startup Lab"
-                      className="w-full bg-transparent border-b border-[#BDE0FE]/30 focus:border-[#BDE0FE] outline-none text-lg text-center pb-2 text-zinc-100 placeholder-zinc-700 transition-colors"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && workspaceName.trim()) {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          nextStep();
-                        }
-                      }}
-                    />
-
-                    {workspaceName.trim() && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center text-[10px] text-[#BDE0FE]/70 font-mono"
-                      >
-                        press Enter ↵
-                      </motion.div>
-                    )}
-                  </div>
-
-                  <button
-                    disabled={!workspaceName.trim()}
-                    onClick={nextStep}
-                    className="px-6 py-2 bg-[#BDE0FE] hover:bg-[#aed0ed] disabled:opacity-40 disabled:pointer-events-none text-zinc-950 text-sm font-semibold rounded-lg flex items-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95"
-                  >
-                    Continue
-                    <ArrowRight size={14} weight="bold" />
-                  </button>
-                </motion.div>
-              )}
-
-              {/* Step 3: Choose Style */}
-              {step === 3 && (
-                <>
-                  <motion.div
-                    key="step3"
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -15 }}
-                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                    className="w-full max-w-2xl flex flex-col items-center space-y-4 text-center"
-                  >
-                    <div className="space-y-2">
-                      <span
-                        className="text-[11px] font-semibold uppercase tracking-wider transition-colors"
-                        style={{ color: STYLE_PRESETS.find(p => p.id === selectedStyle)?.activeColor || '#BDE0FE' }}
-                      >
-                        Step 3 of 3
-                      </span>
-                      <h1 className="text-2xl font-semibold tracking-tight text-zinc-100 font-sans">
-                        Choose your style
-                      </h1>
-                      <p className="text-xs text-zinc-400 font-sans">
-                        This personalizes folders, default templates, and sample layouts.
-                      </p>
-                    </div>
-
-                    {/* Cards Grid */}
-                    <div className="w-full grid grid-cols-2 gap-3 pt-2">
-                      {STYLE_PRESETS.map((preset) => {
-                        const isSelected = selectedStyle === preset.id;
-                        return (
-                          <button
-                            key={preset.id}
-                            onClick={() => setSelectedStyle(preset.id as any)}
-                            className={cn(
-                              "flex flex-col items-start text-left p-4 rounded-xl border bg-zinc-950/60 hover:bg-zinc-900/30 transition-all duration-200 cursor-pointer group active:scale-[0.98]",
-                              isSelected
-                                ? ""
-                                : "border-zinc-900 hover:border-zinc-800"
-                            )}
-                            style={isSelected ? { borderColor: preset.activeColor, backgroundColor: `${preset.activeColor}08` } : undefined}
-                          >
-                            <span className="mb-3 block">{preset.icon}</span>
-                            <span
-                              className={cn(
-                                "text-xs font-semibold mb-1 transition-colors",
-                                isSelected ? "" : "text-zinc-300 group-hover:text-zinc-200"
-                              )}
-                              style={isSelected ? { color: preset.activeColor } : undefined}
-                            >
-                              {preset.title}
-                            </span>
-                            <span className="text-[11px] leading-relaxed text-zinc-500 font-sans">
-                              {preset.description}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <button
-                      onClick={nextStep}
-                      className="px-6 py-2.5 text-zinc-950 text-sm font-semibold rounded-lg flex items-center gap-2 transition-all cursor-pointer active:scale-[0.98] shadow-sm"
-                      style={{
-                        backgroundColor: STYLE_PRESETS.find(p => p.id === selectedStyle)?.activeColor || '#BDE0FE'
-                      }}
-                    >
-                      Create Workspace
-                      <ArrowRight size={14} weight="bold" />
-                    </button>
-                  </motion.div>
-
-                  {/* Seeding Customizer: Outside of style options div, horizontal single rows, all visible */}
-                  <div className="w-full max-w-2xl flex flex-col space-y-3 pt-5 border-t border-zinc-900/40 mt-6 mx-auto">
-                    {/* Tags Row */}
-                    <div className="flex flex-row items-center gap-4 py-1.5">
-                      <span
-                        className="text-xs font-bold font-mono tracking-wider w-16 shrink-0 transition-colors text-left"
-                        style={{ color: STYLE_PRESETS.find(p => p.id === selectedStyle)?.activeColor || '#BDE0FE' }}
-                      >
-                        TAGS
-                      </span>
-                      <div className="flex flex-row flex-wrap gap-1.5 flex-1 items-center">
-                        {activeTags.length === 0 ? (
-                          <span className="text-[11px] text-zinc-600 italic">No tags will be created</span>
-                        ) : (
-                          activeTags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="inline-flex items-center gap-1.5 text-[11px] font-mono bg-zinc-950/60 border border-zinc-900 text-zinc-400 hover:text-zinc-300 hover:border-zinc-800 py-1 px-3 rounded-full transition-all whitespace-nowrap"
-                            >
-                              #{tag}
-                              <button
-                                onClick={() => handleRemoveTag(tag)}
-                                className="text-zinc-600 hover:text-red-400 p-0.5 transition-colors cursor-pointer flex items-center justify-center"
-                              >
-                                <X size={9} weight="bold" />
-                              </button>
-                            </span>
-                          ))
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Pages Row */}
-                    <div className="flex flex-row items-center gap-4 py-1.5 pt-2.5 border-t border-zinc-900/10">
-                      <span
-                        className="text-xs font-bold font-mono tracking-wider w-16 shrink-0 transition-colors text-left"
-                        style={{ color: STYLE_PRESETS.find(p => p.id === selectedStyle)?.activeColor || '#BDE0FE' }}
-                      >
-                        PAGES
-                      </span>
-                      <div className="flex flex-row flex-wrap gap-1.5 flex-1 items-center">
-                        {activePages.length === 0 ? (
-                          <span className="text-[11px] text-zinc-600 italic">No pages will be created</span>
-                        ) : (
-                          activePages.map((page) => (
-                            <span
-                              key={page.id}
-                              className="inline-flex items-center gap-1.5 text-[11px] font-sans bg-zinc-950/60 border border-zinc-900 text-zinc-300 hover:text-zinc-200 hover:border-zinc-800 py-1 px-3 rounded-full transition-all whitespace-nowrap"
-                              title={page.title}
-                            >
-                              <FileText size={11} className="text-zinc-500 flex-shrink-0" />
-                              <span>{page.title}</span>
-                              <button
-                                onClick={() => handleRemovePage(page.id)}
-                                className="text-zinc-600 hover:text-red-400 p-0.5 transition-colors cursor-pointer flex items-center justify-center"
-                              >
-                                <X size={9} weight="bold" />
-                              </button>
-                            </span>
-                          ))
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Reset Button */}
-                    {(activeTags.length < 5 || activePages.length < 5) && (
-                      <div className="pt-2 text-center">
-                        <button
-                          onClick={resetSeedingDefaults}
-                          className="text-[10px] font-bold text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer uppercase tracking-wider underline active:scale-95"
-                        >
-                          Reset Seeding Defaults
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {/* Step 4: Loading / Setup State */}
-              {step === 4 && (
-                <motion.div
-                  key="step4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="w-full max-w-sm flex flex-col items-center space-y-6 text-center"
-                >
-                  <div
-                    className="w-12 h-12 flex items-center justify-center rounded-full bg-zinc-950/80 border relative transition-colors duration-300"
-                    style={{ borderColor: creationComplete ? '#B5EAD7' : (STYLE_PRESETS.find(p => p.id === selectedStyle)?.activeColor || '#BDE0FE') }}
-                  >
-                    <AnimatePresence mode="wait">
-                      {!creationComplete ? (
-                        <motion.div
-                          key="loading-spinner"
-                          initial={{ opacity: 0, rotate: 0 }}
-                          animate={{ opacity: 1, rotate: 360 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ rotate: { repeat: Infinity, duration: 1.2, ease: "linear" } }}
-                          style={{ color: STYLE_PRESETS.find(p => p.id === selectedStyle)?.activeColor || '#BDE0FE' }}
-                        >
-                          <CircleNotch size={20} className="animate-spin" />
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key="check-icon"
-                          initial={{ scale: 0.5, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          className="text-[#B5EAD7]"
-                        >
-                          <Check size={20} weight="bold" />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  <div className="space-y-1">
-                    <span className="text-sm font-medium text-zinc-300">
-                      {!creationComplete ? 'Setting up your workspace…' : 'Workspace ready'}
-                    </span>
-                    <p className="text-[10px] text-zinc-500 font-mono">
-                      Generating templates & configuring stores...
-                    </p>
-                  </div>
-
-                  <div className="w-48 h-1 bg-zinc-950 rounded-full overflow-hidden border border-zinc-900">
-                    <motion.div
-                      className="h-full bg-[#BDE0FE]"
-                      initial={{ width: '0%' }}
-                      animate={{ width: `${creationProgress}%` }}
-                      transition={{ ease: 'easeOut' }}
-                      style={{
-                        background: `linear-gradient(to right, ${STYLE_PRESETS.find(p => p.id === selectedStyle)?.activeColor || '#BDE0FE'}, #B5EAD7)`
-                      }}
-                    />
-                  </div>
-                </motion.div>
-              )}
+                {step === 1 && (
+                  <LoginStep
+                    selectedLoginIndex={selectedLoginIndex}
+                    setSelectedLoginIndex={setSelectedLoginIndex}
+                    nextStep={nextStep}
+                  />
+                )}
+                {step === 2 && (
+                  <NameStep
+                    nameInputRef={nameInputRef}
+                    workspaceName={workspaceName}
+                    setWorkspaceName={setWorkspaceName}
+                    nextStep={nextStep}
+                  />
+                )}
+                {step === 3 && (
+                  <StyleStep
+                    selectedStyle={selectedStyle}
+                    setSelectedStyle={setSelectedStyle}
+                    nextStep={nextStep}
+                    activeTags={activeTags}
+                    handleRemoveTag={handleRemoveTag}
+                    activePages={activePages}
+                    handleRemovePage={handleRemovePage}
+                    resetSeedingDefaults={resetSeedingDefaults}
+                  />
+                )}
+                {step === 4 && (
+                  <SeedingStep
+                    creationComplete={creationComplete}
+                    creationProgress={creationProgress}
+                    selectedStyle={selectedStyle}
+                  />
+                )}
               </div>
             </div>
 
-            {/* RIGHT SIDE (40%): Floating Graffiti Background + welcome to notemple story */}
-            <div className="hidden md:flex w-[40%] h-full overflow-hidden border-l border-zinc-900 flex-col justify-between p-12 text-left bg-zinc-950 relative z-10">
-              <div className="graffiti-backdrop" />
-              <div className="graffiti-ambient-overlay" />
-
-              <div className="relative z-10 flex flex-col h-full justify-between text-left">
-                {/* Brand title: split-line templ + note at the top taking full width */}
-                <div className="w-full pt-4">
-                  <h1 className="text-[16vw] md:text-[6.5vw] font-black leading-[0.8] tracking-tighter bg-gradient-to-br from-[#BDE0FE] via-[#FFC8DD] to-[#B5EAD7] bg-clip-text text-transparent font-sans lowercase select-none">
-                    templ<br />
-                    note
-                  </h1>
-                  <h2 className="text-[10px] font-semibold tracking-[0.25em] text-zinc-500 uppercase font-mono mt-4">
-                    AI-Enhanced Minimal Workspace
-                  </h2>
-                </div>
-
-                {/* Narrative step texts: positioned bottom-left */}
-                <div className="mt-auto mb-6 max-w-sm mr-auto text-left w-full">
-                  <AnimatePresence mode="wait">
-                    {step === 1 && (
-                      <motion.div
-                        key="story-1"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        className="space-y-2.5 flex flex-col items-start"
-                      >
-                        <h3 className="text-xl md:text-2xl font-bold tracking-tight text-[#FFB7B2]">Welcome</h3>
-                        <p className="text-sm md:text-base leading-relaxed text-zinc-400 font-sans max-w-[280px] md:max-w-xs">
-                          Templnote is designed to be a friction-free environment for your notes, focus, and tasks. A place to write, plan, and think without clutter.
-                        </p>
-                      </motion.div>
-                    )}
-                    {step === 2 && (
-                      <motion.div
-                        key="story-2"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        className="space-y-2.5 flex flex-col items-start"
-                      >
-                        <h3 className="text-xl md:text-2xl font-bold tracking-tight text-[#BDE0FE]">Our Story</h3>
-                        <p className="text-sm md:text-base leading-relaxed text-zinc-400 font-sans max-w-[280px] md:max-w-xs">
-                          Templnote was built from a simple realization: modern productivity tools have too many boxes and templates. We wanted a place that feels like a clean physical notebook, but runs on an intelligent local-first sync engine.
-                        </p>
-                      </motion.div>
-                    )}
-                    {step === 3 && (
-                      <motion.div
-                        key="story-3"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        className="space-y-2.5 flex flex-col items-start"
-                      >
-                        <h3 className="text-xl md:text-2xl font-bold tracking-tight text-[#B5EAD7]">How It's Better</h3>
-                        <p className="text-sm md:text-base leading-relaxed text-zinc-400 font-sans max-w-[280px] md:max-w-xs">
-                          By aligning folders, default templates, and daily notes with your selected workspace style, Templnote adapts to you from the start. No complex configurations, no empty space. Just write.
-                        </p>
-                      </motion.div>
-                    )}
-                    {step === 4 && (
-                      <motion.div
-                        key="story-4"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        className="space-y-2.5 flex flex-col items-start"
-                      >
-                        <h3 className="text-xl md:text-2xl font-bold tracking-tight text-[#FFDAC1]">Workspace Seeding</h3>
-                        <p className="text-sm md:text-base leading-relaxed text-zinc-400 font-sans max-w-[280px] md:max-w-xs">
-                          We are seeding your database with folders and daily note templates tailored to your profile. This will take only a second.
-                        </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                {/* Footer copyright */}
-                <div className="text-[9px] text-zinc-600 font-mono tracking-wider text-left w-full">
-                  © 2026 Templnote Inc.
-                </div>
-              </div>
-            </div>
-
+            {/* RIGHT SIDE (40%): Floating Graffiti Background + welcome story */}
+            <StoryPanel step={step} />
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Step 5: Final Done Screen */}
       {step === 5 && (
-        <motion.div
-          key="step5"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className={pageContainerClass}
-          style={{
-            background: 'radial-gradient(circle at center, rgba(189, 224, 254, 0.04) 0%, #050505 85%)'
-          }}
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-sm flex flex-col items-center text-center space-y-8 relative z-10"
-          >
-            <div className="relative w-16 h-16 flex items-center justify-center rounded-full bg-zinc-950 border border-[#B5EAD7]/30 shadow-md">
-              <div className="absolute inset-0 rounded-full bg-[#B5EAD7]/5 animate-pulse" />
-              <Check className="text-[#B5EAD7] relative z-10" size={24} weight="bold" />
-            </div>
-
-            <div className="space-y-2">
-              <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">
-                You’re all set.
-              </h1>
-              <p className="text-xs text-zinc-400 max-w-xs mx-auto font-sans">
-                Welcome to your new intelligent space. Let's start thinking together.
-              </p>
-            </div>
-
-            <button
-              onClick={handleFinishOnboarding}
-              className="w-full max-w-xs py-2.5 px-4 bg-[#B5EAD7] hover:bg-[#a3d8c4] text-zinc-950 text-sm font-semibold rounded-lg shadow-sm hover:shadow-green-500/10 active:scale-[0.99] transition-all cursor-pointer"
-            >
-              Open Workspace
-            </button>
-          </motion.div>
-        </motion.div>
+        <DoneStep handleFinishOnboarding={handleFinishOnboarding} />
       )}
 
       {step > 1 && step !== 4 && step !== 5 && (
         <button
           onClick={handleBack}
-          className="absolute top-8 left-8 flex items-center gap-2 text-xs font-semibold text-zinc-500 hover:text-[#BDE0FE] transition-colors cursor-pointer group z-[99999] pointer-events-auto"
+          className="absolute top-8 left-8 flex items-center gap-2 text-xs font-semibold text-zinc-500 hover:text-[#BDE0FE] transition-colors cursor-pointer group z-[99999] pointer-events-auto bg-transparent border-none"
         >
           <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-0.5" />
           Back

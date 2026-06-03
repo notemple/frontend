@@ -278,6 +278,13 @@ export const CommandPalette = () => {
     return () => document.removeEventListener('keydown', down);
   }, [isOpen]);
 
+  // Allow the tutorial to imperatively close the palette
+  useEffect(() => {
+    const close = () => setIsOpen(false);
+    window.addEventListener('tutorial:close-palette', close);
+    return () => window.removeEventListener('tutorial:close-palette', close);
+  }, []);
+
   useEffect(() => {
     if (!isOpen) {
       setQuery('');

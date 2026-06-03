@@ -157,6 +157,9 @@ export const SpotlightTutorial = () => {
 
   const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
 
+  // Dispatch a custom event to imperatively close the command palette
+  const closePalette = () => window.dispatchEvent(new Event('tutorial:close-palette'));
+
   // Interactive step sub-states
   const [splitPhase, setSplitPhase] = useState<SplitPhase>('wait-split');
   const [searchPhase, setSearchPhase] = useState<SearchPhase>('wait-open');
@@ -176,6 +179,29 @@ export const SpotlightTutorial = () => {
     if (step.page) useUiStore.getState().openDocument(step.page);
     useUiStore.setState({ isSidebarOpen: step.sidebarOpen });
   }, [tutorialIndex, isTutorialActive]);
+
+  // ── Settings page scroll: top for color presets (step 8), bottom for autohide (step 9)
+  useEffect(() => {
+    if (!isTutorialActive) return;
+    const scroller = document.getElementById('settings-scroll-container');
+    if (!scroller) return;
+
+    if (tutorialIndex === 8) {
+      // Scroll to top so color presets card is visible
+      const t = setTimeout(() => scroller.scrollTo({ top: 0, behavior: 'smooth' }), 450);
+      return () => clearTimeout(t);
+    }
+
+    if (tutorialIndex === 9) {
+      // Scroll the autohide toggle section into center view
+      const t = setTimeout(() => {
+        const target = document.getElementById('onboarding-autohide-toggle');
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 450);
+      return () => clearTimeout(t);
+    }
+  }, [tutorialIndex, isTutorialActive]);
+
 
   // ── Step 3: watch pane count → drive split/quit sequence
   useEffect(() => {
@@ -218,12 +244,20 @@ export const SpotlightTutorial = () => {
     }
   }, [arrowCount, searchPhase, tutorialIndex]);
 
-  // ── Step 4: auto-advance to step 5 once search sequence is done
+  // ── Step 4: auto-advance to step 5 once search sequence is done (close palette first)
   useEffect(() => {
     if (!isTutorialActive || tutorialIndex !== 4 || searchPhase !== 'done') return;
-    const t = setTimeout(() => setTutorialIndex(5), 900);
+    const t = setTimeout(() => {
+      closePalette();
+      setTutorialIndex(5);
+    }, 900);
     return () => clearTimeout(t);
   }, [searchPhase, tutorialIndex, isTutorialActive, setTutorialIndex]);
+
+  // ── Close command palette whenever tutorial becomes inactive (prevents blurry frozen UI)
+  useEffect(() => {
+    if (!isTutorialActive) closePalette();
+  }, [isTutorialActive]);
 
   // ── Restore focus on unmount
   useEffect(() => {

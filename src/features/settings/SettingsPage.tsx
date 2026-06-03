@@ -113,7 +113,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
   const isInactivePreset = gradientPresets.some(g => g.value === inactiveHighlightGradient) || inactiveHighlightGradient === 'none';
 
   return (
-    <div className="h-full w-full overflow-y-auto p-6 md:p-10 font-sans flex flex-col bg-transparent no-scrollbar select-none relative z-0">
+    <div id="settings-scroll-container" className="h-full w-full overflow-y-auto p-6 md:p-10 font-sans flex flex-col bg-transparent no-scrollbar select-none relative z-0">
       <div className="w-full max-w-2xl mx-auto flex flex-col gap-8">
         
         {/* Sleek Page Header */}

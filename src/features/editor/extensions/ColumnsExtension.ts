@@ -1,7 +1,7 @@
-import { Node } from '@tiptap/core';
 import type { Command } from '@tiptap/core';
-import { ReactNodeViewRenderer } from '@tiptap/react';
+import { Node } from '@tiptap/core';
 import { TextSelection } from '@tiptap/pm/state';
+import { ReactNodeViewRenderer } from '@tiptap/react';
 import { ColumnsView } from '../components/ColumnsView';
 
 declare module '@tiptap/core' {

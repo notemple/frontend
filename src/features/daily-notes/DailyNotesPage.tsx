@@ -1,47 +1,42 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import {
-  CaretLeft,
-  CaretRight,
-  CalendarBlank,
-  ArrowsOutSimple,
-  DotsThree,
-  Tag,
-  CaretDown,
-  FileText,
-  CaretUp,
-  Trash,
-  ArrowCircleRight,
-  X,
-  ArrowsInSimple,
-} from "@phosphor-icons/react";
-import { cn } from "@/shared/lib/utils";
 import { useDocumentStore } from "@/features/documents/store";
-import { useUiStore } from "@/shared/store/uiStore";
-import { useTaskStore } from "@/features/tasks/store";
 import { TemplnoteEditor } from "@/features/editor/TemplnoteEditor";
-import { motion, AnimatePresence } from "motion/react";
-import { gsap } from "gsap";
 import { useSettingsStore } from "@/features/settings/store";
-import { formatInTimeZone, toDate } from "date-fns-tz";
 import { TaskEditorModal } from "@/features/tasks/components/TaskEditorModal";
+import { useTaskStore } from "@/features/tasks/store";
 import {
-  getCalendarDays,
-  formatDisplayDate,
-  isSameDayInTimezone,
-  isSameMonthInTimezone,
-  isSameDayString,
-  getZonedYear,
-  getZonedMonth,
-  getZonedDate,
-  setZonedYear,
-  setZonedMonth,
-  changeZonedMonth,
-  addDaysInTimezone,
-  getMonthDateInTimezone,
+	addDaysInTimezone,
+	changeZonedMonth,
+	formatDisplayDate,
+	getCalendarDays,
+	getMonthDateInTimezone,
+	getZonedDate,
+	getZonedMonth,
+	getZonedYear,
+	isSameDayInTimezone,
+	isSameDayString,
+	isSameMonthInTimezone,
+	setZonedMonth,
+	setZonedYear,
 } from "@/shared/lib/time";
+import { cn } from "@/shared/lib/utils";
+import { useUiStore } from "@/shared/store/uiStore";
+import {
+	ArrowCircleRight,
+	ArrowsOutSimple,
+	CalendarBlank,
+	CaretDown,
+	CaretLeft,
+	CaretRight,
+	CaretUp,
+	DotsThree,
+	Trash
+} from "@phosphor-icons/react";
+import { formatInTimeZone,toDate } from "date-fns-tz";
+import { gsap } from "gsap";
+import { AnimatePresence,motion } from "motion/react";
+import { useEffect,useMemo,useRef,useState } from "react";
 import { useShallow } from 'zustand/react/shallow';
 import { CreatedTodayItem } from "./components/CreatedTodayItem";
-import { MonthViewItem } from "./components/MonthViewItem";
 import { MonthViewPane } from "./components/MonthViewPane";
 import { WeekViewItem } from "./components/WeekViewItem";
 

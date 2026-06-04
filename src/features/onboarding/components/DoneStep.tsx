@@ -1,6 +1,6 @@
-import React from 'react';
-import { motion } from 'motion/react';
 import { Check } from '@phosphor-icons/react';
+import { motion } from 'motion/react';
+import React from 'react';
 
 interface DoneStepProps {
   handleFinishOnboarding: () => void;

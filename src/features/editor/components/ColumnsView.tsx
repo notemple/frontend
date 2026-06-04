@@ -1,7 +1,7 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { Columns,Plus,Trash } from '@phosphor-icons/react';
+import { NodeViewContent,NodeViewWrapper,type NodeViewProps } from '@tiptap/react';
+import React,{ useCallback,useEffect,useRef,useState } from 'react';
 import { createPortal } from 'react-dom';
-import { NodeViewWrapper, NodeViewContent, type NodeViewProps } from '@tiptap/react';
-import { Plus, Trash, Columns } from '@phosphor-icons/react';
 
 export const ColumnsView = ({ node, editor, getPos }: NodeViewProps) => {
   const containerRef = useRef<HTMLDivElement>(null);

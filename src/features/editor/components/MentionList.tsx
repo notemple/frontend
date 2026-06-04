@@ -1,18 +1,15 @@
-import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle, useMemo } from 'react';
 import { useDocumentStore } from '@/features/documents/store';
-import { useUiStore } from '@/shared/store/uiStore';
-import { useShallow } from 'zustand/react/shallow';
 import { useTaskStore } from '@/features/tasks/store';
-import { 
-  FileText, 
-  Calendar, 
-  CheckSquare, 
-  Square,
-  Tag as TagIcon, 
-  User, 
-  PlusCircle 
+import {
+	Calendar,
+	CheckSquare,
+	FileText,
+	PlusCircle,
+	Square,
+	Tag as TagIcon
 } from '@phosphor-icons/react';
-import { format, addDays } from 'date-fns';
+import { addDays,format } from 'date-fns';
+import React,{ forwardRef,useEffect,useImperativeHandle,useMemo,useRef,useState } from 'react';
 
 interface MentionListProps {
   query: string;

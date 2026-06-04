@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Sidebar } from './sidebar/Sidebar';
+import { SpotlightTutorial } from '@/features/onboarding/components/SpotlightTutorial';
+import { useSettingsStore } from '@/features/settings/store';
+import { TaskEditorModal } from "@/features/tasks/components/TaskEditorModal";
+import { useUiStore } from '@/shared/store/uiStore';
+import { CommandPalette } from "@/shared/ui/CommandPalette";
+import { useEffect,useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { MainWorkspace } from './MainWorkspace';
 import { RightSidebar } from './right-sidebar/RightSidebar';
-import { CommandPalette } from "@/shared/ui/CommandPalette";
-import { useUiStore } from '@/shared/store/uiStore';
-import { useShallow } from 'zustand/react/shallow';
-import { TaskEditorModal } from "@/features/tasks/components/TaskEditorModal";
-import { useSettingsStore } from '@/features/settings/store';
-import { SpotlightTutorial } from '@/features/onboarding/components/SpotlightTutorial';
+import { Sidebar } from './sidebar/Sidebar';
 
 export const RootLayout = () => {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);

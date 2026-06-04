@@ -1,22 +1,21 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { NodeViewWrapper, NodeViewContent } from '@tiptap/react';
-import type { NodeViewProps } from '@tiptap/react';
-import { useTableSelection } from './useTableSelection';
-import { CellContextMenu } from './CellContextMenu';
-import { 
-  ArrowDown, 
-  ArrowRight, 
-  GridNine,
-  Plus,
-  DotsThree,
-  Copy,
-  Trash,
-  ArrowsOutSimple
-} from '@phosphor-icons/react';
 import { cn } from '@/shared/lib/utils';
-import { toggleTableWidth } from './table-utils';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import {
+	ArrowDown,
+	ArrowRight,
+	ArrowsOutSimple,
+	Copy,
+	DotsThree,
+	GridNine,
+	Trash
+} from '@phosphor-icons/react';
 import * as ContextMenu from '@radix-ui/react-context-menu';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import type { NodeViewProps } from '@tiptap/react';
+import { NodeViewContent,NodeViewWrapper } from '@tiptap/react';
+import React,{ useEffect,useRef,useState } from 'react';
+import { CellContextMenu } from './CellContextMenu';
+import { toggleTableWidth } from './table-utils';
+import { useTableSelection } from './useTableSelection';
 
 export const TableView: React.FC<NodeViewProps> = ({ 
   editor, 

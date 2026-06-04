@@ -1,22 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";
-import {
-  CalendarBlank,
-  CheckSquare,
-  FileText,
-  Lightning,
-  Microphone,
-  ArrowUp,
-  CaretDown,
-  Check,
-  Sparkle,
-} from "@phosphor-icons/react";
-import { motion, AnimatePresence } from "motion/react";
 import { useDocumentStore } from "@/features/documents/store";
-import { useTaskStore } from "@/features/tasks/store";
-import { useUiStore } from "@/shared/store/uiStore";
 import { useSettingsStore } from "@/features/settings/store";
+import { useTaskStore } from "@/features/tasks/store";
 import { cn } from "@/shared/lib/utils";
+import { useUiStore } from "@/shared/store/uiStore";
+import {
+	ArrowUp,
+	CalendarBlank,
+	CaretDown,
+	Check,
+	CheckSquare,
+	FileText,
+	Lightning,
+	Microphone
+} from "@phosphor-icons/react";
 import { formatInTimeZone } from "date-fns-tz";
+import { AnimatePresence,motion } from "motion/react";
+import React,{ useEffect,useRef,useState } from "react";
 
 const getCaptureIcon = (type: string, activeColor?: string) => {
   switch (type) {

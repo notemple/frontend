@@ -1,6 +1,6 @@
-import { create } from 'zustand';
 import { taskService } from '@/services/task.service';
 import type { Task } from '@/storage/core/types';
+import { create } from 'zustand';
 export type { Task } from '@/storage/core/types';
 
 interface TaskStore {

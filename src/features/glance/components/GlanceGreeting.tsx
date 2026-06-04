@@ -1,4 +1,3 @@
-import React from "react";
 import { useSettingsStore } from "@/features/settings/store";
 import { formatInTimeZone } from "date-fns-tz";
 

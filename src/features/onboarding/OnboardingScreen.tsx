@@ -1,21 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft } from '@phosphor-icons/react';
-import { useSettingsStore } from '@/features/settings/store';
-import { useUiStore } from '@/shared/store/uiStore';
 import { useDocumentStore } from '@/features/documents/store';
+import { useSettingsStore } from '@/features/settings/store';
 import { useTaskStore } from '@/features/tasks/store';
 import { documentService } from '@/services/document.service';
 import { taskService } from '@/services/task.service';
 import { cn } from '@/shared/lib/utils';
+import { useUiStore } from '@/shared/store/uiStore';
+import { ArrowLeft } from '@phosphor-icons/react';
+import { AnimatePresence,motion } from 'motion/react';
+import React,{ useEffect,useRef,useState } from 'react';
 
 import { LoginStep } from './components/LoginStep';
 import { NameStep } from './components/NameStep';
-import { StyleStep, STYLE_PRESETS } from './components/StyleStep';
-import type { PresetStyle } from './components/StyleStep';
 import { SeedingStep } from './components/SeedingStep';
-import { DoneStep } from './components/DoneStep';
 import { StoryPanel } from './components/StoryPanel';
+import type { PresetStyle } from './components/StyleStep';
+import { STYLE_PRESETS,StyleStep } from './components/StyleStep';
 
 export const OnboardingScreen = () => {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);

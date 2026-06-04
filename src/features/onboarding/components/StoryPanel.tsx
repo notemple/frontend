@@ -1,5 +1,5 @@
+import { AnimatePresence,motion } from 'motion/react';
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 
 interface StoryPanelProps {
   step: number;

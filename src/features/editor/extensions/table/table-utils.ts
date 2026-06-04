@@ -1,6 +1,5 @@
 import { Editor } from '@tiptap/core';
-import { Selection, Transaction } from '@tiptap/pm/state';
-import { CellSelection, TableMap } from 'prosemirror-tables';
+import { CellSelection,TableMap } from 'prosemirror-tables';
 
 /**
  * Reset all column sizes inside a table to be equal or fit-contents

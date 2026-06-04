@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
-import { NodeViewWrapper } from '@tiptap/react';
 import { useDocumentStore } from '@/features/documents/store';
-import { useUiStore } from '@/shared/store/uiStore';
 import { useTaskStore } from '@/features/tasks/store';
-import { 
-  FileText, 
-  Calendar, 
-  CheckSquare, 
-  Square, 
-  Tag as TagIcon, 
-  User, 
-  Clock,
-  ArrowSquareOut
-} from '@phosphor-icons/react';
-import { cn } from '@/shared/lib/utils';
 import { formatDisplayDate } from '@/shared/lib/time';
+import { cn } from '@/shared/lib/utils';
+import { useUiStore } from '@/shared/store/uiStore';
+import {
+	ArrowSquareOut,
+	Calendar,
+	CheckSquare,
+	Clock,
+	FileText,
+	Square,
+	Tag as TagIcon,
+	User
+} from '@phosphor-icons/react';
+import { NodeViewWrapper } from '@tiptap/react';
+import React,{ useState } from 'react';
 
 export const ReferenceNodeView = ({ node, updateAttributes }: any) => {
   const { id, label, type, status, dueDate, dateStr } = node.attrs;

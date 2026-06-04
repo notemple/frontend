@@ -1,16 +1,16 @@
-import React, { useMemo } from "react";
-import {
-  CalendarBlank,
-  CheckSquare,
-  FileText,
-  Lightning,
-  Sparkle,
-  Trash,
-} from "@phosphor-icons/react";
 import { useDocumentStore } from "@/features/documents/store";
 import { useTaskStore } from "@/features/tasks/store";
-import { useUiStore } from "@/shared/store/uiStore";
 import { getRelativeTimeString } from "@/shared/lib/time";
+import { useUiStore } from "@/shared/store/uiStore";
+import {
+	CalendarBlank,
+	CheckSquare,
+	FileText,
+	Lightning,
+	Sparkle,
+	Trash,
+} from "@phosphor-icons/react";
+import { useMemo } from "react";
 
 const getCaptureIcon = (type: string) => {
   switch (type) {

@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { NodeViewWrapper } from '@tiptap/react';
-import { CaretDown, Check, Sparkle, ArrowElbowDownLeft, X } from '@phosphor-icons/react';
-import { motion, AnimatePresence } from 'motion/react';
-import { cn } from '@/shared/lib/utils';
-import { aiService } from '@/services/ai.service';
 import { useSettingsStore } from '@/features/settings/store';
+import { aiService } from '@/services/ai.service';
+import { cn } from '@/shared/lib/utils';
 import { useUiStore } from '@/shared/store/uiStore';
+import { ArrowElbowDownLeft,CaretDown,Check,X } from '@phosphor-icons/react';
+import { NodeViewWrapper } from '@tiptap/react';
+import { AnimatePresence,motion } from 'motion/react';
+import React,{ useEffect,useRef,useState } from 'react';
 
 const MODEL_GROUPS = [
   {

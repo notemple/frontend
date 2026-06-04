@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { TaskTitleInput } from "./TaskTitleInput";
-import { X, CaretDown, Check, Circle, Clock, CheckCircle, CalendarBlank, Flag } from "@phosphor-icons/react";
-import { motion, AnimatePresence } from "motion/react";
 import { TemplnoteEditor } from "@/features/editor/TemplnoteEditor";
 import { useTaskStore } from "@/features/tasks/store";
-import { useShallow } from 'zustand/react/shallow';
 import { cn } from "@/shared/lib/utils";
+import { CalendarBlank,CaretDown,Check,CheckCircle,Circle,Clock,Flag,X } from "@phosphor-icons/react";
+import { AnimatePresence,motion } from "motion/react";
+import { useEffect,useState } from "react";
+import { useShallow } from 'zustand/react/shallow';
 import { CustomDatePicker } from "./CustomDatePicker";
 import { CustomPriorityPicker } from "./CustomPriorityPicker";
+import { TaskTitleInput } from "./TaskTitleInput";
 
 export const TaskEditorModal = ({
   taskId,

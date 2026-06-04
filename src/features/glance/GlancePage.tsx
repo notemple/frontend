@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
-import { FocusTimeline } from "./components/FocusTimeline";
-import { RecentDocuments } from "./components/RecentDocuments";
-import { RecentCapturesList } from "./components/RecentCapturesList";
-import { GlanceGreeting } from "./components/GlanceGreeting";
-import { QuickCaptureBox } from "./components/QuickCaptureBox";
+import React,{ useEffect,useRef,useState } from "react";
 import { DailyActivitySummary } from "./components/DailyActivitySummary";
+import { FocusTimeline } from "./components/FocusTimeline";
+import { GlanceGreeting } from "./components/GlanceGreeting";
 import { GlanceTasksSection } from "./components/GlanceTasksSection";
+import { QuickCaptureBox } from "./components/QuickCaptureBox";
+import { RecentCapturesList } from "./components/RecentCapturesList";
+import { RecentDocuments } from "./components/RecentDocuments";
 
 export const GlancePage = ({ paneId }: { paneId: string }) => {
   const containerRef = useRef<HTMLDivElement>(null);

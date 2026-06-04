@@ -1,5 +1,5 @@
+import { Check,Plus } from '@phosphor-icons/react';
 import React from 'react';
-import { Check, Plus } from '@phosphor-icons/react';
 import { TAG_COLOR_PRESETS } from '../constants/colors';
 
 interface ColorPickerProps {

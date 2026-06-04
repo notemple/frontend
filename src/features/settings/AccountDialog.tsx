@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { X, Eye, EyeSlash } from '@phosphor-icons/react';
-import { motion, AnimatePresence } from 'motion/react';
 import { useSettingsStore } from '@/features/settings/store';
+import { Eye,EyeSlash,X } from '@phosphor-icons/react';
+import { AnimatePresence,motion } from 'motion/react';
+import { useState } from 'react';
 
 export const AccountDialog = ({
   isOpen,

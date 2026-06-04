@@ -1,20 +1,18 @@
-import React, { useState } from 'react';
 import { useDocumentStore } from '@/features/documents/store';
 import { useTaskStore } from '@/features/tasks/store';
-import { useUiStore } from '@/shared/store/uiStore';
 import { formatDisplayDate } from '@/shared/lib/time';
 import { cn } from '@/shared/lib/utils';
-import { useShallow } from 'zustand/react/shallow';
+import { useUiStore } from '@/shared/store/uiStore';
 import {
-  Trash,
-  ArrowCounterClockwise,
-  FileText,
-  Folder as FolderIcon,
-  CheckSquare,
-  Warning,
-  Sparkle,
-  ArrowLeft
+	ArrowCounterClockwise,
+	CheckSquare,
+	FileText,
+	Folder as FolderIcon,
+	Trash,
+	Warning
 } from '@phosphor-icons/react';
+import React,{ useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
 type TrashTab = 'all' | 'documents' | 'folders' | 'tasks';
 

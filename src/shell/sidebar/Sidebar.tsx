@@ -1,38 +1,37 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { gsap } from 'gsap';
-import { useUiStore } from '@/shared/store/uiStore';
 import { useDocumentStore } from '@/features/documents/store';
+import { cn,getFolderActiveHexColor,getFolderHexColor } from '@/shared/lib/utils';
+import { useUiStore } from '@/shared/store/uiStore';
+import { gsap } from 'gsap';
+import { motion } from 'motion/react';
+import React,{ useEffect,useRef,useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { cn, getFolderHexColor, getFolderActiveHexColor } from '@/shared/lib/utils';
 
-import { DeleteFolderDialog } from './DeleteFolderDialog';
+import { useSettingsStore } from '@/features/settings/store';
 import { ColorPicker } from '@/shared/ui/ColorPicker';
 import {
-  MagnifyingGlass,
-  CalendarBlank,
-  FileText,
-  Book,
-  User,
-  Plus,
-  Gear,
-  Trash,
-  Star,
-  Sparkle,
-  CaretDown,
-  CaretRight,
-  Folder,
-  CheckSquare,
-  PencilSimple,
-  Tag,
-  Eye,
-  SquaresFour,
-  Question,
-  GraduationCap
+	Book,
+	CalendarBlank,
+	CaretDown,
+	CaretRight,
+	CheckSquare,
+	Eye,
+	FileText,
+	Gear,
+	GraduationCap,
+	MagnifyingGlass,
+	PencilSimple,
+	Plus,
+	Question,
+	Sparkle,
+	SquaresFour,
+	Star,
+	Tag,
+	Trash,
+	User
 } from '@phosphor-icons/react';
-import { SidebarItem } from "./SidebarItem";
+import { DeleteFolderDialog } from './DeleteFolderDialog';
 import { SidebarFolderItem } from "./SidebarFolderItem";
-import { useSettingsStore } from '@/features/settings/store';
+import { SidebarItem } from "./SidebarItem";
 
 // Optimized item for individual documents inside the sidebar list.
 // By using a specific selector with useShallow, it ONLY re-renders if its own title or type changes.

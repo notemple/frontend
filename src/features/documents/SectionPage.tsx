@@ -1,23 +1,22 @@
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { useUiStore } from '@/shared/store/uiStore';
-import { useDocumentStore } from '@/features/documents/store';
-import { useSettingsStore } from '@/features/settings/store';
 import { DailyNotesPage } from '@/features/daily-notes/DailyNotesPage';
-import { TasksPage } from '@/features/tasks/TasksPage';
-import { TagsPage } from '@/features/tags/TagsPage';
-import { TrashPage } from '@/features/trash/TrashPage';
-import { SettingsPage } from '@/features/settings/SettingsPage';
+import { useDocumentStore } from '@/features/documents/store';
 import { GlancePage } from '@/features/glance/GlancePage';
 import { HelpPage } from '@/features/help/HelpPage';
-import { cn, getItemColor, getFolderStyle, getFolderHexColor } from '@/shared/lib/utils';
+import { SettingsPage } from '@/features/settings/SettingsPage';
+import { TagsPage } from '@/features/tags/TagsPage';
+import { TasksPage } from '@/features/tasks/TasksPage';
+import { TrashPage } from '@/features/trash/TrashPage';
 import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
-import { Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, CaretDown, FileText, Folder, Sun, Moon, Monitor, Clock, ArrowLeft, PlusCircle, Check, X, Plus, Trash, TextT } from '@phosphor-icons/react';
-import { useShallow } from 'zustand/react/shallow';
-import { SectionGridItem } from './components/SectionGridItem';
+import { getFolderHexColor } from '@/shared/lib/utils';
+import { useUiStore } from '@/shared/store/uiStore';
 import { ColorPicker } from '@/shared/ui/ColorPicker';
 import { DeleteFolderDialog } from '@/shell/sidebar/DeleteFolderDialog';
+import { ArrowLeft,Check,FileText,Plus,PlusCircle,TextT,Trash,X } from '@phosphor-icons/react';
+import { AnimatePresence,motion } from 'motion/react';
+import React,{ useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
+import { SectionGridItem } from './components/SectionGridItem';
 
 const EMPTY_ARRAY: any[] = [];
 

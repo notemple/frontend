@@ -1,5 +1,5 @@
-import Dexie, { type Table } from "dexie";
-import type { NoteDocument, Folder, Task } from '../core/types';
+import Dexie,{ type Table } from "dexie";
+import type { Folder,NoteDocument,Task } from '../core/types';
 
 export interface MetadataEntry {
   key: string;

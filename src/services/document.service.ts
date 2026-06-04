@@ -1,5 +1,5 @@
 import { storage } from "../storage";
-import type { NoteDocument, Folder } from '../storage/core/types';
+import type { Folder,NoteDocument } from '../storage/core/types';
 
 export const documentService = {
   async getDocument(id: string): Promise<NoteDocument | null> {

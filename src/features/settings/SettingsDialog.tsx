@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import { X } from '@phosphor-icons/react';
-import { motion, AnimatePresence } from 'motion/react';
 import { useSettingsStore } from '@/features/settings/store';
-import { formatDisplayDateTime, useIsMounted } from '@/shared/lib/time';
+import { formatDisplayDateTime,useIsMounted } from '@/shared/lib/time';
 import { cn } from '@/shared/lib/utils';
+import { X } from '@phosphor-icons/react';
+import { AnimatePresence,motion } from 'motion/react';
 
 export const SettingsDialog = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const { 

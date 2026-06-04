@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useDocumentStore } from '@/features/documents/store';
-import { useUiStore } from '@/shared/store/uiStore';
-import { FileText, Folder as FolderIcon } from '@phosphor-icons/react';
 import { cn } from '@/shared/lib/utils';
+import { useUiStore } from '@/shared/store/uiStore';
+import { FileText,Folder as FolderIcon } from '@phosphor-icons/react';
+import React,{ useEffect,useMemo,useRef,useState } from 'react';
 
 export const parseTaskTitle = (title: string, onDocClick: (docId: string, e: React.MouseEvent) => void) => {
   if (!title || !title.trim()) return <span className="text-muted-foreground/40 font-normal italic">Untitled Task</span>;

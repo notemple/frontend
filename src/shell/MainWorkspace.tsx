@@ -1,32 +1,41 @@
-import React, { useCallback } from 'react';
-import { useUiStore } from '@/shared/store/uiStore';
-import { useDocumentStore } from '@/features/documents/store';
-import { useShallow } from 'zustand/react/shallow';
-import { TabBar } from './TabBar';
-import { TemplnoteEditor } from '@/features/editor/TemplnoteEditor';
-import { DailyNotesPage } from '@/features/daily-notes/DailyNotesPage';
-import { TasksPage } from '@/features/tasks/TasksPage';
-import { TagsPage } from '@/features/tags/TagsPage';
-import { cn, getItemColor, getFolderStyle, getFolderHexColor, } from '@/shared/lib/utils';
-import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
-import { 
-  Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, 
-  CaretDown, FileText, Folder, Sun, Moon, Monitor, Clock, ArrowLeft, PlusCircle, 
-  Check, X, Plus, Trash, Hourglass, Target, Play as MiniPlay, Pause as MiniPause, Stop as MiniStop,
-  MagnifyingGlass
-} from '@phosphor-icons/react';
-import { motion, AnimatePresence } from 'motion/react';
-import { gsap } from 'gsap';
 import { SectionPage } from "@/features/documents/SectionPage";
-import { SectionGridItem } from "@/features/documents/components/SectionGridItem";
 import { EmptyPaneState } from "@/features/documents/components/EmptyPaneState";
+import { SectionGridItem } from "@/features/documents/components/SectionGridItem";
+import { useDocumentStore } from '@/features/documents/store';
+import { TemplnoteEditor } from '@/features/editor/TemplnoteEditor';
+import { AccountDialog } from '@/features/settings/AccountDialog';
 import { useSettingsStore } from '@/features/settings/store';
 import { formatDisplayDateTime } from '@/shared/lib/time';
-import { AccountDialog } from '@/features/settings/AccountDialog';
-import { FocusTimerPopup } from './FocusTimerPopup';
-import { formatInTimeZone } from 'date-fns-tz';
+import { cn } from '@/shared/lib/utils';
 import { useFocusTimerStore } from '@/shared/store/focusTimerStore';
 import { useTaskTimerStore } from '@/shared/store/taskTimerStore';
+import { useUiStore } from '@/shared/store/uiStore';
+import {
+	Bell,
+	CaretDown,
+	Clock,
+	ClockCounterClockwise,
+	Hourglass,
+	Layout,
+	MagnifyingGlass,
+	Pause as MiniPause,
+	Play as MiniPlay,
+	Stop as MiniStop,
+	Monitor,
+	Moon,
+	PlusCircle,
+	ShareFat,
+	Sidebar as SidebarIcon,
+	Sun,
+	Target
+} from '@phosphor-icons/react';
+import { formatInTimeZone } from 'date-fns-tz';
+import { gsap } from 'gsap';
+import { AnimatePresence,motion } from 'motion/react';
+import React,{ useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
+import { FocusTimerPopup } from './FocusTimerPopup';
+import { TabBar } from './TabBar';
 
 export const ClockWidget = () => {
   const { timezone, timeFormat } = useSettingsStore(

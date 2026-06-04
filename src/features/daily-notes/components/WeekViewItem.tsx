@@ -1,16 +1,10 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { CaretLeft, CaretRight, CalendarBlank, ArrowsOutSimple, DotsThree, Tag, CaretDown, FileText, CaretUp, Trash, ArrowCircleRight, X, ArrowsInSimple } from '@phosphor-icons/react';
-import { cn, getTagStyle } from '@/shared/lib/utils';
 import { useDocumentStore } from '@/features/documents/store';
-import { useUiStore } from '@/shared/store/uiStore';
-import { useTaskStore } from '@/features/tasks/store';
-import { TemplnoteEditor } from '@/features/editor/TemplnoteEditor';
 import { useSettingsStore } from '@/features/settings/store';
-import { TaskEditorModal } from '@/features/tasks/components/TaskEditorModal';
-import { getCalendarDays, formatDisplayDate, isSameDayInTimezone, isSameMonthInTimezone, isSameDayString, getZonedYear, getZonedMonth, getZonedDate, setZonedYear, setZonedMonth, changeZonedMonth, addDaysInTimezone, getMonthDateInTimezone } from '@/shared/lib/time';
-import { formatInTimeZone, toDate } from 'date-fns-tz';
+import { formatDisplayDate,isSameDayInTimezone } from '@/shared/lib/time';
+import { getTagStyle } from '@/shared/lib/utils';
+import { ArrowsOutSimple,DotsThree,FileText,Tag } from '@phosphor-icons/react';
+import { useCallback } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export const WeekViewItem = ({ date, formattedId, setView, setSelectedDate, onOpenFullEditor }: {

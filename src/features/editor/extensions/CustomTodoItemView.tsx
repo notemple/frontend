@@ -1,31 +1,26 @@
-import React, { useRef, useEffect } from 'react';
-import { NodeViewWrapper, NodeViewContent } from '@tiptap/react';
-import type { NodeViewProps } from '@tiptap/react';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import * as ContextMenu from '@radix-ui/react-context-menu';
-import { 
-  Calendar, 
-  Flag, 
-  DotsThree,
-  Check,
-  Trash,
-  Copy,
-  Plus,
-  CalendarBlank,
-  Clock,
-  CircleDashed,
-  CheckCircle,
-  Play,
-  Pause,
-  Stop,
-  CheckSquareOffset
-} from '@phosphor-icons/react';
-import { cn } from '@/shared/lib/utils';
 import { CustomDatePicker } from '@/features/tasks/components/CustomDatePicker';
 import { CustomPriorityPicker } from '@/features/tasks/components/CustomPriorityPicker';
-import { CustomStatusPicker } from '@/features/tasks/TasksPage';
 import { useTaskStore } from '@/features/tasks/store';
+import { CustomStatusPicker } from '@/features/tasks/TasksPage';
+import { cn } from '@/shared/lib/utils';
 import { useTaskTimerStore } from '@/shared/store/taskTimerStore';
+import {
+	CalendarBlank,
+	Check,
+	CheckSquareOffset,
+	Copy,
+	DotsThree,
+	Flag,
+	Pause,
+	Play,
+	Stop,
+	Trash
+} from '@phosphor-icons/react';
+import * as ContextMenu from '@radix-ui/react-context-menu';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import type { NodeViewProps } from '@tiptap/react';
+import { NodeViewContent,NodeViewWrapper } from '@tiptap/react';
+import React,{ useEffect,useRef } from 'react';
 
 const countTaskOccurrences = (editor: any, id: string) => {
   if (!editor || !id) return 0;

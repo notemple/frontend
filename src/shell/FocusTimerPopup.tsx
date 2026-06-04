@@ -1,14 +1,14 @@
-import React, { useEffect, useRef } from 'react';
-import { motion } from 'motion/react';
-import { 
-  Play, 
-  Pause, 
-  ArrowCounterClockwise, 
-  Stop, 
-} from '@phosphor-icons/react';
+import { useTaskStore } from '@/features/tasks/store';
 import { useFocusTimerStore } from '@/shared/store/focusTimerStore';
 import { useTaskTimerStore } from '@/shared/store/taskTimerStore';
-import { useTaskStore } from '@/features/tasks/store';
+import {
+	ArrowCounterClockwise,
+	Pause,
+	Play,
+	Stop,
+} from '@phosphor-icons/react';
+import { motion } from 'motion/react';
+import React,{ useEffect,useRef } from 'react';
 
 type TimerMode = 'stopwatch' | 'timer' | 'pomodoro';
 

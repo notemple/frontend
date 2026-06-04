@@ -1,6 +1,6 @@
-import React from 'react';
 import { cn } from '@/shared/lib/utils';
-import { motion, type HTMLMotionProps } from 'motion/react';
+import { motion,type HTMLMotionProps } from 'motion/react';
+import React from 'react';
 
 interface ButtonProps extends HTMLMotionProps<"button"> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'glass';

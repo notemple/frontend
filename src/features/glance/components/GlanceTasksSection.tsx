@@ -1,10 +1,10 @@
-import React, { useMemo } from "react";
-import { Check } from "@phosphor-icons/react";
-import { useTaskStore } from "@/features/tasks/store";
 import { useSettingsStore } from "@/features/settings/store";
+import { useTaskStore } from "@/features/tasks/store";
+import { isTaskOverdue,isTaskUpcoming } from "@/shared/lib/time";
 import { cn } from "@/shared/lib/utils";
+import { Check } from "@phosphor-icons/react";
 import { formatInTimeZone } from "date-fns-tz";
-import { isTaskOverdue, isTaskUpcoming } from "@/shared/lib/time";
+import { useMemo } from "react";
 
 // Priority → subtle transparent tinted styles
 const PRIORITY_STYLE: Record<string, { card: string; badge: string; check: string }> = {

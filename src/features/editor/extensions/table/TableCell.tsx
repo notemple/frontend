@@ -1,5 +1,4 @@
-import { TableCell as TiptapTableCell } from '@tiptap/extension-table';
-import { TableHeader as TiptapTableHeader } from '@tiptap/extension-table';
+import { TableCell as TiptapTableCell,TableHeader as TiptapTableHeader } from '@tiptap/extension-table';
 
 export const TableCell = TiptapTableCell.extend({
   addAttributes() {

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import { CaretLeft,CaretRight } from '@phosphor-icons/react';
+import React,{ forwardRef,useEffect,useImperativeHandle,useRef,useState } from 'react';
 import type { CommandItem } from './SlashCommand';
-import { CaretRight, CaretLeft } from '@phosphor-icons/react';
 
 interface SlashCommandListProps {
   items: CommandItem[];

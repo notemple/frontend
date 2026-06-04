@@ -1,10 +1,15 @@
-import React from 'react';
-import { useUiStore } from '@/shared/store/uiStore';
 import { useDocumentStore } from '@/features/documents/store';
-import { useShallow } from 'zustand/react/shallow';
-import { 
-  Columns, PlusCircle, X, CalendarBlank, CheckSquare, Tag, Eye, Folder, Gear 
+import { useUiStore } from '@/shared/store/uiStore';
+import {
+	CalendarBlank,CheckSquare,
+	Columns,
+	Eye,Folder,Gear,
+	PlusCircle,
+	Tag,
+	X
 } from '@phosphor-icons/react';
+import React from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
 export const EmptyPaneState = ({ paneId }: { paneId: string }) => {
   const { addPane, openDocument, removePane, panes } = useUiStore(

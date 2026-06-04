@@ -1,13 +1,24 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { useUiStore } from '@/shared/store/uiStore';
-import { 
-  MagnifyingGlass, Columns, FileText, ArrowRight, X, Folder, ArrowLeft, 
-  CheckSquare, Tag, Eye, CalendarBlank, PlusCircle, Gear 
-} from '@phosphor-icons/react';
 import { useDocumentStore } from '@/features/documents/store';
-import { useShallow } from 'zustand/react/shallow';
 import { cn } from '@/shared/lib/utils';
+import { useUiStore } from '@/shared/store/uiStore';
+import {
+	ArrowLeft,
+	ArrowRight,
+	CalendarBlank,
+	CheckSquare,
+	Columns,
+	Eye,
+	FileText,
+	Folder,
+	Gear,
+	MagnifyingGlass,
+	PlusCircle,
+	Tag,
+	X
+} from '@phosphor-icons/react';
+import { AnimatePresence,motion } from 'motion/react';
+import React,{ useEffect,useRef,useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
 type MenuState = 
   | { type: 'main' }

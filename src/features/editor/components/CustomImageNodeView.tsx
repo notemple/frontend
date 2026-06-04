@@ -1,18 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { NodeViewWrapper } from '@tiptap/react';
-import { 
-  TextAlignLeft, 
-  TextAlignCenter, 
-  TextAlignRight, 
-  Trash,
-  ArrowsOutCardinal,
-  FrameCorners,
-  DotsThree,
-  Copy
-} from '@phosphor-icons/react';
 import { cn } from '@/shared/lib/utils';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import {
+	Copy,
+	DotsThree,
+	TextAlignCenter,
+	TextAlignLeft,
+	TextAlignRight,
+	Trash
+} from '@phosphor-icons/react';
 import * as ContextMenu from '@radix-ui/react-context-menu';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { NodeViewWrapper } from '@tiptap/react';
+import React,{ useEffect,useRef,useState } from 'react';
 
 export const CustomImageNodeView = ({ node, updateAttributes, deleteNode, getPos, editor }: any) => {
   const { src, alt, width, alignment, caption } = node.attrs;

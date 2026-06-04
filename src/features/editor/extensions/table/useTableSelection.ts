@@ -1,6 +1,6 @@
-import { useCallback, useState } from 'react';
 import { Editor } from '@tiptap/core';
-import { CellSelection, TableMap } from 'prosemirror-tables';
+import { CellSelection,TableMap } from 'prosemirror-tables';
+import { useCallback,useState } from 'react';
 
 export const useTableSelection = (editor: Editor, tablePos: number) => {
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);

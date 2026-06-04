@@ -1,27 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import { cn } from '@/shared/lib/utils';
+import {
+	autoUpdate,
+	flip,
+	inline,
+	offset,
+	shift,
+	useFloating
+} from '@floating-ui/react';
+import {
+	ArrowsOutSimple,
+	Code,
+	Layout,
+	Palette,
+	Plus,
+	TextB,
+	TextItalic,
+	Trash
+} from '@phosphor-icons/react';
 import { Editor } from '@tiptap/core';
 import { CellSelection } from 'prosemirror-tables';
-import { 
-  useFloating, 
-  autoUpdate, 
-  offset, 
-  flip, 
-  shift, 
-  inline 
-} from '@floating-ui/react';
-import { 
-  TextB, 
-  TextItalic, 
-  Code, 
-  Plus, 
-  Trash, 
-  Layout, 
-  PaintBrush,
-  Palette,
-  ArrowsOutSimple
-} from '@phosphor-icons/react';
-import { setCellBgColor, toggleTableWidth } from './table-utils';
-import { cn } from '@/shared/lib/utils';
+import React,{ useEffect,useState } from 'react';
+import { setCellBgColor,toggleTableWidth } from './table-utils';
 
 interface FloatingToolbarProps {
   editor: Editor;

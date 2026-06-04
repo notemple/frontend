@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
 import { cn } from "@/shared/lib/utils";
 import { Flag } from "@phosphor-icons/react";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence,motion } from "motion/react";
+import React,{ useEffect,useRef,useState } from "react";
 
 const PRIORITY_OPTIONS = [
   {

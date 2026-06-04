@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { useUiStore } from '@/shared/store/uiStore';
 import { useDocumentStore } from '@/features/documents/store';
-import { useSettingsStore } from '@/features/settings/store';
-import { cn, getItemColor, getFolderStyle, getFolderHexColor, getColorStyle } from '@/shared/lib/utils';
-import { CaretDown, FileText, Folder } from '@phosphor-icons/react';
+import { cn,getColorStyle,getFolderStyle,getItemColor } from '@/shared/lib/utils';
+import { useUiStore } from '@/shared/store/uiStore';
+import { FileText,Folder } from '@phosphor-icons/react';
+import React,{ useCallback,useEffect,useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export const SectionGridItem = React.memo(({

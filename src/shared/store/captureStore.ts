@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-import { useTaskStore } from '@/features/tasks/store';
 import { useDocumentStore } from '@/features/documents/store';
+import { useTaskStore } from '@/features/tasks/store';
 import { aiService } from '@/services/ai.service';
+import { create } from 'zustand';
 
 export interface CaptureItem {
   id: string;

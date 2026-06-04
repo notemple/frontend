@@ -13,24 +13,24 @@
  *   centred with `mx-auto`.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Editor } from '@tiptap/react';
+import { aiService } from '@/services/ai.service';
+import { cn } from '@/shared/lib/utils';
 import { useDraggable } from '@dnd-kit/core';
 import {
-  DotsSix,
-  Plus,
-  Trash,
-  Copy,
-  Sparkle,
-  Paragraph,
-  TextH,
-  Quotes,
-  CheckSquareOffset,
-  ListBullets,
-  Code,
+	CheckSquareOffset,
+	Code,
+	Copy,
+	DotsSix,
+	ListBullets,
+	Paragraph,
+	Plus,
+	Quotes,
+	Sparkle,
+	TextH,
+	Trash,
 } from '@phosphor-icons/react';
-import { cn } from '@/shared/lib/utils';
-import { aiService } from '@/services/ai.service';
+import { Editor } from '@tiptap/react';
+import { useEffect,useRef,useState } from 'react';
 
 interface BlockHandleProps {
   editor: Editor;

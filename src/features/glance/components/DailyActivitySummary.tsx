@@ -1,11 +1,11 @@
-import React, { useMemo } from "react";
-import { Clock, CheckCircle, FileText } from "@phosphor-icons/react";
-import { useTaskStore } from "@/features/tasks/store";
-import { useTaskTimerStore } from "@/shared/store/taskTimerStore";
-import { useFocusTimerStore } from "@/shared/store/focusTimerStore";
 import { useDocumentStore } from "@/features/documents/store";
 import { useSettingsStore } from "@/features/settings/store";
+import { useTaskStore } from "@/features/tasks/store";
+import { useFocusTimerStore } from "@/shared/store/focusTimerStore";
+import { useTaskTimerStore } from "@/shared/store/taskTimerStore";
+import { CheckCircle,Clock,FileText } from "@phosphor-icons/react";
 import { formatInTimeZone } from "date-fns-tz";
+import { useMemo } from "react";
 
 const formatSeconds = (total: number) => {
   if (total === 0) return "0s";

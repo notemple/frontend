@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle, useMemo } from 'react';
 import { useDocumentStore } from '@/features/documents/store';
-import { Tag as TagIcon, PlusCircle } from '@phosphor-icons/react';
+import { PlusCircle,Tag as TagIcon } from '@phosphor-icons/react';
+import React,{ forwardRef,useEffect,useImperativeHandle,useMemo,useRef,useState } from 'react';
 
 interface TagListProps {
   query: string;

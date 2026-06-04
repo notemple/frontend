@@ -1,7 +1,7 @@
 import { DexieDocumentStorage } from "./dexie/document.storage";
-import { DexieTaskStorage } from "./dexie/task.storage";
 import { DexieFolderStorage } from "./dexie/folder.storage";
 import { DexieMetadataStorage } from "./dexie/metadata.storage";
+import { DexieTaskStorage } from "./dexie/task.storage";
 
 export const storage = {
   documents: new DexieDocumentStorage(),

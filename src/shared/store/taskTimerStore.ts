@@ -1,8 +1,8 @@
-import { create } from 'zustand';
 import { useSettingsStore } from '@/features/settings/store';
-import { formatInTimeZone } from 'date-fns-tz';
 import { useTaskStore } from '@/features/tasks/store';
 import { db } from '@/storage/dexie/db';
+import { formatInTimeZone } from 'date-fns-tz';
+import { create } from 'zustand';
 
 export interface TaskTimer {
   taskId: string;

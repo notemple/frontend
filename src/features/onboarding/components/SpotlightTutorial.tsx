@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { CaretRight } from '@phosphor-icons/react';
-import { useUiStore } from '@/shared/store/uiStore';
-import { useShallow } from 'zustand/react/shallow';
-import { useSettingsStore } from '@/features/settings/store';
-import { useTaskTimerStore } from '@/shared/store/taskTimerStore';
-import { useTaskStore } from '@/features/tasks/store';
-import { formatInTimeZone } from 'date-fns-tz';
 import { useDocumentStore } from '@/features/documents/store';
+import { useSettingsStore } from '@/features/settings/store';
+import { useTaskStore } from '@/features/tasks/store';
+import { useUiStore } from '@/shared/store/uiStore';
+import { CaretRight } from '@phosphor-icons/react';
+import { formatInTimeZone } from 'date-fns-tz';
+import React,{ useCallback,useEffect,useMemo,useRef,useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 

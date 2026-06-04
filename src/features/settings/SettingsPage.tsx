@@ -1,9 +1,9 @@
-import React from 'react';
+import { useSettingsStore } from '@/features/settings/store';
+import { formatDisplayDateTime,useIsMounted } from '@/shared/lib/time';
+import { cn } from '@/shared/lib/utils';
 import { Gear } from '@phosphor-icons/react';
 import { motion } from 'motion/react';
-import { useSettingsStore } from '@/features/settings/store';
-import { formatDisplayDateTime, useIsMounted } from '@/shared/lib/time';
-import { cn } from '@/shared/lib/utils';
+import React from 'react';
 
 function parseGradient(gradientStr: string) {
   if (!gradientStr || gradientStr === 'none' || gradientStr === 'transparent') {

@@ -1,6 +1,5 @@
-import React from 'react';
-import { X, WarningCircle } from '@phosphor-icons/react';
-import { motion, AnimatePresence } from 'motion/react';
+import { WarningCircle,X } from '@phosphor-icons/react';
+import { AnimatePresence,motion } from 'motion/react';
 
 interface DeleteTagDialogProps {
   isOpen: boolean;

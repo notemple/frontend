@@ -1,52 +1,32 @@
-import { Extension } from '@tiptap/core';
-import { PluginKey } from '@tiptap/pm/state';
-import Suggestion from '@tiptap/suggestion';
-import { ReactRenderer } from '@tiptap/react';
-import tippy, { type Instance as TippyInstance } from 'tippy.js';
-import { SlashCommandList } from './SlashCommandList';
 import { useTaskStore } from '@/features/tasks/store';
 import {
-  Sparkle,
-  ListBullets,
-  TextAUnderline,
-  PaintBrush,
-  Palette,
-  TextIndent,
-  TextAlignLeft,
-  TextT,
-  TextB,
-  ListNumbers,
-  CheckSquareOffset,
-  TextItalic,
-  TextStrikethrough,
-  HighlighterCircle,
-  TextAlignRight,
-  TextAlignCenter,
-  TextAlignJustify,
-  Quotes,
-  CaretRight,
-  Smiley,
-  Square,
-  MathOperations,
-  CodeBlock,
-  Table,
-  Tag,
-  User,
-  Book,
-  FileText,
-  CalendarBlank,
-  Image as ImageIcon,
-  Globe,
-  File,
-  Clock,
-  Calendar,
-  Columns as ColumnsIcon,
-  Trash,
-  Plus
+	Calendar,
+	CalendarBlank,
+	CheckSquareOffset,
+	CodeBlock,
+	Columns as ColumnsIcon,
+	FileText,
+	ListBullets,
+	ListNumbers,
+	Plus,
+	Quotes,
+	Smiley,
+	Square,
+	Table,
+	Tag,
+	TextAUnderline,
+	TextT,
+	Trash
 } from '@phosphor-icons/react';
+import { Extension } from '@tiptap/core';
+import { PluginKey } from '@tiptap/pm/state';
+import { ReactRenderer } from '@tiptap/react';
+import Suggestion from '@tiptap/suggestion';
 import React from 'react';
+import tippy,{ type Instance as TippyInstance } from 'tippy.js';
+import { SlashCommandList } from './SlashCommandList';
 
-import { format, addDays } from 'date-fns';
+import { addDays,format } from 'date-fns';
 
 export interface CommandItem {
   title: string;

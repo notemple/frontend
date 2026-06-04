@@ -1,8 +1,8 @@
+import { Check,CircleNotch } from '@phosphor-icons/react';
+import { AnimatePresence,motion } from 'motion/react';
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { CircleNotch, Check } from '@phosphor-icons/react';
-import { STYLE_PRESETS } from './StyleStep';
 import type { PresetStyle } from './StyleStep';
+import { STYLE_PRESETS } from './StyleStep';
 
 interface SeedingStepProps {
   creationComplete: boolean;

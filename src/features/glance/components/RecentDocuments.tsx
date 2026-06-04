@@ -1,8 +1,8 @@
-import React, { useMemo } from "react";
 import { useDocumentStore } from "@/features/documents/store";
-import { useUiStore } from "@/shared/store/uiStore";
-import { getColorStyle } from "@/shared/lib/utils";
 import { getRelativeTimeString } from "@/shared/lib/time";
+import { getColorStyle } from "@/shared/lib/utils";
+import { useUiStore } from "@/shared/store/uiStore";
+import { useMemo } from "react";
 
 export const RecentDocuments = ({ paneId }: { paneId: string }) => {
   const documents = useDocumentStore((s) => s.documents) || {};

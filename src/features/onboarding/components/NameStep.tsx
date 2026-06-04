@@ -1,6 +1,6 @@
-import React from 'react';
-import { motion } from 'motion/react';
 import { ArrowRight } from '@phosphor-icons/react';
+import { motion } from 'motion/react';
+import React from 'react';
 
 interface NameStepProps {
   nameInputRef: React.RefObject<HTMLInputElement | null>;

@@ -2,17 +2,14 @@ import { CustomStatusPicker } from "../TasksPage";
 import { CustomDatePicker } from "./CustomDatePicker";
 import { CustomPriorityPicker } from "./CustomPriorityPicker";
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { TaskTitleInput } from './TaskTitleInput';
-import { useUiStore } from '@/shared/store/uiStore';
-import { motion, AnimatePresence } from 'motion/react';
-import { useTaskStore, type Task } from '../store';
-import { formatDisplayDate } from '@/shared/lib/time';
 import { cn } from '@/shared/lib/utils';
-import { useDraggable, useDroppable } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
-import { Plus, Trash, CalendarBlank, Flag, CaretDown, CaretUp, Rows, GridFour, DotsSixVertical, ClipboardText, Clock, ArrowCircleRight, ListBullets, Play, Pause, Stop } from '@phosphor-icons/react';
 import { useTaskTimerStore } from '@/shared/store/taskTimerStore';
+import { useUiStore } from '@/shared/store/uiStore';
+import { ArrowCircleRight,CalendarBlank,Clock,Flag,Pause,Play,Stop,Trash } from '@phosphor-icons/react';
+import { motion } from 'motion/react';
+import React,{ useEffect,useState } from 'react';
+import { type Task } from '../store';
+import { TaskTitleInput } from './TaskTitleInput';
 
 export const TaskRow = React.memo(({
   task,

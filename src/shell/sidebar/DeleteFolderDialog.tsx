@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { X, Folder, ArrowBendDownRight, Trash, WarningCircle } from '@phosphor-icons/react';
-import { motion, AnimatePresence } from 'motion/react';
 import { useDocumentStore } from '@/features/documents/store';
 import { cn } from '@/shared/lib/utils';
+import { ArrowBendDownRight,Folder,Trash,WarningCircle,X } from '@phosphor-icons/react';
+import { AnimatePresence,motion } from 'motion/react';
+import { useEffect,useState } from 'react';
 
 interface DeleteFolderDialogProps {
   isOpen: boolean;

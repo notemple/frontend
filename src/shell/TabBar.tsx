@@ -1,27 +1,27 @@
-import React, { useCallback } from 'react';
-import { useUiStore } from '@/shared/store/uiStore';
 import { useDocumentStore } from '@/features/documents/store';
-import { useShallow } from 'zustand/react/shallow';
 import { useSettingsStore } from '@/features/settings/store';
 import { cn } from '@/shared/lib/utils';
-import { X, FileText, Book, User, CalendarBlank, CheckSquare, Tag, Eye, SquaresFour, Folder, Star, Trash, Gear } from '@phosphor-icons/react';
+import { useUiStore } from '@/shared/store/uiStore';
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
+	closestCenter,
+	DndContext,
+	KeyboardSensor,
+	PointerSensor,
+	useSensor,
+	useSensors,
+	type DragEndEvent,
 } from '@dnd-kit/core';
 import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  horizontalListSortingStrategy,
-  useSortable,
+	arrayMove,
+	horizontalListSortingStrategy,
+	SortableContext,
+	sortableKeyboardCoordinates,
+	useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Book,CalendarBlank,CheckSquare,Eye,FileText,Folder,Gear,SquaresFour,Star,Tag,Trash,User,X } from '@phosphor-icons/react';
+import React from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
 function getContrastColor(backgroundColor?: string): string {
   if (!backgroundColor) return 'var(--foreground)';

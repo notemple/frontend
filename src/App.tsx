@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RootLayout } from '@/shell/RootLayout';
 import { useDocumentStore } from '@/features/documents/store';
-import { useTaskStore } from '@/features/tasks/store';
-import { useSettingsStore } from '@/features/settings/store';
 import { OnboardingScreen } from '@/features/onboarding/OnboardingScreen';
+import { useSettingsStore } from '@/features/settings/store';
+import { useTaskStore } from '@/features/tasks/store';
+import { RootLayout } from '@/shell/RootLayout';
+import { QueryClient,QueryClientProvider } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
 const queryClient = new QueryClient();
 

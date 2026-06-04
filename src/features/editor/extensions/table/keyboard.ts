@@ -1,11 +1,11 @@
 import { Extension } from '@tiptap/core';
 import { keymap } from '@tiptap/pm/keymap';
-import { Selection, TextSelection } from '@tiptap/pm/state';
-import { 
-  goToNextCell, 
-  addRowAfter, 
-  CellSelection, 
-  TableMap 
+import { TextSelection } from '@tiptap/pm/state';
+import {
+	addRowAfter,
+	CellSelection,
+	goToNextCell,
+	TableMap
 } from 'prosemirror-tables';
 
 /**

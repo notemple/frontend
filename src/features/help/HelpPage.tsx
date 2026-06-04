@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
 import {
-  Keyboard,
-  FileText,
-  Tag,
-  CaretDown,
-  CaretRight,
+	CaretDown,
+	FileText,
+	Keyboard,
+	Tag
 } from '@phosphor-icons/react';
+import React,{ useState } from 'react';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

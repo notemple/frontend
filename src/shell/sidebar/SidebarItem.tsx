@@ -1,7 +1,7 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import { cn, hexToRgb, rgbToHsl } from '@/shared/lib/utils';
 import { useSettingsStore } from '@/features/settings/store';
+import { cn,hexToRgb,rgbToHsl } from '@/shared/lib/utils';
+import { motion } from 'motion/react';
+import React from 'react';
 
 export const SidebarItem = ({
   icon,

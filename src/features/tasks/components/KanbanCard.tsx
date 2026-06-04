@@ -1,15 +1,13 @@
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { TaskTitleInput } from './TaskTitleInput';
-import { motion, AnimatePresence } from 'motion/react';
-import { useTaskStore, type Task } from '../store';
+import { cn } from '@/shared/lib/utils';
+import { useDraggable } from '@dnd-kit/core';
+import { ArrowCircleRight,CalendarBlank,DotsSixVertical,Flag,Trash } from '@phosphor-icons/react';
+import { motion } from 'motion/react';
+import React,{ useEffect,useState } from 'react';
+import { type Task } from '../store';
 import { CustomDatePicker } from './CustomDatePicker';
 import { CustomPriorityPicker } from './CustomPriorityPicker';
-import { formatDisplayDate } from '@/shared/lib/time';
-import { cn } from '@/shared/lib/utils';
-import { useDraggable, useDroppable } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
-import { Plus, Trash, CalendarBlank, Flag, CaretDown, CaretUp, Rows, GridFour, DotsSixVertical, ClipboardText, Clock, ArrowCircleRight, ListBullets } from '@phosphor-icons/react';
+import { TaskTitleInput } from './TaskTitleInput';
 
 export const KanbanCard = ({
   task,

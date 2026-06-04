@@ -1,21 +1,21 @@
-import React, { useState, useCallback } from 'react';
-import { motion } from 'motion/react';
-import { useUiStore } from '@/shared/store/uiStore';
 import { useDocumentStore } from '@/features/documents/store';
 import { useSettingsStore } from '@/features/settings/store';
-import { useShallow } from 'zustand/react/shallow';
-import {
-  X,
-  Calendar,
-  Clock,
-  User,
-  Check,
-  PaintBrush,
-  ArrowCounterClockwise,
-  CaretDown
-} from '@phosphor-icons/react';
-import { cn } from '@/shared/lib/utils';
 import { getRelativeTimeString } from '@/shared/lib/time';
+import { cn } from '@/shared/lib/utils';
+import { useUiStore } from '@/shared/store/uiStore';
+import {
+	ArrowCounterClockwise,
+	Calendar,
+	CaretDown,
+	Check,
+	Clock,
+	PaintBrush,
+	User,
+	X
+} from '@phosphor-icons/react';
+import { motion } from 'motion/react';
+import { useCallback,useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
 export const RightSidebar = () => {
   const { isRightSidebarOpen, toggleRightSidebar } = useUiStore(

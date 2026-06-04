@@ -1,9 +1,9 @@
 import { Extension } from '@tiptap/core';
-import Suggestion from '@tiptap/suggestion';
-import { ReactRenderer } from '@tiptap/react';
-import tippy, { type Instance as TippyInstance } from 'tippy.js';
-import { MentionList } from '../components/MentionList';
 import { PluginKey } from '@tiptap/pm/state';
+import { ReactRenderer } from '@tiptap/react';
+import Suggestion from '@tiptap/suggestion';
+import tippy,{ type Instance as TippyInstance } from 'tippy.js';
+import { MentionList } from '../components/MentionList';
 
 export const MentionSuggestionKey = new PluginKey('mentionSuggestion');
 

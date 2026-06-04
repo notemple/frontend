@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
-import { NodeViewWrapper, NodeViewContent, type NodeViewProps } from '@tiptap/react';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { Copy,DotsThree,Trash } from '@phosphor-icons/react';
 import * as ContextMenu from '@radix-ui/react-context-menu';
-import { DotsThree, Copy, Trash } from '@phosphor-icons/react';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { NodeViewContent,NodeViewWrapper,type NodeViewProps } from '@tiptap/react';
+import React,{ useMemo } from 'react';
 
 export const CodeBlockView: React.FC<NodeViewProps> = ({ node, editor, getPos, deleteNode }) => {
   const text = node.textContent;

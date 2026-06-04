@@ -12,19 +12,19 @@
  * never clipped by overflow:hidden or z-index stacking contexts inside the editor.
  */
 
-import React, { useState, useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import {
-  DndContext,
-  DragOverlay,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragStartEvent,
-  type DragMoveEvent,
-  type DragEndEvent,
+	DndContext,
+	DragOverlay,
+	PointerSensor,
+	useSensor,
+	useSensors,
+	type DragEndEvent,
+	type DragMoveEvent,
+	type DragStartEvent,
 } from '@dnd-kit/core';
 import type { Editor } from '@tiptap/react';
+import React,{ useCallback,useRef,useState } from 'react';
+import { createPortal } from 'react-dom';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

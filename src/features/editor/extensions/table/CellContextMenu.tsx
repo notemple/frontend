@@ -1,24 +1,20 @@
-import React from 'react';
+import {
+	ArrowDown,
+	ArrowsInSimple,
+	ArrowsOutSimple,
+	ArrowUp,
+	Code,
+	Eraser,
+	Plus,
+	Table,
+	TextB,
+	TextItalic,
+	Trash
+} from '@phosphor-icons/react';
 import * as RadixContextMenu from '@radix-ui/react-context-menu';
 import { Editor } from '@tiptap/core';
-import { 
-  Table, 
-  Plus, 
-  Trash, 
-  TextB, 
-  TextItalic, 
-  Code, 
-  ArrowsInSimple, 
-  MathOperations, 
-  ArrowUp, 
-  ArrowDown,
-  ListBullets,
-  CheckSquareOffset,
-  PaintBrush,
-  Eraser,
-  ArrowsOutSimple
-} from '@phosphor-icons/react';
-import { sortTableColumn, resetColumnSizes, clearSelectedCells, toggleTableWidth } from './table-utils';
+import React from 'react';
+import { clearSelectedCells,resetColumnSizes,sortTableColumn,toggleTableWidth } from './table-utils';
 
 interface CellContextMenuProps {
   editor: Editor;

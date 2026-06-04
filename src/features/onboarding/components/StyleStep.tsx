@@ -1,10 +1,17 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import {
-  Terminal, GraduationCap, Palette, Microscope, RocketLaunch, User,
-  FileText, X, ArrowRight
-} from '@phosphor-icons/react';
 import { cn } from '@/shared/lib/utils';
+import {
+	ArrowRight,
+	FileText,
+	GraduationCap,
+	Microscope,
+	Palette,
+	RocketLaunch,
+	Terminal,
+	User,
+	X
+} from '@phosphor-icons/react';
+import { motion } from 'motion/react';
+import React from 'react';
 
 export type PresetStyle = 'Developer' | 'Student' | 'Creator' | 'Researcher' | 'Startup' | 'Personal';
 

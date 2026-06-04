@@ -1,56 +1,38 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { createPortal } from "react-dom";
-import { useTaskStore, type Task } from "@/features/tasks/store";
-import { useSettingsStore } from "@/features/settings/store";
-import { useShallow } from "zustand/react/shallow";
-import { cn } from "@/shared/lib/utils";
+import { useTaskStore,type Task } from "@/features/tasks/store";
 import {
-  PlusCircle,
-  Tray,
-  Sun,
-  CalendarBlank,
-  ClipboardText,
-  CaretDown,
-  CaretRight,
-  X,
-  Flag,
-  MagnifyingGlass,
-  CaretLeft,
-  Target,
-  ArrowCircleRight,
-  Trash,
-  CircleDashed,
-  Clock,
-  CheckCircle,
-  List,
-  Kanban,
-  DotsSixVertical,
-  ArrowsDownUp,
-} from "@phosphor-icons/react";
-import { DndContext, useDroppable, useDraggable, PointerSensor, useSensor, useSensors, type DragEndEvent, DragOverlay, type DragStartEvent } from "@dnd-kit/core";
-import { motion, AnimatePresence } from "motion/react";
-import { TemplnoteEditor } from "@/features/editor/TemplnoteEditor";
-import {
-  isTaskDueToday,
-  isTaskUpcoming,
-  isTaskOverdue,
-  getCalendarDays,
-  toUtcString,
-  formatDisplayDate,
-  isTaskCreatedToday,
-  changeZonedMonth,
-  isSameMonthInTimezone,
-  isSameDayInTimezone,
-  getZonedDate,
+	formatDisplayDate,
+	isTaskCreatedToday,
+	isTaskOverdue,
+	isTaskUpcoming
 } from "@/shared/lib/time";
+import { cn } from "@/shared/lib/utils";
+import { DndContext,DragOverlay,PointerSensor,useSensor,useSensors,type DragEndEvent,type DragStartEvent } from "@dnd-kit/core";
+import {
+	ArrowsDownUp,
+	CalendarBlank,
+	CaretDown,
+	CheckCircle,
+	CircleDashed,
+	ClipboardText,
+	Clock,
+	Flag,
+	Kanban,
+	List,
+	PlusCircle,
+	Sun,
+	X
+} from "@phosphor-icons/react";
+import { AnimatePresence,motion } from "motion/react";
+import React,{ useCallback,useEffect,useMemo,useRef,useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 
 // Remove old mock time import comments
 
-import { TaskEditorModal } from "./components/TaskEditorModal";
 import { CustomDatePicker } from "./components/CustomDatePicker";
-import { TaskRow } from "./components/TaskRow";
 import { KanbanCard } from "./components/KanbanCard";
 import { KanbanColumn } from "./components/KanbanColumn";
+import { TaskEditorModal } from "./components/TaskEditorModal";
+import { TaskRow } from "./components/TaskRow";
 
 const STATUS_OPTIONS = [
   {

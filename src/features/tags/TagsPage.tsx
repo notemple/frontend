@@ -1,23 +1,22 @@
-import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { useDocumentStore } from '@/features/documents/store';
-import { useUiStore } from '@/shared/store/uiStore';
-import { useShallow } from 'zustand/react/shallow'; // Refreshed HMR import
-import { 
-  Tag as TagIcon, 
-  ArrowLeft, 
-  Trash, 
-  PencilSimple, 
-  FileText,
-  Clock,
-  PlusCircle,
-  Plus,
-  Check,
-  X
-} from '@phosphor-icons/react';
-import { cn, getItemColor, getTagStyle, getTagHexColor, } from '@/shared/lib/utils';
 import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
 import { formatDisplayDate } from '@/shared/lib/time';
+import { cn,getItemColor,getTagHexColor,getTagStyle,} from '@/shared/lib/utils';
+import { useUiStore } from '@/shared/store/uiStore';
+import {
+	ArrowLeft,
+	Check,
+	Clock,
+	FileText,
+	PencilSimple,
+	Plus,
+	PlusCircle,
+	Tag as TagIcon,
+	Trash,
+	X
+} from '@phosphor-icons/react';
+import { AnimatePresence,motion } from 'motion/react';
+import React,{ useEffect,useMemo,useState } from 'react';
 import { DeleteTagDialog } from './components/DeleteTagDialog';
 
 export const TagsPage = ({ paneId }: { paneId: string }) => {

@@ -1,7 +1,7 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import { GoogleLogo, GithubLogo, Envelope } from '@phosphor-icons/react';
 import { cn } from '@/shared/lib/utils';
+import { Envelope,GithubLogo,GoogleLogo } from '@phosphor-icons/react';
+import { motion } from 'motion/react';
+import React from 'react';
 
 interface LoginStepProps {
   selectedLoginIndex: number;

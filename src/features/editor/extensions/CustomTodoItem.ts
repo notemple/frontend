@@ -1,8 +1,8 @@
-import TaskItem from '@tiptap/extension-task-item';
-import { ReactNodeViewRenderer } from '@tiptap/react';
-import { Plugin, PluginKey } from '@tiptap/pm/state';
-import { CustomTodoItemView } from './CustomTodoItemView';
 import { useTaskStore } from '@/features/tasks/store';
+import TaskItem from '@tiptap/extension-task-item';
+import { Plugin,PluginKey } from '@tiptap/pm/state';
+import { ReactNodeViewRenderer } from '@tiptap/react';
+import { CustomTodoItemView } from './CustomTodoItemView';
 
 const taskDeletionPlugin = new Plugin({
   key: new PluginKey('taskDeletionTracker'),

@@ -1,13 +1,13 @@
-import {
-  formatDistanceToNow,
-  startOfWeek,
-  eachDayOfInterval,
-  addDays,
-  subDays,
-} from 'date-fns';
-import { formatInTimeZone, toDate } from 'date-fns-tz';
 import { useSettingsStore } from '@/features/settings/store';
-import { useState, useEffect } from 'react';
+import {
+	addDays,
+	eachDayOfInterval,
+	formatDistanceToNow,
+	startOfWeek,
+	subDays,
+} from 'date-fns';
+import { formatInTimeZone,toDate } from 'date-fns-tz';
+import { useEffect,useState } from 'react';
 
 // Get current timezone from store
 export const getCurrentTimezone = (): string => {

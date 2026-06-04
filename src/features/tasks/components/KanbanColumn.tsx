@@ -1,13 +1,8 @@
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { useTaskStore, type Task } from '../store';
-import { KanbanCard } from './KanbanCard';
-import { formatDisplayDate } from '@/shared/lib/time';
 import { cn } from '@/shared/lib/utils';
-import { useDraggable, useDroppable } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
-import { Plus, Trash, CalendarBlank, Flag, CaretDown, CaretUp, Rows, GridFour, DotsSixVertical, ClipboardText, Clock, ArrowCircleRight, ListBullets } from '@phosphor-icons/react';
+import { useDroppable } from '@dnd-kit/core';
+import { type Task } from '../store';
+import { KanbanCard } from './KanbanCard';
 
 export const KanbanColumn = ({
   status,

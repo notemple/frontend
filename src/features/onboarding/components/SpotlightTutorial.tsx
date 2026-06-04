@@ -322,13 +322,16 @@ export const SpotlightTutorial = () => {
 
   // ── Reset sub-states when entering interactive steps
   useEffect(() => {
-    if (!currentStep) return;
+    if (!isTutorialActive || !currentStep) return;
     if (currentStep.id === 'note-slash') setSlashPhase('wait-slash');
     if (currentStep.id === 'pane-split') setSplitPhase('wait-split');
     if (currentStep.id === 'pane-switch') setInitialActivePaneId(useUiStore.getState().activePaneId);
     if (currentStep.id === 'task-add-input') {
       setInitialTaskCount(useTaskStore.getState().tasks.filter(t => !t.completed && t.status !== 'done').length);
       setInitialTaskIds(useTaskStore.getState().tasks.map(t => t.id));
+    }
+    if (currentStep.id === 'task-edit-modal') {
+      setTaskEditorPhase('write');
     }
     if (currentStep.id === 'folder-create') {
       setInitialFolderIds(useDocumentStore.getState().folders.map(f => f.id));
@@ -452,6 +455,18 @@ export const SpotlightTutorial = () => {
     return () => clearInterval(iv);
   }, [currentStep, isTutorialActive, initialTaskIds, tutorialIndex, setTutorialIndex]);
 
+  // Advance from task-edit-click to task-edit-modal when the modal is opened
+  useEffect(() => {
+    if (!isTutorialActive || currentStep?.id !== 'task-edit-click') return;
+    const iv = setInterval(() => {
+      const el = document.getElementById('onboarding-task-editor-modal');
+      if (el) {
+        setTutorialIndex(tutorialIndex + 1);
+      }
+    }, 150);
+    return () => clearInterval(iv);
+  }, [currentStep, isTutorialActive, setTutorialIndex, tutorialIndex]);
+
   // Advance to close step when user finished typing in modal
   useEffect(() => {
     if (!isTutorialActive || currentStep?.id !== 'task-edit-modal') return;
@@ -464,10 +479,13 @@ export const SpotlightTutorial = () => {
   // Advance after close button is clicked (modal disappears)
   useEffect(() => {
     if (!isTutorialActive || currentStep?.id !== 'task-edit-close') return;
-    const modal = document.getElementById('onboarding-task-editor-modal');
-    if (!modal) {
-      setTutorialIndex(tutorialIndex + 1);
-    }
+    const iv = setInterval(() => {
+      const modal = document.getElementById('onboarding-task-editor-modal');
+      if (!modal) {
+        setTutorialIndex(tutorialIndex + 1);
+      }
+    }, 150);
+    return () => clearInterval(iv);
   }, [currentStep, isTutorialActive, tutorialIndex, setTutorialIndex]);
 
   // ── Note Guide (Slash Command): poll for slash list menu
@@ -495,7 +513,7 @@ export const SpotlightTutorial = () => {
     return () => clearTimeout(t);
   }, [isTutorialActive, currentStep, slashPhase, tutorialIndex, setTutorialIndex]);
 
-  // ── Note Minimize: auto-advance 5 seconds after Daily Notes editor is minimized
+  // ── Note Minimize: auto-advance immediately after Daily Notes editor is minimized
   const noteMinimizeTriggeredRef = useRef(false);
   useEffect(() => {
     if (!isTutorialActive || currentStep?.id !== 'note-minimize') {
@@ -507,9 +525,7 @@ export const SpotlightTutorial = () => {
       const activePane = useUiStore.getState().panes.find(p => p.id === useUiStore.getState().activePaneId);
       if (activePane?.activeTabId === 'section-daily-notes') {
         noteMinimizeTriggeredRef.current = true;
-        setTimeout(() => {
-          setTutorialIndex(tutorialIndex + 1);
-        }, 5000);
+        setTutorialIndex(tutorialIndex + 1);
       }
     }, 150);
     return () => clearInterval(iv);
@@ -542,11 +558,14 @@ export const SpotlightTutorial = () => {
   // Monitor typing in the task editor modal and trigger auto‑advance after 5 s of inactivity
   const taskEditorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    if (!isTutorialActive || currentStep?.id !== 'task-edit-modal' || !createdTaskId) return;
+    if (!isTutorialActive || currentStep?.id !== 'task-edit-modal') return;
+
+    const taskIdToUse = createdTaskId || useTaskStore.getState().tasks[0]?.id;
+    if (!taskIdToUse) return;
 
     const iv = setInterval(() => {
       if (taskEditorPhase !== 'write') return;
-      const doc = useDocumentStore.getState().documents[`task-${createdTaskId}`];
+      const doc = useDocumentStore.getState().documents[`task-${taskIdToUse}`];
       if (doc && doc.content) {
         const textContent = doc.content.replace(/<[^>]*>/g, '').trim();
         if (textContent.length > 0) {

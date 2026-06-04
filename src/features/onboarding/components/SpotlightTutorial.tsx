@@ -194,28 +194,28 @@ export const SpotlightTutorial = () => {
         interactive: true,
       },
       {
-        id: 'task-guide',
-        targetId: 'onboarding-editor',
-        title: 'Task Management & Timer',
-        description: 'Click the Play button next to your task to start the stopwatch/timer.',
-        color: '#C7CEEA',
-        sidebarOpen: false,
-        interactive: true,
-      },
-      {
         id: 'task-edit-click',
-        targetId: 'onboarding-editor',
-        title: 'Task Editor Window',
-        description: 'Click the edit arrow button next to the task to open the editor window.',
+        targetId: 'onboarding-task-edit-button',
+        title: 'Edit Task',
+        description: 'Click the edit arrow button next to the newly created task to open the editor window.',
         color: '#C7CEEA',
         sidebarOpen: false,
         interactive: true,
       },
       {
         id: 'task-edit-modal',
+        targetId: 'onboarding-task-editor-modal',
+        title: 'Edit Task Details',
+        description: 'Write something in the task editor pop‑up window.',
+        color: '#C7CEEA',
+        sidebarOpen: false,
+        interactive: true,
+      },
+      {
+        id: 'task-edit-close',
         targetId: 'onboarding-task-editor-close',
-        title: 'Task Details',
-        description: 'Type something in the task notes editor. After 5 seconds, close it.',
+        title: 'Close Task Editor',
+        description: 'Click the X button to close the task editor pop‑up.',
         color: '#C7CEEA',
         sidebarOpen: false,
         interactive: true,
@@ -314,6 +314,12 @@ export const SpotlightTutorial = () => {
 
   const currentStep = steps[tutorialIndex] || steps[0];
 
+  // Update global currentStepId for components that depend on it (e.g., TaskRow)
+  const setCurrentStepId = useUiStore((s) => s.setCurrentStepId);
+  useEffect(() => {
+    setCurrentStepId(currentStep?.id);
+  }, [currentStep, setCurrentStepId]);
+
   // ── Reset sub-states when entering interactive steps
   useEffect(() => {
     if (!currentStep) return;
@@ -364,7 +370,7 @@ export const SpotlightTutorial = () => {
         const dailyNoteId = `daily-note-${todayDateStr}`;
         useUiStore.getState().openDocument(dailyNoteId);
       }
-    } else if (currentStep.id === 'task-add-click' || currentStep.id === 'task-add-input' || currentStep.id === 'task-guide' || currentStep.id === 'task-edit-click' || currentStep.id === 'task-edit-modal') {
+    } else if (currentStep.id === 'task-add-click' || currentStep.id === 'task-add-input' || currentStep.id === 'task-edit-click' || currentStep.id === 'task-edit-modal' || currentStep.id === 'task-edit-close') {
       useUiStore.getState().openDocument('section-tasks');
     } else if (currentStep.id === 'pane-split' || currentStep.id === 'pane-switch' || currentStep.id === 'pane-close') {
       // Don't automatically create a new document after finishing daily notes
@@ -446,36 +452,22 @@ export const SpotlightTutorial = () => {
     return () => clearInterval(iv);
   }, [currentStep, isTutorialActive, initialTaskIds, tutorialIndex, setTutorialIndex]);
 
-  const timers = useTaskTimerStore((s) => s.timers);
-  const isAnyTimerRunning = Object.values(timers).some((t) => t.isRunning);
-
-  useEffect(() => {
-    if (isTutorialActive && currentStep?.id === 'task-guide' && isAnyTimerRunning) {
-      const t = setTimeout(() => setTutorialIndex(tutorialIndex + 1), 1000);
-      return () => clearTimeout(t);
-    }
-  }, [isAnyTimerRunning, tutorialIndex, isTutorialActive, currentStep, setTutorialIndex]);
-
-  useEffect(() => {
-    if (!isTutorialActive || currentStep?.id !== 'task-edit-click') return;
-    const iv = setInterval(() => {
-      const el = document.getElementById('onboarding-task-editor-modal');
-      if (el) {
-        setTutorialIndex(tutorialIndex + 1);
-      }
-    }, 150);
-    return () => clearInterval(iv);
-  }, [currentStep, isTutorialActive, tutorialIndex, setTutorialIndex]);
-
+  // Advance to close step when user finished typing in modal
   useEffect(() => {
     if (!isTutorialActive || currentStep?.id !== 'task-edit-modal') return;
-    const iv = setInterval(() => {
-      const el = document.getElementById('onboarding-task-editor-modal');
-      if (!el) {
-        setTutorialIndex(tutorialIndex + 1);
-      }
-    }, 150);
-    return () => clearInterval(iv);
+    if (taskEditorPhase === 'done') {
+      // move to next step (close button)
+      setTutorialIndex(tutorialIndex + 1);
+    }
+  }, [currentStep, isTutorialActive, taskEditorPhase, tutorialIndex, setTutorialIndex]);
+
+  // Advance after close button is clicked (modal disappears)
+  useEffect(() => {
+    if (!isTutorialActive || currentStep?.id !== 'task-edit-close') return;
+    const modal = document.getElementById('onboarding-task-editor-modal');
+    if (!modal) {
+      setTutorialIndex(tutorialIndex + 1);
+    }
   }, [currentStep, isTutorialActive, tutorialIndex, setTutorialIndex]);
 
   // ── Note Guide (Slash Command): poll for slash list menu
@@ -547,7 +539,7 @@ export const SpotlightTutorial = () => {
     return () => clearInterval(iv);
   }, [currentStep, isTutorialActive, setTutorialIndex, tutorialIndex]);
 
-  // ── Task Edit Modal notes: poll for notes content typed in task editor and transition phase
+  // Monitor typing in the task editor modal and trigger auto‑advance after 5 s of inactivity
   const taskEditorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!isTutorialActive || currentStep?.id !== 'task-edit-modal' || !createdTaskId) return;
@@ -740,18 +732,20 @@ export const SpotlightTutorial = () => {
       if (activePaneId) {
         customEl = document.querySelector(`[data-pane-id="${activePaneId}"]`) as HTMLElement;
       }
-    } else if (currentStep.id === 'task-guide') {
-      const selector = createdTaskId ? `[data-onboarding-timer-play="${createdTaskId}"]` : '[data-onboarding-timer-play]';
-      customEl = document.querySelector(selector) as HTMLElement;
+    } else if (currentStep.id === 'task-add-click') {
+      const paneWithTasks = useUiStore.getState().panes.find(p => p.activeTabId === 'section-tasks')?.id || activePaneId;
+      customEl = document.querySelector(`[data-pane-id="${paneWithTasks}"] #onboarding-add-task-button`) as HTMLElement;
+    } else if (currentStep.id === 'task-add-input') {
+      const paneWithTasks = useUiStore.getState().panes.find(p => p.activeTabId === 'section-tasks')?.id || activePaneId;
+      customEl = document.querySelector(`[data-pane-id="${paneWithTasks}"] #onboarding-create-task-input`) as HTMLElement;
     } else if (currentStep.id === 'task-edit-click') {
+      const paneWithTasks = useUiStore.getState().panes.find(p => p.activeTabId === 'section-tasks')?.id || activePaneId;
       const selector = createdTaskId ? `[data-onboarding-task-edit="${createdTaskId}"]` : '[data-onboarding-task-edit]';
-      customEl = document.querySelector(selector) as HTMLElement;
+      const editBtn = (document.querySelector(`[data-pane-id="${paneWithTasks}"] ${selector}`) || document.querySelector(selector)) as HTMLElement;
+      customEl = editBtn || null;
     } else if (currentStep.id === 'task-edit-modal') {
-      if (taskEditorPhase === 'write') {
-        customEl = document.querySelector('#onboarding-task-editor-modal #onboarding-editor') as HTMLElement;
-      } else {
-        customEl = document.getElementById('onboarding-task-editor-close');
-      }
+      const paneWithTasks = useUiStore.getState().panes.find(p => p.activeTabId === 'section-tasks')?.id || activePaneId;
+      customEl = document.querySelector(`[data-pane-id="${paneWithTasks}"] #onboarding-task-editor-modal`) as HTMLElement;
     } else if (currentStep.id === 'sidebar-open') {
       if (activePaneId) {
         customEl = document.querySelector(`[data-pane-id="${activePaneId}"]`) as HTMLElement;
@@ -818,9 +812,9 @@ export const SpotlightTutorial = () => {
     'glance', 'note-slash', 'note-minimize',
     'pane-split', 'pane-switch',
     'search-open', 'search-tasks',
-    'task-add-click', 'task-add-input', 'task-guide', 'task-edit-click', 'task-edit-modal',
+    'task-add-click', 'task-add-input', 'task-edit-click', 'task-edit-modal', 'task-edit-close',
     'pane-close', 'sidebar-open',
-    'folder-create', 'folder-open', 'folder-create-doc', 'doc-title', 'doc-mention'
+    'folder-create', 'folder-open', 'folder-create-doc', 'doc-title', 'doc-mention',
   ];
   let showNext = !interactiveStepIds.includes(currentStep.id);
   if (currentStep.id === 'note-slash' && slashPhase === 'done' && hasFiveCharsTask) {

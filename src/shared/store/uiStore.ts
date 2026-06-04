@@ -38,6 +38,9 @@ interface UiState {
   isNavbarManuallyHidden: boolean;
   setNavbarManuallyHidden: (hidden: boolean) => void;
 
+  currentStepId: string | null;
+  setCurrentStepId: (stepId: string | null) => void;
+
   updatePaneWidths: (widths: { [paneId: string]: number }) => void;
   isTutorialActive: boolean;
   setIsTutorialActive: (active: boolean) => void;
@@ -82,6 +85,9 @@ export const useUiStore = create<UiState>()(
 
       isNavbarManuallyHidden: false,
       setNavbarManuallyHidden: (isNavbarManuallyHidden) => set({ isNavbarManuallyHidden }),
+
+      currentStepId: null,
+      setCurrentStepId: (currentStepId) => set({ currentStepId }),
 
       isTutorialActive: false,
       setIsTutorialActive: (isTutorialActive) => set({ isTutorialActive }),

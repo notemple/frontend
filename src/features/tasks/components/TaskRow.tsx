@@ -4,6 +4,7 @@ import { CustomPriorityPicker } from "./CustomPriorityPicker";
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { TaskTitleInput } from './TaskTitleInput';
+import { useUiStore } from '@/shared/store/uiStore';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTaskStore, type Task } from '../store';
 import { formatDisplayDate } from '@/shared/lib/time';
@@ -34,6 +35,11 @@ export const TaskRow = React.memo(({
   const startTimer = useTaskTimerStore(state => state.startTimer);
   const pauseTimer = useTaskTimerStore(state => state.pauseTimer);
   const stopTimer = useTaskTimerStore(state => state.stopTimer);
+
+  const isTutorialActive = useUiStore((s) => s.isTutorialActive);
+  const tutorialIndex = useUiStore((s) => s.tutorialIndex);
+  const currentStepId = useUiStore((s) => s.currentStepId);
+  const isEditClickStep = isTutorialActive && currentStepId === 'task-edit-click';
 
   useEffect(() => {
     setLocalTitle(task.title);
@@ -186,7 +192,10 @@ export const TaskRow = React.memo(({
         </div>
       </div>
 
-      <div className="flex items-center gap-1 opacity-0 flex-shrink-0 group-hover:opacity-100 transition-opacity ml-4 pl-4 border-l border-border">
+      <div className={cn(
+        "flex items-center gap-1 flex-shrink-0 ml-4 pl-4 border-l border-border transition-opacity",
+        isEditClickStep ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+      )}>
         <button
           onClick={() => deleteTask(task.id)}
           className="text-muted-foreground/60 hover:text-red-500 transition-colors flex items-center justify-center w-8 h-8 hover:bg-red-500/10"
@@ -196,7 +205,7 @@ export const TaskRow = React.memo(({
         <button
           onClick={onOpen}
           data-onboarding-task-edit={task.id}
-          className="text-muted-foreground/60 hover:text-foreground transition-colors flex items-center justify-center w-8 h-8 hover:bg-muted"
+          className={`text-muted-foreground/60 hover:text-foreground transition-colors flex items-center justify-center w-8 h-8 hover:bg-muted opacity-0 group-hover:opacity-100 ${isEditClickStep ? 'opacity-100' : ''}`}
         >
           <ArrowCircleRight size={16} />
         </button>

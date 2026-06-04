@@ -33,33 +33,54 @@ const TUTORIAL_STEPS: TutorialStep[] = [
   {
     targetId: 'onboarding-editor',
     title: 'The Document Editor',
-    description: 'Use / commands to add tables, tasks, quotes, toggles, and more.',
+    description: '', // driven dynamically by slashPhase
     color: '#FFC8DD',
     sidebarOpen: false,
     page: 'welcome-doc',
+    interactive: true,
   },
   {
-    targetId: 'onboarding-ask-ai',
-    title: 'Mentions & AI Companion',
-    description: 'Use @ to reference documents, tasks, tags, and ask AI to organize your workspace.',
+    targetId: 'onboarding-editor',
+    title: 'AI Companion Block',
+    description: 'Press "Tab" inside the editor to open the AI companion input box.',
     color: '#B5EAD7',
-    sidebarOpen: true,
+    sidebarOpen: false,
+    page: 'welcome-doc',
+    interactive: true,
   },
   {
     targetId: 'onboarding-tab-bar',
-    title: 'Splitting & Quitting Workspaces',
-    description: '',         // driven dynamically by splitPhase
+    title: 'Splitting Workspaces',
+    description: 'Press Ctrl+Alt+N (or ⌘⌥N) to split the workspace into two panes.',
     color: '#FFDAC1',
     sidebarOpen: false,
     page: 'welcome-doc',
-    interactive: true,       // user must press keys — overlay must not block
+    interactive: true,
+  },
+  {
+    targetId: 'onboarding-tab-bar',
+    title: 'Switching Pane Focus',
+    description: 'Press Ctrl+Alt+J or Ctrl+Alt+H (or ⌘⌥J/H) to move focus to the other pane.',
+    color: '#E8C5E5',
+    sidebarOpen: false,
+    page: 'welcome-doc',
+    interactive: true,
   },
   {
     targetId: 'onboarding-command-palette',
-    title: 'Document Search & Navigation',
-    description: '',         // driven dynamically by searchPhase
-    color: '#E8C5E5',
+    title: 'Document Search in New Pane',
+    description: '', // driven dynamically by searchPhase
+    color: '#BDE0FE',
     sidebarOpen: false,
+    interactive: true,
+  },
+  {
+    targetId: 'onboarding-tab-bar',
+    title: 'Closing a Pane',
+    description: 'Press Ctrl+Alt+Q (or ⌘⌥Q) to close the active pane and return to a single view.',
+    color: '#FFB7B2',
+    sidebarOpen: false,
+    page: 'welcome-doc',
     interactive: true,
   },
   {
@@ -145,6 +166,7 @@ export const SpotlightTutorial = () => {
     tutorialIndex,
     setTutorialIndex,
     panes,
+    activePaneId,
   } = useUiStore(
     useShallow((state) => ({
       isTutorialActive: state.isTutorialActive,
@@ -152,6 +174,7 @@ export const SpotlightTutorial = () => {
       tutorialIndex: state.tutorialIndex,
       setTutorialIndex: state.setTutorialIndex,
       panes: state.panes,
+      activePaneId: state.activePaneId,
     }))
   );
 
@@ -161,14 +184,18 @@ export const SpotlightTutorial = () => {
   const closePalette = () => window.dispatchEvent(new Event('tutorial:close-palette'));
 
   // Interactive step sub-states
-  const [splitPhase, setSplitPhase] = useState<SplitPhase>('wait-split');
+  const [slashPhase, setSlashPhase] = useState<'wait-slash' | 'wait-select' | 'done'>('wait-slash');
+  const [splitPhase, setSplitPhase] = useState<'wait-split' | 'wait-move' | 'done'>('wait-split');
   const [searchPhase, setSearchPhase] = useState<SearchPhase>('wait-open');
   const [arrowCount, setArrowCount] = useState(0);
+  const [initialActivePaneId, setInitialActivePaneId] = useState<string | null>(null);
 
   // ── Reset sub-states when entering interactive steps
   useEffect(() => {
+    if (tutorialIndex === 1) setSlashPhase('wait-slash');
     if (tutorialIndex === 3) setSplitPhase('wait-split');
-    if (tutorialIndex === 4) { setSearchPhase('wait-open'); setArrowCount(0); }
+    if (tutorialIndex === 4) setInitialActivePaneId(useUiStore.getState().activePaneId);
+    if (tutorialIndex === 5) { setSearchPhase('wait-open'); setArrowCount(0); }
   }, [tutorialIndex]);
 
   // ── Stage sync: open page + sidebar per step
@@ -180,44 +207,88 @@ export const SpotlightTutorial = () => {
     useUiStore.setState({ isSidebarOpen: step.sidebarOpen });
   }, [tutorialIndex, isTutorialActive]);
 
-  // ── Settings page scroll: top for color presets (step 8), bottom for autohide (step 9)
+  // ── Settings page scroll: top for color presets (step 10), bottom for autohide (step 11)
   useEffect(() => {
     if (!isTutorialActive) return;
     const scroller = document.getElementById('settings-scroll-container');
     if (!scroller) return;
 
-    if (tutorialIndex === 8) {
+    if (tutorialIndex === 10) {
       // Scroll to top so color presets card is visible
       const t = setTimeout(() => scroller.scrollTo({ top: 0, behavior: 'smooth' }), 450);
       return () => clearTimeout(t);
     }
 
-    if (tutorialIndex === 9) {
-      // Scroll the autohide toggle section into center view
+    if (tutorialIndex === 11) {
+      // Scroll the autohide toggle section to the bottom of the container
       const t = setTimeout(() => {
-        const target = document.getElementById('onboarding-autohide-toggle');
-        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        scroller.scrollTo({ top: scroller.scrollHeight, behavior: 'smooth' });
       }, 450);
       return () => clearTimeout(t);
     }
   }, [tutorialIndex, isTutorialActive]);
 
+  // ── Step 2: poll for slash command list
+  useEffect(() => {
+    if (!isTutorialActive || tutorialIndex !== 1) return;
+    const iv = setInterval(() => {
+      const el = document.getElementById('onboarding-slash-command-list');
+      if (el && slashPhase === 'wait-slash') {
+        setSlashPhase('wait-select');
+      } else if (!el && slashPhase === 'wait-select') {
+        setSlashPhase('done');
+      }
+    }, 150);
+    return () => clearInterval(iv);
+  }, [slashPhase, tutorialIndex, isTutorialActive]);
 
-  // ── Step 3: watch pane count → drive split/quit sequence
+  useEffect(() => {
+    if (isTutorialActive && tutorialIndex === 1 && slashPhase === 'done') {
+      const t = setTimeout(() => setTutorialIndex(2), 1000);
+      return () => clearTimeout(t);
+    }
+  }, [slashPhase, tutorialIndex, isTutorialActive, setTutorialIndex]);
+
+  // ── Step 3: poll for AI block in editor and user typing
+  useEffect(() => {
+    if (!isTutorialActive || tutorialIndex !== 2) return;
+    const iv = setInterval(() => {
+      const inputEl = document.getElementById('onboarding-ai-input') as HTMLInputElement;
+      if (inputEl && inputEl.value.trim().length > 0) {
+        const t = setTimeout(() => setTutorialIndex(3), 1000);
+        return () => clearTimeout(t);
+      }
+    }, 150);
+    return () => clearInterval(iv);
+  }, [tutorialIndex, isTutorialActive, setTutorialIndex]);
+
+  // ── Step 4: watch pane count → split sequence
   useEffect(() => {
     if (!isTutorialActive || tutorialIndex !== 3) return;
     if (splitPhase === 'wait-split' && panes.length > 1) {
-      setSplitPhase('wait-quit');
-    } else if (splitPhase === 'wait-quit' && panes.length === 1) {
-      setSplitPhase('done');
-      const t = setTimeout(() => setTutorialIndex(4), 800);
+      setSplitPhase('wait-move');
+    }
+  }, [panes.length, splitPhase, tutorialIndex, isTutorialActive]);
+
+  useEffect(() => {
+    if (isTutorialActive && tutorialIndex === 3 && splitPhase === 'wait-move') {
+      const t = setTimeout(() => setTutorialIndex(4), 1000);
       return () => clearTimeout(t);
     }
-  }, [panes.length, splitPhase, tutorialIndex, isTutorialActive, setTutorialIndex]);
+  }, [splitPhase, tutorialIndex, isTutorialActive, setTutorialIndex]);
 
-  // ── Step 4: poll for command palette in the DOM
+  // ── Step 5: watch for pane focus switch
   useEffect(() => {
-    if (!isTutorialActive || tutorialIndex !== 4) return;
+    if (!isTutorialActive || tutorialIndex !== 4 || !initialActivePaneId) return;
+    if (activePaneId !== initialActivePaneId) {
+      const t = setTimeout(() => setTutorialIndex(5), 1000);
+      return () => clearTimeout(t);
+    }
+  }, [activePaneId, initialActivePaneId, tutorialIndex, isTutorialActive, setTutorialIndex]);
+
+  // ── Step 6: poll for command palette in the DOM
+  useEffect(() => {
+    if (!isTutorialActive || tutorialIndex !== 5) return;
     const iv = setInterval(() => {
       const el = document.getElementById('onboarding-command-palette');
       if (el && searchPhase === 'wait-open') setSearchPhase('wait-arrows');
@@ -225,9 +296,9 @@ export const SpotlightTutorial = () => {
     return () => clearInterval(iv);
   }, [searchPhase, tutorialIndex, isTutorialActive]);
 
-  // ── Step 4: count arrow key presses once palette is open (pure increment only)
+  // ── Step 6: count arrow key presses once palette is open (pure increment only)
   useEffect(() => {
-    if (!isTutorialActive || tutorialIndex !== 4 || searchPhase !== 'wait-arrows') return;
+    if (!isTutorialActive || tutorialIndex !== 5 || searchPhase !== 'wait-arrows') return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         setArrowCount((n) => n + 1);
@@ -237,22 +308,31 @@ export const SpotlightTutorial = () => {
     return () => window.removeEventListener('keydown', onKey, true);
   }, [searchPhase, tutorialIndex, isTutorialActive]);
 
-  // ── Step 4: transition to 'done' once enough arrows have been pressed
+  // ── Step 6: transition to 'done' once enough arrows have been pressed
   useEffect(() => {
-    if (tutorialIndex === 4 && searchPhase === 'wait-arrows' && arrowCount >= 3) {
+    if (tutorialIndex === 5 && searchPhase === 'wait-arrows' && arrowCount >= 3) {
       setSearchPhase('done');
     }
   }, [arrowCount, searchPhase, tutorialIndex]);
 
-  // ── Step 4: auto-advance to step 5 once search sequence is done (close palette first)
+  // ── Step 6: auto-advance to step 7 once search sequence is done (close palette first)
   useEffect(() => {
-    if (!isTutorialActive || tutorialIndex !== 4 || searchPhase !== 'done') return;
+    if (!isTutorialActive || tutorialIndex !== 5 || searchPhase !== 'done') return;
     const t = setTimeout(() => {
       closePalette();
-      setTutorialIndex(5);
+      setTutorialIndex(6);
     }, 900);
     return () => clearTimeout(t);
   }, [searchPhase, tutorialIndex, isTutorialActive, setTutorialIndex]);
+
+  // ── Step 7: watch for pane close
+  useEffect(() => {
+    if (!isTutorialActive || tutorialIndex !== 6) return;
+    if (panes.length === 1) {
+      const t = setTimeout(() => setTutorialIndex(7), 1000);
+      return () => clearTimeout(t);
+    }
+  }, [panes.length, tutorialIndex, isTutorialActive, setTutorialIndex]);
 
   // ── Close command palette whenever tutorial becomes inactive (prevents blurry frozen UI)
   useEffect(() => {
@@ -270,16 +350,22 @@ export const SpotlightTutorial = () => {
     const step = TUTORIAL_STEPS[tutorialIndex];
     if (!step) { setSpotlightRect(null); return; }
 
-    // Step 4: spotlight the palette when open, otherwise fall back to tab bar
+    // Spotlight settings dynamically
     let targetId = step.targetId;
+    let customEl: HTMLElement | null = null;
     if (tutorialIndex === 4) {
+      customEl = document.querySelector(`[data-pane-id="${activePaneId}"]`) as HTMLElement;
+    } else if (tutorialIndex === 5) {
       const paletteEl = document.getElementById('onboarding-command-palette');
       targetId = paletteEl ? 'onboarding-command-palette' : 'onboarding-tab-bar';
+    } else if (tutorialIndex === 2) {
+      const aiBlockEl = document.getElementById('onboarding-ai-block');
+      targetId = aiBlockEl ? 'onboarding-ai-block' : 'onboarding-editor';
     }
 
-    const el = document.getElementById(targetId);
+    const el = customEl || document.getElementById(targetId);
     setSpotlightRect(el ? el.getBoundingClientRect() : null);
-  }, [tutorialIndex, isTutorialActive]);
+  }, [tutorialIndex, isTutorialActive, activePaneId]);
 
   useEffect(() => {
     updateRect();
@@ -308,19 +394,31 @@ export const SpotlightTutorial = () => {
   };
 
   // Whether the Next button is shown (hidden for interactive auto-advance steps)
-  const showNext = tutorialIndex !== 3 && tutorialIndex !== 4;
+  const showNext = tutorialIndex !== 1 && tutorialIndex !== 2 && tutorialIndex !== 3 && tutorialIndex !== 4 && tutorialIndex !== 5 && tutorialIndex !== 6;
 
   // ── Dynamic description for interactive steps
   const description = (() => {
+    if (tutorialIndex === 1) {
+      if (slashPhase === 'wait-slash') return null;
+      if (slashPhase === 'wait-select') return null;
+      return 'Great choice! Command executed.';
+    }
+    if (tutorialIndex === 2) {
+      return 'Press "Tab" inside the editor to open the AI input box.';
+    }
     if (tutorialIndex === 3) {
-      if (splitPhase === 'wait-split') return null;   // replaced by kbd block below
-      if (splitPhase === 'wait-quit') return null;
-      return 'Great job! Moving on…';
+      return 'Press the shortcut to split the workspace into two panes.';
     }
     if (tutorialIndex === 4) {
+      return 'Press Ctrl+Alt+J or Ctrl+Alt+H (or ⌘⌥J/H) to move focus to the other pane.';
+    }
+    if (tutorialIndex === 5) {
       if (searchPhase === 'wait-open') return null;
       if (searchPhase === 'wait-arrows') return null;
       return '🎉 Great work! Moving to the next step…';
+    }
+    if (tutorialIndex === 6) {
+      return 'Press Ctrl+Alt+Q (or ⌘⌥Q) to close the active pane.';
     }
     return currentStep.description;
   })();
@@ -361,13 +459,13 @@ export const SpotlightTutorial = () => {
             <rect width="100%" height="100%" fill="white" />
             {spotlightRect && (
               <rect
-                x={spotlightRect.x - PAD}
-                y={spotlightRect.y - PAD}
-                width={spotlightRect.width + PAD * 2}
-                height={spotlightRect.height + PAD * 2}
-                rx={10}
-                fill="black"
-                style={{ transition: 'all 0.35s cubic-bezier(0.25, 1, 0.5, 1)' }}
+                 x={spotlightRect.x - PAD}
+                 y={spotlightRect.y - PAD}
+                 width={spotlightRect.width + PAD * 2}
+                 height={spotlightRect.height + PAD * 2}
+                 rx={10}
+                 fill="black"
+                 style={{ transition: 'all 0.35s cubic-bezier(0.25, 1, 0.5, 1)' }}
               />
             )}
           </mask>
@@ -424,7 +522,43 @@ export const SpotlightTutorial = () => {
 
         {/* ── Contextual body for interactive steps ── */}
 
-        {/* Step 3 — Split / Quit */}
+        {/* Step 2 — Slash Commands */}
+        {tutorialIndex === 1 && slashPhase === 'wait-slash' && (
+          <div className="flex flex-col gap-2">
+            <p className="text-[11px] text-zinc-400 leading-relaxed">
+              Type <strong className="text-zinc-200">/</strong> in the editor to open the slash commands menu.
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Kbd>/</Kbd>
+            </div>
+          </div>
+        )}
+        {tutorialIndex === 1 && slashPhase === 'wait-select' && (
+          <div className="flex flex-col gap-2">
+            <p className="text-[11px] leading-relaxed" style={{ color: currentStep.color }}>
+              ✓ Menu open! Now use arrow keys and press <strong className="text-zinc-200">Enter</strong> (or click) to execute a command.
+            </p>
+          </div>
+        )}
+        {tutorialIndex === 1 && slashPhase === 'done' && (
+          <p className="text-[11px] text-zinc-400 leading-relaxed">
+            🎉 Great choice! Moving to the next step…
+          </p>
+        )}
+
+        {/* Step 3 — Tab for AI */}
+        {tutorialIndex === 2 && (
+          <div className="flex flex-col gap-2">
+            <p className="text-[11px] text-zinc-400 leading-relaxed">
+              Press the <strong className="text-zinc-200">Tab</strong> key on a new line in the editor to open the AI companion.
+            </p>
+            <div className="flex items-center gap-1.5">
+              <Kbd>Tab</Kbd>
+            </div>
+          </div>
+        )}
+
+        {/* Step 4 — Pane Split */}
         {tutorialIndex === 3 && splitPhase === 'wait-split' && (
           <div className="flex flex-col gap-2">
             <p className="text-[11px] text-zinc-400 leading-relaxed">
@@ -436,55 +570,46 @@ export const SpotlightTutorial = () => {
               <Kbd>N</Kbd>
               <span className="text-zinc-500 text-[10px] ml-1">/ Mac: <Kbd>⌘</Kbd><span className="text-zinc-600 text-xs">+</span><Kbd>⌥</Kbd><span className="text-zinc-600 text-xs">+</span><Kbd>N</Kbd></span>
             </div>
-            <div
-              className="h-1 rounded-full mt-0.5 overflow-hidden"
-              style={{ background: 'rgba(255,255,255,0.06)' }}
-            >
-              <div className="h-full rounded-full animate-pulse" style={{ width: '40%', background: currentStep.color + '60' }} />
-            </div>
           </div>
         )}
+        {tutorialIndex === 3 && splitPhase === 'wait-move' && (
+          <p className="text-[11px] text-zinc-400 leading-relaxed">
+            🎉 Pane split! Moving to the next step…
+          </p>
+        )}
 
-        {tutorialIndex === 3 && splitPhase === 'wait-quit' && (
+        {/* Step 5 — Switch Pane Focus */}
+        {tutorialIndex === 4 && (
           <div className="flex flex-col gap-2">
-            <p className="text-[11px] leading-relaxed" style={{ color: currentStep.color }}>
-              ✓ Pane split! Now <strong>quit / close</strong> the new pane.
+            <p className="text-[11px] text-zinc-400 leading-relaxed">
+              Press the shortcut to switch your active focus to the other pane.
             </p>
             <div className="flex items-center gap-1.5 flex-wrap">
               <Kbd>Ctrl</Kbd><span className="text-zinc-600 text-xs">+</span>
               <Kbd>Alt</Kbd><span className="text-zinc-600 text-xs">+</span>
-              <Kbd>Q</Kbd>
-              <span className="text-zinc-500 text-[10px] ml-1">/ Mac: <Kbd>⌘</Kbd><span className="text-zinc-600 text-xs">+</span><Kbd>⌥</Kbd><span className="text-zinc-600 text-xs">+</span><Kbd>Q</Kbd></span>
-            </div>
-            <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-              <div className="h-full rounded-full" style={{ width: '70%', background: currentStep.color }} />
+              <Kbd>J</Kbd>
+              <span className="text-zinc-500 text-[10px] ml-1">or</span>
+              <Kbd>Ctrl</Kbd><span className="text-zinc-600 text-xs">+</span>
+              <Kbd>Alt</Kbd><span className="text-zinc-600 text-xs">+</span>
+              <Kbd>H</Kbd>
+              <span className="text-zinc-500 text-[10px] ml-1">/ Mac: <Kbd>⌘⌥J</Kbd> or <Kbd>⌘⌥H</Kbd></span>
             </div>
           </div>
         )}
 
-        {tutorialIndex === 3 && splitPhase === 'done' && (
-          <p className="text-[11px] text-zinc-400 leading-relaxed">
-            🎉 Perfect! Moving to the next step…
-          </p>
-        )}
-
-        {/* Step 4 — Command Palette */}
-        {tutorialIndex === 4 && searchPhase === 'wait-open' && (
+        {/* Step 6 — Command Palette */}
+        {tutorialIndex === 5 && searchPhase === 'wait-open' && (
           <div className="flex flex-col gap-2">
             <p className="text-[11px] text-zinc-400 leading-relaxed">
-              Open the command palette to search documents and run commands.
+              Open the command palette in the new pane to search documents.
             </p>
             <div className="flex items-center gap-1.5 flex-wrap">
               <Kbd>Ctrl</Kbd><span className="text-zinc-600 text-xs">+</span><Kbd>K</Kbd>
               <span className="text-zinc-500 text-[10px] ml-1">/ Mac: <Kbd>⌘</Kbd><span className="text-zinc-600 text-xs">+</span><Kbd>K</Kbd></span>
             </div>
-            <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-              <div className="h-full rounded-full animate-pulse" style={{ width: '25%', background: currentStep.color + '60' }} />
-            </div>
           </div>
         )}
-
-        {tutorialIndex === 4 && searchPhase === 'wait-arrows' && (
+        {tutorialIndex === 5 && searchPhase === 'wait-arrows' && (
           <div className="flex flex-col gap-2">
             <p className="text-[11px] leading-relaxed" style={{ color: currentStep.color }}>
               ✓ Palette open! Now navigate the list with the arrow keys.
@@ -504,20 +629,31 @@ export const SpotlightTutorial = () => {
                 />
               ))}
             </div>
-            <p className="text-[10px] text-zinc-600">
-              {arrowCount >= 2 ? 'Almost there…' : `${3 - arrowCount} more press${3 - arrowCount !== 1 ? 'es' : ''}`}
-            </p>
           </div>
         )}
-
-        {tutorialIndex === 4 && searchPhase === 'done' && (
+        {tutorialIndex === 5 && searchPhase === 'done' && (
           <p className="text-[11px] text-zinc-400 leading-relaxed">
-            🎉 Excellent! Press <Kbd>Esc</Kbd> to close the palette, then click Next.
+            🎉 Excellent! Press <Kbd>Esc</Kbd> to close the palette.
           </p>
         )}
 
+        {/* Step 7 — Closing a Pane */}
+        {tutorialIndex === 6 && (
+          <div className="flex flex-col gap-2">
+            <p className="text-[11px] text-zinc-400 leading-relaxed">
+              Press the shortcut to <strong className="text-zinc-200">close / quit</strong> the active pane.
+            </p>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <Kbd>Ctrl</Kbd><span className="text-zinc-600 text-xs">+</span>
+              <Kbd>Alt</Kbd><span className="text-zinc-600 text-xs">+</span>
+              <Kbd>Q</Kbd>
+              <span className="text-zinc-500 text-[10px] ml-1">/ Mac: <Kbd>⌘</Kbd><span className="text-zinc-600 text-xs">+</span><Kbd>⌥</Kbd><span className="text-zinc-600 text-xs">+</span><Kbd>Q</Kbd></span>
+            </div>
+          </div>
+        )}
+
         {/* All other steps */}
-        {tutorialIndex !== 3 && tutorialIndex !== 4 && description && (
+        {showNext && description && (
           <p className="text-[11px] text-zinc-400 leading-relaxed">{description}</p>
         )}
 

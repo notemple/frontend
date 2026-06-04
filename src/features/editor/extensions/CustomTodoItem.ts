@@ -70,7 +70,7 @@ export const CustomTodoItem = TaskItem.extend({
         }),
       },
       isGreenTodo: {
-        default: false,
+        default: true,
         keepOnSplit: true,
         parseHTML: element => element.getAttribute('data-green-todo') === 'true',
         renderHTML: attributes => ({ 'data-green-todo': attributes.isGreenTodo }),

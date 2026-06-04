@@ -563,6 +563,7 @@ export const MainWorkspace = () => {
               )}
               <div
                 className="flex flex-col min-w-[300px] overflow-hidden relative shrink-0 grow-0"
+                data-pane-id={pane.id}
                 style={{ width: `${pane.width || (100 / panes.length)}%` }}
                 onClick={() => {
                   if (activePaneId !== pane.id) {

@@ -157,7 +157,7 @@ export const AiBlockView = ({ node, editor, getPos, deleteNode, extension }: any
   };
 
   return (
-    <NodeViewWrapper className="w-full my-1.5 font-sans select-none pointer-events-auto">
+    <NodeViewWrapper id="onboarding-ai-block" className="w-full my-1.5 font-sans select-none pointer-events-auto">
       <div 
         style={borderStyle}
         className="w-full max-w-[560px] bg-card border rounded-md px-3 py-1.5 flex items-center gap-2 shadow-sm-sm transition-all"
@@ -165,6 +165,7 @@ export const AiBlockView = ({ node, editor, getPos, deleteNode, extension }: any
         
         <input
           ref={textareaRef}
+          id="onboarding-ai-input"
           type="text"
           value={promptText}
           onChange={(e) => setPromptText(e.target.value)}

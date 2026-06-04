@@ -28,6 +28,7 @@ function isBlockEmpty(node: any): boolean {
 
 export const BackspaceEmptyBlock = Extension.create({
   name: 'backspaceEmptyBlock',
+  priority: 1000,
 
   addKeyboardShortcuts() {
     return {
@@ -88,6 +89,25 @@ export const BackspaceEmptyBlock = Extension.create({
           ) {
             targetDepth = parentDepth;
             targetNode = parentNode;
+          }
+        }
+
+        // If we are deleting a taskItem or listItem, check if it is the only child in its list container.
+        // If so, target the list container itself to prevent violating schema constraints.
+        if (targetNode && (targetNode.type.name === 'taskItem' || targetNode.type.name === 'listItem')) {
+          if (targetDepth > 1) {
+            const listDepth = targetDepth - 1;
+            const listNode = $from.node(listDepth);
+            if (
+              listNode &&
+              (listNode.type.name === 'taskList' ||
+                listNode.type.name === 'bulletList' ||
+                listNode.type.name === 'orderedList') &&
+              listNode.childCount <= 1
+            ) {
+              targetDepth = listDepth;
+              targetNode = listNode;
+            }
           }
         }
 

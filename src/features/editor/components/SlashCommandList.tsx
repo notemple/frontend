@@ -207,6 +207,7 @@ export const SlashCommandList = forwardRef((props: SlashCommandListProps, ref) =
   return (
     <div 
       ref={containerRef}
+      id="onboarding-slash-command-list"
       className="bg-card border border-white/5 rounded-sm-sm shadow-sm-sm p-2 flex flex-col gap-1 min-w-[280px] max-h-[380px] overflow-y-auto no-scrollbar font-sans"
     >
       {menuStack.length > 0 && (

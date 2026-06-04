@@ -55,7 +55,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
   };
 
   const showLeftColumn = containerWidth >= 1150;
-  const showRightColumn = containerWidth >= 950;
+  const showRightColumn = containerWidth >= 1150;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;

@@ -51,56 +51,32 @@ export const OnboardingScreen = () => {
     if (selectedStyle === 'Developer') {
       tags = ['development', 'backlog', 'bugs', 'docs', 'releases'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Templnote' },
-        { id: 'doc-dev-roadmap', title: 'Project Roadmap' },
-        { id: 'doc-dev-setup', title: 'Local Setup Guide' },
-        { id: 'doc-dev-api', title: 'API Reference Documentation' },
-        { id: 'daily-note', title: `Daily Standup — ${yyyy}-${mm}-${dd}` }
+        { id: 'welcome-doc', title: 'Welcome to Templnote' }
       ];
     } else if (selectedStyle === 'Student') {
       tags = ['lectures', 'homework', 'exams', 'readings', 'schedule'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Templnote' },
-        { id: 'doc-stud-overview', title: 'Semester Overview' },
-        { id: 'doc-stud-prep', title: 'Exam Preparation' },
-        { id: 'doc-stud-schedule', title: 'Class Schedule' },
-        { id: 'daily-note', title: `Daily Study Log — ${yyyy}-${mm}-${dd}` }
+        { id: 'welcome-doc', title: 'Welcome to Templnote' }
       ];
     } else if (selectedStyle === 'Creator') {
       tags = ['ideas', 'drafts', 'production', 'editing', 'published'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Templnote' },
-        { id: 'doc-creat-calendar', title: 'Content Calendar' },
-        { id: 'doc-creat-script', title: 'Video Script: Desk Setup' },
-        { id: 'doc-creat-brand', title: 'Brand Identity Guide' },
-        { id: 'daily-note', title: `Creative Session Log — ${yyyy}-${mm}-${dd}` }
+        { id: 'welcome-doc', title: 'Welcome to Templnote' }
       ];
     } else if (selectedStyle === 'Researcher') {
       tags = ['literature', 'experiments', 'data', 'writing', 'references'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Templnote' },
-        { id: 'doc-res-thesis', title: 'Thesis Outline' },
-        { id: 'doc-res-log', title: 'Experiment Logs' },
-        { id: 'doc-res-grant', title: 'Grant Proposal Outline' },
-        { id: 'daily-note', title: `Research Notes — ${yyyy}-${mm}-${dd}` }
+        { id: 'welcome-doc', title: 'Welcome to Templnote' }
       ];
     } else if (selectedStyle === 'Startup') {
       tags = ['strategy', 'product', 'growth', 'fundraising', 'meetings'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Templnote' },
-        { id: 'doc-start-onepager', title: 'One Pager Strategy' },
-        { id: 'doc-start-prd', title: 'Product Spec: Onboarding' },
-        { id: 'doc-start-pitch', title: 'Pitch Deck Outline' },
-        { id: 'daily-note', title: `Daily Sync — ${yyyy}-${mm}-${dd}` }
+        { id: 'welcome-doc', title: 'Welcome to Templnote' }
       ];
     } else {
       tags = ['journal', 'goals', 'finance', 'health', 'reminders'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Templnote' },
-        { id: 'doc-pers-goals', title: 'Yearly Goals' },
-        { id: 'doc-pers-reading', title: 'Reading List' },
-        { id: 'doc-pers-health', title: 'Weekly Fitness Planner' },
-        { id: 'daily-note', title: `Daily Journal — ${yyyy}-${mm}-${dd}` }
+        { id: 'welcome-doc', title: 'Welcome to Templnote' }
       ];
     }
 
@@ -284,43 +260,7 @@ export const OnboardingScreen = () => {
               folderId: null,
               tags: ['guide', 'dev'],
               content: `<h1>Welcome to your Developer Workspace</h1><p>Templnote is your calm, intelligent workspace for ideas, tasks, and code snippet references.</p><h3>Pro Tips:</h3><ul><li>Type <strong>/</strong> in this editor to insert tables, quotes, toggles, or code blocks.</li><li>Type <strong>@</strong> to link to other documents, tasks, or tags.</li><li>Press <strong>Tab</strong> to activate AI autocomplete on any paragraph.</li></ul>`
-            },
-            {
-              id: 'doc-dev-roadmap',
-              title: 'Project Roadmap',
-              folderId: 'folder-dev-projects',
-              tags: ['projects'],
-              content: `<h1>Project Roadmap</h1><p>A high-level review of active software projects and features.</p><h3>Sprint Targets</h3><ul><li>[ ] Integrate IndexDB storage synchronization</li><li>[ ] Polish UI onboarding page transitions</li><li>[ ] Optimize largest contentful paint (LCP)</li></ul>`
-            },
-            {
-              id: 'doc-dev-setup',
-              title: 'Local Setup Guide',
-              folderId: 'folder-dev-docs',
-              tags: ['dev'],
-              content: `<h1>Setup Guide</h1><p>Follow these quick commands to spin up the local development environment:</p><pre><code># Install packages\nbun install\n\n# Spin up dev server\nbun run dev</code></pre>`
-            },
-            {
-              id: 'doc-dev-api',
-              title: 'API Reference Documentation',
-              folderId: 'folder-dev-docs',
-              tags: ['docs', 'development'],
-              content: `<h1>API Reference Documentation</h1><p>Internal microservice endpoints specifications and schema structures.</p><h3>Endpoints</h3><ul><li><strong>GET /api/v1/notes:</strong> Retrieve paginated note listings.</li><li><strong>POST /api/v1/notes:</strong> Create a new workspace note.</li></ul><h3>Response Format</h3><pre><code>{
-  "status": "success",
-  "data": { "id": "note-123", "title": "Untitled" }
-}</code></pre>`
-            },
-            {
-              id: dailyNoteId,
-              title: '',
-              folderId: null,
-              tags: ['daily-notes'],
-              content: `<h1>Daily Standup — ${yyyy}-${mm}-${dd}</h1><h3>Yesterday's progress:</h3><ul><li>Implemented premium onboarding screen overlays</li></ul><h3>Today's focus:</h3><ul><li>Add automated unit test suites</li></ul><h3>Blockers:</h3><p>None.</p>`
             }
-          );
-          createdTasks.push(
-            { title: 'Setup local development configurations', list: 'Today', completed: false, priority: 'urgent' },
-            { title: 'Refactor state store selectors', list: 'Upcoming', completed: false, priority: 'medium' },
-            { title: 'Write unit tests for storage schemas', list: 'All Tasks', completed: false, priority: 'low' }
           );
         } else if (selectedStyle === 'Student') {
           styleTags.push('lectures', 'homework', 'exams', 'readings', 'schedule');
@@ -366,11 +306,7 @@ export const OnboardingScreen = () => {
               content: `<h1>Daily Study Log — ${yyyy}-${mm}-${dd}</h1><h3>Today's lectures:</h3><ul><li>CS 101 - Lecture 4</li></ul><h3>Tasks to finish:</h3><ul><li>Math assignment 2 submissions</li></ul>`
             }
           );
-          createdTasks.push(
-            { title: 'Read Chapter 4 of Math Textbook', list: 'Today', completed: false, priority: 'medium' },
-            { title: 'Submit CS 101 Sorting Assignment', list: 'Upcoming', completed: false, priority: 'urgent' },
-            { title: 'Email professor about research project topic', list: 'All Tasks', completed: false, priority: 'low' }
-          );
+          // No default tasks for Student style
         } else if (selectedStyle === 'Creator') {
           styleTags.push('ideas', 'drafts', 'production', 'editing', 'published');
           createdFolders.push(
@@ -415,11 +351,7 @@ export const OnboardingScreen = () => {
               content: `<h1>Creative Session Log — ${yyyy}-${mm}-${dd}</h1><h3>Creative ideas today:</h3><ul><li>Comparison video on productivity tools</li></ul><h3>Task list:</h3><ul><li>Shoot visual b-roll for setup video</li></ul>`
             }
           );
-          createdTasks.push(
-            { title: 'Record b-roll clips of workspace', list: 'Today', completed: false, priority: 'medium' },
-            { title: 'Draft script for productivity review', list: 'Upcoming', completed: false, priority: 'urgent' },
-            { title: 'Reach out to sponsor contacts', list: 'All Tasks', completed: false, priority: 'low' }
-          );
+          // No default tasks for Creator style
         } else if (selectedStyle === 'Researcher') {
           styleTags.push('literature', 'experiments', 'data', 'writing', 'references');
           createdFolders.push(
@@ -464,11 +396,7 @@ export const OnboardingScreen = () => {
               content: `<h1>Research Notes — ${yyyy}-${mm}-${dd}</h1><h3>Discoveries & Hypotheses:</h3><p>State sync runs 20% faster when indexes are local.</p><h3>Paper reading list:</h3><ul><li>Read Kleppmann (2018) paper</li></ul>`
             }
           );
-          createdTasks.push(
-            { title: 'Read academic CRDT papers', list: 'Today', completed: false, priority: 'medium' },
-            { title: 'Plot benchmark performance figures', list: 'Upcoming', completed: false, priority: 'urgent' },
-            { title: 'Format thesis bibliography entries', list: 'All Tasks', completed: false, priority: 'low' }
-          );
+          // No default tasks for Researcher style
         } else if (selectedStyle === 'Startup') {
           styleTags.push('strategy', 'product', 'growth', 'fundraising', 'meetings');
           createdFolders.push(
@@ -513,11 +441,7 @@ export const OnboardingScreen = () => {
               content: `<h1>Daily Sync — ${yyyy}-${mm}-${dd}</h1><h3>Active Metrics:</h3><ul><li>Daily Active Users: 1,420</li></ul><h3>Standup Agenda:</h3><ul><li>Sync with engineering team on local Dexie indexing issues</li></ul>`
             }
           );
-          createdTasks.push(
-            { title: 'Review startup seed pitch slides', list: 'Today', completed: false, priority: 'urgent' },
-            { title: 'Draft Product Spec for workspace sharing', list: 'Upcoming', completed: false, priority: 'medium' },
-            { title: 'Update investor forecast models', list: 'All Tasks', completed: false, priority: 'low' }
-          );
+          // No default tasks for Startup style
         } else {
           // Personal Default
           styleTags.push('journal', 'goals', 'finance', 'health', 'reminders');
@@ -563,11 +487,7 @@ export const OnboardingScreen = () => {
               content: `<h1>Daily Journal — ${yyyy}-${mm}-${dd}</h1><h3>Gratitude list:</h3><ol><li>A quiet morning for focus</li><li>Good coffee</li><li>Getting this new workspace started</li></ol><h3>Focus of the day:</h3><p>Design a calm daily routine.</p>`
             }
           );
-          createdTasks.push(
-            { title: 'Schedule medical checkup call', list: 'Today', completed: false, priority: 'medium' },
-            { title: 'Write down weekly meal plan', list: 'Upcoming', completed: false, priority: 'low' },
-            { title: 'Practice 15 minutes of meditation', list: 'All Tasks', completed: false, priority: 'urgent' }
-          );
+          // No default tasks for Personal style
         }
 
         for (const folder of createdFolders) {
@@ -620,25 +540,7 @@ export const OnboardingScreen = () => {
           });
         }
 
-        await taskService.saveTask({
-          id: 'task-onboarding-capture',
-          title: 'Try quick capture below to write a note',
-          list: 'Today',
-          completed: false,
-          status: 'open',
-          priority: 'medium',
-          createdAt: new Date().toISOString()
-        });
-
-        await taskService.saveTask({
-          id: 'task-onboarding-slash',
-          title: 'Press / in the editor to see formatting options',
-          list: 'Upcoming',
-          completed: false,
-          status: 'open',
-          priority: 'medium',
-          createdAt: new Date().toISOString()
-        });
+        // Onboarding helper tasks omitted per user request
 
         const finalDocs = await documentService.listDocuments();
         const finalFolders = await documentService.listFolders();
@@ -681,7 +583,9 @@ export const OnboardingScreen = () => {
 
   const handleFinishOnboarding = () => {
     setIsOnboardingCompleted(true);
-    useUiStore.getState().startTutorial();
+    useUiStore.getState().openDocument('section-glance');
+    // Directly open Glance page after onboarding
+    useUiStore.getState().openDocument('section-glance');
   };
 
   // Onboarding split-screen layouts

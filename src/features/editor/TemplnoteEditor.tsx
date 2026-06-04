@@ -600,7 +600,7 @@ export const TemplnoteEditor = React.memo(({
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em]" style={{ color: document.topSectionTextColor || activeMutedColor }}>
-                <span>{document.type}</span>
+                <span>{documentId.startsWith('task-') ? 'task' : document.type}</span>
                 <span>/</span>
                 <span>{formatDisplayDate(document.updatedAt, "MMM d, yyyy")}</span>
               </div>
@@ -624,11 +624,14 @@ export const TemplnoteEditor = React.memo(({
                 <div className="relative shrink-0 self-center animate-fade-in" ref={emojiPickerRef}>
                   <button
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="w-12 h-12 rounded-sm-sm border border-transparent hover:border-border flex items-center justify-center opacity-60 hover:opacity-100 hover:bg-muted/30 hover:shadow-sm-sm transition-all cursor-pointer select-none"
+                    className={cn(
+                      "w-12 h-12 rounded-sm-sm border border-transparent hover:border-border flex items-center justify-center hover:bg-muted/30 hover:shadow-sm-sm transition-all cursor-pointer select-none",
+                      document.icon ? "opacity-100" : "opacity-60 hover:opacity-100"
+                    )}
                     title={document.icon ? "Change Emoji" : "Add Emoji"}
                   >
                     {document.icon ? (
-                      <span className="text-[26px] leading-none flex items-center justify-center font-sans">{document.icon}</span>
+                      <span className="text-[36px] leading-none flex items-center justify-center font-sans">{document.icon}</span>
                     ) : (
                       <Smiley size={24} style={{ color: document.topSectionTextColor || activeTextColor }} />
                     )}

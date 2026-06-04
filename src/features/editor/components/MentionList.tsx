@@ -254,6 +254,7 @@ export const MentionList = forwardRef((props: MentionListProps, ref) => {
   return (
     <div 
       ref={containerRef}
+      id="onboarding-mention-list"
       className="bg-card border border-white/5 rounded-sm-sm shadow-sm-sm p-2 flex flex-col gap-1 min-w-[280px] max-h-[380px] overflow-y-auto no-scrollbar font-sans"
     >
       {items.map((item, index) => {

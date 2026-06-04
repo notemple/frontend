@@ -361,13 +361,14 @@ const uncategorizedDocIdsSelector = (state: any) => {
 };
 
 export const Sidebar = () => {
-  const { isSidebarOpen, toggleSidebar, openDocument, panes, activePaneId } = useUiStore(
+  const { isSidebarOpen, toggleSidebar, openDocument, panes, activePaneId, isTutorialActive } = useUiStore(
     useShallow((state) => ({
       isSidebarOpen: state.isSidebarOpen,
       toggleSidebar: state.toggleSidebar,
       openDocument: state.openDocument,
       panes: state.panes,
       activePaneId: state.activePaneId,
+      isTutorialActive: state.isTutorialActive,
     }))
   );
 
@@ -849,8 +850,12 @@ export const Sidebar = () => {
               </div>
               <div className="flex items-center gap-1">
                 <button
+                  id="onboarding-create-folder-button"
                   onClick={() => createFolder('New Folder')}
-                  className="opacity-0 group-hover/folders:opacity-100 text-muted-foreground hover:text-foreground transition-opacity flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm"
+                  className={cn(
+                    "text-muted-foreground hover:text-foreground transition-opacity flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm",
+                    isTutorialActive ? "opacity-100" : "opacity-0 group-hover/folders:opacity-100"
+                  )}
                   title="New Folder"
                 >
                   <Plus size={12} weight="bold" />
@@ -874,6 +879,7 @@ export const Sidebar = () => {
                 return (
                   <div
                     key={folder.id}
+                    data-onboarding-folder-item={folder.id}
                     className="space-y-[2px]"
                     draggable
                     onDragStart={(e) => {

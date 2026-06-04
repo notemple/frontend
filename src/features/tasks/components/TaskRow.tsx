@@ -53,6 +53,7 @@ export const TaskRow = React.memo(({
 
   return (
     <motion.div
+      data-onboarding-task-row="true"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 10 }}
@@ -164,6 +165,7 @@ export const TaskRow = React.memo(({
               <button
                 onClick={(e) => { e.stopPropagation(); startTimer(task.id); }}
                 disabled={task.completed || task.status === 'done'}
+                data-onboarding-timer-play={task.id}
                 className="p-1 rounded bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center shrink-0"
                 title={task.completed || task.status === 'done' ? "Open task to start timer" : "Start stopwatch"}
               >
@@ -193,6 +195,7 @@ export const TaskRow = React.memo(({
         </button>
         <button
           onClick={onOpen}
+          data-onboarding-task-edit={task.id}
           className="text-muted-foreground/60 hover:text-foreground transition-colors flex items-center justify-center w-8 h-8 hover:bg-muted"
         >
           <ArrowCircleRight size={16} />

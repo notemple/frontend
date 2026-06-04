@@ -140,6 +140,8 @@ export const TemplnoteEditor = React.memo(({
         let fallbackTitle = '';
         if (documentId.startsWith('daily-note-')) {
           fallbackTitle = getDailyNoteTitle(documentId, timezone);
+        } else if (documentId === 'welcome-doc') {
+          fallbackTitle = 'Welcome to Templnote';
         }
         return {
           id: documentId,
@@ -517,6 +519,7 @@ export const TemplnoteEditor = React.memo(({
   return (
     <div
       id="onboarding-editor"
+      data-onboarding-editor={paneId}
       className={cn(
         "relative w-full overflow-hidden flex flex-col",
         isMinimized ? "h-[450px]" : "h-full"
@@ -604,6 +607,8 @@ export const TemplnoteEditor = React.memo(({
 
               {documentId.startsWith('daily-note-') && !isDailyNote && (
                 <button
+                  id="onboarding-daily-note-minimize"
+                  data-onboarding-daily-note-minimize={paneId}
                   onClick={handleBackToDailyNotes}
                   className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-sm-sm border border-border bg-muted/40 hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all cursor-pointer shadow-sm-sm select-none"
                   title="Back to Daily Notes view"
@@ -673,6 +678,8 @@ export const TemplnoteEditor = React.memo(({
               )}
               {isDailyNote ? null : (
                 <input
+                  id="onboarding-document-title-input"
+                  data-onboarding-document-title-input={paneId}
                   value={title}
                   onChange={handleTitleChange}
                   placeholder="Untitled Document"

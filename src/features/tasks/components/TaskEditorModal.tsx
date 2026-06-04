@@ -78,6 +78,7 @@ export const TaskEditorModal = ({
           onClick={onClose}
         >
           <motion.div
+            id="onboarding-task-editor-modal"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
@@ -118,25 +119,17 @@ export const TaskEditorModal = ({
                     {showStatusDropdown && (
                       <>
                         <div 
-                          className="fixed inset-0 z-40" 
-                          onClick={() => setShowStatusDropdown(false)} 
+                          className="fixed inset-0 z-30 bg-transparent"
+                          onClick={() => setShowStatusDropdown(false)}
                         />
-                        <div className="absolute left-0 mt-1.5 z-50 bg-background rounded-sm-sm border border-border py-1 min-w-[130px] shadow-sm-sm neu-panel flex flex-col">
+                        <div className="absolute left-0 mt-1.5 w-36 bg-background border border-border rounded-sm-sm shadow-sm-sm py-1 z-40 font-semibold text-xs text-foreground/80 flex flex-col gap-0.5 min-w-[120px] select-none">
                           {(['open', 'in progress', 'done'] as const).map((status) => (
                             <button
                               key={status}
                               onClick={() => handleStatusChange(status)}
-                              className={cn(
-                                "flex items-center justify-between px-3 py-2 text-xs font-medium text-foreground hover:bg-muted transition-colors cursor-pointer w-full text-left",
-                                currentStatus === status && "bg-muted font-bold"
-                              )}
+                              className="w-full text-left px-3 py-2 hover:bg-muted transition-colors flex items-center justify-between cursor-pointer"
                             >
-                              <div className="flex items-center gap-2">
-                                <span className={statusConfig[status].textColor}>
-                                  {statusConfig[status].icon}
-                                </span>
-                                <span>{statusConfig[status].label}</span>
-                              </div>
+                              <span>{statusConfig[status].label}</span>
                               {currentStatus === status && (
                                 <Check size={12} weight="bold" className="text-foreground shrink-0" />
                               )}
@@ -157,6 +150,7 @@ export const TaskEditorModal = ({
               </div>
 
               <button
+                id="onboarding-task-editor-close"
                 onClick={onClose}
                 className="p-1 hover:bg-muted rounded-sm-full transition-colors text-muted-foreground hover:text-foreground shrink-0"
               >

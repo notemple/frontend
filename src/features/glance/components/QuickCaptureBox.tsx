@@ -105,7 +105,19 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
   }, [isCurrentActive, activeHighlightColor, inactiveHighlightColor]);
 
   const [captureText, setCaptureText] = useState("");
-  const [activeType, setActiveType] = useState<"Note" | "Task" | "Doc" | "Link">("Note");
+  const [activeType, setActiveType] = useState<"Note" | "Task" | "Doc" | "Link" | null>(null);
+
+  const isTutorialActive = useUiStore((s) => s.isTutorialActive);
+  const tutorialIndex = useUiStore((s) => s.tutorialIndex);
+  const isFirstStep = isTutorialActive && tutorialIndex === 0;
+
+  const effectiveActiveType = activeType !== null ? activeType : (isFirstStep ? null : "Note");
+
+  useEffect(() => {
+    if (isFirstStep && !captureText.trim()) {
+      setActiveType(null);
+    }
+  }, [captureText, isFirstStep]);
 
   // AI model select state
   const [selectedModel, setSelectedModel] = useState(() => {
@@ -135,7 +147,10 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
     const captureId = `capture-${Date.now()}`;
     let itemId: string | undefined = undefined;
 
-    if (activeType === "Note") {
+    const typeToSubmit = (isFirstStep ? "Note" : effectiveActiveType) || "Note";
+    if (isFirstStep && effectiveActiveType !== "Note") return;
+
+    if (typeToSubmit === "Note") {
       const todayDateStr = formatInTimeZone(new Date(), timezone, "yyyy-MM-dd");
       const dailyNoteId = `daily-note-${todayDateStr}`;
       itemId = dailyNoteId;
@@ -153,7 +168,7 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
         updatedAt: new Date().toISOString()
       });
       openDocument(dailyNoteId, paneId);
-    } else if (activeType === "Doc") {
+    } else if (typeToSubmit === "Doc") {
       const newId = `doc-${crypto.randomUUID()}`;
       itemId = newId;
       await addDocument({
@@ -165,7 +180,7 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
         updatedAt: new Date().toISOString(),
       });
       openDocument(newId, paneId);
-    } else if (activeType === "Task") {
+    } else if (typeToSubmit === "Task") {
       const newTaskId = `task-${crypto.randomUUID()}`;
       itemId = newTaskId;
       addTask({
@@ -180,7 +195,7 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
     const entry = {
       id: captureId,
       content: captureText.trim(),
-      type: activeType,
+      type: typeToSubmit,
       createdAt: new Date().toISOString(),
       itemId,
     };
@@ -191,9 +206,12 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
   const handleCaptureKey = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
+      if (isFirstStep && effectiveActiveType !== "Note") return;
       handleSubmitCapture();
     }
   };
+
+  const canSubmit = captureText.trim() && !(isFirstStep && effectiveActiveType !== "Note");
 
   return (
     <div id="onboarding-quick-capture" className="w-full max-w-3xl bg-muted/10 border border-border/60 rounded-lg p-4 flex flex-col gap-3 shadow-sm focus-within:border-border/90 focus-within:shadow-md transition-all shrink-0">
@@ -207,31 +225,40 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
       <div className="flex items-center justify-between border-t border-border/20 pt-3">
         {/* Type pills */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          {(["Note", "Task", "Doc", "Link"] as const).map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() => setActiveType(type)}
-              style={activeType === type ? { color: paneHighlightSolid, borderColor: 'transparent' } : undefined}
-              className={cn(
-                "relative px-3 py-1.5 rounded border flex items-center gap-2 text-sm font-medium transition-all cursor-pointer select-none overflow-hidden",
-                activeType === type
-                  ? "shadow-sm-sm"
-                  : "border-border/50 hover:border-border/80 hover:bg-muted/20 text-foreground/70"
-              )}
-            >
-              {activeType === type && (
-                <div 
-                  style={{ background: paneHighlightBg }} 
-                  className="absolute inset-0 opacity-[0.12] dark:opacity-[0.18] pointer-events-none" 
-                />
-              )}
-              <span className="relative z-10 flex items-center gap-2">
-                {getCaptureIcon(type, activeType === type ? paneHighlightSolid : undefined)}
-                <span>{type}</span>
-              </span>
-            </button>
-          ))}
+          {(["Note", "Task", "Doc", "Link"] as const).map((type) => {
+            const isSelected = effectiveActiveType === type;
+            const isDisabled = isFirstStep && type !== "Note";
+            return (
+              <button
+                key={type}
+                type="button"
+                disabled={isDisabled}
+                onClick={() => setActiveType(type)}
+                style={isSelected ? { color: paneHighlightSolid, borderColor: 'transparent' } : undefined}
+                className={cn(
+                  "relative px-3 py-1.5 rounded border flex items-center gap-2 text-sm font-medium transition-all cursor-pointer select-none overflow-hidden",
+                  isSelected
+                    ? "shadow-sm-sm"
+                    : "border-border/50 hover:border-border/80 hover:bg-muted/20 text-foreground/70",
+                  isDisabled && "opacity-40 cursor-not-allowed hover:bg-transparent hover:border-border/50",
+                  type === "Note" && isFirstStep && captureText.trim() !== "" && effectiveActiveType !== "Note" && "animate-pulse border-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                )}
+                id={type === "Note" ? "onboarding-quick-capture-note-pill" : undefined}
+                data-selected={isSelected}
+              >
+                {isSelected && (
+                  <div 
+                    style={{ background: paneHighlightBg }} 
+                    className="absolute inset-0 opacity-[0.12] dark:opacity-[0.18] pointer-events-none" 
+                  />
+                )}
+                <span className="relative z-10 flex items-center gap-2">
+                  {getCaptureIcon(type, isSelected ? paneHighlightSolid : undefined)}
+                  <span>{type}</span>
+                </span>
+              </button>
+            );
+          })}
         </div>
         {/* Actions */}
         <div className="flex items-center gap-2">
@@ -290,18 +317,19 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
 
           {/* Submit Button */}
           <button
+            id="onboarding-quick-capture-submit-button"
             type="button"
             onClick={handleSubmitCapture}
-            disabled={!captureText.trim()}
-            style={captureText.trim() ? { color: paneHighlightSolid } : undefined}
+            disabled={!canSubmit}
+            style={canSubmit ? { color: paneHighlightSolid } : undefined}
             className={cn(
               "relative p-2 rounded flex items-center justify-center transition-all cursor-pointer overflow-hidden",
-              captureText.trim()
+              canSubmit
                 ? "shadow-sm hover:opacity-90 border border-transparent"
                 : "bg-muted text-muted-foreground/30 cursor-not-allowed border border-border/30"
             )}
           >
-            {captureText.trim() && (
+            {canSubmit && (
               <div 
                 style={{ background: paneHighlightBg }} 
                 className="absolute inset-0 opacity-[0.12] dark:opacity-[0.18] pointer-events-none" 

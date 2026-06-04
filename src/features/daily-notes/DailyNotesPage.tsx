@@ -83,6 +83,10 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
   const [isTasksFinishedOpen, setIsTasksFinishedOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('daily-notes:view-changed', { detail: { view } }));
+  }, [view]);
+
   const calendarGridRef = useRef<HTMLDivElement>(null);
   const calendarSidebarRef = useRef<HTMLDivElement>(null);
   const createdTodayRef = useRef<HTMLDivElement>(null);
@@ -298,7 +302,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-1 bg-muted p-1 rounded-sm-sm border border-border">
+            <div id="onboarding-daily-notes-view-switcher" className="flex items-center gap-1 bg-muted p-1 rounded-sm-sm border border-border">
               {([
                 { name: "Month", color: "purple" },
                 { name: "Week", color: "sky" },

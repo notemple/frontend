@@ -346,6 +346,7 @@ export const TabBar = ({ paneId }: { paneId: string }) => {
     <div className="relative">
       <div
         id="onboarding-tab-bar"
+        data-onboarding-tab-bar={paneId}
         className={cn(
           "flex items-center h-10 border-b border-border bg-background overflow-x-auto overflow-y-hidden select-none justify-between relative",
           activePaneId === paneId 

@@ -265,6 +265,7 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
 
             {sectionId.startsWith('section-folder-') && (
               <button
+                id="onboarding-create-note-in-folder-button"
                 onClick={handleCreateDocumentInFolder}
                 className="w-10 h-10 rounded-sm-sm border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10"
                 title="New Note in Folder"

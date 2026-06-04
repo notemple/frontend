@@ -633,6 +633,7 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
               </div>
 
               <input
+                id="onboarding-create-task-input"
                 autoFocus
                 type="text"
                 placeholder="What needs to be done?"
@@ -660,6 +661,7 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
                   />
                 </div>
                 <button
+                  id="onboarding-create-task-submit"
                   onClick={handleCreateTask}
                   className="bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-500/10 dark:hover:bg-purple-500/20 dark:text-purple-300 border border-purple-600 dark:border-purple-500/20 shadow-sm-sm text-[13px] font-bold px-5 py-2 rounded-sm-sm transition-all cursor-pointer"
                 >

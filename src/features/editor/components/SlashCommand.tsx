@@ -1,10 +1,14 @@
+import { useDocumentStore } from '@/features/documents/store';
+import { useUiStore } from '@/shared/store/uiStore';
 import { useTaskStore } from '@/features/tasks/store';
+import { db } from '@/storage/dexie/db';
 import {
 	Calendar,
 	CalendarBlank,
 	CheckSquareOffset,
 	CodeBlock,
 	FileText,
+	Image as ImageIcon,
 	ListBullets,
 	ListNumbers,
 	Minus,
@@ -67,6 +71,37 @@ export const getSuggestionItems = ({ query, editor }: { query: string; editor?: 
     { title: 'Code', icon: <CodeBlock size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleCodeBlock().run() },
     { title: 'Table', icon: <Table size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 4, withHeaderRow: true }).run() },
     { title: 'Divider', icon: <Minus size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setHorizontalRule().run() },
+    { 
+      title: 'Image', 
+      icon: <ImageIcon size={16} />, 
+      group: 'Create a block', 
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).run();
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e: any) => {
+          const file = e.target.files?.[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const dataUrl = reader.result as string;
+              const imageId = `image-${crypto.randomUUID()}`;
+              db.images.put({ id: imageId, data: dataUrl }).then(() => {
+                editor.chain().focus().insertContent({
+                  type: 'image',
+                  attrs: { src: `dexie-image://${imageId}`, width: '50%', alignment: 'center', caption: '' }
+                }).run();
+              }).catch(err => {
+                console.error('Failed to store image in Dexie', err);
+              });
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        input.click();
+      }
+    },
     
     // Dynamic column actions when focused inside a column
     ...(isInside ? [
@@ -97,6 +132,32 @@ export const getSuggestionItems = ({ query, editor }: { query: string; editor?: 
     ] : []),
 
     // New Objects Group
+    { 
+      title: 'New Page', 
+      icon: <FileText size={16} className="text-emerald-500/90 dark:text-emerald-400/90" />, 
+      group: 'New Objects', 
+      command: ({ editor, range }) => {
+        const newPageId = `doc-${crypto.randomUUID()}`;
+        
+        useDocumentStore.getState().addDocument({
+          id: newPageId,
+          title: 'Untitled Page',
+          content: '',
+          type: 'page',
+          tags: [],
+          updatedAt: new Date().toISOString()
+        });
+        
+        editor.chain().focus().deleteRange(range).insertContent({
+          type: 'reference',
+          attrs: { id: newPageId, label: 'Untitled Page', type: 'document' }
+        }).insertContent(' ').run();
+        
+        const paneId = `pane-${Date.now()}`;
+        useUiStore.getState().addPane(paneId);
+        useUiStore.getState().openDocument(newPageId, paneId);
+      }
+    },
     { title: 'New Task', icon: <CheckSquareOffset size={16} className="text-rose-500/90 dark:text-rose-400/90" />, group: 'New Objects', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleTaskList().updateAttributes('taskItem', { isGreenTodo: false }).run() },
     
     // References & Mentions Group

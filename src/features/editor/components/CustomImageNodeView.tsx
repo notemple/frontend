@@ -1,3 +1,4 @@
+import { db } from '@/storage/dexie/db';
 import { cn } from '@/shared/lib/utils';
 import {
 	Copy,
@@ -18,6 +19,22 @@ export const CustomImageNodeView = ({ node, updateAttributes, deleteNode, getPos
   const [isResizing, setIsResizing] = useState(false);
   const [tempWidth, setTempWidth] = useState(width);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [resolvedSrc, setResolvedSrc] = useState<string>('');
+
+  useEffect(() => {
+    if (src && src.startsWith('dexie-image://')) {
+      const id = src.replace('dexie-image://', '');
+      db.images.get(id).then(record => {
+        if (record) {
+          setResolvedSrc(record.data);
+        }
+      }).catch(err => {
+        console.error('Failed to load image from Dexie', err);
+      });
+    } else {
+      setResolvedSrc(src);
+    }
+  }, [src]);
 
   const handleDuplicate = (e?: React.MouseEvent) => {
     e?.preventDefault();
@@ -59,8 +76,13 @@ export const CustomImageNodeView = ({ node, updateAttributes, deleteNode, getPos
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const deltaX = moveEvent.clientX - startX;
-      // Depending on drag direction, we calculate new width percentage
-      const newWidthPx = Math.max(100, Math.min(parentWidth, startWidth + deltaX * 2));
+      let newWidthPx = startWidth;
+      if (alignment === 'center') {
+        newWidthPx = startWidth + deltaX * 2;
+      } else {
+        newWidthPx = startWidth + deltaX;
+      }
+      newWidthPx = Math.max(100, Math.min(parentWidth, newWidthPx));
       const percentage = Math.round((newWidthPx / parentWidth) * 100);
       setTempWidth(`${percentage}%`);
     };
@@ -100,9 +122,9 @@ export const CustomImageNodeView = ({ node, updateAttributes, deleteNode, getPos
             style={{ width: isResizing ? tempWidth : width, maxWidth: '100%' }}
           >
             <img 
-              src={src} 
+              src={resolvedSrc || src} 
               alt={alt || 'Note Image'} 
-              className="w-full h-auto object-cover block rounded-sm shadow-sm-sm max-h-[70vh]" 
+              className="w-full h-auto object-contain block rounded-sm shadow-sm-sm max-h-[70vh]" 
               loading="lazy" 
             />
 
@@ -211,13 +233,28 @@ export const CustomImageNodeView = ({ node, updateAttributes, deleteNode, getPos
 
             {/* Drag handles for resizing */}
             {hovered && (
-              <div 
-                onMouseDown={handleMouseDown}
-                className="absolute right-0 top-0 bottom-0 w-2 hover:w-3 cursor-ew-resize bg-border/20 hover:bg-blue-500/60 active:bg-blue-600 transition-all flex items-center justify-center group/handle select-none"
-                title="Drag to resize"
-              >
-                <div className="w-0.5 h-6 bg-foreground/20 group-hover/handle:bg-white rounded-full" />
-              </div>
+              <>
+                {/* Right Edge Resize Handle */}
+                <div 
+                  onMouseDown={handleMouseDown}
+                  className="absolute right-0 top-0 bottom-0 w-2 hover:w-3 cursor-ew-resize bg-border/20 hover:bg-blue-500/60 active:bg-blue-600 transition-all flex items-center justify-center group/handle select-none z-30"
+                  title="Drag to resize"
+                >
+                  <div className="w-0.5 h-6 bg-foreground/20 group-hover/handle:bg-white rounded-full" />
+                </div>
+
+                {/* Corner Resize Handle */}
+                <div 
+                  onMouseDown={handleMouseDown}
+                  className="absolute right-1 bottom-1 w-4 h-4 cursor-se-resize bg-background/90 hover:bg-blue-500 hover:text-white border border-border hover:border-blue-600 rounded-sm flex items-center justify-center shadow-sm transition-all active:scale-95 z-30 select-none"
+                  title="Drag corner to resize"
+                >
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg" className="stroke-muted-foreground hover:stroke-white">
+                    <line x1="6" y1="1" x2="1" y2="6" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="6" y1="3.5" x2="3.5" y2="6" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </div>
+              </>
             )}
 
             {/* Caption Field */}

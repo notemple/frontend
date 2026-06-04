@@ -6,21 +6,28 @@ export interface MetadataEntry {
   value: any;
 }
 
+export interface ImageEntry {
+  id: string;
+  data: string;
+}
+
 export class TemplnoteDexieDB extends Dexie {
   documents!: Table<NoteDocument, string>;
   folders!: Table<Folder, string>;
   tasks!: Table<Task, string>;
   metadata!: Table<MetadataEntry, string>;
+  images!: Table<ImageEntry, string>;
 
   constructor() {
     super("NotempleDatabase");
     
     // Define database schema
-    this.version(1).stores({
+    this.version(2).stores({
       documents: "id, folderId, updatedAt, isFavorite",
       folders: "id",
       tasks: "id, completed, deadline, createdAt",
-      metadata: "key"
+      metadata: "key",
+      images: "id"
     });
   }
 }

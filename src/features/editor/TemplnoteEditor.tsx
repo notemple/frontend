@@ -550,13 +550,13 @@ export const TemplnoteEditor = React.memo(({
                 "max-w-full px-6 sm:px-8 md:px-10 py-5 sm:py-8 md:py-10 rounded-sm-sm shadow-sm-none relative border border-border min-w-0",
                 isMinimized
                   ? "min-h-full"
-                  : "min-h-[500px] md:min-h-[calc(100vh-160px)] overflow-hidden"
+                  : "min-h-[500px] md:min-h-[calc(100vh-160px)]"
               )
               : cn(
                 "max-w-[1400px] min-w-0",
                 isMinimized
                   ? "py-6 px-8 min-h-full"
-                  : "h-full overflow-hidden py-10 px-6"
+                  : "min-h-full py-10 px-6"
               )
           )}
           style={{
@@ -818,6 +818,9 @@ export const TemplnoteEditor = React.memo(({
               {editor && (
                 <BubbleMenu
                   editor={editor}
+                  shouldShow={({ editor }) => {
+                    return !editor.state.selection.empty && !editor.isActive('image');
+                  }}
                   options={{ placement: 'top' }}
                   className="flex items-center gap-1 bg-background border border-border rounded-sm-sm shadow-sm-sm p-1.5 font-sans"
                 >

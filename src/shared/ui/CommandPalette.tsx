@@ -1,6 +1,7 @@
 import { useDocumentStore } from '@/features/documents/store';
 import { cn } from '@/shared/lib/utils';
 import { useUiStore } from '@/shared/store/uiStore';
+import { useTaskStore } from '@/features/tasks/store';
 import {
 	ArrowLeft,
 	ArrowRight,
@@ -50,6 +51,10 @@ export const CommandPalette = () => {
     }))
   );
   
+  const tasks = useTaskStore(
+    useShallow((state: any) => state.tasks || [])
+  );
+  
   const addDocument = useDocumentStore(state => state.addDocument);
 
   const parentRef = useRef<HTMLDivElement>(null);
@@ -72,31 +77,78 @@ export const CommandPalette = () => {
     const activeTabId = activePane?.activeTabId || null;
 
     if (query.trim() !== '') {
+      const fuzzyMatch = (target: string, queryStr: string) => {
+        const t = target.replace(/\s+/g, '').toLowerCase();
+        const q = queryStr.replace(/\s+/g, '').toLowerCase();
+        if (!q) return true;
+        let qIdx = 0;
+        for (let i = 0; i < t.length; i++) {
+          if (t[i] === q[qIdx]) {
+            qIdx++;
+          }
+          if (qIdx === q.length) return true;
+        }
+        return false;
+      };
+
+      const navigationItems = [
+        { title: 'Daily Notes', icon: <CalendarBlank size={16} style={{ color: '#10b981' }} />, action: () => { openDocument('section-daily-notes', activePaneId || undefined); setIsOpen(false); } },
+        { title: 'Tasks', icon: <CheckSquare size={16} style={{ color: '#3b82f6' }} />, action: () => { openDocument('section-tasks', activePaneId || undefined); setIsOpen(false); } },
+        { title: 'Tags', icon: <Tag size={16} style={{ color: '#a855f7' }} />, action: () => { openDocument('section-tags', activePaneId || undefined); setIsOpen(false); } },
+        { title: 'Glance', icon: <Eye size={16} style={{ color: '#f59e0b' }} />, action: () => { openDocument('section-glance', activePaneId || undefined); setIsOpen(false); } },
+        { title: 'Folders', icon: <Folder size={16} style={{ color: '#ec4899' }} />, action: () => { setMenuState({ type: 'folders' }); } },
+        { title: 'Settings', icon: <Gear size={16} style={{ color: '#64748b' }} />, action: () => { openDocument('section-settings', activePaneId || undefined); setIsOpen(false); } }
+      ];
+
+      const filteredNavigation = navigationItems.filter(item =>
+        fuzzyMatch(item.title, query)
+      );
+
       const filteredDocs = activeDocs.filter((doc: any) =>
-        (doc.title || 'Untitled').toLowerCase().includes(query.toLowerCase())
+        fuzzyMatch(doc.title || 'Untitled', query)
+      );
+
+      const filteredFolders = folders.filter((folder: any) =>
+        folder && !folder.isDeleted && fuzzyMatch(folder.name || 'Untitled Folder', query)
+      );
+
+      const filteredTasks = tasks.filter((task: any) =>
+        task && !task.isDeleted && fuzzyMatch(task.title || 'Untitled Task', query)
       );
       
-      const items: any[] = [
-        { type: 'header', title: 'Commands' },
-        { 
-          type: 'command', 
-          title: 'New Page', 
-          icon: <PlusCircle size={16} style={{ color: '#10b981' }} />, 
-          action: () => {
-            const newId = `doc-${crypto.randomUUID()}`;
-            addDocument({
-              id: newId,
-              title: '',
-              content: '',
-              type: 'page',
-              tags: [],
-              updatedAt: new Date().toISOString()
-            });
-            openDocument(newId, activePaneId || undefined);
-            setIsOpen(false);
-          }
+      const items: any[] = [];
+
+      if (filteredNavigation.length > 0) {
+        items.push({ type: 'header', title: 'Matching Pages' });
+        filteredNavigation.forEach(nav => {
+          items.push({
+            type: 'navigation',
+            title: nav.title,
+            icon: nav.icon,
+            action: nav.action
+          });
+        });
+      }
+
+      items.push({ type: 'header', title: 'Commands' });
+      items.push({ 
+        type: 'command', 
+        title: 'New Page', 
+        icon: <PlusCircle size={16} style={{ color: '#10b981' }} />, 
+        action: () => {
+          const newId = `doc-${crypto.randomUUID()}`;
+          addDocument({
+            id: newId,
+            title: '',
+            content: '',
+            type: 'page',
+            tags: [],
+            updatedAt: new Date().toISOString()
+          });
+          openDocument(newId, activePaneId || undefined);
+          setIsOpen(false);
         }
-      ];
+      });
 
       // Add Close Current Page if a tab is open in active pane
       if (activeTabId) {
@@ -140,6 +192,37 @@ export const CommandPalette = () => {
           });
         });
       }
+
+      if (filteredFolders.length > 0) {
+        items.push({ type: 'header', title: 'Matching Folders' });
+        filteredFolders.forEach((folder: any) => {
+          const folderColor = folderColors[folder.id] || undefined;
+          items.push({
+            type: 'folder',
+            title: folder.name || 'Untitled Folder',
+            icon: <Folder size={16} style={folderColor ? { color: folderColor } : undefined} />,
+            action: () => { 
+              setMenuState({ type: 'folder_docs', folderId: folder.id, folderName: folder.name });
+            }
+          });
+        });
+      }
+
+      if (filteredTasks.length > 0) {
+        items.push({ type: 'header', title: 'Matching Tasks' });
+        filteredTasks.forEach((task: any) => {
+          items.push({
+            type: 'task',
+            title: task.title || 'Untitled Task',
+            icon: <CheckSquare size={16} className={task.completed ? "text-green-500" : "text-zinc-500"} />,
+            action: () => { 
+              openDocument('section-tasks', activePaneId || undefined); 
+              setIsOpen(false); 
+            }
+          });
+        });
+      }
+
       return items;
     }
 
@@ -264,7 +347,7 @@ export const CommandPalette = () => {
     }
 
     return [];
-  }, [query, menuState, activeDocs, recentDocs, folders, folderColors, activePaneId, addDocument, openDocument, panes, closeDocument]);
+  }, [query, menuState, activeDocs, recentDocs, folders, folderColors, tasks, activePaneId, addDocument, openDocument, panes, closeDocument, setIsOpen]);
 
   // Find first selectable item index when menuState or query changes
   useEffect(() => {

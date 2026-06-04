@@ -3,6 +3,7 @@ import { useSettingsStore } from '@/features/settings/store';
 import { aiService } from '@/services/ai.service';
 import { formatDisplayDate } from '@/shared/lib/time';
 import { cn,getTagStyle } from '@/shared/lib/utils';
+import { EMOJIS } from '@/shared/lib/emojis';
 import { useUiStore } from '@/shared/store/uiStore';
 import { ArrowsInSimple,CaretDown,CaretUp,Code,FileText,Smiley,Sparkle,Tag,TextAUnderline,TextB,TextItalic,TextStrikethrough,Trash,TextAlignLeft,TextAlignCenter,TextAlignRight } from '@phosphor-icons/react';
 import Color from '@tiptap/extension-color';
@@ -39,6 +40,7 @@ import { FloatingToolbar } from './extensions/table/FloatingToolbar';
 import './extensions/table/styles.css';
 import { TableCell,TableHeader,TableRow } from './extensions/table/TableCell';
 import { TagSuggestion,renderTagItems } from './extensions/TagSuggestion';
+import { EmojiSuggestion,renderEmojiItems } from './extensions/EmojiSuggestion';
 
 const EMPTY_TAGS: string[] = [];
 
@@ -95,6 +97,86 @@ const getBacklinksForDocument = (currentDocId: string, documents: Record<string,
   });
   return list;
 };
+
+const EMOJI_CATEGORIES = [
+  {
+    name: 'Smileys',
+    icon: '😀',
+    emojis: [
+      '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
+      '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️',
+      '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓',
+      '🤗', '🤔', '🫣', '🤭', '🫢', '🫡', '🤫', '🫠', '🤥', '😶', '🫥', '😐', '😑', '😬', '🫨', '🥱', '😴', '🤤', '😪', '😮',
+      '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '💩', '👻', '💀', '☠️', '👽'
+    ]
+  },
+  {
+    name: 'People',
+    icon: '👋',
+    emojis: [
+      '👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🫰', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️',
+      '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦿', '🦵', '🦶',
+      '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋', '🩸', '👶', '👧', '🧒', '👦', '👩', '🧑',
+      '👨', '👵', '🧓', '👴', '👮‍♀️', '👮', '👮‍♂️', '🕵️‍♀️', '🕵️', '🕵️‍♂️', '💂‍♀️', '💂', '💂‍♂️', '👷‍♀️', '👷', '👷‍♂️', '🧕', '👲', '🤰', '🤱'
+    ]
+  },
+  {
+    name: 'Nature',
+    icon: '🐻',
+    emojis: [
+      '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐻‍❄️', '🐨', '🐯', '🦁', '🐮', '🐷', '🐽', '🐸', '🐵', '🙈', '🙉', '🙊',
+      '🐒', '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦢', '🦉', '🦤', '🦩', '🦚', '🦜', '🦖', '🦕', '🐢', '🐍',
+      '🦎', '🐙', '🦑', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🦣', '🐘',
+      '🦛', '🦏', '🐪', '🐫', '🦒', '🦘', '🦬', '🐃', '🐂', '🐄', '🐎', '🐖', '🐏', '🐑', '🐐', '🦌', '🐕', '🐩', '🐈'
+    ]
+  },
+  {
+    name: 'Food',
+    icon: '🍔',
+    emojis: [
+      '🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑',
+      '🥦', '🥬', '🥒', '🌶️', '🫑', '🌽', '🥕', '🫒', '🧄', '🧅', '🥔', '🍠', '🥐', '🥯', '🍞', '🥖', '🥨', '🥞', '🧇', '🧀',
+      '🍖', '🍗', '🥩', '🥓', '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🌯', '🫓', '🥙', '🧆', '🍳', '🥘', '🍲', '🫕', '🥣', '🥗',
+      '🍿', '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍜', '🍝', '🍢', 'Sushi', '🍣', '🍤', '🍥', '🥮', '🍡', '🥟', '🥠'
+    ]
+  },
+  {
+    name: 'Activity',
+    icon: '⚽',
+    emojis: [
+      '⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏹', '🎣', '🤿', '🥊',
+      '🥋', '🥅', '⛳', '⛸️', '🛷', '🎿', '⛷️', '🏂', '🪂', '🏋️‍♀️', '🏋️', '🏋️‍♂️', '🤼‍♀️', '🤼', '🤼‍♂️', '🤸‍♀️', '🤸', '🤸‍♂️',
+      '⛹️‍♀️', '⛹️', '⛹️‍♂️', '🤺', '🤾‍♀️', '🤾', '🤾‍♂️', '🏌️‍♀️', '🏌️', '🏌️‍♂️', '🏇', '🧘‍♀️', '🧘', '🧘‍♂️', '🏄‍♀️', '🏄', '🏄‍♂️', '🏊‍♀️', '🏊', '🏊‍♂️'
+    ]
+  },
+  {
+    name: 'Travel',
+    icon: '🌇',
+    emojis: [
+      '🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🛻', '🚚', '🚛', '🚜', '🛵', '🏍️', '🛺', '🚲', '🛴', '🛹',
+      '🚏', '🛣️', '🛤️', '🛞', '⚓', '⛵', '🛶', '🚤', '🛳️', '⛴️', '🚢', '✈️', '🛩️', '🛫', '🛬', '💺', '🚁', '🚟', '🚠',
+      '🚡', '🚀', '🛸', '🛰️', '🎆', '🎇', '🎑', '⛰️', '🏔️', '🗻', '🌋', '🧱', '🏠', '🏡', '🏢', '🏣', '🏤', '🏥', '🏦'
+    ]
+  },
+  {
+    name: 'Objects',
+    icon: '💡',
+    emojis: [
+      '💡', '🔦', '🕯️', '🔌', '🔋', '💻', '🖥️', '🖨️', '⌨️', '🖱️', '🖲️', '💽', '💾', '💿', '📀', '🧮', '🎥', '🎞️', '📽️',
+      '🎬', '📺', '📷', '📸', '📹', '📼', '🔍', '🔎', '🏮', '📔', '📕', '📖', '📗', '📘', '📙', '📚', '📓',
+      '📒', '📝', '✉️', '📧', '📨', '📩', '📤', '📥', '📦', '🏷️', '🪙', '💵', '💴', '💶', '💷', '💸', '💳', '🧾'
+    ]
+  },
+  {
+    name: 'Symbols & Flags',
+    icon: '❤️',
+    emojis: [
+      '❤️', '🩷', '🧡', '💛', '💚', '💙', '🩵', '💜', '🖤', '🩶', '🤍', '🤎', '💔', '❤️‍🔥', '❤️‍🩹', '❣️', '💕', '💞', '💓', '💗',
+      '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋',
+      '🏁', '🚩', '🎌', '🏴', '🏳️', '🏳️‍🌈', '🏳️‍⚧️', '🇺🇸', '🇬🇧', '🇨🇦', '🇯🇵', '🇩🇪', '🇫🇷', '🇮🇹', '🇪🇸', '🇨🇳', '🇮🇳', '🇰🇷', '🇧🇷', '🇦🇺'
+    ]
+  }
+];
 
 export const TemplnoteEditor = React.memo(({
   documentId,
@@ -177,6 +259,11 @@ export const TemplnoteEditor = React.memo(({
   const tagsDropdownRef = useRef<HTMLDivElement>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const [showContentEmojiPicker, setShowContentEmojiPicker] = useState(false);
+  const [contentEmojiCoords, setContentEmojiCoords] = useState<{ top: number; left: number } | null>(null);
+  const [contentEmojiSearch, setContentEmojiSearch] = useState('');
+  const [contentEmojiActiveTab, setContentEmojiActiveTab] = useState('Smileys');
+  const contentEmojiPickerRef = useRef<HTMLDivElement>(null);
   const [showBacklinks, setShowBacklinks] = useState(false);
 
   const backlinksSelector = useCallback(
@@ -213,6 +300,19 @@ export const TemplnoteEditor = React.memo(({
     window.addEventListener('mousedown', handleClickOutside);
     return () => window.removeEventListener('mousedown', handleClickOutside);
   }, [showEmojiPicker]);
+
+  useEffect(() => {
+    if (!showContentEmojiPicker) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (contentEmojiPickerRef.current && !contentEmojiPickerRef.current.contains(e.target as Node)) {
+        setShowContentEmojiPicker(false);
+      }
+    };
+    window.addEventListener('mousedown', handleClickOutside);
+    return () => window.removeEventListener('mousedown', handleClickOutside);
+  }, [showContentEmojiPicker]);
+
+
 
   const localStyle = {
     color: document?.color || '#ffffff',
@@ -346,6 +446,12 @@ export const TemplnoteEditor = React.memo(({
         render: renderItems,
       },
     }),
+    EmojiSuggestion.configure({
+      suggestion: {
+        items: ({ query }) => [query],
+        render: renderEmojiItems,
+      },
+    }),
   ], [paneId]);
 
   const debouncedUpdateRef = useRef<any>(null);
@@ -443,6 +549,35 @@ export const TemplnoteEditor = React.memo(({
       }
     };
   }, [documentId, editor]);
+
+  useEffect(() => {
+    const handleOpenEmoji = () => {
+      if (!editor || editor.isDestroyed) return;
+      const { from } = editor.state.selection;
+      try {
+        const rect = editor.view.coordsAtPos(from);
+        const pm = document.querySelector('.ProseMirror');
+        if (pm) {
+          const pmRect = pm.getBoundingClientRect();
+          setContentEmojiCoords({
+            top: rect.top - pmRect.top + 24,
+            left: Math.min(rect.left - pmRect.left, pmRect.width - 260),
+          });
+          setContentEmojiSearch('');
+          setContentEmojiActiveTab('Smileys');
+          setShowContentEmojiPicker(true);
+        }
+      } catch (err) {
+        // Fallback positioning
+        setContentEmojiCoords({ top: 150, left: 100 });
+        setContentEmojiSearch('');
+        setContentEmojiActiveTab('Smileys');
+        setShowContentEmojiPicker(true);
+      }
+    };
+    window.addEventListener('open-editor-emoji-picker', handleOpenEmoji);
+    return () => window.removeEventListener('open-editor-emoji-picker', handleOpenEmoji);
+  }, [editor]);
 
   useEffect(() => {
     const handleStyleChange = (e: CustomEvent) => {
@@ -905,6 +1040,65 @@ export const TemplnoteEditor = React.memo(({
               <EditorContent editor={editor} />
               {editor && <FloatingToolbar editor={editor} />}
               <DocumentPreviewPopup />
+              {showContentEmojiPicker && contentEmojiCoords && (
+                <div
+                  ref={contentEmojiPickerRef}
+                  className="absolute bg-background border border-border shadow-sm-sm z-50 overflow-hidden text-sans text-foreground rounded-sm-sm w-64 animate-fade-in"
+                  style={{
+                    top: contentEmojiCoords.top,
+                    left: contentEmojiCoords.left,
+                  }}
+                >
+                  <div className="p-2 border-b border-border bg-muted/30">
+                    <input
+                      type="text"
+                      placeholder="Search emojis..."
+                      value={contentEmojiSearch}
+                      onChange={(e) => setContentEmojiSearch(e.target.value)}
+                      className="w-full bg-background border border-border rounded px-2 py-1 text-xs outline-none focus:border-border/80 text-foreground"
+                      autoFocus
+                    />
+                  </div>
+                  {!contentEmojiSearch && (
+                    <div className="flex border-b border-border bg-muted/10 p-1 gap-0.5 overflow-x-auto no-scrollbar">
+                      {EMOJI_CATEGORIES.map((cat) => (
+                        <button
+                          key={cat.name}
+                          title={cat.name}
+                          onClick={() => setContentEmojiActiveTab(cat.name)}
+                          className={cn(
+                            "flex-1 min-w-[28px] h-7 flex items-center justify-center rounded text-sm hover:bg-muted transition-colors cursor-pointer select-none",
+                            contentEmojiActiveTab === cat.name ? "bg-muted shadow-sm-sm font-bold" : "opacity-60 hover:opacity-100"
+                          )}
+                        >
+                          {cat.icon}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="grid grid-cols-6 gap-1 p-2.5 max-h-48 overflow-y-auto no-scrollbar">
+                    {(contentEmojiSearch
+                      ? EMOJIS.filter((emojiItem) =>
+                          emojiItem.char.includes(contentEmojiSearch) ||
+                          emojiItem.name.toLowerCase().includes(contentEmojiSearch.toLowerCase()) ||
+                          emojiItem.keywords.some((kw) => kw.toLowerCase().includes(contentEmojiSearch.toLowerCase()))
+                        ).map((item) => item.char)
+                      : EMOJI_CATEGORIES.find((c) => c.name === contentEmojiActiveTab)?.emojis || []
+                    ).map((emoji) => (
+                      <button
+                        key={emoji}
+                        onClick={() => {
+                          editor?.chain().focus().insertContent(emoji).run();
+                          setShowContentEmojiPicker(false);
+                        }}
+                        className="w-8 h-8 flex items-center justify-center text-[18px] hover:bg-muted rounded transition-colors cursor-pointer select-none"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Backlinks panel */}
               {!isMinimized && backlinks.length > 0 && (

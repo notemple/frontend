@@ -67,7 +67,15 @@ export const getSuggestionItems = ({ query, editor }: { query: string; editor?: 
     { title: 'Roman list', icon: <ListNumbers size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleOrderedList().run() },
     { title: 'Quote block', icon: <Quotes size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleBlockquote().run() },
     { title: 'To-do', icon: <CheckSquareOffset size={16} className="text-green-500" />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleTaskList().updateAttributes('taskItem', { isGreenTodo: true }).run() },
-    { title: 'Icon', icon: <Smiley size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
+    { 
+      title: 'Emoji', 
+      icon: <Smiley size={16} className="text-amber-500" />, 
+      group: 'Create a block', 
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).run();
+        window.dispatchEvent(new CustomEvent('open-editor-emoji-picker'));
+      } 
+    },
     { title: 'Code', icon: <CodeBlock size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleCodeBlock().run() },
     { title: 'Table', icon: <Table size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 4, withHeaderRow: true }).run() },
     { title: 'Divider', icon: <Minus size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setHorizontalRule().run() },

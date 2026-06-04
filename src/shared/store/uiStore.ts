@@ -221,6 +221,8 @@ export const useUiStore = create<UiState>()(
         activePaneId: state.activePaneId,
         appearance: state.appearance,
         isNavbarManuallyHidden: state.isNavbarManuallyHidden,
+        isTutorialActive: state.isTutorialActive,
+        tutorialIndex: state.tutorialIndex,
       }),
       onRehydrateStorage: () => {
         return (state, error) => {

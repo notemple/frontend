@@ -957,33 +957,6 @@ export const OnboardingScreen = () => {
 
   return (
     <>
-      {/* Inline styles for custom hardware-accelerated floating animation of the background */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @keyframes floatGraffiti {
-          0% { transform: scale(1.15) translateY(-30px); }
-          50% { transform: scale(1.15) translateY(30px); }
-          100% { transform: scale(1.15) translateY(-30px); }
-        }
-        .graffiti-backdrop {
-          position: absolute;
-          inset: 0;
-          background-image: url('/graffiti_bg.png');
-          background-size: cover;
-          background-position: center;
-          filter: brightness(0.24) contrast(1.1) saturate(0.85);
-          animation: floatGraffiti 30s ease-in-out infinite;
-          z-index: 1;
-        }
-        .graffiti-ambient-overlay {
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(to bottom, rgba(5, 5, 5, 0.45) 0%, rgba(5, 5, 5, 0.85) 100%);
-          z-index: 2;
-          pointer-events: none;
-        }
-      `}} />
-
       <AnimatePresence mode="wait">
         {step < 5 && (
           <motion.div

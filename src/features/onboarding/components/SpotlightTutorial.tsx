@@ -132,6 +132,14 @@ export const SpotlightTutorial = () => {
         interactive: true,
       },
       {
+        id: 'daily-notes-page',
+        targetId: 'onboarding-tab-bar',
+        title: 'Daily Notes Page',
+        description: 'This is your Daily Notes page. Here you can see your notes, tasks, and history for the day.',
+        color: '#B5EAD7',
+        sidebarOpen: false,
+      },
+      {
         id: 'pane-split',
         targetId: 'onboarding-tab-bar',
         title: 'Splitting Workspaces',
@@ -348,10 +356,14 @@ export const SpotlightTutorial = () => {
 
     if (currentStep.id === 'glance') {
       useUiStore.getState().openDocument('section-glance');
-    } else if (currentStep.id === 'note-slash' || currentStep.id === 'note-minimize') {
-      const todayDateStr = formatInTimeZone(new Date(), useSettingsStore.getState().timezone, "yyyy-MM-dd");
-      const dailyNoteId = `daily-note-${todayDateStr}`;
-      useUiStore.getState().openDocument(dailyNoteId);
+    } else if (currentStep.id === 'note-slash' || currentStep.id === 'note-minimize' || currentStep.id === 'daily-notes-page') {
+      if (currentStep.id === 'daily-notes-page') {
+        useUiStore.getState().openDocument('section-daily-notes');
+      } else {
+        const todayDateStr = formatInTimeZone(new Date(), useSettingsStore.getState().timezone, "yyyy-MM-dd");
+        const dailyNoteId = `daily-note-${todayDateStr}`;
+        useUiStore.getState().openDocument(dailyNoteId);
+      }
     } else if (currentStep.id === 'task-add-click' || currentStep.id === 'task-add-input' || currentStep.id === 'task-guide' || currentStep.id === 'task-edit-click' || currentStep.id === 'task-edit-modal') {
       useUiStore.getState().openDocument('section-tasks');
     } else if (currentStep.id === 'pane-split' || currentStep.id === 'pane-switch' || currentStep.id === 'pane-close') {
@@ -724,6 +736,10 @@ export const SpotlightTutorial = () => {
       }
     } else if (currentStep.id === 'pane-switch') {
       customEl = document.querySelector(`[data-pane-id="${activePaneId}"]`) as HTMLElement;
+    } else if (currentStep.id === 'daily-notes-page') {
+      if (activePaneId) {
+        customEl = document.querySelector(`[data-pane-id="${activePaneId}"]`) as HTMLElement;
+      }
     } else if (currentStep.id === 'task-guide') {
       const selector = createdTaskId ? `[data-onboarding-timer-play="${createdTaskId}"]` : '[data-onboarding-timer-play]';
       customEl = document.querySelector(selector) as HTMLElement;
@@ -831,6 +847,9 @@ export const SpotlightTutorial = () => {
     }
     if (currentStep.id === 'note-minimize') {
       return 'Click the Daily Notes button to minimize the editor and return to the dashboard.';
+    }
+    if (currentStep.id === 'daily-notes-page') {
+      return 'This is your Daily Notes page. Here you can see your notes, tasks, and history for the day. Click Next to continue.';
     }
     if (currentStep.id === 'pane-split') {
       if (splitPhase === 'wait-split') return null;

@@ -9,8 +9,8 @@ export const CustomImageExtension = Image.extend({
     return {
       ...this.parent?.(),
       width: {
-        default: '100%',
-        parseHTML: element => element.getAttribute('data-width') || '100%',
+        default: '50%',
+        parseHTML: element => element.getAttribute('data-width') || '50%',
         renderHTML: attributes => ({ 'data-width': attributes.width }),
       },
       alignment: {

@@ -76,30 +76,18 @@ export const getSuggestionItems = ({ query, editor }: { query: string; editor?: 
       icon: <ImageIcon size={16} />, 
       group: 'Create a block', 
       command: ({ editor, range }) => {
-        editor.chain().focus().deleteRange(range).run();
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.onchange = (e: any) => {
-          const file = e.target.files?.[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = () => {
-              const dataUrl = reader.result as string;
-              const imageId = `image-${crypto.randomUUID()}`;
-              db.images.put({ id: imageId, data: dataUrl }).then(() => {
-                editor.chain().focus().insertContent({
-                  type: 'image',
-                  attrs: { src: `dexie-image://${imageId}`, width: '50%', alignment: 'center', caption: '' }
-                }).run();
-              }).catch(err => {
-                console.error('Failed to store image in Dexie', err);
-              });
-            };
-            reader.readAsDataURL(file);
-          }
-        };
-        input.click();
+        editor.chain().focus().deleteRange(range).insertContent({
+          type: 'image',
+          attrs: { src: '', width: '50%', alignment: 'center', caption: '' }
+        }).run();
+      }
+    },
+    {
+      title: 'Gallery',
+      icon: <ImageIcon size={16} className="text-purple-500" />,
+      group: 'Create a block',
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).insertGallery({ rows: 2, cols: 2 }).run();
       }
     },
     

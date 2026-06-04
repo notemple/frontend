@@ -3,8 +3,8 @@ import { cn } from '@/shared/lib/utils';
 import {
 	Copy,
 	DotsThree,
-	Plus,
 	Image as ImageIcon,
+	Plus,
 	TextAlignCenter,
 	TextAlignLeft,
 	TextAlignRight,
@@ -15,18 +15,26 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { NodeViewWrapper } from '@tiptap/react';
 import React,{ useEffect,useRef,useState } from 'react';
 
-export const CustomImageNodeView = ({ node, updateAttributes, deleteNode, getPos, editor }: any) => {
-  const { src, alt, width, alignment, caption } = node.attrs;
-  const [hovered, setHovered] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
-  const [tempWidth, setTempWidth] = useState(width);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+interface GalleryImage {
+  src: string;
+  caption?: string;
+}
+
+const GalleryItem = ({ 
+  image, 
+  index, 
+  onUpload 
+}: { 
+  image: GalleryImage; 
+  index: number; 
+  onUpload: (index: number, src: string) => void;
+}) => {
   const [resolvedSrc, setResolvedSrc] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (src && src.startsWith('dexie-image://')) {
-      const id = src.replace('dexie-image://', '');
+    if (image.src && image.src.startsWith('dexie-image://')) {
+      const id = image.src.replace('dexie-image://', '');
       db.images.get(id).then(record => {
         if (record) {
           setResolvedSrc(record.data);
@@ -38,9 +46,133 @@ export const CustomImageNodeView = ({ node, updateAttributes, deleteNode, getPos
         setResolvedSrc('');
       });
     } else {
-      setResolvedSrc(src || '');
+      setResolvedSrc(image.src);
     }
-  }, [src]);
+  }, [image.src]);
+
+  const handleClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('.no-trigger-upload')) {
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        const imageId = `image-${crypto.randomUUID()}`;
+        db.images.put({ id: imageId, data: dataUrl }).then(() => {
+          onUpload(index, `dexie-image://${imageId}`);
+        }).catch(err => {
+          console.error('Failed to store gallery image in Dexie', err);
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDeleteImage = (e?: React.MouseEvent | Event) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    onUpload(index, '');
+  };
+
+  const itemContent = (
+    <div 
+      onClick={handleClick}
+      className={cn(
+        "relative flex items-center justify-center border border-dashed rounded-sm overflow-hidden aspect-video bg-muted/10 border-border/50 hover:bg-muted/20 hover:border-border transition-all cursor-pointer group/item",
+        resolvedSrc && "border-solid border-border/30 bg-background/5"
+      )}
+    >
+      {resolvedSrc ? (
+        <>
+          <img 
+            src={resolvedSrc} 
+            alt={image.caption || `Gallery item ${index + 1}`}
+            className="w-full h-full object-cover block"
+          />
+          {/* Hover Option Dropdown Trigger button */}
+          <div className="opacity-0 group-hover/item:opacity-100 absolute right-2 top-2 transition-all duration-150 shrink-0 z-30 pointer-events-auto no-trigger-upload">
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger asChild>
+                <button 
+                  className="w-5 h-5 rounded bg-background/90 hover:bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground shadow-sm cursor-pointer active:scale-95 transition-all"
+                  title="Options"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <DotsThree size={12} weight="bold" />
+                </button>
+              </DropdownMenu.Trigger>
+
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content className="table-dark-menu z-50 animate-fade-in no-trigger-upload">
+                  <DropdownMenu.Item 
+                    className="table-dark-menu-item text-red-400 hover:text-red-300"
+                    onClick={handleDeleteImage}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Trash size={14} />
+                      <span>Delete image</span>
+                    </div>
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
+          </div>
+        </>
+      ) : (
+        <div className="flex flex-col items-center gap-1.5 text-muted-foreground/60 group-hover/item:text-muted-foreground transition-colors p-2 text-center">
+          <Plus size={20} />
+          <span className="text-[11px] font-medium tracking-tight">Upload Image</span>
+        </div>
+      )}
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        accept="image/*" 
+        className="hidden" 
+      />
+    </div>
+  );
+
+  if (resolvedSrc) {
+    return (
+      <ContextMenu.Root>
+        <ContextMenu.Trigger asChild>
+          {itemContent}
+        </ContextMenu.Trigger>
+        <ContextMenu.Portal>
+          <ContextMenu.Content className="table-dark-menu z-50 animate-fade-in no-trigger-upload">
+            <ContextMenu.Item 
+              className="table-dark-menu-item text-red-400 hover:text-red-300"
+              onClick={handleDeleteImage}
+            >
+              <div className="flex items-center gap-2">
+                <Trash size={14} />
+                <span>Delete image</span>
+              </div>
+            </ContextMenu.Item>
+          </ContextMenu.Content>
+        </ContextMenu.Portal>
+      </ContextMenu.Root>
+    );
+  }
+
+  return itemContent;
+};
+
+export const CustomGalleryNodeView = ({ node, updateAttributes, deleteNode, getPos, editor }: any) => {
+  const { rows, cols, images, width, alignment } = node.attrs;
+  const [hovered, setHovered] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [tempWidth, setTempWidth] = useState(width);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleDuplicate = (e?: React.MouseEvent) => {
     e?.preventDefault();
@@ -71,31 +203,6 @@ export const CustomImageNodeView = ({ node, updateAttributes, deleteNode, getPos
     setTempWidth(w);
   };
 
-  const handleUploadClick = (e: React.MouseEvent) => {
-    const target = e.target as HTMLElement;
-    if (target.closest('.no-trigger-upload')) {
-      return;
-    }
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const dataUrl = reader.result as string;
-        const imageId = `image-${crypto.randomUUID()}`;
-        db.images.put({ id: imageId, data: dataUrl }).then(() => {
-          updateAttributes({ src: `dexie-image://${imageId}` });
-        }).catch(err => {
-          console.error('Failed to store image in Dexie', err);
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   // Resize drag handler
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -114,7 +221,7 @@ export const CustomImageNodeView = ({ node, updateAttributes, deleteNode, getPos
       } else {
         newWidthPx = startWidth + deltaX;
       }
-      newWidthPx = Math.max(100, Math.min(parentWidth, newWidthPx));
+      newWidthPx = Math.max(200, Math.min(parentWidth, newWidthPx));
       const percentage = Math.round((newWidthPx / parentWidth) * 100);
       currentWidth = `${percentage}%`;
       setTempWidth(currentWidth);
@@ -135,15 +242,21 @@ export const CustomImageNodeView = ({ node, updateAttributes, deleteNode, getPos
     setTempWidth(width);
   }, [width]);
 
-  // Determine wrapper alignments
+  const handleUploadImage = (index: number, src: string) => {
+    const updatedImages = [...images];
+    if (!updatedImages[index]) {
+      updatedImages[index] = { src: '', caption: '' };
+    }
+    updatedImages[index] = { ...updatedImages[index], src };
+    updateAttributes({ images: updatedImages });
+  };
+
   const alignmentClass = cn(
-    "flex w-full my-0 relative group/img select-none",
+    "flex w-full my-0 relative group/gallery-wrapper select-none",
     alignment === 'left' && "justify-start",
     alignment === 'center' && "justify-center",
     alignment === 'right' && "justify-end"
   );
-
-  const hasImage = !!(resolvedSrc || src);
 
   return (
     <NodeViewWrapper className={alignmentClass}>
@@ -153,47 +266,40 @@ export const CustomImageNodeView = ({ node, updateAttributes, deleteNode, getPos
             ref={containerRef}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            onClick={!hasImage ? handleUploadClick : undefined}
-            className={cn(
-              "relative group transition-all duration-300 rounded-sm bg-transparent",
-              !hasImage && "w-full border border-dashed rounded-sm border-border/50 hover:bg-muted/5 hover:border-border cursor-pointer flex flex-col items-center justify-center p-8 min-h-[160px] aspect-video"
-            )}
+            className="relative group transition-all duration-300 rounded-sm bg-transparent"
             style={{ width: isResizing ? tempWidth : width, maxWidth: '100%' }}
           >
-            {hasImage ? (
-              <img 
-                src={resolvedSrc || src} 
-                alt={alt || 'Note Image'} 
-                className="w-full h-auto block rounded-sm shadow-sm-sm max-h-[70vh]" 
-                loading="lazy" 
-              />
-            ) : (
-              <div className="flex flex-col items-center gap-2 text-muted-foreground/60 group-hover:text-muted-foreground transition-colors p-2 text-center select-none">
-                <Plus size={24} />
-                <span className="text-xs font-semibold tracking-tight">Upload Image</span>
-              </div>
-            )}
+            {/* Grid Container */}
+            <div 
+              className="grid gap-3"
+              style={{
+                gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+              }}
+            >
+              {Array.from({ length: rows * cols }).map((_, index) => {
+                const img = images[index] || { src: '', caption: '' };
+                return (
+                  <GalleryItem 
+                    key={index} 
+                    image={img} 
+                    index={index} 
+                    onUpload={handleUploadImage}
+                  />
+                );
+              })}
+            </div>
 
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleFileChange} 
-              accept="image/*" 
-              className="hidden" 
-            />
-
-            {/* Hover Option Dropdown Trigger button - three-dot menu like todo lists */}
-            {hasImage && (
-              <div className="opacity-0 group-hover:opacity-100 absolute right-3 top-3 transition-all duration-150 shrink-0 z-30 pointer-events-auto no-trigger-upload">
-                <DropdownMenu.Root>
-                  <DropdownMenu.Trigger asChild>
-                    <button 
-                      className="w-6 h-6 rounded bg-background/90 hover:bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground shadow-sm cursor-pointer active:scale-95 transition-all"
-                      title="Options"
-                    >
-                      <DotsThree size={14} weight="bold" />
-                    </button>
-                  </DropdownMenu.Trigger>
+            {/* Hover Option Dropdown Trigger button */}
+            <div className="opacity-0 group-hover:opacity-100 absolute right-3 top-3 transition-all duration-150 shrink-0 z-30 pointer-events-auto">
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger asChild>
+                  <button 
+                    className="w-6 h-6 rounded bg-background/90 hover:bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground shadow-sm cursor-pointer active:scale-95 transition-all"
+                    title="Options"
+                  >
+                    <DotsThree size={14} weight="bold" />
+                  </button>
+                </DropdownMenu.Trigger>
 
                 <DropdownMenu.Portal>
                   <DropdownMenu.Content className="table-dark-menu z-50 animate-fade-in">
@@ -203,7 +309,7 @@ export const CustomImageNodeView = ({ node, updateAttributes, deleteNode, getPos
                     >
                       <div className="flex items-center gap-2">
                         <Copy size={14} />
-                        <span>Duplicate block</span>
+                        <span>Duplicate gallery</span>
                       </div>
                     </DropdownMenu.Item>
                     <DropdownMenu.Separator className="table-dark-menu-separator" />
@@ -213,14 +319,13 @@ export const CustomImageNodeView = ({ node, updateAttributes, deleteNode, getPos
                     >
                       <div className="flex items-center gap-2">
                         <Trash size={14} />
-                        <span>Delete block</span>
+                        <span>Delete gallery</span>
                       </div>
                     </DropdownMenu.Item>
                   </DropdownMenu.Content>
-                 </DropdownMenu.Portal>
+                </DropdownMenu.Portal>
               </DropdownMenu.Root>
             </div>
-            )}
 
             {/* Floating Alignment & Option Overlay Menu on Hover */}
             {(hovered || isResizing) && (
@@ -280,7 +385,7 @@ export const CustomImageNodeView = ({ node, updateAttributes, deleteNode, getPos
                 <button 
                   onClick={handleDelete}
                   className="p-1 rounded-sm text-red-500 hover:bg-red-500/10 cursor-pointer"
-                  title="Delete Image"
+                  title="Delete Gallery"
                 >
                   <Trash size={14} />
                 </button>
@@ -288,7 +393,7 @@ export const CustomImageNodeView = ({ node, updateAttributes, deleteNode, getPos
             )}
 
             {/* Drag handles for resizing */}
-            {hasImage && hovered && (
+            {hovered && (
               <>
                 {/* Right Edge Resize Handle */}
                 <div 
@@ -305,16 +410,15 @@ export const CustomImageNodeView = ({ node, updateAttributes, deleteNode, getPos
                   className="absolute right-1 bottom-1 w-4 h-4 cursor-se-resize bg-background/90 hover:bg-blue-500 hover:text-white border border-border hover:border-blue-600 rounded-sm flex items-center justify-center shadow-sm transition-all active:scale-95 z-30 select-none"
                   title="Drag corner to resize"
                 >
-                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg" className="stroke-muted-foreground hover:stroke-white">
-                    <line x1="6" y1="1" x2="1" y2="6" strokeWidth="1.5" strokeLinecap="round"/>
-                    <line x1="6" y1="3.5" x2="3.5" y2="6" strokeWidth="1.5" strokeLinecap="round"/>
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none" className="text-muted-foreground group-hover:text-white">
+                    <path d="M6 0L8 0L8 8L0 8L0 6L4.5 6L0.5 2L2 0.5L6 4.5L6 0Z" fill="currentColor"/>
                   </svg>
                 </div>
               </>
             )}
           </div>
         </ContextMenu.Trigger>
-        
+
         <ContextMenu.Portal>
           <ContextMenu.Content className="table-dark-menu z-50 animate-fade-in">
             <ContextMenu.Item 

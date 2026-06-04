@@ -4,7 +4,7 @@ import { aiService } from '@/services/ai.service';
 import { formatDisplayDate } from '@/shared/lib/time';
 import { cn,getTagStyle } from '@/shared/lib/utils';
 import { useUiStore } from '@/shared/store/uiStore';
-import { ArrowsInSimple,CaretDown,CaretUp,Code,FileText,Smiley,Sparkle,Tag,TextAUnderline,TextB,TextItalic,TextStrikethrough,Trash } from '@phosphor-icons/react';
+import { ArrowsInSimple,CaretDown,CaretUp,Code,FileText,Smiley,Sparkle,Tag,TextAUnderline,TextB,TextItalic,TextStrikethrough,Trash,TextAlignLeft,TextAlignCenter,TextAlignRight } from '@phosphor-icons/react';
 import Color from '@tiptap/extension-color';
 import FontFamily from '@tiptap/extension-font-family';
 import Highlight from '@tiptap/extension-highlight';
@@ -30,6 +30,7 @@ import { ColumnExtension } from './extensions/ColumnExtension';
 import { ColumnsExtension } from './extensions/ColumnsExtension';
 import { CustomCodeBlock } from './extensions/CustomCodeBlock';
 import { CustomImageExtension } from './extensions/CustomImageExtension';
+import { CustomGalleryExtension } from './extensions/CustomGalleryExtension';
 import { CustomTodoItem } from './extensions/CustomTodoItem';
 import { MentionSuggestion,renderMentionItems } from './extensions/MentionSuggestion';
 import { ReferenceExtension } from './extensions/ReferenceExtension';
@@ -305,6 +306,7 @@ export const TemplnoteEditor = React.memo(({
       nested: true,
     }),
     CustomImageExtension,
+    CustomGalleryExtension,
     ReferenceExtension,
     MentionSuggestion.configure({
       suggestion: {
@@ -819,7 +821,7 @@ export const TemplnoteEditor = React.memo(({
                 <BubbleMenu
                   editor={editor}
                   shouldShow={({ editor }) => {
-                    return !editor.state.selection.empty && !editor.isActive('image');
+                    return !editor.state.selection.empty && !editor.isActive('image') && !editor.isActive('gallery');
                   }}
                   options={{ placement: 'top' }}
                   className="flex items-center gap-1 bg-background border border-border rounded-sm-sm shadow-sm-sm p-1.5 font-sans"
@@ -852,8 +854,34 @@ export const TemplnoteEditor = React.memo(({
                   <button
                     onClick={() => editor.chain().focus().toggleCode().run()}
                     className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive('code') ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
+                    title="Code"
                   >
                     <Code size={16} />
+                  </button>
+                  <div className="w-px h-4 bg-border mx-1" />
+                  <button
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                    className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive({ textAlign: 'left' }) ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
+                    title="Align Left"
+                  >
+                    <TextAlignLeft size={16} />
+                  </button>
+                  <button
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                    className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive({ textAlign: 'center' }) ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
+                    title="Align Center"
+                  >
+                    <TextAlignCenter size={16} />
+                  </button>
+                  <button
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                    className={cn("p-1.5 rounded-sm-sm transition-colors", editor.isActive({ textAlign: 'right' }) ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
+                    title="Align Right"
+                  >
+                    <TextAlignRight size={16} />
                   </button>
                   <div className="w-px h-4 bg-border mx-1" />
                   <button

@@ -44,6 +44,21 @@ function getBlockIndex(el: HTMLElement | null): number {
   return Array.from(pm.children).indexOf(el);
 }
 
+/** Returns the start and end positions of a sibling child in the document. */
+function getBlockPosition(editor: Editor, index: number): { start: number; end: number } | null {
+  if (index < 0 || !editor || editor.isDestroyed) return null;
+  let pos = 0;
+  const doc = editor.state.doc;
+  for (let i = 0; i < doc.childCount; i++) {
+    const child = doc.child(i);
+    if (i === index) {
+      return { start: pos, end: pos + child.nodeSize };
+    }
+    pos += child.nodeSize;
+  }
+  return null;
+}
+
 export const BlockHandle = ({ editor }: BlockHandleProps) => {
   const [activeElement, setActiveElement] = useState<HTMLElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -244,20 +259,15 @@ export const BlockHandle = ({ editor }: BlockHandleProps) => {
             onClick={(e) => {
               setPlusHovered(false);
               const isAlt = e.altKey;
-              runOnCurrentBlock(() => {
-                const rect = activeElement!.getBoundingClientRect();
-                const coords = editor.view.posAtCoords({ left: rect.left + 8, top: rect.top + 8 });
-                if (coords) {
-                  const $pos = editor.state.doc.resolve(coords.pos);
-                  if (isAlt) {
-                    const blockStart = $pos.start(1) - 1;
-                    editor.chain().focus().insertContentAt(blockStart, { type: 'paragraph' }).run();
-                  } else {
-                    const blockEnd = $pos.start(1) - 1 + $pos.node(1).nodeSize;
-                    editor.chain().focus().insertContentAt(blockEnd, { type: 'paragraph' }).run();
-                  }
+              const index = getBlockIndex(activeElement);
+              const blockPos = getBlockPosition(editor, index);
+              if (blockPos) {
+                if (isAlt) {
+                  editor.chain().focus().insertContentAt(blockPos.start, { type: 'paragraph' }).setTextSelection(blockPos.start + 1).run();
+                } else {
+                  editor.chain().focus().insertContentAt(blockPos.end, { type: 'paragraph' }).setTextSelection(blockPos.end + 1).run();
                 }
-              });
+              }
             }}
             onMouseEnter={() => setPlusHovered(true)}
             onMouseLeave={() => setPlusHovered(false)}

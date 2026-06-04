@@ -15,12 +15,16 @@ export const SlashCommandList = forwardRef((props: SlashCommandListProps, ref) =
   
   const [showTablePicker, setShowTablePicker] = useState(false);
   const [hoveredGrid, setHoveredGrid] = useState({ r: 2, c: 2 });
+  
+  const [showGalleryPicker, setShowGalleryPicker] = useState(false);
+  const [hoveredGalleryGrid, setHoveredGalleryGrid] = useState({ r: 1, c: 1 });
 
   useEffect(() => {
     setCurrentMenu(props.items);
     setSelectedIndex(0);
     setMenuStack([]);
     setShowTablePicker(false);
+    setShowGalleryPicker(false);
   }, [props.items]);
 
   // Handle automatic scrolling when selection index changes
@@ -57,12 +61,29 @@ export const SlashCommandList = forwardRef((props: SlashCommandListProps, ref) =
     props.command(tableItem);
   };
 
+  const insertGridGallery = (r: number, c: number) => {
+    const galleryItem: CommandItem = {
+      title: 'Gallery',
+      command: ({ editor, range }) => {
+        editor.chain()
+          .focus()
+          .deleteRange(range)
+          .insertGallery({ rows: r + 1, cols: c + 1 })
+          .run();
+      }
+    };
+    props.command(galleryItem);
+  };
+
   const selectItem = (index: number) => {
     const item = currentMenu[index];
     if (item) {
       if (item.title === 'Table') {
         setShowTablePicker(true);
         setHoveredGrid({ r: 2, c: 2 });
+      } else if (item.title === 'Gallery') {
+        setShowGalleryPicker(true);
+        setHoveredGalleryGrid({ r: 1, c: 1 });
       } else if (item.submenu) {
         setMenuStack([...menuStack, currentMenu]);
         setCurrentMenu(item.submenu);
@@ -107,6 +128,34 @@ export const SlashCommandList = forwardRef((props: SlashCommandListProps, ref) =
         }
         if (event.key === 'Escape' || event.key === 'Backspace') {
           setShowTablePicker(false);
+          return true;
+        }
+        return true; // Consume other keys in picker mode
+      }
+
+      if (showGalleryPicker) {
+        if (event.key === 'ArrowUp') {
+          setHoveredGalleryGrid(prev => ({ ...prev, r: Math.max(0, prev.r - 1) }));
+          return true;
+        }
+        if (event.key === 'ArrowDown') {
+          setHoveredGalleryGrid(prev => ({ ...prev, r: Math.min(2, prev.r + 1) }));
+          return true;
+        }
+        if (event.key === 'ArrowLeft') {
+          setHoveredGalleryGrid(prev => ({ ...prev, c: Math.max(0, prev.c - 1) }));
+          return true;
+        }
+        if (event.key === 'ArrowRight') {
+          setHoveredGalleryGrid(prev => ({ ...prev, c: Math.min(2, prev.c + 1) }));
+          return true;
+        }
+        if (event.key === 'Enter') {
+          insertGridGallery(hoveredGalleryGrid.r, hoveredGalleryGrid.c);
+          return true;
+        }
+        if (event.key === 'Escape' || event.key === 'Backspace') {
+          setShowGalleryPicker(false);
           return true;
         }
         return true; // Consume other keys in picker mode
@@ -200,6 +249,57 @@ export const SlashCommandList = forwardRef((props: SlashCommandListProps, ref) =
     );
   }
 
+  if (showGalleryPicker) {
+    return (
+      <div 
+        ref={containerRef}
+        className="bg-card border border-white/5 rounded-sm-sm shadow-sm-sm p-3.5 flex flex-col gap-3 min-w-[200px] overflow-hidden font-sans"
+      >
+        <button
+          onClick={() => setShowGalleryPicker(false)}
+          className="w-full flex items-center gap-3 px-1 py-1 text-sm rounded-sm-sm transition-all text-white/50 hover:text-white shrink-0"
+        >
+          <CaretLeft size={16} />
+          <span className="font-medium tracking-wide text-[13px]">Back</span>
+        </button>
+
+        <div className="flex flex-col items-center gap-2.5 py-1">
+          <div className="text-[12px] font-semibold text-white/70 tracking-wider">
+            {hoveredGalleryGrid.r + 1} &times; {hoveredGalleryGrid.c + 1} Gallery
+          </div>
+
+          <div className="flex flex-col gap-1">
+            {Array.from({ length: 3 }).map((_, rIndex) => (
+              <div key={rIndex} className="flex gap-1">
+                {Array.from({ length: 3 }).map((_, cIndex) => {
+                  const isHighlighted = rIndex <= hoveredGalleryGrid.r && cIndex <= hoveredGalleryGrid.c;
+                  return (
+                    <div
+                      key={cIndex}
+                      onMouseEnter={() => setHoveredGalleryGrid({ r: rIndex, c: cIndex })}
+                      onClick={() => insertGridGallery(rIndex, cIndex)}
+                      className={`
+                        w-8 h-8 border transition-all duration-150 cursor-pointer rounded-[3px]
+                        ${isHighlighted 
+                          ? 'bg-purple-500/80 border-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.3)] scale-[1.05]' 
+                          : 'bg-white/5 border-white/10 hover:border-white/20'
+                        }
+                      `}
+                    />
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+
+          <div className="text-[10px] text-white/40 text-center mt-1">
+            Use arrows to select, Enter to insert
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (currentMenu.length === 0) {
     return null;
   }
@@ -208,6 +308,7 @@ export const SlashCommandList = forwardRef((props: SlashCommandListProps, ref) =
     <div 
       ref={containerRef}
       id="onboarding-slash-command-list"
+
       className="bg-card border border-white/5 rounded-sm-sm shadow-sm-sm p-2 flex flex-col gap-1 min-w-[280px] max-h-[380px] overflow-y-auto no-scrollbar font-sans"
     >
       {menuStack.length > 0 && (

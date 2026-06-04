@@ -320,12 +320,26 @@
   text-align: left;
 }
 
-.tiptap img {
+.tiptap img,
+.prose img,
+.ProseMirror img {
   display: block;
   height: auto;
-  margin: 1.5rem 0;
   max-width: 100%;
   border-radius: 0.125rem;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.tiptap hr,
+.ProseMirror hr {
+  border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
+  opacity: 1 !important;
+}
+
+html.light .tiptap hr,
+html.light .ProseMirror hr {
+  border-top: 1px solid rgba(0, 0, 0, 0.15) !important;
 }
 
 .tiptap blockquote {
@@ -516,22 +530,28 @@
 
 /* ── Tight premium vertical spacing between editor blocks ── */
 .ProseMirror > * {
-  margin-top: 6px !important;
-  margin-bottom: 6px !important;
+  margin-top: 20px !important;
+  margin-bottom: 20px !important;
+}
+
+.ProseMirror > .group\/img,
+.ProseMirror > .group\/gallery-wrapper {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
 }
 
 /* Hierarchy spacing with tight visual bounds */
 .ProseMirror > h1 {
-  margin-top: 16px !important;
-  margin-bottom: 6px !important;
+  margin-top: 36px !important;
+  margin-bottom: 16px !important;
 }
 .ProseMirror > h2 {
-  margin-top: 14px !important;
-  margin-bottom: 6px !important;
+  margin-top: 30px !important;
+  margin-bottom: 16px !important;
 }
 .ProseMirror > h3 {
-  margin-top: 12px !important;
-  margin-bottom: 4px !important;
+  margin-top: 24px !important;
+  margin-bottom: 12px !important;
 }
 .ProseMirror > blockquote,
 .ProseMirror > pre,
@@ -539,8 +559,8 @@
 .ProseMirror > [data-type="taskList"],
 .ProseMirror > ul,
 .ProseMirror > ol {
-  margin-top: 8px !important;
-  margin-bottom: 8px !important;
+  margin-top: 22px !important;
+  margin-bottom: 22px !important;
 }
 
 /* Tight vertical spacing between list items in numbered and bulleted lists */

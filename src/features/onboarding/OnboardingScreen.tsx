@@ -257,9 +257,69 @@ export const OnboardingScreen = () => {
             {
               id: 'welcome-doc',
               title: 'Welcome to Templnote',
+              icon: '💻',
               folderId: null,
               tags: ['guide', 'dev'],
-              content: `<h1>Welcome to your Developer Workspace</h1><p>Templnote is your calm, intelligent workspace for ideas, tasks, and code snippet references.</p><h3>Pro Tips:</h3><ul><li>Type <strong>/</strong> in this editor to insert tables, quotes, toggles, or code blocks.</li><li>Type <strong>@</strong> to link to other documents, tasks, or tags.</li><li>Press <strong>Tab</strong> to activate AI autocomplete on any paragraph.</li></ul>`
+              content: `<h1>Welcome to your Developer Workspace</h1>
+<p>Templnote is a high-performance local-first developer environment tailored for flow state. Manage codebases, track features, and write clean markdown documentation side-by-side.</p>
+
+<hr />
+
+<h3>🚀 Core Editor Features</h3>
+<p>Our editor gives you total control using keyboard-driven interactions and Markdown syntax. Try these commands inside the editor:</p>
+
+<ul>
+  <li><strong>/ Command Menu</strong>: Hit <code>/</code> on any blank line to insert tables, toggles, callouts, checklists, and formatted code blocks.</li>
+  <li><strong>@ References</strong>: Type <code>@</code> to search and link directly to another page, active task list, or tag.</li>
+  <li><strong>AI Autocomplete</strong>: Type part of a sentence and press <code>Tab</code> to let our offline-first AI predict the next code block or sentence.</li>
+  <li><strong>Split Pane View</strong>: Open side-by-side tabs by dragging them to the side or right-clicking a tab.</li>
+</ul>
+
+<hr />
+
+<h3>⌨️ Editor Shortcut Guide</h3>
+<table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px;">
+  <thead>
+    <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); text-align: left;">
+      <th style="padding: 8px 12px; color: #a1a1aa;">Action</th>
+      <th style="padding: 8px 12px; color: #a1a1aa;">Shortcut</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Left Sidebar</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">Ctrl + Alt + L</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Right Sidebar</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">Ctrl + Alt + R</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Top Navbar</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">Ctrl + Alt + T</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Change Tab Item</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">Ctrl + Alt + ← / →</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Change Pane</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">Ctrl + Alt + H / J</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Split Pane</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">Ctrl + Alt + N</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Close Active Pane</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">Ctrl + Alt + Q</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Document Search</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">Ctrl + K</td>
+    </tr>
+  </tbody>
+</table>`
             }
           );
         } else if (selectedStyle === 'Student') {
@@ -273,9 +333,66 @@ export const OnboardingScreen = () => {
             {
               id: 'welcome-doc',
               title: 'Welcome to Templnote',
+              icon: '🎓',
               folderId: null,
               tags: ['guide', 'school'],
-              content: `<h1>Welcome to your Student Workspace</h1><p>Templnote helps you keep track of classes, notes, and deadlines without clutter. Here is your initial setup:</p><ul><li>Use folders to group notes by subject.</li><li>Create daily notes to structure your study sessions.</li></ul>`
+              content: `<h1>Welcome to your Student Workspace</h1>
+<p>Organize your academic life. Templnote brings class notes, study schedules, and reading checksheets together into one gorgeous workspace.</p>
+
+<hr />
+
+<h3>📚 Core Study Features</h3>
+<ul>
+  <li><strong>Inline Flashcards & Toggles</strong>: Type <code>/toggle</code> to create collapsible answers for self-testing.</li>
+  <li><strong>Document Backlinking</strong>: Link lectures to reading logs using <code>@</code> to build your study graph.</li>
+  <li><strong>Daily Standup Logs</strong>: Track tasks, habits, and lectures every single day.</li>
+</ul>
+
+<hr />
+
+<h3>⌨️ Keyboard Shortcuts Guide</h3>
+<table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px;">
+  <thead>
+    <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); text-align: left;">
+      <th style="padding: 8px 12px; color: #a1a1aa;">Action</th>
+      <th style="padding: 8px 12px; color: #a1a1aa;">Shortcut</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Left Sidebar</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">Ctrl + Alt + L</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Right Sidebar</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">Ctrl + Alt + R</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Top Navbar</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">Ctrl + Alt + T</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Change Tab Item</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">Ctrl + Alt + ← / →</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Change Pane</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">Ctrl + Alt + H / J</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Split Pane</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">Ctrl + Alt + N</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Close Active Pane</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">Ctrl + Alt + Q</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Document Search</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">Ctrl + K</td>
+    </tr>
+  </tbody>
+</table>`
             },
             {
               id: 'doc-stud-overview',
@@ -306,7 +423,6 @@ export const OnboardingScreen = () => {
               content: `<h1>Daily Study Log — ${yyyy}-${mm}-${dd}</h1><h3>Today's lectures:</h3><ul><li>CS 101 - Lecture 4</li></ul><h3>Tasks to finish:</h3><ul><li>Math assignment 2 submissions</li></ul>`
             }
           );
-          // No default tasks for Student style
         } else if (selectedStyle === 'Creator') {
           styleTags.push('ideas', 'drafts', 'production', 'editing', 'published');
           createdFolders.push(
@@ -318,9 +434,65 @@ export const OnboardingScreen = () => {
             {
               id: 'welcome-doc',
               title: 'Welcome to Templnote',
+              icon: '🎨',
               folderId: null,
               tags: ['guide', 'creative'],
-              content: `<h1>Welcome to your Creator Workspace</h1><p>Brainstorm video concepts, draft scripts, and track your publications easily.</p>`
+              content: `<h1>Welcome to your Creator Workspace</h1>
+<p>Ditch the chaos. Brainstorm video setups, write copy drafts, and coordinate assets in an aesthetic environment structured for creators.</p>
+
+<hr />
+
+<h3>🎬 Custom Creator Tools</h3>
+<ul>
+  <li><strong>Asset Previews & Embeds</strong>: Drag in visual mockups or media guidelines directly into your workflow.</li>
+  <li><strong>Dynamic Callouts</strong>: Highlight essential notes, sound bites, or scripting targets using <code>/callout</code>.</li>
+</ul>
+
+<hr />
+
+<h3>⌨️ Keyboard Shortcuts Guide</h3>
+<table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px;">
+  <thead>
+    <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); text-align: left;">
+      <th style="padding: 8px 12px; color: #a1a1aa;">Action</th>
+      <th style="padding: 8px 12px; color: #a1a1aa;">Shortcut</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Left Sidebar</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">Ctrl + Alt + L</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Right Sidebar</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">Ctrl + Alt + R</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Top Navbar</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">Ctrl + Alt + T</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Change Tab Item</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">Ctrl + Alt + ← / →</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Change Pane</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">Ctrl + Alt + H / J</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Split Pane</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">Ctrl + Alt + N</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Close Active Pane</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">Ctrl + Alt + Q</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Document Search</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">Ctrl + K</td>
+    </tr>
+  </tbody>
+</table>`
             },
             {
               id: 'doc-creat-calendar',
@@ -351,7 +523,6 @@ export const OnboardingScreen = () => {
               content: `<h1>Creative Session Log — ${yyyy}-${mm}-${dd}</h1><h3>Creative ideas today:</h3><ul><li>Comparison video on productivity tools</li></ul><h3>Task list:</h3><ul><li>Shoot visual b-roll for setup video</li></ul>`
             }
           );
-          // No default tasks for Creator style
         } else if (selectedStyle === 'Researcher') {
           styleTags.push('literature', 'experiments', 'data', 'writing', 'references');
           createdFolders.push(
@@ -363,9 +534,65 @@ export const OnboardingScreen = () => {
             {
               id: 'welcome-doc',
               title: 'Welcome to Templnote',
+              icon: '🔬',
               folderId: null,
               tags: ['guide', 'research'],
-              content: `<h1>Welcome to your Research Workspace</h1><p>Record lab findings, link academic references, and write thesis drafts.</p>`
+              content: `<h1>Welcome to your Research Workspace</h1>
+<p>Connect theories, compile citations, and analyze experimental results within a distraction-free repository.</p>
+
+<hr />
+
+<h3>🧪 Advanced Editor Features</h3>
+<ul>
+  <li><strong>Tables & Datasets</strong>: Insert tables using <code>/table</code> to track variables and logs instantly.</li>
+  <li><strong>Document Connections</strong>: Create nested topic webs using link structures and <code>@</code> tag relationships.</li>
+</ul>
+
+<hr />
+
+<h3>⌨️ Keyboard Shortcuts Guide</h3>
+<table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px;">
+  <thead>
+    <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); text-align: left;">
+      <th style="padding: 8px 12px; color: #a1a1aa;">Action</th>
+      <th style="padding: 8px 12px; color: #a1a1aa;">Shortcut</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Left Sidebar</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">Ctrl + Alt + L</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Right Sidebar</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">Ctrl + Alt + R</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Top Navbar</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">Ctrl + Alt + T</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Change Tab Item</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">Ctrl + Alt + ← / →</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Change Pane</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">Ctrl + Alt + H / J</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Split Pane</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">Ctrl + Alt + N</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Close Active Pane</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">Ctrl + Alt + Q</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Document Search</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">Ctrl + K</td>
+    </tr>
+  </tbody>
+</table>`
             },
             {
               id: 'doc-res-thesis',
@@ -396,7 +623,6 @@ export const OnboardingScreen = () => {
               content: `<h1>Research Notes — ${yyyy}-${mm}-${dd}</h1><h3>Discoveries & Hypotheses:</h3><p>State sync runs 20% faster when indexes are local.</p><h3>Paper reading list:</h3><ul><li>Read Kleppmann (2018) paper</li></ul>`
             }
           );
-          // No default tasks for Researcher style
         } else if (selectedStyle === 'Startup') {
           styleTags.push('strategy', 'product', 'growth', 'fundraising', 'meetings');
           createdFolders.push(
@@ -408,9 +634,65 @@ export const OnboardingScreen = () => {
             {
               id: 'welcome-doc',
               title: 'Welcome to Templnote',
+              icon: '🚀',
               folderId: null,
               tags: ['guide', 'startup'],
-              content: `<h1>Welcome to your Startup Workspace</h1><p>Align team targets, draft strategy documents, and manage software specifications.</p>`
+              content: `<h1>Welcome to your Startup Workspace</h1>
+<p>Build and scale. Templnote aggregates product roadmaps, strategy documents, pitch narrative files, and team updates in a secure space.</p>
+
+<hr />
+
+<h3>💼 Editor Features for Teams</h3>
+<ul>
+  <li><strong>Bullet & Task lists</strong>: Format itemized lists easily via <code>/bullet</code> or <code>/todo</code>.</li>
+  <li><strong>Headers hierarchy</strong>: Separate strategies using formatted H1, H2, and H3 sizes.</li>
+</ul>
+
+<hr />
+
+<h3>⌨️ Keyboard Shortcuts Guide</h3>
+<table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px;">
+  <thead>
+    <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); text-align: left;">
+      <th style="padding: 8px 12px; color: #a1a1aa;">Action</th>
+      <th style="padding: 8px 12px; color: #a1a1aa;">Shortcut</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Left Sidebar</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">Ctrl + Alt + L</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Right Sidebar</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">Ctrl + Alt + R</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Top Navbar</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">Ctrl + Alt + T</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Change Tab Item</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">Ctrl + Alt + ← / →</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Change Pane</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">Ctrl + Alt + H / J</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Split Pane</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">Ctrl + Alt + N</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Close Active Pane</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">Ctrl + Alt + Q</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Document Search</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">Ctrl + K</td>
+    </tr>
+  </tbody>
+</table>`
             },
             {
               id: 'doc-start-onepager',
@@ -441,7 +723,6 @@ export const OnboardingScreen = () => {
               content: `<h1>Daily Sync — ${yyyy}-${mm}-${dd}</h1><h3>Active Metrics:</h3><ul><li>Daily Active Users: 1,420</li></ul><h3>Standup Agenda:</h3><ul><li>Sync with engineering team on local Dexie indexing issues</li></ul>`
             }
           );
-          // No default tasks for Startup style
         } else {
           // Personal Default
           styleTags.push('journal', 'goals', 'finance', 'health', 'reminders');
@@ -454,9 +735,65 @@ export const OnboardingScreen = () => {
             {
               id: 'welcome-doc',
               title: 'Welcome to Templnote',
+              icon: '👤',
               folderId: null,
               tags: ['guide', 'personal'],
-              content: `<h1>Welcome to Templnote</h1><p>This is your personal workspace for daily journals, goal-tracking, and managing tasks.</p>`
+              content: `<h1>Welcome to Templnote</h1>
+<p>Your minimalist home for daily reflection, tracking life goals, and structuring routines without noise.</p>
+
+<hr />
+
+<h3>🌱 Personal Features</h3>
+<ul>
+  <li><strong>Bullet journals & checklists</strong>: Format checkboxes or numbered outlines quickly.</li>
+  <li><strong>Linked references</strong>: Reference tags using <code>@</code> to build an connected logbook.</li>
+</ul>
+
+<hr />
+
+<h3>⌨️ Keyboard Shortcuts Guide</h3>
+<table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px;">
+  <thead>
+    <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); text-align: left;">
+      <th style="padding: 8px 12px; color: #a1a1aa;">Action</th>
+      <th style="padding: 8px 12px; color: #a1a1aa;">Shortcut</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Left Sidebar</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">Ctrl + Alt + L</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Right Sidebar</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">Ctrl + Alt + R</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Top Navbar</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">Ctrl + Alt + T</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Change Tab Item</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">Ctrl + Alt + ← / →</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Change Pane</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">Ctrl + Alt + H / J</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Split Pane</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">Ctrl + Alt + N</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Close Active Pane</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">Ctrl + Alt + Q</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Document Search</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">Ctrl + K</td>
+    </tr>
+  </tbody>
+</table>`
             },
             {
               id: 'doc-pers-goals',
@@ -521,6 +858,7 @@ export const OnboardingScreen = () => {
             content: doc.content,
             tags: docTags,
             folderId: doc.folderId,
+            icon: doc.icon,
             type: doc.id.startsWith('daily-note-') ? 'daily-note' : 'page',
             updatedAt: new Date().toISOString(),
             createdAt: new Date().toISOString(),
@@ -581,11 +919,22 @@ export const OnboardingScreen = () => {
     };
   }, [step, selectedStyle, workspaceName, activeTags, activePages]);
 
+  const [showTutorialPrompt, setShowTutorialPrompt] = useState(false);
+
   const handleFinishOnboarding = () => {
+    setShowTutorialPrompt(true);
+  };
+
+  const handleChooseTutorial = (wantsTutorial: boolean) => {
     setIsOnboardingCompleted(true);
-    useUiStore.getState().openDocument('section-glance');
-    // Directly open Glance page after onboarding
-    useUiStore.getState().openDocument('section-glance');
+    setShowTutorialPrompt(false);
+    if (wantsTutorial) {
+      // Start tutorial: starts in Glance and toggles tutorial active state
+      useUiStore.getState().startTutorial();
+    } else {
+      // Jump directly to the auto-generated page ('welcome-doc')
+      useUiStore.getState().openDocument('welcome-doc');
+    }
   };
 
   // Onboarding split-screen layouts
@@ -688,6 +1037,45 @@ export const OnboardingScreen = () => {
           Back
         </button>
       )}
+
+      {/* Premium Tutorial Choice Dialog */}
+      <AnimatePresence>
+        {showTutorialPrompt && (
+          <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full max-w-md bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-2xl text-left"
+              style={{
+                background: 'linear-gradient(180deg, #09090b 0%, #030303 100%)',
+              }}
+            >
+              <h2 className="text-lg font-semibold text-zinc-100 font-sans tracking-tight mb-2">
+                Quick Interactive Tutorial?
+              </h2>
+              <p className="text-xs text-zinc-400 font-sans leading-relaxed mb-6">
+                Would you like a brief, interactive walkthrough of the workspace features? Or would you prefer to dive straight into your new document?
+              </p>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => handleChooseTutorial(false)}
+                  className="px-4 py-2 bg-transparent hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white text-xs font-medium rounded-lg transition-all cursor-pointer"
+                >
+                  Skip to Document
+                </button>
+                <button
+                  onClick={() => handleChooseTutorial(true)}
+                  className="px-4 py-2 bg-[#B5EAD7] hover:bg-[#a3d8c4] text-zinc-950 text-xs font-semibold rounded-lg shadow-sm active:scale-[0.98] transition-all cursor-pointer"
+                >
+                  Start Tutorial
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

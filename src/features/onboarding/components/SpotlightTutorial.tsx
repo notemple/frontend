@@ -233,7 +233,7 @@ export const SpotlightTutorial = () => {
         id: 'sidebar-open',
         targetId: 'onboarding-tab-bar',
         title: 'Open Sidebar',
-        description: 'Press Ctrl+Alt+L (or ⌘⌥L) to open the sidebar.',
+        description: 'Press Ctrl+Alt+L (or ⌘⌥L) to open the sidebar. Alternatively, bring your cursor near the left edge of the screen to slide it open.',
         color: '#BDE0FE',
         sidebarOpen: false,
         interactive: true,
@@ -949,6 +949,13 @@ export const SpotlightTutorial = () => {
   return (
     <div className="fixed inset-0 z-[9998] pointer-events-none">
       {/* Dark overlay with cutout — non-blocking during interactive steps */}
+      {currentStep.id === 'sidebar-open' && (
+        <div className="fixed inset-y-0 left-0 w-3 bg-teal-500/30 dark:bg-teal-400/25 animate-pulse z-[99999] border-r border-teal-500/40 pointer-events-none flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.4)]">
+          <div className="text-teal-400 text-lg font-bold animate-[bounce_1s_infinite_horizontal] translate-x-3">
+            ←
+          </div>
+        </div>
+      )}
       <svg
         className="fixed inset-0 w-full h-full z-[9998]"
         style={{

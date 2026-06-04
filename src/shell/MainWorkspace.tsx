@@ -12,7 +12,8 @@ import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
 import { 
   Columns, Sidebar as SidebarIcon, ShareFat, Bell, ClockCounterClockwise, Layout, 
   CaretDown, FileText, Folder, Sun, Moon, Monitor, Clock, ArrowLeft, PlusCircle, 
-  Check, X, Plus, Trash, Hourglass, Target, Play as MiniPlay, Pause as MiniPause, Stop as MiniStop 
+  Check, X, Plus, Trash, Hourglass, Target, Play as MiniPlay, Pause as MiniPause, Stop as MiniStop,
+  MagnifyingGlass
 } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'motion/react';
 import { gsap } from 'gsap';
@@ -475,13 +476,24 @@ export const MainWorkspace = () => {
           >
             <SidebarIcon size={18} />
           </button>
-          
           <ClockWidget />
           <FocusTimerWidget />
         </div>
-        <div className="text-[13px] font-medium text-muted-foreground flex-1 text-center font-sans tracking-wide">
-          {headerText}
+        
+        {/* Navbar Center Text & Search Trigger */}
+        <div className="flex items-center gap-3 shrink-0 justify-center flex-1">
+          <div className="text-[13px] font-medium text-muted-foreground font-sans tracking-wide">
+            {headerText}
+          </div>
+          <button
+            onClick={() => window.dispatchEvent(new Event('command-palette:toggle'))}
+            className="p-1.5 text-muted-foreground/60 hover:text-foreground hover:bg-muted/70 rounded-sm transition-all cursor-pointer flex items-center justify-center border border-transparent hover:border-border"
+            title="Search Documents (Ctrl+K)"
+          >
+            <MagnifyingGlass size={15} />
+          </button>
         </div>
+
         <div className="flex items-center gap-4 flex-1 justify-end">
           {/* Inline Theme Segmented Control */}
           <div className="flex items-center bg-muted p-0.5 rounded-sm-sm border border-border">

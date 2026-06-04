@@ -274,8 +274,17 @@ export const CommandPalette = () => {
         setIsOpen(false);
       }
     };
+    
+    const togglePalette = () => {
+      setIsOpen((open) => !open);
+    };
+
     document.addEventListener('keydown', down);
-    return () => document.removeEventListener('keydown', down);
+    window.addEventListener('command-palette:toggle', togglePalette);
+    return () => {
+      document.removeEventListener('keydown', down);
+      window.removeEventListener('command-palette:toggle', togglePalette);
+    };
   }, [isOpen]);
 
   // Allow the tutorial to imperatively close the palette

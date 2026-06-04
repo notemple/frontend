@@ -7,6 +7,7 @@ import { useDocumentStore } from '@/features/documents/store';
 import { useTaskStore } from '@/features/tasks/store';
 import { documentService } from '@/services/document.service';
 import { taskService } from '@/services/task.service';
+import { cn } from '@/shared/lib/utils';
 
 import { LoginStep } from './components/LoginStep';
 import { NameStep } from './components/NameStep';
@@ -902,7 +903,8 @@ export const OnboardingScreen = () => {
         setTimeout(() => {
           setCreationComplete(true);
           setTimeout(() => {
-            setStep(5);
+            // Directly trigger the tutorial/autohide selections instead of going to step 5 (Done screen)
+            handleFinishOnboarding();
           }, 800);
         }, 300);
 
@@ -925,16 +927,30 @@ export const OnboardingScreen = () => {
     setShowTutorialPrompt(true);
   };
 
+  const [showAutohidePrompt, setShowAutohidePrompt] = useState(false);
+
   const handleChooseTutorial = (wantsTutorial: boolean) => {
-    setIsOnboardingCompleted(true);
     setShowTutorialPrompt(false);
     if (wantsTutorial) {
+      setIsOnboardingCompleted(true);
       // Start tutorial: starts in Glance and toggles tutorial active state
       useUiStore.getState().startTutorial();
     } else {
-      // Jump directly to the auto-generated page ('welcome-doc')
-      useUiStore.getState().openDocument('welcome-doc');
+      // Prompt user with autohide preferences dialog first before finishing onboarding
+      setShowAutohidePrompt(true);
     }
+  };
+
+  const handleFinishWithAutohide = (hideSidebars: boolean, hideNavbar: boolean) => {
+    // Save selections to SettingsStore
+    useSettingsStore.getState().setAutoHideSidebars(hideSidebars);
+    useSettingsStore.getState().setAutoHideNavbar(hideNavbar);
+    
+    setIsOnboardingCompleted(true);
+    setShowAutohidePrompt(false);
+    
+    // Jump directly to the auto-generated page ('welcome-doc')
+    useUiStore.getState().openDocument('welcome-doc');
   };
 
   // Onboarding split-screen layouts
@@ -1023,12 +1039,7 @@ export const OnboardingScreen = () => {
         )}
       </AnimatePresence>
 
-      {/* Step 5: Final Done Screen */}
-      {step === 5 && (
-        <DoneStep handleFinishOnboarding={handleFinishOnboarding} />
-      )}
-
-      {step > 1 && step !== 4 && step !== 5 && (
+      {step > 1 && step !== 4 && (
         <button
           onClick={handleBack}
           className="absolute top-8 left-8 flex items-center gap-2 text-xs font-semibold text-zinc-500 hover:text-[#BDE0FE] transition-colors cursor-pointer group z-[99999] pointer-events-auto bg-transparent border-none"
@@ -1041,7 +1052,7 @@ export const OnboardingScreen = () => {
       {/* Premium Tutorial Choice Dialog */}
       <AnimatePresence>
         {showTutorialPrompt && (
-          <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -1076,6 +1087,100 @@ export const OnboardingScreen = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Autohide Preferences Config Dialog */}
+      <AnimatePresence>
+        {showAutohidePrompt && (
+          <AutohideConfigDialog onFinish={handleFinishWithAutohide} />
+        )}
+      </AnimatePresence>
     </>
+  );
+};
+
+// Helper component for clean modularity
+const AutohideConfigDialog = ({ onFinish }: { onFinish: (hideSidebars: boolean, hideNavbar: boolean) => void }) => {
+  const [hideSidebars, setHideSidebars] = useState(false);
+  const [hideNavbar, setHideNavbar] = useState(false);
+
+  return (
+    <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-md bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-2xl text-left"
+        style={{
+          background: 'linear-gradient(180deg, #09090b 0%, #030303 100%)',
+        }}
+      >
+        <h2 className="text-lg font-semibold text-zinc-100 font-sans tracking-tight mb-2">
+          Configure Navigation Layout
+        </h2>
+        <p className="text-xs text-zinc-400 font-sans leading-relaxed mb-6">
+          Optimize your screen space. Toggle these autohide configurations to keep your workspace distraction-free.
+        </p>
+
+        <div className="space-y-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="max-w-[75%]">
+              <p className="text-xs font-semibold text-zinc-200">Autohide Sidebars</p>
+              <p className="text-[10px] text-zinc-500">Automatically collapse panels; open them by hovering the screen edge.</p>
+              {!hideSidebars && (
+                <p className="text-[10px] text-emerald-400/90 font-mono mt-1">Shortcut: Ctrl + Alt + L / R to toggle panels manually</p>
+              )}
+            </div>
+            <button
+              onClick={() => setHideSidebars(!hideSidebars)}
+              className={cn(
+                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                hideSidebars ? "bg-emerald-500/80" : "bg-zinc-800"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                  hideSidebars ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="max-w-[75%]">
+              <p className="text-xs font-semibold text-zinc-200">Autohide Top Navbar</p>
+              <p className="text-[10px] text-zinc-500">Hide navigation header unless mouse moves near the top edge.</p>
+              {!hideNavbar && (
+                <p className="text-[10px] text-emerald-400/90 font-mono mt-1">Shortcut: Ctrl + Alt + T to toggle navbar manually</p>
+              )}
+            </div>
+            <button
+              onClick={() => setHideNavbar(!hideNavbar)}
+              className={cn(
+                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                hideNavbar ? "bg-emerald-500/80" : "bg-zinc-800"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                  hideNavbar ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end">
+          <button
+            onClick={() => onFinish(hideSidebars, hideNavbar)}
+            className="px-5 py-2.5 bg-[#B5EAD7] hover:bg-[#a3d8c4] text-zinc-950 text-xs font-semibold rounded-lg shadow-sm active:scale-[0.98] transition-all cursor-pointer w-full text-center"
+          >
+            Apply & Enter Workspace
+          </button>
+        </div>
+      </motion.div>
+    </div>
   );
 };

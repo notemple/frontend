@@ -113,6 +113,30 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
 
   const effectiveActiveType = activeType !== null ? activeType : (isFirstStep ? null : "Note");
 
+  const [showNoteHighlight, setShowNoteHighlight] = useState(false);
+  const typingStartRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (!isFirstStep) {
+      setShowNoteHighlight(false);
+      typingStartRef.current = false;
+      return;
+    }
+    const hasText = captureText.trim().length > 0;
+    if (hasText) {
+      if (!typingStartRef.current) {
+        typingStartRef.current = true;
+        const timer = setTimeout(() => {
+          setShowNoteHighlight(true);
+        }, 5000);
+        return () => clearTimeout(timer);
+      }
+    } else {
+      typingStartRef.current = false;
+      setShowNoteHighlight(false);
+    }
+  }, [captureText, isFirstStep]);
+
   useEffect(() => {
     if (isFirstStep && !captureText.trim()) {
       setActiveType(null);
@@ -241,10 +265,11 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
                     ? "shadow-sm-sm"
                     : "border-border/50 hover:border-border/80 hover:bg-muted/20 text-foreground/70",
                   isDisabled && "opacity-40 cursor-not-allowed hover:bg-transparent hover:border-border/50",
-                  type === "Note" && isFirstStep && captureText.trim() !== "" && effectiveActiveType !== "Note" && "animate-pulse border-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                  type === "Note" && isFirstStep && captureText.trim() !== "" && effectiveActiveType !== "Note" && showNoteHighlight && "animate-pulse border-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
                 )}
                 id={type === "Note" ? "onboarding-quick-capture-note-pill" : undefined}
                 data-selected={isSelected}
+                data-highlighted={type === "Note" ? showNoteHighlight : undefined}
               >
                 {isSelected && (
                   <div 

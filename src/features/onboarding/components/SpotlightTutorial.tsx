@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { CaretRight } from '@phosphor-icons/react';
 import { useUiStore } from '@/shared/store/uiStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -98,6 +98,7 @@ export const SpotlightTutorial = () => {
   const [createdFolderId, setCreatedFolderId] = useState<string | null>(null);
   const [initialFolderIds, setInitialFolderIds] = useState<string[]>([]);
   const [mentionPhase, setMentionPhase] = useState<'wait-at' | 'wait-select' | 'done'>('wait-at');
+  const [taskEditorPhase, setTaskEditorPhase] = useState<'write' | 'done'>('write');
 
   // ─── Compute Linear Tutorial Steps ────────────────────────────────────────
   const steps = useMemo<TutorialStep[]>(() => {
@@ -149,6 +150,24 @@ export const SpotlightTutorial = () => {
         interactive: true,
       },
       {
+        id: 'search-open',
+        targetId: 'onboarding-tab-bar',
+        title: 'Open Document Search',
+        description: 'Press Ctrl+K (or ⌘K) to open the document search palette.',
+        color: '#A0C4FF',
+        sidebarOpen: false,
+        interactive: true,
+      },
+      {
+        id: 'search-tasks',
+        targetId: 'onboarding-command-palette',
+        title: 'Search and Open Tasks',
+        description: 'Type "Tasks" and press Enter to open the Tasks board.',
+        color: '#A0C4FF',
+        sidebarOpen: false,
+        interactive: true,
+      },
+      {
         id: 'task-add-click',
         targetId: 'onboarding-add-task-button',
         title: 'Create a New Task',
@@ -188,7 +207,7 @@ export const SpotlightTutorial = () => {
         id: 'task-edit-modal',
         targetId: 'onboarding-task-editor-close',
         title: 'Task Details',
-        description: 'Here you can set status, priority, and dates. Click the X button to close the editor.',
+        description: 'Type something in the task notes editor. After 5 seconds, close it.',
         color: '#C7CEEA',
         sidebarOpen: false,
         interactive: true,
@@ -199,6 +218,15 @@ export const SpotlightTutorial = () => {
         title: 'Closing a Pane',
         description: 'Press Ctrl+Alt+Q (or ⌘⌥Q) to close the active pane and return to a single view.',
         color: '#FFB7B2',
+        sidebarOpen: false,
+        interactive: true,
+      },
+      {
+        id: 'sidebar-open',
+        targetId: 'onboarding-tab-bar',
+        title: 'Open Sidebar',
+        description: 'Press Ctrl+Alt+L (or ⌘⌥L) to open the sidebar.',
+        color: '#BDE0FE',
         sidebarOpen: false,
         interactive: true,
       },
@@ -327,9 +355,7 @@ export const SpotlightTutorial = () => {
     } else if (currentStep.id === 'task-add-click' || currentStep.id === 'task-add-input' || currentStep.id === 'task-guide' || currentStep.id === 'task-edit-click' || currentStep.id === 'task-edit-modal') {
       useUiStore.getState().openDocument('section-tasks');
     } else if (currentStep.id === 'pane-split' || currentStep.id === 'pane-switch' || currentStep.id === 'pane-close') {
-      const { panes, openDocument } = useUiStore.getState();
-      const firstPaneId = panes[0]?.id || 'pane-main';
-      openDocument('welcome-doc', firstPaneId);
+      // Don't automatically create a new document after finishing daily notes
     } else if (currentStep.id === 'folder-create-doc') {
       if (createdFolderId) {
         useUiStore.getState().openDocument(`section-folder-${createdFolderId}`);
@@ -465,14 +491,86 @@ export const SpotlightTutorial = () => {
     return () => clearTimeout(t);
   }, [isTutorialActive, currentStep, slashPhase, tutorialIndex, setTutorialIndex]);
 
-  // ── Note Minimize: auto-advance when Daily Notes dashboard section is active
+  // ── Note Minimize: auto-advance 5 seconds after Daily Notes editor is minimized
+  const noteMinimizeTriggeredRef = useRef(false);
   useEffect(() => {
-    if (!isTutorialActive || currentStep?.id !== 'note-minimize') return;
+    if (!isTutorialActive || currentStep?.id !== 'note-minimize') {
+      noteMinimizeTriggeredRef.current = false;
+      return;
+    }
     const iv = setInterval(() => {
+      if (noteMinimizeTriggeredRef.current) return;
       const activePane = useUiStore.getState().panes.find(p => p.id === useUiStore.getState().activePaneId);
       if (activePane?.activeTabId === 'section-daily-notes') {
-        const t = setTimeout(() => setTutorialIndex(tutorialIndex + 1), 500);
-        return () => clearTimeout(t);
+        noteMinimizeTriggeredRef.current = true;
+        setTimeout(() => {
+          setTutorialIndex(tutorialIndex + 1);
+        }, 5000);
+      }
+    }, 150);
+    return () => clearInterval(iv);
+  }, [currentStep, isTutorialActive, setTutorialIndex, tutorialIndex]);
+
+  // ── Search Open: watch for command palette in DOM
+  useEffect(() => {
+    if (!isTutorialActive || currentStep?.id !== 'search-open') return;
+    const iv = setInterval(() => {
+      const el = document.getElementById('onboarding-command-palette');
+      if (el) {
+        setTutorialIndex(tutorialIndex + 1);
+      }
+    }, 150);
+    return () => clearInterval(iv);
+  }, [currentStep, isTutorialActive, setTutorialIndex, tutorialIndex]);
+
+  // ── Search Tasks: watch for Tasks section active tab
+  useEffect(() => {
+    if (!isTutorialActive || currentStep?.id !== 'search-tasks') return;
+    const iv = setInterval(() => {
+      const activePane = useUiStore.getState().panes.find(p => p.id === useUiStore.getState().activePaneId);
+      if (activePane?.activeTabId === 'section-tasks') {
+        setTutorialIndex(tutorialIndex + 1);
+      }
+    }, 150);
+    return () => clearInterval(iv);
+  }, [currentStep, isTutorialActive, setTutorialIndex, tutorialIndex]);
+
+  // ── Task Edit Modal notes: poll for notes content typed in task editor and transition phase
+  const taskEditorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!isTutorialActive || currentStep?.id !== 'task-edit-modal' || !createdTaskId) return;
+
+    const iv = setInterval(() => {
+      if (taskEditorPhase !== 'write') return;
+      const doc = useDocumentStore.getState().documents[`task-${createdTaskId}`];
+      if (doc && doc.content) {
+        const textContent = doc.content.replace(/<[^>]*>/g, '').trim();
+        if (textContent.length > 0) {
+          if (!taskEditorTimerRef.current) {
+            taskEditorTimerRef.current = setTimeout(() => {
+              setTaskEditorPhase('done');
+            }, 5000);
+          }
+        }
+      }
+    }, 200);
+
+    return () => {
+      clearInterval(iv);
+      if (taskEditorTimerRef.current) {
+        clearTimeout(taskEditorTimerRef.current);
+        taskEditorTimerRef.current = null;
+      }
+    };
+  }, [currentStep, isTutorialActive, createdTaskId, taskEditorPhase]);
+
+  // ── Sidebar Open: watch for isSidebarOpen to become true
+  useEffect(() => {
+    if (!isTutorialActive || currentStep?.id !== 'sidebar-open') return;
+    const iv = setInterval(() => {
+      const isSidebarOpen = useUiStore.getState().isSidebarOpen;
+      if (isSidebarOpen) {
+        setTutorialIndex(tutorialIndex + 1);
       }
     }, 150);
     return () => clearInterval(iv);
@@ -483,6 +581,8 @@ export const SpotlightTutorial = () => {
     if (!isTutorialActive || currentStep?.id !== 'pane-split') return;
     if (splitPhase === 'wait-split' && panes.length > 1) {
       setSplitPhase('wait-move');
+      const firstPaneId = panes[0]?.id || 'pane-main';
+      useUiStore.setState({ activePaneId: firstPaneId });
     }
   }, [panes.length, splitPhase, currentStep, isTutorialActive]);
 
@@ -613,8 +713,9 @@ export const SpotlightTutorial = () => {
       const hasTyped = textarea && textarea.value.trim().length > 0;
       const notePill = document.getElementById('onboarding-quick-capture-note-pill');
       const isNoteSelected = notePill && notePill.getAttribute('data-selected') === 'true';
+      const isHighlighted = notePill && notePill.getAttribute('data-highlighted') === 'true';
 
-      if (hasTyped && !isNoteSelected) {
+      if (hasTyped && !isNoteSelected && isHighlighted) {
         customEl = notePill;
       } else if (hasTyped && isNoteSelected) {
         customEl = document.getElementById('onboarding-quick-capture-submit-button');
@@ -630,7 +731,15 @@ export const SpotlightTutorial = () => {
       const selector = createdTaskId ? `[data-onboarding-task-edit="${createdTaskId}"]` : '[data-onboarding-task-edit]';
       customEl = document.querySelector(selector) as HTMLElement;
     } else if (currentStep.id === 'task-edit-modal') {
-      customEl = document.getElementById('onboarding-task-editor-close');
+      if (taskEditorPhase === 'write') {
+        customEl = document.querySelector('#onboarding-task-editor-modal #onboarding-editor') as HTMLElement;
+      } else {
+        customEl = document.getElementById('onboarding-task-editor-close');
+      }
+    } else if (currentStep.id === 'sidebar-open') {
+      if (activePaneId) {
+        customEl = document.querySelector(`[data-pane-id="${activePaneId}"]`) as HTMLElement;
+      }
     } else if (currentStep.id === 'folder-open') {
       const selector = createdFolderId ? `[data-onboarding-folder-item="${createdFolderId}"]` : '[data-onboarding-folder-item]';
       customEl = document.querySelector(selector) as HTMLElement;
@@ -657,7 +766,7 @@ export const SpotlightTutorial = () => {
 
     const el = customEl || document.getElementById(targetId);
     setSpotlightRect(el ? el.getBoundingClientRect() : null);
-  }, [tutorialIndex, isTutorialActive, activePaneId, currentStep, createdTaskId, createdFolderId]);
+  }, [tutorialIndex, isTutorialActive, activePaneId, currentStep, createdTaskId, createdFolderId, taskEditorPhase]);
 
   useEffect(() => {
     updateRect();
@@ -691,8 +800,10 @@ export const SpotlightTutorial = () => {
 
   const interactiveStepIds = [
     'glance', 'note-slash', 'note-minimize',
-    'pane-split', 'pane-switch', 'pane-close',
+    'pane-split', 'pane-switch',
+    'search-open', 'search-tasks',
     'task-add-click', 'task-add-input', 'task-guide', 'task-edit-click', 'task-edit-modal',
+    'pane-close', 'sidebar-open',
     'folder-create', 'folder-open', 'folder-create-doc', 'doc-title', 'doc-mention'
   ];
   let showNext = !interactiveStepIds.includes(currentStep.id);
@@ -728,6 +839,12 @@ export const SpotlightTutorial = () => {
     if (currentStep.id === 'pane-switch') {
       return 'Press Ctrl+Alt+J or Ctrl+Alt+H (or ⌘⌥J/H) to move focus to the other pane.';
     }
+    if (currentStep.id === 'search-open') {
+      return 'Press Ctrl+K (or ⌘K) to open the document search palette.';
+    }
+    if (currentStep.id === 'search-tasks') {
+      return 'Type "Tasks" and press Enter to open the Tasks board.';
+    }
     if (currentStep.id === 'task-add-click') {
       return 'Click the purple button to open the task creator.';
     }
@@ -741,10 +858,16 @@ export const SpotlightTutorial = () => {
       return 'Click the edit arrow button next to the task to open the editor window.';
     }
     if (currentStep.id === 'task-edit-modal') {
-      return 'Here you can set status, priority, and dates. Click the X button to close the editor.';
+      if (taskEditorPhase === 'write') {
+        return 'Type some notes/thoughts about your task in the editor.';
+      }
+      return '🎉 Done writing! Click the X button to close the task editor.';
     }
     if (currentStep.id === 'pane-close') {
       return 'Press Ctrl+Alt+Q (or ⌘⌥Q) to close the active pane.';
+    }
+    if (currentStep.id === 'sidebar-open') {
+      return 'Press Ctrl+Alt+L (or ⌘⌥L) to open the sidebar.';
     }
     if (currentStep.id === 'folder-create') {
       return 'Open the sidebar and click the + button next to Folders to create a new folder.';
@@ -918,10 +1041,17 @@ export const SpotlightTutorial = () => {
         )}
 
         {/* Task Guide: Edit Task Modal */}
-        {currentStep.id === 'task-edit-modal' && (
+        {currentStep.id === 'task-edit-modal' && taskEditorPhase === 'write' && (
           <div className="flex flex-col gap-2">
             <p className="text-[11px] text-zinc-400 leading-relaxed">
-              Use this window to manage task status and details. Click the <strong className="text-zinc-200">X button</strong> when done.
+              Type some notes/thoughts about your task in the editor.
+            </p>
+          </div>
+        )}
+        {currentStep.id === 'task-edit-modal' && taskEditorPhase === 'done' && (
+          <div className="flex flex-col gap-2">
+            <p className="text-[11px] text-zinc-400 leading-relaxed">
+              🎉 Notes recorded! Click the <strong className="text-zinc-200">X button</strong> to close the task editor.
             </p>
           </div>
         )}
@@ -1003,6 +1133,29 @@ export const SpotlightTutorial = () => {
           </div>
         )}
 
+        {/* Search Open */}
+        {currentStep.id === 'search-open' && (
+          <div className="flex flex-col gap-2">
+            <p className="text-[11px] text-zinc-400 leading-relaxed">
+              Press the shortcut to open the document search palette.
+            </p>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <Kbd>Ctrl</Kbd><span className="text-zinc-600 text-xs">+</span>
+              <Kbd>K</Kbd>
+              <span className="text-zinc-500 text-[10px] ml-1">/ Mac: <Kbd>⌘</Kbd><span className="text-zinc-600 text-xs">+</span><Kbd>K</Kbd></span>
+            </div>
+          </div>
+        )}
+
+        {/* Search Tasks */}
+        {currentStep.id === 'search-tasks' && (
+          <div className="flex flex-col gap-2">
+            <p className="text-[11px] text-zinc-400 leading-relaxed">
+              Type <strong className="text-zinc-200">Tasks</strong> and press Enter to open the Tasks board.
+            </p>
+          </div>
+        )}
+
         {/* Pane close */}
         {currentStep.id === 'pane-close' && (
           <div className="flex flex-col gap-2">
@@ -1014,6 +1167,21 @@ export const SpotlightTutorial = () => {
               <Kbd>Alt</Kbd><span className="text-zinc-600 text-xs">+</span>
               <Kbd>Q</Kbd>
               <span className="text-zinc-500 text-[10px] ml-1">/ Mac: <Kbd>⌘</Kbd><span className="text-zinc-600 text-xs">+</span><Kbd>⌥</Kbd><span className="text-zinc-600 text-xs">+</span><Kbd>Q</Kbd></span>
+            </div>
+          </div>
+        )}
+
+        {/* Sidebar Open */}
+        {currentStep.id === 'sidebar-open' && (
+          <div className="flex flex-col gap-2">
+            <p className="text-[11px] text-zinc-400 leading-relaxed">
+              Press the shortcut to open the sidebar.
+            </p>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <Kbd>Ctrl</Kbd><span className="text-zinc-600 text-xs">+</span>
+              <Kbd>Alt</Kbd><span className="text-zinc-600 text-xs">+</span>
+              <Kbd>L</Kbd>
+              <span className="text-zinc-500 text-[10px] ml-1">/ Mac: <Kbd>⌘</Kbd><span className="text-zinc-600 text-xs">+</span><Kbd>⌥</Kbd><span className="text-zinc-600 text-xs">+</span><Kbd>L</Kbd></span>
             </div>
           </div>
         )}

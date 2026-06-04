@@ -200,6 +200,16 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
   const [openDatePickerTaskId, setOpenDatePickerTaskId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"priority" | "month" | "week" | null>(null);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isTaskInputOpen) {
+        setIsTaskInputOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isTaskInputOpen]);
+
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskList, setNewTaskList] = useState<
     "Today" | "Upcoming" | "All Tasks"
@@ -595,7 +605,7 @@ export const TasksPage = ({ paneId }: { paneId: string }) => {
                initial={{ opacity: 0 }}
                animate={{ opacity: 1 }}
                exit={{ opacity: 0 }}
-               className="fixed inset-0 bg-transparent z-40"
+               className="fixed inset-0 bg-black/45 backdrop-blur-[1.5px] z-40"
               onClick={() => setIsTaskInputOpen(false)}
             />
             <motion.div

@@ -137,17 +137,43 @@ export const useUiStore = create<UiState>()(
       removePane: (paneId) => set((state) => {
         if (state.panes.length === 1) return state; // Don't remove last pane
         
+        const closedPane = state.panes.find(p => p?.id === paneId);
+        const closedTabs = closedPane ? closedPane.tabs : [];
+        const closedActiveTabId = closedPane ? closedPane.activeTabId : null;
+
         const remainingPanes = state.panes.filter(p => p?.id !== paneId);
         const sumWidths = remainingPanes.reduce((sum, p) => sum + (p.width || 0), 0);
         const scale = sumWidths > 0 ? (100 / sumWidths) : (100 / remainingPanes.length);
         
-        // Scale remaining pane widths proportionally to fill the empty space
-        const updatedPanes = remainingPanes.map(pane => ({
-          ...pane,
-          width: (pane.width || (100 / (remainingPanes.length + 1))) * scale
-        }));
+        const newActivePaneId = state.activePaneId === paneId ? remainingPanes[0].id : state.activePaneId;
+
+        // Scale remaining pane widths and merge tabs from closed pane into target active pane
+        const updatedPanes = remainingPanes.map(pane => {
+          let newPane = {
+            ...pane,
+            width: (pane.width || (100 / (remainingPanes.length + 1))) * scale
+          };
+
+          if (pane.id === newActivePaneId && closedTabs.length > 0) {
+            const mergedTabs = [...pane.tabs];
+            closedTabs.forEach(tabId => {
+              if (!mergedTabs.includes(tabId)) {
+                mergedTabs.push(tabId);
+              }
+            });
+
+            const newActiveTabId = pane.activeTabId || closedActiveTabId || mergedTabs[mergedTabs.length - 1];
+
+            newPane = {
+              ...newPane,
+              tabs: mergedTabs,
+              activeTabId: newActiveTabId
+            };
+          }
+
+          return newPane;
+        });
         
-        const newActivePaneId = state.activePaneId === paneId ? updatedPanes[0].id : state.activePaneId;
         return { panes: updatedPanes, activePaneId: newActivePaneId };
       }),
 

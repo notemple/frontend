@@ -32,6 +32,16 @@ export const TaskEditorModal = ({
     }
   }, [task?.title]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && taskId) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [taskId, onClose]);
+
   const handleBlur = () => {
     if (task && localTitle !== task.title) {
       updateTask(task.id, { title: localTitle });
@@ -74,7 +84,7 @@ export const TaskEditorModal = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="fixed inset-0 bg-transparent z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/45 backdrop-blur-[1.5px] z-50 flex items-center justify-center p-4"
           onClick={onClose}
         >
           <motion.div

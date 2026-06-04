@@ -62,7 +62,6 @@ export const getSuggestionItems = ({ query, editor }: { query: string; editor?: 
     { title: 'Numbered list', icon: <ListNumbers size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleOrderedList().run() },
     { title: 'Roman list', icon: <ListNumbers size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleOrderedList().run() },
     { title: 'Quote block', icon: <Quotes size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleBlockquote().run() },
-    { title: 'New Task', icon: <CheckSquareOffset size={16} className="text-rose-500/90 dark:text-rose-400/90" />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleTaskList().updateAttributes('taskItem', { isGreenTodo: false }).run() },
     { title: 'To-do', icon: <CheckSquareOffset size={16} className="text-green-500" />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleTaskList().updateAttributes('taskItem', { isGreenTodo: true }).run() },
     { title: 'Icon', icon: <Smiley size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).setParagraph().run() },
     { title: 'Code', icon: <CodeBlock size={16} />, group: 'Create a block', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleCodeBlock().run() },
@@ -96,6 +95,9 @@ export const getSuggestionItems = ({ query, editor }: { query: string; editor?: 
         } 
       },
     ] : []),
+
+    // New Objects Group
+    { title: 'New Task', icon: <CheckSquareOffset size={16} className="text-rose-500/90 dark:text-rose-400/90" />, group: 'New Objects', command: ({ editor, range }) => editor.chain().focus().deleteRange(range).toggleTaskList().updateAttributes('taskItem', { isGreenTodo: false }).run() },
     
     // References & Mentions Group
     { 

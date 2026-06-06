@@ -519,7 +519,7 @@ html.light .lexical-root hr {
   width: 100%;
 }
 
-/* Inside columns, override gutter border-left to start from the start */
+/* Inside columns, reduce the gutter to 20px to maximize text space and align handles close to text */
 .columns-container .lexical-root > .lexical-paragraph,
 .columns-container .lexical-root > .lexical-h1,
 .columns-container .lexical-root > .lexical-h2,
@@ -531,14 +531,18 @@ html.light .lexical-root hr {
 .columns-container .lexical-root > .lexical-ol,
 .columns-container .lexical-root > .lexical-callout,
 .columns-container .lexical-root > .lexical-toggle {
-  border-left: 0px solid transparent !important;
+  border-left: 20px solid transparent !important;
 }
 
 .columns-container .lexical-root > .lexical-image-wrapper {
-  border-left: 0px solid transparent !important;
-  padding: 0px !important;
-  box-sizing: border-box !important;
+  border-left: 20px solid transparent !important;
 }
+
+.columns-container .lexical-root > .lexical-table {
+  margin-left: 20px !important;
+  width: calc(100% - 20px) !important;
+}
+
 
 /* Column DOM element created by ColumnNode.createDOM() */
 /* Note: width/flex are applied as inline styles — these are fallback styles only */

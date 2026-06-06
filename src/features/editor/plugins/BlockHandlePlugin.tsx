@@ -743,7 +743,7 @@ export default function BlockHandlePlugin({
 
         let leftPos = rect.left + 4
         if (isNested) {
-          leftPos = rect.left - 50
+          leftPos = rect.left - 30
         } else if (
           blockEl.classList.contains("lexical-table") ||
           blockEl.classList.contains("columns-outer-wrapper") ||

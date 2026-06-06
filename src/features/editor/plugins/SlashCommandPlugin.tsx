@@ -14,6 +14,9 @@ export default function SlashCommandPlugin(): ReactNode {
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const [selectedIdx, setSelectedIdx] = useState(0)
 
+  // Track the exact slash position so executeCommand can delete precisely
+  const slashStartRef = useRef<{ nodeKey: string; offset: number } | null>(null)
+
   const fuse = useRef(
     new Fuse(slashCommands, {
       keys: ["title", "keywords", "description"],
@@ -45,32 +48,34 @@ export default function SlashCommandPlugin(): ReactNode {
 
         const textContent = node.getTextContent()
         const offset = anchor.offset
-        
-        // Only slice up to the cursor position
+
+        // Only look at text before cursor
         const textBeforeCursor = textContent.slice(0, offset)
         const lastSlashIdx = textBeforeCursor.lastIndexOf("/")
 
-        // Close if no "/" is found in front of the cursor
+        // Close if no "/" found before cursor
         if (lastSlashIdx === -1) {
           if (open) setOpen(false)
           return
         }
 
-        // Check if "/" is at the start of the line or preceded by whitespace
-        if (lastSlashIdx > 0 && !/\s/.test(textBeforeCursor[lastSlashIdx - 1])) {
+        // FIX 2: slash must be at start of node, or preceded by whitespace
+        const charBefore = lastSlashIdx > 0 ? textBeforeCursor[lastSlashIdx - 1] : null
+        const isValidTrigger = charBefore === null || /\s/.test(charBefore)
+        if (!isValidTrigger) {
           if (open) setOpen(false)
           return
         }
 
         const queryText = textBeforeCursor.slice(lastSlashIdx + 1)
-        
-        // If the query contains space or starts with space, or has newlines, close it.
-        if (queryText.includes("\n") || queryText.startsWith(" ")) {
+
+        // Close if query contains a space or newline (user typed prose, not a command)
+        if (queryText.includes(" ") || queryText.includes("\n")) {
           if (open) setOpen(false)
           return
         }
 
-        // Get caret position from the DOM now that "/" is rendered
+        // Get caret position from the DOM
         const domSelection = window.getSelection()
         if (!domSelection || domSelection.rangeCount === 0) return
         const domRange = domSelection.getRangeAt(0)
@@ -79,12 +84,20 @@ export default function SlashCommandPlugin(): ReactNode {
         const editorEl = editor.getRootElement()
         const editorRect = editorEl?.getBoundingClientRect()
 
+        // FIX 1: fixed positioning — no scrollX/Y offsets
         setPosition({
-          top: rect.bottom + window.scrollY + 8,
-          left: rect.left > 0
-            ? rect.left + window.scrollX
-            : (editorRect?.left ?? 0) + window.scrollX + 96,
+          top: rect.bottom + 8,
+          left: rect.width > 0
+            ? rect.left
+            : (editorRect?.left ?? 100),
         })
+
+        // FIX 3: track the slash start for precise deletion
+        slashStartRef.current = {
+          nodeKey: anchor.key,
+          offset: lastSlashIdx,
+        }
+
         setQuery(queryText)
         setSelectedIdx(0)
         setOpen(true)
@@ -96,22 +109,23 @@ export default function SlashCommandPlugin(): ReactNode {
     (command: SlashCommand) => {
       setOpen(false)
 
-      // Delete the "/" + query text before executing
+      // FIX 3: delete from the tracked slash position to current cursor
       editor.update(() => {
         const sel = $getSelection()
         if (!$isRangeSelection(sel)) return
         const anchor = sel.anchor.getNode()
         if (!$isTextNode(anchor)) return
-        const text = anchor.getTextContent()
-        const slashIdx = text.lastIndexOf("/")
-        if (slashIdx !== -1) {
-          // Replace node text content using spliceText which is available on TextNode
-          anchor.spliceText(slashIdx, text.length - slashIdx, "")
-        }
+
+        const slashPos = slashStartRef.current?.offset ?? anchor.getTextContent().lastIndexOf("/")
+        if (slashPos === -1) return
+
+        // Delete from slash position to current cursor offset
+        anchor.spliceText(slashPos, sel.anchor.offset - slashPos, "")
       })
 
-      // Run the command after the deletion flushes
-      setTimeout(() => command.onSelect(editor), 0)
+      slashStartRef.current = null
+      // Run command synchronously — no setTimeout needed
+      command.onSelect(editor)
     },
     [editor]
   )
@@ -123,21 +137,25 @@ export default function SlashCommandPlugin(): ReactNode {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault()
+        e.stopPropagation()
         setOpen(false)
         return
       }
       if (e.key === "ArrowDown") {
         e.preventDefault()
-        setSelectedIdx((i) => (i + 1) % filtered.length)
+        e.stopPropagation()
+        setSelectedIdx((i) => (i + 1) % Math.max(filtered.length, 1))
         return
       }
       if (e.key === "ArrowUp") {
         e.preventDefault()
-        setSelectedIdx((i) => (i - 1 + filtered.length) % filtered.length)
+        e.stopPropagation()
+        setSelectedIdx((i) => (i - 1 + Math.max(filtered.length, 1)) % Math.max(filtered.length, 1))
         return
       }
       if (e.key === "Enter") {
         e.preventDefault()
+        e.stopPropagation()
         if (filtered[selectedIdx]) executeCommand(filtered[selectedIdx])
         return
       }
@@ -155,13 +173,15 @@ export default function SlashCommandPlugin(): ReactNode {
     return () => window.removeEventListener("mousedown", handleClick)
   }, [open])
 
-  if (!open || filtered.length === 0) return null
+  // FIX 6: keep menu open even with 0 results (shows empty state)
+  if (!open) return null
 
   return createPortal(
     <SlashCommandMenu
       commands={filtered}
       selectedIdx={selectedIdx}
       position={position}
+      currentQuery={query}
       onSelect={(cmd) => executeCommand(cmd)}
       onHover={(idx) => setSelectedIdx(idx)}
       onClose={() => setOpen(false)}

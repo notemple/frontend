@@ -1,9 +1,16 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 import type { ReactNode } from "react"
 import { createPortal } from "react-dom"
-import { $getNodeByKey, $createParagraphNode } from "lexical"
-import { DotsSixVertical, Plus } from "@phosphor-icons/react"
+import {
+  $getNodeByKey,
+  $createParagraphNode,
+  $isElementNode,
+  type LexicalNode,
+} from "lexical"
+import { $createHeadingNode } from "@lexical/rich-text"
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface HandleState {
   top: number
@@ -11,20 +18,555 @@ interface HandleState {
   nodeKey: string
 }
 
-export default function BlockHandlePlugin(): ReactNode {
+type TurnIntoType = "paragraph" | "h1" | "h2" | "h3" | "h4"
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function cloneNode(node: LexicalNode): LexicalNode {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const nodeClass = node.constructor as any
+  const clone = nodeClass.clone(node)
+  if ($isElementNode(node) && $isElementNode(clone)) {
+    node.getChildren().forEach((child) => {
+      clone.append(cloneNode(child))
+    })
+  }
+  return clone
+}
+
+function formatTimeAgo(date: Date): string {
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  const mins = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+
+  if (mins < 1) return "Just now"
+  if (mins < 60) return `${mins} minute${mins === 1 ? "" : "s"} ago`
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`
+  if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" })
+}
+
+// ─── Tooltip ──────────────────────────────────────────────────────────────────
+
+function Tooltip({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="block-handle-tooltip"
+      role="tooltip"
+    >
+      {children}
+    </div>
+  )
+}
+
+// ─── AddButton ────────────────────────────────────────────────────────────────
+
+function AddButton({ onClick }: { onClick: (e: React.MouseEvent) => void }) {
+  const [showTooltip, setShowTooltip] = useState(false)
+
+  return (
+    <div className="block-handle-btn-wrapper" style={{ position: "relative" }}>
+      <button
+        id="block-handle-add"
+        className="block-handle-btn"
+        onClick={onClick}
+        onMouseDown={(e) => e.preventDefault()}
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        aria-label="Add block below"
+        tabIndex={-1}
+      >
+        {/* Plus icon */}
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7 1.75V12.25M1.75 7H12.25" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+        </svg>
+      </button>
+      {showTooltip && (
+        <Tooltip>
+          <span>Click to add below</span>
+        </Tooltip>
+      )}
+    </div>
+  )
+}
+
+// ─── DragHandle Button ────────────────────────────────────────────────────────
+
+function DragHandleButton({
+  onClick,
+}: {
+  onClick: (e: React.MouseEvent) => void
+}) {
+  const [showTooltip, setShowTooltip] = useState(false)
+
+  return (
+    <div className="block-handle-btn-wrapper" style={{ position: "relative" }}>
+      <button
+        id="block-handle-drag"
+        className="block-handle-btn"
+        onClick={onClick}
+        onMouseDown={(e) => e.preventDefault()}
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        aria-label="Block options"
+        aria-haspopup="menu"
+        tabIndex={-1}
+      >
+        {/* Six-dot grid */}
+        <svg width="10" height="15" viewBox="0 0 10 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="2" cy="2.5"  r="1.5" fill="currentColor"/>
+          <circle cx="2" cy="7.5"  r="1.5" fill="currentColor"/>
+          <circle cx="2" cy="12.5" r="1.5" fill="currentColor"/>
+          <circle cx="8" cy="2.5"  r="1.5" fill="currentColor"/>
+          <circle cx="8" cy="7.5"  r="1.5" fill="currentColor"/>
+          <circle cx="8" cy="12.5" r="1.5" fill="currentColor"/>
+        </svg>
+      </button>
+      {showTooltip && (
+        <Tooltip>
+          <span>Click for options</span>
+          <span className="block-handle-tooltip-hint">Drag to reorder</span>
+        </Tooltip>
+      )}
+    </div>
+  )
+}
+
+// ─── Color Palette ────────────────────────────────────────────────────────────
+
+const COLORS = [
+  { label: "Default",    value: "default",    bg: "transparent",  text: "var(--foreground)" },
+  { label: "Gray",       value: "gray",        bg: "#6b7280",      text: "#fff" },
+  { label: "Brown",      value: "brown",       bg: "#92400e",      text: "#fff" },
+  { label: "Orange",     value: "orange",      bg: "#f97316",      text: "#fff" },
+  { label: "Yellow",     value: "yellow",      bg: "#eab308",      text: "#000" },
+  { label: "Green",      value: "green",       bg: "#22c55e",      text: "#000" },
+  { label: "Blue",       value: "blue",        bg: "#3b82f6",      text: "#fff" },
+  { label: "Purple",     value: "purple",      bg: "#a855f7",      text: "#fff" },
+  { label: "Pink",       value: "pink",        bg: "#ec4899",      text: "#fff" },
+  { label: "Red",        value: "red",         bg: "#ef4444",      text: "#fff" },
+]
+
+// ─── Context Menu ─────────────────────────────────────────────────────────────
+
+interface MenuProps {
+  position: { top: number; left: number }
+  nodeKey: string
+  onClose: () => void
+  onDuplicate: () => void
+  onDelete: () => void
+  onTurnInto: (type: TurnIntoType) => void
+  onCopyLink: () => void
+  onMoveToTop: () => void
+  onMoveToBottom: () => void
+  lastEdited: Date
+}
+
+function BlockContextMenu({
+  position,
+  onClose,
+  onDuplicate,
+  onDelete,
+  onTurnInto,
+  onCopyLink,
+  onMoveToTop,
+  onMoveToBottom,
+  lastEdited,
+}: MenuProps) {
+  const [search, setSearch] = useState("")
+  const [turnIntoOpen, setTurnIntoOpen] = useState(false)
+  const [colorOpen, setColorOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
+
+  // Auto-focus search
+  useEffect(() => {
+    searchRef.current?.focus()
+  }, [])
+
+  // Close on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        onClose()
+      }
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose()
+    }
+    document.addEventListener("mousedown", handleClick, true)
+    document.addEventListener("keydown", handleKeyDown, true)
+    return () => {
+      document.removeEventListener("mousedown", handleClick, true)
+      document.removeEventListener("keydown", handleKeyDown, true)
+    }
+  }, [onClose])
+
+  const menuItems = [
+    {
+      id: "turn-into",
+      label: "Turn into",
+      icon: <TurnIntoIcon />,
+      hasArrow: true,
+      keywords: ["turn", "convert", "heading", "paragraph", "text"],
+      action: () => setTurnIntoOpen((o) => !o),
+    },
+    {
+      id: "color",
+      label: "Color",
+      icon: <ColorIcon />,
+      hasArrow: true,
+      keywords: ["color", "background", "text", "highlight"],
+      action: () => setColorOpen((o) => !o),
+    },
+    {
+      id: "duplicate",
+      label: "Duplicate",
+      icon: <DuplicateIcon />,
+      shortcut: "Ctrl+D",
+      keywords: ["duplicate", "copy", "clone"],
+      action: () => { onDuplicate(); onClose() },
+    },
+    {
+      id: "delete",
+      label: "Delete",
+      icon: <DeleteIcon />,
+      shortcut: "Del",
+      keywords: ["delete", "remove"],
+      danger: true,
+      action: () => { onDelete(); onClose() },
+    },
+    {
+      id: "separator",
+      label: "",
+      icon: null,
+      keywords: [],
+      action: () => {},
+      isSeparator: true,
+    },
+    {
+      id: "copy-link",
+      label: "Copy link to block",
+      icon: <LinkIcon />,
+      shortcut: "Alt+⌘+L",
+      keywords: ["copy", "link", "url"],
+      action: () => { onCopyLink(); onClose() },
+    },
+    {
+      id: "move-top",
+      label: "Move to top",
+      icon: <MoveTopIcon />,
+      keywords: ["move", "top", "first"],
+      action: () => { onMoveToTop(); onClose() },
+    },
+    {
+      id: "move-bottom",
+      label: "Move to bottom",
+      icon: <MoveBottomIcon />,
+      keywords: ["move", "bottom", "last"],
+      action: () => { onMoveToBottom(); onClose() },
+    },
+  ]
+
+  const filtered = search.trim()
+    ? menuItems.filter((item) => {
+        if (item.isSeparator) return false
+        const q = search.toLowerCase()
+        return (
+          item.label.toLowerCase().includes(q) ||
+          item.keywords.some((k) => k.includes(q))
+        )
+      })
+    : menuItems
+
+  // Adjust menu position so it stays in viewport
+  const viewportHeight = window.innerHeight
+  const menuHeight = 340 // approximate
+  const top = position.top + menuHeight > viewportHeight
+    ? Math.max(8, position.top - menuHeight)
+    : position.top
+
+  // Clamp left so menu doesn't overflow right edge
+  const left = Math.min(position.left, window.innerWidth - 260)
+
+  return (
+    <div
+      ref={menuRef}
+      className="block-context-menu block-options-menu"
+      style={{ top, left }}
+      role="menu"
+      aria-label="Block options"
+    >
+      {/* Search */}
+      <div className="block-context-menu-search">
+        <SearchIcon />
+        <input
+          ref={searchRef}
+          type="text"
+          placeholder="Search actions..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="block-context-menu-search-input"
+        />
+      </div>
+
+      {/* Section label */}
+      {!search && (
+        <div className="block-context-menu-section-label">Text</div>
+      )}
+
+      {/* Menu items */}
+      <div className="block-context-menu-items">
+        {filtered.map((item) => {
+          if (item.isSeparator) {
+            return (
+              <div
+                key={item.id}
+                className="h-px bg-[var(--border)] my-1 mx-2"
+              />
+            )
+          }
+          return (
+            <div key={item.id} style={{ position: "relative" }}>
+              <button
+                className={`block-context-menu-item${item.danger ? " danger" : ""}`}
+                onClick={item.action}
+                role="menuitem"
+                aria-haspopup={item.hasArrow ? "menu" : undefined}
+              >
+                <span className="block-context-menu-item-icon">{item.icon}</span>
+                <span className="block-context-menu-item-label">{item.label}</span>
+                {item.shortcut && (
+                  <span className="block-context-menu-item-shortcut">{item.shortcut}</span>
+                )}
+                {item.hasArrow && (
+                  <span className="block-context-menu-item-arrow">
+                    <ChevronRightIcon />
+                  </span>
+                )}
+              </button>
+
+              {/* Turn into submenu */}
+              {item.id === "turn-into" && turnIntoOpen && (
+                <div className="block-context-submenu">
+                  <div className="block-context-menu-section-label" style={{ padding: "4px 8px 2px" }}>Turn into</div>
+                  {[
+                    { label: "Text",      type: "paragraph" as TurnIntoType, icon: <TextIcon /> },
+                    { label: "Heading 1", type: "h1"        as TurnIntoType, icon: <H1Icon /> },
+                    { label: "Heading 2", type: "h2"        as TurnIntoType, icon: <H2Icon /> },
+                    { label: "Heading 3", type: "h3"        as TurnIntoType, icon: <H3Icon /> },
+                  ].map((opt) => (
+                    <button
+                      key={opt.type}
+                      className="block-context-menu-item"
+                      onClick={() => { onTurnInto(opt.type); onClose() }}
+                      role="menuitem"
+                    >
+                      <span className="block-context-menu-item-icon">{opt.icon}</span>
+                      <span className="block-context-menu-item-label">{opt.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Color submenu */}
+              {item.id === "color" && colorOpen && (
+                <div className="block-context-submenu block-context-submenu-color">
+                  <div className="block-context-menu-section-label" style={{ padding: "4px 8px 2px" }}>Color</div>
+                  <div className="color-grid">
+                    {COLORS.map((color) => (
+                      <button
+                        key={color.value}
+                        className="color-swatch-btn"
+                        style={{ background: color.bg === "transparent" ? "var(--muted)" : color.bg }}
+                        title={color.label}
+                        onClick={onClose}
+                        role="menuitem"
+                        aria-label={color.label}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Footer */}
+      <div className="block-context-menu-footer">
+        Last edited {formatTimeAgo(lastEdited)}
+      </div>
+    </div>
+  )
+}
+
+// ─── Inline SVG icons ─────────────────────────────────────────────────────────
+
+function SearchIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <circle cx="6.5" cy="6.5" r="4.5"/>
+      <path d="M10.5 10.5L14 14"/>
+    </svg>
+  )
+}
+function TurnIntoIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 4h8M2 8h5M2 12h7"/>
+      <path d="M12 5l2.5 3L12 11" strokeWidth="1.5"/>
+    </svg>
+  )
+}
+function ColorIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="8" cy="8" r="5.5"/>
+      <path d="M8 2.5v11M2.5 8h11" strokeWidth="1"/>
+    </svg>
+  )
+}
+function LinkIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6.5 9.5a3.536 3.536 0 005 0l2-2a3.536 3.536 0 00-5-5L7 4"/>
+      <path d="M9.5 6.5a3.536 3.536 0 00-5 0l-2 2a3.536 3.536 0 005 5L9 12"/>
+    </svg>
+  )
+}
+function DuplicateIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5" y="5" width="8" height="8" rx="1.5"/>
+      <path d="M3 11V3.5A1.5 1.5 0 014.5 2H11"/>
+    </svg>
+  )
+}
+function DeleteIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 4h12M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1M6 7v5M10 7v5M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9"/>
+    </svg>
+  )
+}
+function MoveTopIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 2h12M8 14V5M4 9l4-4 4 4"/>
+    </svg>
+  )
+}
+function MoveBottomIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 14h12M8 2v9M4 7l4 4 4-4"/>
+    </svg>
+  )
+}
+function ChevronRightIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 2l4 4-4 4"/>
+    </svg>
+  )
+}
+function TextIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <path d="M2 4h12M8 4v8M5 12h6"/>
+    </svg>
+  )
+}
+function H1Icon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ opacity: 0.9 }}>
+      <text x="1" y="13" fontFamily="system-ui" fontWeight="700" fontSize="11">H1</text>
+    </svg>
+  )
+}
+function H2Icon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ opacity: 0.9 }}>
+      <text x="1" y="13" fontFamily="system-ui" fontWeight="700" fontSize="11">H2</text>
+    </svg>
+  )
+}
+function H3Icon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ opacity: 0.9 }}>
+      <text x="1" y="13" fontFamily="system-ui" fontWeight="700" fontSize="11">H3</text>
+    </svg>
+  )
+}
+
+// ─── Main plugin ──────────────────────────────────────────────────────────────
+
+export default function BlockHandlePlugin({
+  isNested = false,
+}: {
+  isNested?: boolean
+}): ReactNode {
   const [editor] = useLexicalComposerContext()
   const [handle, setHandle] = useState<HandleState | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const lastEditedRef = useRef<Date>(new Date())
+  // FIX 7d: toast state
+  const [toast, setToast] = useState<string | null>(null)
 
+  // Track last edit time
+  useEffect(() => {
+    return editor.registerUpdateListener(() => {
+      lastEditedRef.current = new Date()
+    })
+  }, [editor])
+
+  // Sync body class for column resize handle visibility
+  useEffect(() => {
+    if (handle !== null || menuOpen) {
+      document.body.classList.add("has-active-block-handle")
+    } else {
+      document.body.classList.remove("has-active-block-handle")
+    }
+    return () => {
+      document.body.classList.remove("has-active-block-handle")
+    }
+  }, [handle, menuOpen])
+
+  // Mouse tracking for handle position
   useEffect(() => {
     const root = editor.getRootElement()
     if (!root) return
 
     const onMouseMove = (e: MouseEvent) => {
+      if (menuOpen) return
+      if (
+        e.target instanceof HTMLElement &&
+        e.target.closest(".block-handle-group")
+      ) {
+        clearTimeout(hideTimer.current)
+        return
+      }
       clearTimeout(hideTimer.current)
 
-      // Walk up from the hovered element to find a direct child of the
-      // lexical root — that is the top-level block
+      if (e.buttons > 0) {
+        setHandle(null)
+        return
+      }
+
+      if (
+        e.target instanceof HTMLElement &&
+        (e.target.classList.contains("cursor-col-resize") ||
+          e.target.closest(".cursor-col-resize"))
+      ) {
+        setHandle(null)
+        return
+      }
+
       let target = e.target as HTMLElement | null
       while (target && target.parentElement !== root) {
         target = target.parentElement
@@ -34,48 +576,71 @@ export default function BlockHandlePlugin(): ReactNode {
         return
       }
 
-      const key = target.getAttribute("data-lexical-node-key") ??
-        // Lexical sets __key on the DOM node — walk children to find it
-        (() => {
-          let found: string | null = null
-          root.querySelectorAll("[data-lexical-node-key]").forEach((el) => {
-            if (el === target || el.contains(target!)) found =
-              (el as HTMLElement).getAttribute("data-lexical-node-key")
-          })
-          return found
-        })()
+      let key = target.getAttribute("data-lexical-node-key")
+      if (!key) {
+        const elements = target.querySelectorAll("[data-lexical-node-key]")
+        for (const el of Array.from(elements)) {
+          if (el.closest(".lexical-editor-root") === root) {
+            key = el.getAttribute("data-lexical-node-key")
+            break
+          }
+        }
+      }
 
       const rect = target.getBoundingClientRect()
       const rootRect = root.getBoundingClientRect()
 
+      const isColumnsContainer = target.classList.contains("columns-outer-wrapper")
+      // Use viewport-relative coords (no scrollX/Y) since gutter div uses position:fixed
+      let leftPos = rect.left - 52
+      if (isNested) {
+        leftPos = rect.left - 60
+      } else if (isColumnsContainer) {
+        const columnsContainer = target.querySelector(".columns-container")
+        if (columnsContainer) {
+          const colRect = columnsContainer.getBoundingClientRect()
+          leftPos = colRect.left - 52
+        } else {
+          leftPos = rect.left - 52
+        }
+      }
+      leftPos = Math.max(rootRect.left - 56, leftPos)
+
       setHandle({
-        top: rect.top + window.scrollY,
-        left: rootRect.left + window.scrollX - 56, // 56px into the left gutter
+        // FIX 7e: top-align to block (4px offset from top) — viewport-relative
+        top: rect.top,
+        left: leftPos,
         nodeKey: key ?? "",
       })
     }
 
     const scheduleHide = () => {
+      if (menuOpen) return
+      clearTimeout(hideTimer.current)
       hideTimer.current = setTimeout(() => setHandle(null), 300)
     }
 
     const onMouseLeave = () => scheduleHide()
+    const onMouseDown = () => setHandle(null)
 
     root.addEventListener("mousemove", onMouseMove)
     root.addEventListener("mouseleave", onMouseLeave)
+    root.addEventListener("mousedown", onMouseDown)
 
     return () => {
       root.removeEventListener("mousemove", onMouseMove)
       root.removeEventListener("mouseleave", onMouseLeave)
+      root.removeEventListener("mousedown", onMouseDown)
       clearTimeout(hideTimer.current)
     }
-  }, [editor])
+  }, [editor, menuOpen, isNested])
 
-  if (!handle) return null
+  // ── Actions ──────────────────────────────────────────────────────────────────
 
-  const handleAddBlock = () => {
+  // FIX 7a: always insert BELOW (remove altKey branch)
+  const handleAddBlock = useCallback(() => {
     editor.update(() => {
-      if (!handle.nodeKey) return
+      if (!handle?.nodeKey) return
       const node = $getNodeByKey(handle.nodeKey)
       if (!node) return
       const para = $createParagraphNode()
@@ -83,45 +648,190 @@ export default function BlockHandlePlugin(): ReactNode {
       para.selectEnd()
     })
     setHandle(null)
-  }
+  }, [editor, handle])
+
+  // FIX: fix openMenu coords — no scrollY/scrollX (fixed positioning)
+  const openMenu = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      const rect = e.currentTarget.getBoundingClientRect()
+      setMenuPosition({
+        top: rect.bottom + 6,
+        left: rect.left,
+      })
+      setMenuOpen(true)
+    },
+    []
+  )
+
+  const handleDuplicate = useCallback(() => {
+    editor.update(() => {
+      if (!handle?.nodeKey) return
+      const node = $getNodeByKey(handle.nodeKey)
+      if (!node) return
+      const clone = cloneNode(node)
+      node.insertAfter(clone)
+    })
+    setMenuOpen(false)
+    setHandle(null)
+  }, [editor, handle])
+
+  const handleDelete = useCallback(() => {
+    editor.update(() => {
+      if (!handle?.nodeKey) return
+      const node = $getNodeByKey(handle.nodeKey)
+      if (node) node.remove()
+    })
+    setMenuOpen(false)
+    setHandle(null)
+  }, [editor, handle])
+
+  const handleTurnInto = useCallback(
+    (type: TurnIntoType) => {
+      editor.update(() => {
+        if (!handle?.nodeKey) return
+        const node = $getNodeByKey(handle.nodeKey)
+        if (!node) return
+
+        let newNode
+        if (type === "paragraph") {
+          newNode = $createParagraphNode()
+        } else {
+          newNode = $createHeadingNode(type as "h1" | "h2" | "h3" | "h4")
+        }
+
+        if ($isElementNode(node)) {
+          node.getChildren().forEach((child) => {
+            newNode.append(cloneNode(child))
+          })
+        }
+        node.replace(newNode)
+      })
+      setMenuOpen(false)
+      setHandle(null)
+    },
+    [editor, handle]
+  )
+
+  // FIX 7d: copy link + toast
+  const handleCopyLink = useCallback(() => {
+    const url = `${window.location.href.split("#")[0]}#block-${handle?.nodeKey ?? ""}`
+    navigator.clipboard.writeText(url).catch(() => {/* ignore */})
+    setToast("Link copied")
+    setTimeout(() => setToast(null), 2000)
+  }, [handle])
+
+  // FIX 7c: move to top
+  const handleMoveToTop = useCallback(() => {
+    editor.update(() => {
+      if (!handle?.nodeKey) return
+      const node = $getNodeByKey(handle.nodeKey)
+      if (!node) return
+      const parent = node.getParent()
+      if (!parent) return
+      const firstChild = parent.getFirstChild()
+      if (firstChild && firstChild !== node) {
+        firstChild.insertBefore(node)
+      }
+    })
+    setMenuOpen(false)
+    setHandle(null)
+  }, [editor, handle])
+
+  // FIX 7c: move to bottom
+  const handleMoveToBottom = useCallback(() => {
+    editor.update(() => {
+      if (!handle?.nodeKey) return
+      const node = $getNodeByKey(handle.nodeKey)
+      if (!node) return
+      const parent = node.getParent()
+      if (!parent) return
+      const lastChild = parent.getLastChild()
+      if (lastChild && lastChild !== node) {
+        lastChild.insertAfter(node)
+      }
+    })
+    setMenuOpen(false)
+    setHandle(null)
+  }, [editor, handle])
+
+  const handleCloseMenu = useCallback(() => {
+    setMenuOpen(false)
+    setHandle(null)
+  }, [])
+
+  // ── Render ───────────────────────────────────────────────────────────────────
+
+  if (!handle) return null
 
   return createPortal(
-    <div
-      className="block-handle-group flex items-center gap-0.5"
-      style={{
-        position: "fixed",
-        top: handle.top + 2,
-        left: handle.left,
-        zIndex: 50,
-      }}
-      onMouseEnter={() => clearTimeout(hideTimer.current)}
-      onMouseLeave={() => {
-        hideTimer.current = setTimeout(() => setHandle(null), 300)
-      }}
-    >
-      {/* Add block button */}
-      <button
-        onClick={handleAddBlock}
-        className="block-handle-btn opacity-0 group-hover:opacity-100
-          w-5 h-5 flex items-center justify-center rounded
-          text-[var(--muted-foreground)] hover:text-[var(--foreground)]
-          hover:bg-[var(--muted)] transition-all duration-150"
-        title="Add block below"
-      >
-        <Plus size={13} weight="bold" />
-      </button>
-
-      {/* Drag handle */}
+    <>
+      {/* Gutter button group */}
       <div
-        className="block-handle-btn
-          w-5 h-5 flex items-center justify-center rounded cursor-grab
-          text-[var(--muted-foreground)] hover:text-[var(--foreground)]
-          hover:bg-[var(--muted)] transition-all duration-150"
-        title="Drag to move · Click to open menu"
+        className="block-handle-group"
+        style={{
+          position: "fixed",
+          // FIX 7e: 4px offset from top of block, not centered
+          top: handle.top + 4,
+          left: handle.left,
+          zIndex: 50,
+          display: "flex",
+          alignItems: "center",
+          gap: "2px",
+          userSelect: "none",
+        }}
+        onMouseEnter={() => {
+          clearTimeout(hideTimer.current)
+        }}
+        onMouseLeave={() => {
+          if (!menuOpen) {
+            clearTimeout(hideTimer.current)
+            hideTimer.current = setTimeout(() => setHandle(null), 300)
+          }
+        }}
       >
-        <DotsSixVertical size={13} weight="bold" />
+        <AddButton onClick={handleAddBlock} />
+        <DragHandleButton onClick={openMenu} />
       </div>
-    </div>,
+
+      {/* Context menu */}
+      {menuOpen && handle && (
+        <BlockContextMenu
+          position={menuPosition}
+          nodeKey={handle.nodeKey}
+          onClose={handleCloseMenu}
+          onDuplicate={handleDuplicate}
+          onDelete={handleDelete}
+          onTurnInto={handleTurnInto}
+          onCopyLink={handleCopyLink}
+          onMoveToTop={handleMoveToTop}
+          onMoveToBottom={handleMoveToBottom}
+          lastEdited={lastEditedRef.current}
+        />
+      )}
+
+      {/* FIX 7d: copy link toast */}
+      {toast && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: "24px",
+            right: "24px",
+            zIndex: 20000,
+          }}
+          className="
+            px-3 py-2 rounded-lg text-xs font-medium
+            bg-[var(--card-bg)] border border-[var(--card-border)]
+            text-[var(--foreground)]
+            shadow-[0_4px_16px_rgba(0,0,0,0.4)]
+            animate-in fade-in slide-in-from-bottom-2 duration-200
+          "
+        >
+          {toast}
+        </div>
+      )}
+    </>,
     document.body
   )
 }

@@ -11,9 +11,13 @@ import {
   INSERT_ORDERED_LIST_COMMAND,
   INSERT_CHECK_LIST_COMMAND,
 } from "@lexical/list"
+import { INSERT_TABLE_COMMAND } from "@lexical/table"
 import { $createColumnsContainerNode } from "../nodes/ColumnsContainerNode"
-import { $createColumnNode } from "../nodes/ColumnNode"
 import { $createHorizontalRuleNode } from "../nodes/HorizontalRuleNode"
+import { $createCalloutNode } from "../nodes/CalloutNode"
+import { $createToggleNode } from "../nodes/ToggleNode"
+import { $createImageNode } from "../nodes/ImageNode"
+import { $createEquationNode } from "../nodes/EquationNode"
 
 export interface SlashCommand {
   title: string
@@ -49,7 +53,9 @@ export const slashCommands: SlashCommand[] = [
       editor.update(() => {
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace($createParagraphNode())
+          const node = $createParagraphNode()
+          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
+          node.select()
         }
       }),
   },
@@ -63,7 +69,9 @@ export const slashCommands: SlashCommand[] = [
       editor.update(() => {
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace($createHeadingNode("h1"))
+          const node = $createHeadingNode("h1")
+          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
+          node.select()
         }
       }),
   },
@@ -77,7 +85,9 @@ export const slashCommands: SlashCommand[] = [
       editor.update(() => {
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace($createHeadingNode("h2"))
+          const node = $createHeadingNode("h2")
+          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
+          node.select()
         }
       }),
   },
@@ -91,21 +101,25 @@ export const slashCommands: SlashCommand[] = [
       editor.update(() => {
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace($createHeadingNode("h3"))
+          const node = $createHeadingNode("h3")
+          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
+          node.select()
         }
       }),
   },
   {
     title: "Quote",
     description: "Capture a quote or callout",
-    keywords: ["quote", "blockquote", "callout"],
+    keywords: ["quote", "blockquote"],
     category: "Basic",
     icon: "Quotes",
     onSelect: (editor) =>
       editor.update(() => {
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace($createQuoteNode())
+          const node = $createQuoteNode()
+          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
+          node.select()
         }
       }),
   },
@@ -119,7 +133,9 @@ export const slashCommands: SlashCommand[] = [
       editor.update(() => {
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace($createCodeNode())
+          const node = $createCodeNode()
+          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
+          node.select()
         }
       }),
   },
@@ -136,6 +152,50 @@ export const slashCommands: SlashCommand[] = [
           sel.anchor.getNode().getTopLevelElementOrThrow().replace($createHorizontalRuleNode())
         }
       }),
+  },
+  {
+    title: "Callout",
+    description: "Highlighted info box",
+    keywords: ["callout", "info", "highlight", "box", "note", "alert", "warning"],
+    category: "Basic",
+    icon: "Warning",
+    onSelect: (editor) =>
+      editor.update(() => {
+        const sel = $getSelection()
+        if ($isRangeSelection(sel)) {
+          const node = $createCalloutNode("info")
+          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
+        }
+      }),
+  },
+  {
+    title: "Toggle",
+    description: "Collapsible section",
+    keywords: ["toggle", "collapse", "expand", "accordion", "details"],
+    category: "Basic",
+    icon: "CaretRight",
+    onSelect: (editor) =>
+      editor.update(() => {
+        const sel = $getSelection()
+        if ($isRangeSelection(sel)) {
+          const node = $createToggleNode("Toggle")
+          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
+        }
+      }),
+  },
+  {
+    title: "Table",
+    description: "Insert a simple table",
+    keywords: ["table", "grid", "rows", "columns", "spreadsheet"],
+    category: "Basic",
+    icon: "Table",
+    onSelect: (editor) => {
+      editor.dispatchCommand(INSERT_TABLE_COMMAND, {
+        rows: "3",
+        columns: "3",
+        includeHeaders: true,
+      })
+    },
   },
 
   // ── Lists ───────────────────────────────────────────────────────────────────
@@ -165,6 +225,15 @@ export const slashCommands: SlashCommand[] = [
     icon: "CheckSquare",
     onSelect: (editor) =>
       editor.dispatchCommand(INSERT_CHECK_LIST_COMMAND, undefined),
+  },
+  {
+    title: "Toggle List",
+    description: "Collapsible list items",
+    keywords: ["toggle list", "collapsible", "expandable"],
+    category: "Lists",
+    icon: "ListDashes",
+    onSelect: (editor) =>
+      editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined),
   },
 
   // ── Layout ──────────────────────────────────────────────────────────────────
@@ -199,5 +268,70 @@ export const slashCommands: SlashCommand[] = [
     category: "Layout",
     icon: "SquareSplitHorizontal",
     onSelect: (editor) => insertColumns(editor, 5),
+  },
+
+  // ── Media ───────────────────────────────────────────────────────────────────
+  {
+    title: "Image",
+    description: "Upload or embed an image",
+    keywords: ["image", "photo", "picture", "upload", "img"],
+    category: "Media",
+    icon: "Image",
+    onSelect: (editor) => {
+      const input = document.createElement("input")
+      input.type = "file"
+      input.accept = "image/*"
+      input.onchange = () => {
+        const file = input.files?.[0]
+        if (!file) return
+        const reader = new FileReader()
+        reader.onload = () => {
+          const src = reader.result as string
+          editor.update(() => {
+            const sel = $getSelection()
+            if (!$isRangeSelection(sel)) return
+            const imgNode = $createImageNode(src, file.name)
+            sel.anchor.getNode().getTopLevelElementOrThrow().replace(imgNode)
+          })
+        }
+        reader.readAsDataURL(file)
+      }
+      input.click()
+    },
+  },
+  {
+    title: "Video",
+    description: "Embed a video by URL",
+    keywords: ["video", "youtube", "embed", "mp4"],
+    category: "Media",
+    icon: "Video",
+    onSelect: (editor) => {
+      const url = prompt("Paste video URL:")
+      if (!url) return
+      editor.update(() => {
+        const sel = $getSelection()
+        if (!$isRangeSelection(sel)) return
+        const para = $createParagraphNode()
+        sel.anchor.getNode().getTopLevelElementOrThrow().replace(para)
+        para.select()
+      })
+    },
+  },
+
+  // ── Advanced ─────────────────────────────────────────────────────────────────
+  {
+    title: "Math Equation",
+    description: "LaTeX block equation",
+    keywords: ["math", "equation", "latex", "formula", "katex"],
+    category: "Advanced",
+    icon: "MathOperations",
+    onSelect: (editor) => {
+      editor.update(() => {
+        const sel = $getSelection()
+        if (!$isRangeSelection(sel)) return
+        const node = $createEquationNode("E = mc^2", false)
+        sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
+      })
+    },
   },
 ]

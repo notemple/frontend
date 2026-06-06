@@ -7,6 +7,14 @@ import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary"
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
 import {
   $getNodeByKey,
+  $getRoot,
+  $isParagraphNode,
+  $createParagraphNode,
+  $getSelection,
+  $isRangeSelection,
+  KEY_BACKSPACE_COMMAND,
+  COMMAND_PRIORITY_LOW,
+  $isElementNode,
   type LexicalEditor,
 } from "lexical"
 import { Plus, Trash } from "@phosphor-icons/react"
@@ -17,6 +25,8 @@ import {
 } from "../nodes/ColumnsContainerNode"
 import { editorTheme } from "../editorTheme"
 import SlashCommandPlugin from "../plugins/SlashCommandPlugin"
+import BlockHandlePlugin from "../plugins/BlockHandlePlugin"
+
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SafeErrorBoundary = LexicalErrorBoundary as unknown as React.ComponentType<any>
@@ -291,9 +301,71 @@ function ColumnWrapper({
   onResizeStart: (e: React.MouseEvent, leftIdx: number) => void
   onOuterResizeStart: (e: React.MouseEvent, direction: "left" | "right") => void
 }) {
+  useEffect(() => {
+    return col.editor.registerCommand(
+      KEY_BACKSPACE_COMMAND,
+      (event) => {
+        let parentKey: string | null = null
+        let prevKey: string | null = null
+        let nextKey: string | null = null
+
+        col.editor.getEditorState().read(() => {
+          const selection = $getSelection()
+          if ($isRangeSelection(selection) && selection.isCollapsed()) {
+            const anchorNode = selection.anchor.getNode()
+            let parent = anchorNode
+            const root = $getRoot()
+            while (parent && parent.getParent() !== root) {
+              parent = parent.getParent()
+            }
+            if (parent && parent.getParent() === root) {
+              const isEmpty = $isElementNode(parent) && parent.getTextContentSize() === 0
+              if (isEmpty) {
+                parentKey = parent.getKey()
+                const prevSibling = parent.getPreviousSibling()
+                prevKey = prevSibling ? prevSibling.getKey() : null
+                const nextSibling = parent.getNextSibling()
+                nextKey = nextSibling ? nextSibling.getKey() : null
+              }
+            }
+          }
+        })
+
+        if (parentKey !== null) {
+          event.preventDefault()
+          col.editor.update(() => {
+            const parentNode = $getNodeByKey(parentKey!)
+            if (parentNode) {
+              parentNode.remove()
+            }
+            if (prevKey) {
+              const prevNode = $getNodeByKey(prevKey)
+              if (prevNode) {
+                prevNode.selectEnd()
+              }
+            } else if (nextKey) {
+              const nextNode = $getNodeByKey(nextKey)
+              if (nextNode) {
+                nextNode.selectStart()
+              }
+            } else {
+              onRemoveColumn(idx)
+            }
+          })
+          if (prevKey || nextKey) {
+            col.editor.focus()
+          }
+          return true
+        }
+        return false
+      },
+      COMMAND_PRIORITY_LOW
+    )
+  }, [col.editor, idx, onRemoveColumn])
+
   return (
     <div
-      className="group/column relative"
+      className="group/column relative block"
       style={{
         width: `${col.width}%`,
         flex: `0 0 ${col.width}%`,
@@ -360,8 +432,54 @@ function ColumnWrapper({
         <RichTextPlugin
           contentEditable={
             <ContentEditable
-              className="outline-none w-full cursor-text text-[var(--body-text)] px-3 py-2"
+              className="lexical-editor-root outline-none w-full cursor-text text-[var(--body-text)] px-3 py-2 flex-1"
               style={{ minHeight: 80 }}
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  col.editor.update(() => {
+                    const root = $getRoot()
+                    const selection = $getSelection()
+                    let currentBlock = null
+
+                    if ($isRangeSelection(selection)) {
+                      const anchorNode = selection.anchor.getNode()
+                      let parent = anchorNode
+                      while (parent && parent.getParent() !== root) {
+                        parent = parent.getParent()
+                      }
+                      if (parent && parent.getParent() === root) {
+                        currentBlock = parent
+                      }
+                    }
+
+                    if (currentBlock) {
+                      if ($isParagraphNode(currentBlock) && currentBlock.isEmpty()) {
+                        currentBlock.select()
+                      } else {
+                        const nextSibling = currentBlock.getNextSibling()
+                        if ($isParagraphNode(nextSibling) && nextSibling.isEmpty()) {
+                          nextSibling.select()
+                        } else {
+                          const newParagraph = $createParagraphNode()
+                          currentBlock.insertAfter(newParagraph)
+                          newParagraph.select()
+                        }
+                      }
+                    } else {
+                      const lastChild = root.getLastChild()
+                      if ($isParagraphNode(lastChild) && lastChild.isEmpty()) {
+                        lastChild.select()
+                      } else {
+                        const newParagraph = $createParagraphNode()
+                        root.append(newParagraph)
+                        newParagraph.select()
+                      }
+                    }
+                  })
+                }
+              }}
             />
           }
           placeholder={
@@ -378,6 +496,7 @@ function ColumnWrapper({
         <HistoryPlugin />
         <ListPlugin />
         <SlashCommandPlugin />
+        <BlockHandlePlugin isNested={true} />
       </LexicalNestedComposer>
 
       {/* Inner Column Resize handle */}

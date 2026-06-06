@@ -11,11 +11,18 @@ import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPl
 import { TRANSFORMERS } from "@lexical/markdown"
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary"
 import { useRef } from "react"
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
+import { $getRoot, $isParagraphNode, $createParagraphNode } from "lexical"
 import { createEditorConfig } from "./editorConfig"
 import SlashCommandPlugin from "./plugins/SlashCommandPlugin"
 import PersistencePlugin from "./plugins/PersistencePlugin"
 import ScrollIntoViewPlugin from "./plugins/ScrollIntoViewPlugin"
 import BlockHandlePlugin from "./plugins/BlockHandlePlugin"
+
+import EmojiPicker from "emoji-picker-react"
+import { useDocumentStore } from "../documents/store"
+import { ChatCircleText, Plus } from "@phosphor-icons/react"
+import { useState, useEffect } from "react"
 
 // Cast is needed because @lexical/react's RichTextPlugin ErrorBoundary prop type
 // is narrower than the actual LexicalErrorBoundary component type in this version
@@ -35,6 +42,37 @@ interface Props {
   onClosePopup?: () => void
 }
 
+function EditorScrollContainer({ children }: { children: React.ReactNode }) {
+  const [editor] = useLexicalComposerContext()
+
+  const handleScrollAreaClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement
+    // Trigger if clicking on the scroll area (margins) or the spacer at the bottom
+    if (
+      target.classList.contains("editor-scroll-area") ||
+      target.classList.contains("editor-click-target")
+    ) {
+      e.preventDefault()
+      e.stopPropagation()
+      editor.update(() => {
+        const root = $getRoot()
+        const newParagraph = $createParagraphNode()
+        root.append(newParagraph)
+        newParagraph.select()
+      })
+    }
+  }
+
+  return (
+    <div
+      className="editor-scroll-area flex-1 w-full flex flex-col items-center"
+      onClick={handleScrollAreaClick}
+    >
+      {children}
+    </div>
+  )
+}
+
 export function TemplnoteEditor({
   documentId,
   readOnly = false,
@@ -42,20 +80,100 @@ export function TemplnoteEditor({
 }: Props) {
   const config = createEditorConfig(documentId)
   const contentEditableRef = useRef<HTMLDivElement>(null)
+  
+  const doc = useDocumentStore(state => state.documents[documentId])
+  const updateDocument = useDocumentStore(state => state.updateDocument)
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false)
+  const pickerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setIsEmojiPickerOpen(false)
+  }, [documentId])
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+        setIsEmojiPickerOpen(false)
+      }
+    }
+    if (isEmojiPickerOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [isEmojiPickerOpen])
 
   return (
     <LexicalComposer initialConfig={{ ...config, editable: !readOnly }}>
       <div className="templnote-editor-wrapper relative flex flex-col w-full h-full overflow-y-auto">
-        {/* Centered content column */}
-        <div className="editor-scroll-area flex-1 w-full px-6 py-12 flex flex-col items-center">
-          {/* Max-width content column — matches Notion's ~720px sweet spot */}
-          <div className="editor-content-column w-full max-w-[720px] relative flex flex-col">
-            
-            {/* Page title area */}
-            <div className="editor-title-area mb-8">
-              {/* Title is rendered by the parent documents feature,
-                  not the editor itself — leave a placeholder comment here */}
+        <EditorScrollContainer>
+          {/* Banner with gradient background */}
+          <div 
+            className="w-full h-44 bg-gradient-to-r from-[#2a4e6c] via-[#527d97] to-[#b8c5cc] shrink-0 relative flex items-center justify-center" 
+            contentEditable={false}
+          >
+            <div className="flex flex-row items-center justify-center gap-4 w-full max-w-[720px] px-6 md:px-8 z-10 group/titlearea">
+              {/* Emoji Button */}
+              <div ref={pickerRef} className="relative z-50">
+                <button
+                  type="button"
+                  onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
+                  className="w-16 h-16 flex items-center justify-center text-6xl hover:scale-105 transition-all cursor-pointer select-none bg-transparent border-none outline-none relative"
+                >
+                  {doc?.icon ? (
+                    doc.icon
+                  ) : (
+                    <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/60 hover:border-white/90 flex items-center justify-center text-white/70 hover:text-white transition-colors bg-white/10">
+                      <Plus size={18} weight="bold" />
+                    </div>
+                  )}
+                </button>
+
+                {isEmojiPickerOpen && (
+                  <div 
+                    className="absolute top-18 left-0 z-50 rounded-lg shadow-xl bg-white dark:bg-[#1f1f22] border border-zinc-200 dark:border-zinc-800 p-2 flex flex-col gap-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {doc?.icon && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateDocument(documentId, { icon: "" })
+                          setIsEmojiPickerOpen(false)
+                        }}
+                        className="w-full py-1.5 px-3 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 rounded transition-colors text-center cursor-pointer select-none border border-red-200/50 dark:border-red-900/35"
+                      >
+                        Remove Emoji
+                      </button>
+                    )}
+                    <EmojiPicker
+                      onEmojiClick={(emojiData) => {
+                        updateDocument(documentId, { icon: emojiData.emoji })
+                        setIsEmojiPickerOpen(false)
+                      }}
+                      theme={
+                        document.documentElement.classList.contains("dark")
+                          ? "dark" as any
+                          : "light" as any
+                      }
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Page Title Input */}
+              <input
+                type="text"
+                placeholder="Untitled"
+                value={doc?.title ?? ""}
+                onChange={(e) => updateDocument(documentId, { title: e.target.value })}
+                className="flex-1 bg-transparent border-none outline-none text-4xl font-bold text-white placeholder-white/50 font-sans tracking-tight drop-shadow-md min-w-0"
+              />
             </div>
+          </div>
+
+          <div className="editor-content-column w-full max-w-[720px] px-6 md:px-8 relative flex flex-col pb-12 pt-4">
 
             {/* The actual Lexical editable area */}
             <div className="editor-container relative flex flex-col flex-1">
@@ -64,7 +182,7 @@ export function TemplnoteEditor({
                   <div className="relative block w-full flex-1">
                     <ContentEditable
                       ref={contentEditableRef}
-                      className="lexical-root outline-none w-full cursor-text text-[var(--body-text)] min-h-[60vh]"
+                      className="lexical-root lexical-editor-root outline-none w-full cursor-text text-[var(--body-text)] min-h-[60vh]"
                       aria-multiline
                       role="textbox"
                       spellCheck
@@ -80,13 +198,10 @@ export function TemplnoteEditor({
               />
             </div>
 
-            {/* Spacer so user can always click below last block to focus */}
-            <div
-              className="editor-click-target h-40 cursor-text"
-              onClick={() => contentEditableRef.current?.focus()}
-            />
+            {/* Spacer so user can always click below last block */}
+            <div className="editor-click-target h-40 cursor-text" />
           </div>
-        </div>
+        </EditorScrollContainer>
 
         {/* All plugins — outside the visual column, inside the composer */}
         <HistoryPlugin />

@@ -85,12 +85,18 @@ function ImageComponent({
     const wrapper = containerRef.current?.parentElement
     if (wrapper) {
       if (isInColumn) {
-        wrapper.style.width = "100%"
+        wrapper.style.width = `${width}px`
         wrapper.style.maxWidth = "100%"
-        wrapper.style.height = ""
+        wrapper.style.margin = "0 auto"
         wrapper.style.padding = ""
         wrapper.style.marginLeft = ""
         wrapper.style.marginRight = ""
+        if (aspectRatio) {
+          const contentWidth = Math.max(0, width - 64)
+          wrapper.style.height = `${contentWidth / aspectRatio}px`
+        } else {
+          wrapper.style.height = ""
+        }
       } else {
         wrapper.style.width = `${width}px`
         wrapper.style.maxWidth = "90vw"
@@ -98,7 +104,7 @@ function ImageComponent({
         wrapper.style.marginLeft = `calc(50% - ${width / 2}px - 56px)`
         wrapper.style.marginRight = `calc(50% - ${width / 2}px)`
         if (aspectRatio) {
-          const contentWidth = isInColumn ? width : width - 56
+          const contentWidth = Math.max(0, width - 56)
           wrapper.style.height = `${contentWidth / aspectRatio}px`
         } else {
           wrapper.style.height = ""
@@ -148,7 +154,7 @@ function ImageComponent({
         if ($isImageNode(node)) {
           node.setWidth(finalWidth)
           if (aspectRatio) {
-            const contentWidth = isInColumn ? finalWidth : finalWidth - 56
+            const contentWidth = isInColumn ? Math.max(0, finalWidth - 64) : Math.max(0, finalWidth - 56)
             node.setHeight(contentWidth / aspectRatio)
           }
         }
@@ -190,7 +196,7 @@ function ImageComponent({
                 const node = $getNodeByKey(nodeKey)
                 if ($isImageNode(node)) {
                   node.setWidth(defaultWidth)
-                  const contentWidth = isInColumn ? defaultWidth : defaultWidth - 56
+                  const contentWidth = isInColumn ? Math.max(0, defaultWidth - 64) : Math.max(0, defaultWidth - 56)
                   node.setHeight(contentWidth / naturalRatio)
                 }
               })
@@ -199,7 +205,7 @@ function ImageComponent({
             editor.update(() => {
               const node = $getNodeByKey(nodeKey)
               if ($isImageNode(node)) {
-                const contentWidth = isInColumn ? initialWidth : initialWidth - 56
+                const contentWidth = isInColumn ? Math.max(0, initialWidth - 64) : Math.max(0, initialWidth - 56)
                 node.setHeight(contentWidth / naturalRatio)
               }
             })

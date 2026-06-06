@@ -40,7 +40,7 @@ export type SerializedColumnData = {
 }
 
 export type SerializedColumnsContainerNode = Spread<
-  { columnCount: number; columns: SerializedColumnData[] },
+  { columnCount: number; columns: SerializedColumnData[]; marginOffset?: number },
   SerializedLexicalNode
 >
 
@@ -108,6 +108,7 @@ export function createColumnEditor(editorStateJson?: string): LexicalEditor {
 export class ColumnsContainerNode extends DecoratorNode<ReactNode> {
   __columnCount: number
   __columns: ColumnData[]
+  __marginOffset: number
 
   static getType(): string {
     return "columns-container"
@@ -123,12 +124,13 @@ export class ColumnsContainerNode extends DecoratorNode<ReactNode> {
         editor: createColumnEditor(stateStr),
       }
     })
-    return new ColumnsContainerNode(node.__columnCount, clonedColumns, node.__key)
+    return new ColumnsContainerNode(node.__columnCount, clonedColumns, node.__marginOffset, node.__key)
   }
 
-  constructor(columnCount: number, columns?: ColumnData[], key?: NodeKey) {
+  constructor(columnCount: number, columns?: ColumnData[], marginOffset?: number, key?: NodeKey) {
     super(key)
     this.__columnCount = columnCount
+    this.__marginOffset = marginOffset ?? 0
     if (columns) {
       this.__columns = columns
     } else {
@@ -143,6 +145,15 @@ export class ColumnsContainerNode extends DecoratorNode<ReactNode> {
 
   getColumns(): ColumnData[] {
     return this.getLatest().__columns
+  }
+
+  getMarginOffset(): number {
+    return this.getLatest().__marginOffset
+  }
+
+  setMarginOffset(marginOffset: number): void {
+    const writable = this.getWritable()
+    writable.__marginOffset = marginOffset
   }
 
   setColumns(columns: ColumnData[]): this {
@@ -219,7 +230,7 @@ export class ColumnsContainerNode extends DecoratorNode<ReactNode> {
       width: col.width,
       editor: createColumnEditor(col.editorState),
     }))
-    return new ColumnsContainerNode(json.columnCount, columns)
+    return new ColumnsContainerNode(json.columnCount, columns, json.marginOffset)
   }
 
   exportJSON(): SerializedColumnsContainerNode {
@@ -231,6 +242,7 @@ export class ColumnsContainerNode extends DecoratorNode<ReactNode> {
         width: col.width,
         editorState: JSON.stringify(col.editor.getEditorState().toJSON()),
       })),
+      marginOffset: this.__marginOffset,
       version: 1,
     }
   }

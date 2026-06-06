@@ -33,12 +33,20 @@ export default function ColumnsContainerComponent({
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [columns, setColumns] = useState<ColumnData[]>([])
+  const [marginOffset, setMarginOffset] = useState<number>(0)
+  const [isResizing, setIsResizing] = useState(false)
 
   const resizeRef = useRef<{
     startX: number
     startWidths: number[]
     leftIdx: number
     containerWidth: number
+  } | null>(null)
+
+  const outerResizeRef = useRef<{
+    startX: number
+    startOffset: number
+    direction: "left" | "right"
   } | null>(null)
 
   // Read columns directly from node state in the parent editor
@@ -48,6 +56,7 @@ export default function ColumnsContainerComponent({
         const containerNode = $getNodeByKey(nodeKey)
         if ($isColumnsContainerNode(containerNode)) {
           setColumns(containerNode.getColumns())
+          setMarginOffset(containerNode.getMarginOffset() ?? 0)
         }
       })
     }
@@ -56,13 +65,17 @@ export default function ColumnsContainerComponent({
     return editor.registerUpdateListener(readColumns)
   }, [editor, nodeKey])
 
-  // Resize handler
+  // Resize handler for columns within the container
   const onResizeStart = useCallback(
     (e: React.MouseEvent, leftIdx: number) => {
       e.preventDefault()
+      window.getSelection()?.removeAllRanges()
       if (!containerRef.current) return
 
-      const containerWidth = containerRef.current.getBoundingClientRect().width
+      const rect = containerRef.current.getBoundingClientRect()
+      const containerLeft = rect.left
+      const containerRight = rect.right
+      const containerWidth = rect.width
       let startWidths: number[] = []
 
       editor.getEditorState().read(() => {
@@ -73,13 +86,16 @@ export default function ColumnsContainerComponent({
       })
 
       resizeRef.current = { startX: e.clientX, startWidths, leftIdx, containerWidth }
+      setIsResizing(true)
 
       const MIN = 10
 
       const onMouseMove = (me: MouseEvent) => {
         if (!resizeRef.current) return
+        window.getSelection()?.removeAllRanges()
         const { startX, startWidths: sw, leftIdx: li, containerWidth: cw } = resizeRef.current
-        const deltaPercent = ((me.clientX - startX) / cw) * 100
+        const mouseX = Math.max(containerLeft, Math.min(containerRight, me.clientX))
+        const deltaPercent = ((mouseX - startX) / cw) * 100
 
         const newWidths = [...sw]
         newWidths[li] = Math.max(MIN, Math.min(sw[li] + sw[li + 1] - MIN, sw[li] + deltaPercent))
@@ -95,6 +111,66 @@ export default function ColumnsContainerComponent({
 
       const onMouseUp = () => {
         resizeRef.current = null
+        setIsResizing(false)
+        document.removeEventListener("mousemove", onMouseMove)
+        document.removeEventListener("mouseup", onMouseUp)
+        document.body.style.cursor = ""
+        document.body.style.userSelect = ""
+      }
+
+      document.addEventListener("mousemove", onMouseMove)
+      document.addEventListener("mouseup", onMouseUp)
+      document.body.style.cursor = "col-resize"
+      document.body.style.userSelect = "none"
+    },
+    [editor, nodeKey]
+  )
+
+  // Outer resize handler to expand/shrink the whole columns container
+  const onOuterResizeStart = useCallback(
+    (e: React.MouseEvent, direction: "left" | "right") => {
+      e.preventDefault()
+      window.getSelection()?.removeAllRanges()
+
+      let startOffset = 0
+      editor.getEditorState().read(() => {
+        const containerNode = $getNodeByKey(nodeKey)
+        if ($isColumnsContainerNode(containerNode)) {
+          startOffset = containerNode.getMarginOffset() ?? 0
+        }
+      })
+
+      outerResizeRef.current = {
+        startX: e.clientX,
+        startOffset,
+        direction,
+      }
+      setIsResizing(true)
+
+      const onMouseMove = (me: MouseEvent) => {
+        if (!outerResizeRef.current) return
+        window.getSelection()?.removeAllRanges()
+        const { startX, startOffset: so, direction: dir } = outerResizeRef.current
+
+        const deltaX = me.clientX - startX
+        let newOffset = so
+        if (dir === "right") {
+          newOffset = Math.max(0, so + deltaX)
+        } else {
+          newOffset = Math.max(0, so - deltaX)
+        }
+
+        editor.update(() => {
+          const containerNode = $getNodeByKey(nodeKey)
+          if ($isColumnsContainerNode(containerNode)) {
+            containerNode.setMarginOffset(newOffset)
+          }
+        })
+      }
+
+      const onMouseUp = () => {
+        outerResizeRef.current = null
+        setIsResizing(false)
         document.removeEventListener("mousemove", onMouseMove)
         document.removeEventListener("mouseup", onMouseUp)
         document.body.style.cursor = ""
@@ -152,6 +228,11 @@ export default function ColumnsContainerComponent({
       className="columns-container group/columns relative w-full my-2"
       data-type="columns-container"
       contentEditable={false}
+      style={{
+        marginLeft: `-${marginOffset}px`,
+        marginRight: `-${marginOffset}px`,
+        width: `calc(100% + ${marginOffset * 2}px)`,
+      }}
     >
       {/* Column count badge */}
       <div className="
@@ -165,16 +246,6 @@ export default function ColumnsContainerComponent({
         {columns.length} cols
       </div>
 
-      {/* Snap guidelines shown during resize */}
-      {resizeRef.current && [25, 33.33, 50, 66.66, 75].map((pct) => (
-        <div
-          key={pct}
-          className="absolute top-0 bottom-0 pointer-events-none z-10
-            border-l border-dashed border-purple-500/30"
-          style={{ left: `${pct}%` }}
-        />
-      ))}
-
       {/* Flex row of columns */}
       <div className="flex flex-row w-full min-h-[80px]">
         {columns.map((col, idx) => (
@@ -186,6 +257,7 @@ export default function ColumnsContainerComponent({
             onAddColumn={addColumn}
             onRemoveColumn={removeColumn}
             onResizeStart={onResizeStart}
+            onOuterResizeStart={onOuterResizeStart}
           />
         ))}
       </div>
@@ -200,6 +272,7 @@ function ColumnWrapper({
   onAddColumn,
   onRemoveColumn,
   onResizeStart,
+  onOuterResizeStart,
 }: {
   col: ColumnData
   idx: number
@@ -207,6 +280,7 @@ function ColumnWrapper({
   onAddColumn: (afterIdx: number) => void
   onRemoveColumn: (idx: number) => void
   onResizeStart: (e: React.MouseEvent, leftIdx: number) => void
+  onOuterResizeStart: (e: React.MouseEvent, direction: "left" | "right") => void
 }) {
   return (
     <div
@@ -220,6 +294,20 @@ function ColumnWrapper({
         position: "relative",
       }}
     >
+      {/* Outer Left Resize handle */}
+      {idx === 0 && (
+        <div
+          className="
+            absolute top-0 left-0 w-2 h-full z-10
+            cursor-col-resize
+            hover:bg-purple-500/40
+            transition-colors duration-150
+          "
+          contentEditable={false}
+          onMouseDown={(e) => onOuterResizeStart(e, "left")}
+        />
+      )}
+
       {/* Per-column toolbar */}
       <div
         className="
@@ -283,7 +371,7 @@ function ColumnWrapper({
         <SlashCommandPlugin />
       </LexicalNestedComposer>
 
-      {/* Resize handle */}
+      {/* Inner Column Resize handle */}
       {idx < totalColumns - 1 && (
         <div
           className="
@@ -297,17 +385,20 @@ function ColumnWrapper({
         />
       )}
 
-      {/* Column border overlay */}
-      <div
-        className="
-          absolute inset-0 rounded pointer-events-none
-          border border-white/5
-          group-hover/column:border-white/10
-          group-focus-within/column:border-purple-500/25
-          transition-colors duration-150
-        "
-        contentEditable={false}
-      />
+      {/* Outer Right Resize handle */}
+      {idx === totalColumns - 1 && (
+        <div
+          className="
+            absolute top-0 right-0 w-2 h-full z-10
+            cursor-col-resize
+            hover:bg-purple-500/40
+            transition-colors duration-150
+          "
+          contentEditable={false}
+          onMouseDown={(e) => onOuterResizeStart(e, "right")}
+        />
+      )}
+
     </div>
   )
 }

@@ -59,6 +59,23 @@ function ImageComponent({
     }
   }, [initialWidth])
 
+  // Sync the parent .lexical-image-wrapper DOM element's width to match the image's width
+  useEffect(() => {
+    const wrapper = containerRef.current?.parentElement
+    if (wrapper) {
+      if (isInColumn) {
+        wrapper.style.width = ""
+        wrapper.style.maxWidth = ""
+        wrapper.style.margin = ""
+      } else {
+        const usePixelWidth = isResizing || initialWidth !== undefined || !isInColumn
+        wrapper.style.width = usePixelWidth ? `${width}px` : "100%"
+        wrapper.style.maxWidth = "100%"
+        wrapper.style.margin = "0 auto"
+      }
+    }
+  }, [width, isInColumn, isResizing, initialWidth])
+
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -123,7 +140,9 @@ function ImageComponent({
       style={{
         position: "relative",
         maxWidth: isInColumn ? "100%" : "90vw",
-        width: (isInColumn && !usePixelWidth) ? "100%" : undefined,
+        width: usePixelWidth ? `${width}px` : "100%",
+        padding: "0px 24px",
+        boxSizing: "border-box",
       }}
     >
       <img
@@ -131,8 +150,8 @@ function ImageComponent({
         alt={alt}
         className="select-none rounded-md border border-zinc-200/20 transition-shadow duration-200"
         style={{
-          width: usePixelWidth ? `${width}px` : "100%",
-          maxWidth: isInColumn ? "100%" : "90vw",
+          width: "100%",
+          maxWidth: "100%",
           height: "auto",
           display: "block",
           boxShadow: isResizing ? "0 0 0 2px rgba(168, 85, 247, 0.4)" : "none",

@@ -741,10 +741,13 @@ export default function BlockHandlePlugin({
         const rect = blockEl.getBoundingClientRect()
         const rootRect = root.getBoundingClientRect()
 
-        // Use viewport-relative coords (no scrollX/Y) since gutter uses position:fixed
         let leftPos = rect.left + 4
         if (isNested) {
-          leftPos = rect.left - 50
+          if (blockEl.classList.contains("lexical-image-wrapper")) {
+            leftPos = rect.left + 24
+          } else {
+            leftPos = rect.left - 50
+          }
         } else if (
           blockEl.classList.contains("lexical-table") ||
           blockEl.classList.contains("columns-outer-wrapper") ||

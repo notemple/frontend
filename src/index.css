@@ -536,7 +536,7 @@ html.light .lexical-root hr {
 
 .columns-container .lexical-root > .lexical-image-wrapper {
   border-left: 0px solid transparent !important;
-  padding: 0 32px !important;
+  padding: 12px 32px !important;
   box-sizing: border-box !important;
 }
 
@@ -638,6 +638,11 @@ div[class*="bg-purple-500/80"] {
   border-radius: 4px;
   transition: background-color 200ms ease-out;
   /* No box-shadow transition — it triggers the global box-shadow: none reset */
+}
+
+.lexical-image-wrapper {
+  padding: 12px;
+  box-sizing: border-box;
 }
 
 .lexical-paragraph:not([style*="background"]):hover,

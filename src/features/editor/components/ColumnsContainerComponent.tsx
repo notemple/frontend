@@ -277,6 +277,8 @@ export default function ColumnsContainerComponent({
             onRemoveColumn={removeColumn}
             onResizeStart={onResizeStart}
             onOuterResizeStart={onOuterResizeStart}
+            parentEditor={editor}
+            parentNodeKey={nodeKey}
           />
         ))}
       </div>
@@ -292,6 +294,8 @@ function ColumnWrapper({
   onRemoveColumn,
   onResizeStart,
   onOuterResizeStart,
+  parentEditor,
+  parentNodeKey,
 }: {
   col: ColumnData
   idx: number
@@ -300,7 +304,23 @@ function ColumnWrapper({
   onRemoveColumn: (idx: number) => void
   onResizeStart: (e: React.MouseEvent, leftIdx: number) => void
   onOuterResizeStart: (e: React.MouseEvent, direction: "left" | "right") => void
+  parentEditor: LexicalEditor
+  parentNodeKey: string
 }) {
+  // Propagate nested column editor updates to the parent editor for persistence
+  useEffect(() => {
+    return col.editor.registerUpdateListener(({ editorState, dirtyElements, dirtyLeaves }) => {
+      if (dirtyElements.size > 0 || dirtyLeaves.size > 0) {
+        parentEditor.update(() => {
+          const containerNode = $getNodeByKey(parentNodeKey)
+          if ($isColumnsContainerNode(containerNode)) {
+            containerNode.setColumns(containerNode.getColumns())
+          }
+        })
+      }
+    })
+  }, [col.editor, parentEditor, parentNodeKey])
+
   useEffect(() => {
     return col.editor.registerCommand(
       KEY_BACKSPACE_COMMAND,

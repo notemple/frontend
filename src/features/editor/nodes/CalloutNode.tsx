@@ -2,18 +2,17 @@ import type {
   EditorConfig,
   LexicalEditor,
   NodeKey,
-  SerializedLexicalNode,
+  SerializedElementNode,
   Spread,
 } from "lexical"
-import { DecoratorNode, $applyNodeReplacement } from "lexical"
-import type { ReactNode } from "react"
+import { ElementNode, $applyNodeReplacement } from "lexical"
 
 export type SerializedCalloutNode = Spread<
   { calloutType: "info" | "warning" | "success" | "error" },
-  SerializedLexicalNode
+  SerializedElementNode
 >
 
-export class CalloutNode extends DecoratorNode<ReactNode> {
+export class CalloutNode extends ElementNode {
   __calloutType: "info" | "warning" | "success" | "error"
 
   static getType(): string { return "callout" }
@@ -30,7 +29,7 @@ export class CalloutNode extends DecoratorNode<ReactNode> {
     this.__calloutType = calloutType
   }
 
-  createDOM(): HTMLElement {
+  createDOM(config: EditorConfig): HTMLElement {
     const el = document.createElement("div")
     el.className = `lexical-callout lexical-callout--${this.__calloutType}`
     return el
@@ -49,22 +48,14 @@ export class CalloutNode extends DecoratorNode<ReactNode> {
 
   exportJSON(): SerializedCalloutNode {
     return {
+      ...super.exportJSON(),
       type: "callout",
       calloutType: this.__calloutType,
       version: 1,
     }
   }
 
-  decorate(_editor: LexicalEditor, _config: EditorConfig): ReactNode {
-    return (
-      <div className={`lexical-callout lexical-callout--${this.__calloutType}`}>
-        <div className="lexical-callout__content" />
-      </div>
-    )
-  }
-
   isInline(): boolean { return false }
-  isKeyboardSelectable(): boolean { return true }
 }
 
 export function $createCalloutNode(
@@ -76,3 +67,4 @@ export function $createCalloutNode(
 export function $isCalloutNode(node: unknown): node is CalloutNode {
   return node instanceof CalloutNode
 }
+

@@ -238,8 +238,8 @@ export default function ColumnsContainerComponent({
       data-type="columns-container"
       contentEditable={false}
       style={{
-        marginLeft: `-${marginOffset}px`,
-        marginRight: `-${marginOffset}px`,
+        marginLeft: `-${marginOffset + 16}px`,
+        marginRight: `-${marginOffset - 16}px`,
         width: `calc(100% + ${marginOffset * 2}px)`,
       }}
     >

@@ -15,6 +15,12 @@ import { CodeNode, CodeHighlightNode } from "@lexical/code"
 import { TableNode, TableRowNode, TableCellNode } from "@lexical/table"
 import { MarkNode } from "@lexical/mark"
 import { PageLinkNode } from "./PageLinkNode"
+import { HorizontalRuleNode } from "./HorizontalRuleNode"
+import { CalloutNode } from "./CalloutNode"
+import { ToggleNode } from "./ToggleNode"
+import { EquationNode } from "./EquationNode"
+import { ImageNode } from "./ImageNode"
+import { FileNode } from "./FileNode"
 import { editorTheme } from "../editorTheme"
 
 const ColumnsContainerComponent = lazy(
@@ -56,6 +62,12 @@ export function createColumnEditor(editorStateJson?: string): LexicalEditor {
       TableCellNode,
       MarkNode,
       PageLinkNode,
+      HorizontalRuleNode,
+      CalloutNode,
+      ToggleNode,
+      EquationNode,
+      ImageNode,
+      FileNode,
     ],
     onError: (error: Error) => {
       console.error("[NestedColumnEditor]", error)

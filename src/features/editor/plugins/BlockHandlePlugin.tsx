@@ -552,6 +552,10 @@ export default function BlockHandlePlugin({
 }): ReactNode {
   const [editor] = useLexicalComposerContext()
   const [handle, setHandle] = useState<HandleState | null>(null)
+  const handleRef = useRef<HandleState | null>(null)
+  useEffect(() => {
+    handleRef.current = handle
+  }, [handle])
   const [menuOpen, setMenuOpen] = useState(false)
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -595,7 +599,21 @@ export default function BlockHandlePlugin({
         return
       }
 
-      // 2. If mouse is inside the editor, track the block
+      // 2. If we have an active handle, keep it visible while on the same vertical line
+      if (handleRef.current) {
+        const activeBlockEl = root.querySelector(
+          `[data-lexical-node-key="${handleRef.current.nodeKey}"]`
+        ) as HTMLElement | null
+        if (activeBlockEl) {
+          const rect = activeBlockEl.getBoundingClientRect()
+          if (e.clientY >= rect.top - 2 && e.clientY <= rect.bottom + 2) {
+            clearTimeout(hideTimer.current)
+            return
+          }
+        }
+      }
+
+      // 3. If mouse is inside the editor, track the block
       if (root.contains(target)) {
         clearTimeout(hideTimer.current)
 

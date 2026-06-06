@@ -385,7 +385,8 @@ function ColumnWrapper({
 
   return (
     <div
-      className="group/column relative block"
+      className="group/column relative block column-block"
+      data-type="column"
       style={{
         width: `${col.width}%`,
         flex: `0 0 ${col.width}%`,
@@ -451,64 +452,65 @@ function ColumnWrapper({
       >
         <RichTextPlugin
           contentEditable={
-            <ContentEditable
-              className="lexical-editor-root outline-none w-full cursor-text text-[var(--body-text)] px-3 py-2 flex-1"
-              style={{ minHeight: 80 }}
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  col.editor.update(() => {
-                    const root = $getRoot()
-                    const selection = $getSelection()
-                    let currentBlock = null
+            <div className="relative block w-full flex-1">
+              <ContentEditable
+                className="lexical-root lexical-editor-root outline-none w-full cursor-text text-[var(--body-text)] flex-1"
+                style={{ minHeight: 80 }}
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    col.editor.update(() => {
+                      const root = $getRoot()
+                      const selection = $getSelection()
+                      let currentBlock = null
 
-                    if ($isRangeSelection(selection)) {
-                      const anchorNode = selection.anchor.getNode()
-                      let parent = anchorNode
-                      while (parent && parent.getParent() !== root) {
-                        parent = parent.getParent()
+                      if ($isRangeSelection(selection)) {
+                        const anchorNode = selection.anchor.getNode()
+                        let parent = anchorNode
+                        while (parent && parent.getParent() !== root) {
+                          parent = parent.getParent()
+                        }
+                        if (parent && parent.getParent() === root) {
+                          currentBlock = parent
+                        }
                       }
-                      if (parent && parent.getParent() === root) {
-                        currentBlock = parent
-                      }
-                    }
 
-                    if (currentBlock) {
-                      if ($isParagraphNode(currentBlock) && currentBlock.isEmpty()) {
-                        currentBlock.select()
+                      if (currentBlock) {
+                        if ($isParagraphNode(currentBlock) && currentBlock.isEmpty()) {
+                          currentBlock.select()
+                        } else {
+                          const nextSibling = currentBlock.getNextSibling()
+                          if ($isParagraphNode(nextSibling) && nextSibling.isEmpty()) {
+                            nextSibling.select()
+                          } else {
+                            const newParagraph = $createParagraphNode()
+                            currentBlock.insertAfter(newParagraph)
+                            newParagraph.select()
+                          }
+                        }
                       } else {
-                        const nextSibling = currentBlock.getNextSibling()
-                        if ($isParagraphNode(nextSibling) && nextSibling.isEmpty()) {
-                          nextSibling.select()
+                        const lastChild = root.getLastChild()
+                        if ($isParagraphNode(lastChild) && lastChild.isEmpty()) {
+                          lastChild.select()
                         } else {
                           const newParagraph = $createParagraphNode()
-                          currentBlock.insertAfter(newParagraph)
+                          root.append(newParagraph)
                           newParagraph.select()
                         }
                       }
-                    } else {
-                      const lastChild = root.getLastChild()
-                      if ($isParagraphNode(lastChild) && lastChild.isEmpty()) {
-                        lastChild.select()
-                      } else {
-                        const newParagraph = $createParagraphNode()
-                        root.append(newParagraph)
-                        newParagraph.select()
-                      }
-                    }
-                  })
-                }
-              }}
-            />
+                    })
+                  }
+                }}
+              />
+            </div>
           }
           placeholder={
-            <div className="
-              absolute top-2 left-3
-              text-[var(--muted-foreground)] text-sm opacity-40
-              pointer-events-none select-none
-            ">
-              Type here…
+            <div 
+              style={{ left: "36px" }}
+              className="absolute top-0 pointer-events-none select-none text-[var(--muted-foreground)] opacity-40 text-base leading-7"
+            >
+              Press '/' for commands…
             </div>
           }
           ErrorBoundary={SafeErrorBoundary}

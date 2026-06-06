@@ -26,22 +26,46 @@ export default function SlashCommandPlugin(): ReactNode {
     ? fuse.current.search(query).map((r: { item: SlashCommand }) => r.item)
     : slashCommands
 
-  // Open menu and position it when "/" is typed
+  // Open, position, and filter menu when "/" is typed
   useEffect(() => {
     return editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
         const selection = $getSelection()
-        if (!$isRangeSelection(selection) || !selection.isCollapsed()) return
+        if (!$isRangeSelection(selection) || !selection.isCollapsed()) {
+          if (open) setOpen(false)
+          return
+        }
 
         const anchor = selection.anchor
         const node = anchor.getNode()
-        if (!$isTextNode(node)) return
+        if (!$isTextNode(node)) {
+          if (open) setOpen(false)
+          return
+        }
 
-        const text = node.getTextContent()
+        const textContent = node.getTextContent()
         const offset = anchor.offset
+        
+        // Only slice up to the cursor position
+        const textBeforeCursor = textContent.slice(0, offset)
+        const lastSlashIdx = textBeforeCursor.lastIndexOf("/")
 
-        // Detect "/" typed at end of current word/line
-        if (text[offset - 1] !== "/") {
+        // Close if no "/" is found in front of the cursor
+        if (lastSlashIdx === -1) {
+          if (open) setOpen(false)
+          return
+        }
+
+        // Check if "/" is at the start of the line or preceded by whitespace
+        if (lastSlashIdx > 0 && !/\s/.test(textBeforeCursor[lastSlashIdx - 1])) {
+          if (open) setOpen(false)
+          return
+        }
+
+        const queryText = textBeforeCursor.slice(lastSlashIdx + 1)
+        
+        // If the query contains space or starts with space, or has newlines, close it.
+        if (queryText.includes("\n") || queryText.startsWith(" ")) {
           if (open) setOpen(false)
           return
         }
@@ -52,8 +76,6 @@ export default function SlashCommandPlugin(): ReactNode {
         const domRange = domSelection.getRangeAt(0)
         const rect = domRange.getBoundingClientRect()
 
-        // rect.left can be 0 if the range collapsed — use the editor root
-        // position as fallback
         const editorEl = editor.getRootElement()
         const editorRect = editorEl?.getBoundingClientRect()
 
@@ -63,64 +85,12 @@ export default function SlashCommandPlugin(): ReactNode {
             ? rect.left + window.scrollX
             : (editorRect?.left ?? 0) + window.scrollX + 96,
         })
-        setQuery("")
+        setQuery(queryText)
         setSelectedIdx(0)
         setOpen(true)
       })
     })
   }, [editor, open])
-
-  // Update query + handle keyboard nav while open
-  useEffect(() => {
-    if (!open) return
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setOpen(false)
-        return
-      }
-      if (e.key === "ArrowDown") {
-        e.preventDefault()
-        setSelectedIdx((i) => Math.min(i + 1, filtered.length - 1))
-        return
-      }
-      if (e.key === "ArrowUp") {
-        e.preventDefault()
-        setSelectedIdx((i) => Math.max(i - 1, 0))
-        return
-      }
-      if (e.key === "Enter") {
-        e.preventDefault()
-        if (filtered[selectedIdx]) executeCommand(filtered[selectedIdx])
-        return
-      }
-      if (e.key === "Backspace") {
-        setQuery((q) => {
-          const next = q.slice(0, -1)
-          if (next === "" && q === "") setOpen(false)
-          return next
-        })
-        return
-      }
-      // Printable characters update the query
-      if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
-        setQuery((q) => q + e.key)
-        setSelectedIdx(0)
-      }
-    }
-
-    window.addEventListener("keyup", handleKeyUp)
-    return () => window.removeEventListener("keyup", handleKeyUp)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, filtered, selectedIdx])
-
-  // Close when clicking outside
-  useEffect(() => {
-    if (!open) return
-    const handleClick = () => setOpen(false)
-    window.addEventListener("mousedown", handleClick)
-    return () => window.removeEventListener("mousedown", handleClick)
-  }, [open])
 
   const executeCommand = useCallback(
     (command: SlashCommand) => {
@@ -145,6 +115,45 @@ export default function SlashCommandPlugin(): ReactNode {
     },
     [editor]
   )
+
+  // Handle keyboard navigation while open
+  useEffect(() => {
+    if (!open) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault()
+        setOpen(false)
+        return
+      }
+      if (e.key === "ArrowDown") {
+        e.preventDefault()
+        setSelectedIdx((i) => (i + 1) % filtered.length)
+        return
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault()
+        setSelectedIdx((i) => (i - 1 + filtered.length) % filtered.length)
+        return
+      }
+      if (e.key === "Enter") {
+        e.preventDefault()
+        if (filtered[selectedIdx]) executeCommand(filtered[selectedIdx])
+        return
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown, true)
+    return () => window.removeEventListener("keydown", handleKeyDown, true)
+  }, [open, filtered, selectedIdx, executeCommand])
+
+  // Close when clicking outside
+  useEffect(() => {
+    if (!open) return
+    const handleClick = () => setOpen(false)
+    window.addEventListener("mousedown", handleClick)
+    return () => window.removeEventListener("mousedown", handleClick)
+  }, [open])
 
   if (!open || filtered.length === 0) return null
 

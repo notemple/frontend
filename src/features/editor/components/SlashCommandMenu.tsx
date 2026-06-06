@@ -1,4 +1,5 @@
 import * as Icons from "@phosphor-icons/react"
+import { useRef, useEffect } from "react"
 import type { SlashCommand } from "../plugins/slashCommandList"
 
 interface Props {
@@ -19,6 +20,19 @@ export default function SlashCommandMenu({
   onSelect,
   onHover,
 }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!containerRef.current) return
+    const buttons = containerRef.current.querySelectorAll("button")
+    const selectedButton = buttons[selectedIdx]
+    if (selectedButton) {
+      selectedButton.scrollIntoView({
+        block: "nearest",
+      })
+    }
+  }, [selectedIdx])
+
   const grouped = CATEGORY_ORDER.reduce<Record<string, SlashCommand[]>>(
     (acc, cat) => {
       const items = commands.filter((c) => c.category === cat)
@@ -32,6 +46,7 @@ export default function SlashCommandMenu({
 
   return (
     <div
+      ref={containerRef}
       data-testid="slash-menu"
       className="slash-command-menu w-[260px] max-h-[380px] overflow-y-auto rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
       style={{

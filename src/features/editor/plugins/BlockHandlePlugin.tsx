@@ -641,6 +641,11 @@ export default function BlockHandlePlugin({
           return
         }
 
+        if (!isNested && blockEl.classList.contains("columns-outer-wrapper")) {
+          scheduleHide()
+          return
+        }
+
         let key = blockEl.getAttribute("data-lexical-node-key")
         if (!key) {
           const elements = blockEl.querySelectorAll("[data-lexical-node-key]")
@@ -658,7 +663,7 @@ export default function BlockHandlePlugin({
         // Use viewport-relative coords (no scrollX/Y) since gutter uses position:fixed
         let leftPos = rect.left + 4
         if (isNested) {
-          leftPos = rect.left - 60
+          leftPos = rect.left - 50
         } else if (
           blockEl.classList.contains("lexical-table") ||
           blockEl.classList.contains("columns-outer-wrapper") ||

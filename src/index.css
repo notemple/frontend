@@ -519,6 +519,21 @@ html.light .lexical-root hr {
   width: 100%;
 }
 
+/* Inside columns, override gutter border-left to start from the start */
+.columns-container .lexical-root > .lexical-paragraph,
+.columns-container .lexical-root > .lexical-h1,
+.columns-container .lexical-root > .lexical-h2,
+.columns-container .lexical-root > .lexical-h3,
+.columns-container .lexical-root > .lexical-h4,
+.columns-container .lexical-root > .lexical-blockquote,
+.columns-container .lexical-root > .lexical-code-block,
+.columns-container .lexical-root > .lexical-ul,
+.columns-container .lexical-root > .lexical-ol,
+.columns-container .lexical-root > .lexical-callout,
+.columns-container .lexical-root > .lexical-toggle {
+  border-left: 0px solid transparent !important;
+}
+
 /* Column DOM element created by ColumnNode.createDOM() */
 /* Note: width/flex are applied as inline styles — these are fallback styles only */
 .column-block {
@@ -998,10 +1013,7 @@ html.light .block-context-menu-footer {
   border-top-color: rgba(0,0,0,0.07);
 }
 
-body.has-active-block-handle .cursor-col-resize {
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
+
 
 .editor-content-column {
   padding-left: 0px;   /* gutter is handled by top-level blocks */

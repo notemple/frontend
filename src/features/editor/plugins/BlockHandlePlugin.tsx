@@ -106,7 +106,7 @@ function AddButton({ onClick }: { onClick: (e: React.MouseEvent) => void }) {
         onMouseDown={(e) => e.preventDefault()}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
-        aria-label="Add block below"
+        aria-label="Add block (Alt-Click to add above)"
         tabIndex={-1}
       >
         {/* Plus icon */}
@@ -116,7 +116,7 @@ function AddButton({ onClick }: { onClick: (e: React.MouseEvent) => void }) {
       </button>
       {showTooltip && (
         <Tooltip>
-          <span>Click to add below</span>
+          <span>Click to add below, Alt+Click to add above</span>
         </Tooltip>
       )}
     </div>
@@ -799,14 +799,19 @@ export default function BlockHandlePlugin({
 
   // ── Actions ──────────────────────────────────────────────────────────────────
 
-  // FIX 7a: always insert BELOW (remove altKey branch)
-  const handleAddBlock = useCallback(() => {
+  // Support Alt+Click to insert block above, click to insert below
+  const handleAddBlock = useCallback((e: React.MouseEvent) => {
+    const isAlt = e.altKey
     editor.update(() => {
       if (!handle?.nodeKey) return
       const node = $getNodeByKey(handle.nodeKey)
       if (!node) return
       const para = $createParagraphNode()
-      node.insertAfter(para)
+      if (isAlt) {
+        node.insertBefore(para)
+      } else {
+        node.insertAfter(para)
+      }
       para.selectEnd()
     })
     setHandle(null)

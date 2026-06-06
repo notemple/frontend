@@ -1,4 +1,4 @@
-import { Check,Plus } from '@phosphor-icons/react';
+import { Check, Plus } from '@phosphor-icons/react';
 import React from 'react';
 import { TAG_COLOR_PRESETS } from '../constants/colors';
 
@@ -7,13 +7,15 @@ interface ColorPickerProps {
   currentColor: string;
   onChange: (color: string) => void;
   onClose?: () => void;
+  useTransparentBg?: boolean;
 }
 
 export const ColorPicker: React.FC<ColorPickerProps> = ({
   label = "Color",
   currentColor,
   onChange,
-  onClose
+  onClose,
+  useTransparentBg
 }) => {
   return (
     <div className="border-t border-border px-4 py-2.5 flex flex-col gap-2">
@@ -31,7 +33,11 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                 if (onClose) onClose();
               }}
               className="w-5 h-5 rounded-sm-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer relative flex items-center justify-center"
-              style={{ backgroundColor: preset.hex }}
+              style={{
+                backgroundColor: useTransparentBg
+                  ? `color-mix(in srgb, ${preset.hex} 40%, transparent)`
+                  : preset.hex
+              }}
               title={preset.name}
             >
               {isSelected && (
@@ -40,9 +46,9 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
             </button>
           );
         })}
-        
+
         {/* Dynamic Color Picker */}
-        <label 
+        <label
           className="w-5 h-5 rounded-sm-full border border-border/80 hover:scale-110 active:scale-95 transition-transform cursor-pointer flex items-center justify-center bg-gradient-to-tr from-rose-400 via-sky-400 to-amber-300 relative shadow-sm-sm"
           title="Custom Color"
         >

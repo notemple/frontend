@@ -111,7 +111,7 @@ function AddButton({ onClick }: { onClick: (e: React.MouseEvent) => void }) {
       >
         {/* Plus icon */}
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M7 1.75V12.25M1.75 7H12.25" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+          <path d="M7 1.75V12.25M1.75 7H12.25" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
         </svg>
       </button>
       {showTooltip && (
@@ -147,12 +147,12 @@ function DragHandleButton({
       >
         {/* Six-dot grid */}
         <svg width="10" height="15" viewBox="0 0 10 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <circle cx="2" cy="2.5"  r="1.5" fill="currentColor"/>
-          <circle cx="2" cy="7.5"  r="1.5" fill="currentColor"/>
-          <circle cx="2" cy="12.5" r="1.5" fill="currentColor"/>
-          <circle cx="8" cy="2.5"  r="1.5" fill="currentColor"/>
-          <circle cx="8" cy="7.5"  r="1.5" fill="currentColor"/>
-          <circle cx="8" cy="12.5" r="1.5" fill="currentColor"/>
+          <circle cx="2" cy="2.5" r="1.5" fill="currentColor" />
+          <circle cx="2" cy="7.5" r="1.5" fill="currentColor" />
+          <circle cx="2" cy="12.5" r="1.5" fill="currentColor" />
+          <circle cx="8" cy="2.5" r="1.5" fill="currentColor" />
+          <circle cx="8" cy="7.5" r="1.5" fill="currentColor" />
+          <circle cx="8" cy="12.5" r="1.5" fill="currentColor" />
         </svg>
       </button>
       {showTooltip && (
@@ -168,16 +168,16 @@ function DragHandleButton({
 // ─── Color Palette ────────────────────────────────────────────────────────────
 
 const COLORS = [
-  { label: "Default",    value: "default",    bg: "transparent",  text: "var(--foreground)" },
-  { label: "Gray",       value: "gray",        bg: "#6b7280",      text: "#fff" },
-  { label: "Brown",      value: "brown",       bg: "#92400e",      text: "#fff" },
-  { label: "Orange",     value: "orange",      bg: "#f97316",      text: "#fff" },
-  { label: "Yellow",     value: "yellow",      bg: "#eab308",      text: "#000" },
-  { label: "Green",      value: "green",       bg: "#22c55e",      text: "#000" },
-  { label: "Blue",       value: "blue",        bg: "#3b82f6",      text: "#fff" },
-  { label: "Purple",     value: "purple",      bg: "#a855f7",      text: "#fff" },
-  { label: "Pink",       value: "pink",        bg: "#ec4899",      text: "#fff" },
-  { label: "Red",        value: "red",         bg: "#ef4444",      text: "#fff" },
+  { label: "Default", value: "default", bg: "transparent", text: "var(--foreground)" },
+  { label: "Gray", value: "gray", bg: "#6b7280", text: "#fff" },
+  { label: "Brown", value: "brown", bg: "#92400e", text: "#fff" },
+  { label: "Orange", value: "orange", bg: "#f97316", text: "#fff" },
+  { label: "Yellow", value: "yellow", bg: "#eab308", text: "#000" },
+  { label: "Green", value: "green", bg: "#22c55e", text: "#000" },
+  { label: "Blue", value: "blue", bg: "#3b82f6", text: "#fff" },
+  { label: "Purple", value: "purple", bg: "#a855f7", text: "#fff" },
+  { label: "Pink", value: "pink", bg: "#ec4899", text: "#fff" },
+  { label: "Red", value: "red", bg: "#ef4444", text: "#fff" },
 ]
 
 // ─── Context Menu ─────────────────────────────────────────────────────────────
@@ -249,7 +249,11 @@ function BlockContextMenu({
         if (node && $isElementNode(node)) {
           const style = node.getStyle();
           const match = style.match(/background:\s*([^;]+)/i);
-          const currentBg = match ? match[1].trim() : "transparent";
+          let currentBg = match ? match[1].trim() : "transparent";
+          const matchHex = currentBg.match(/#(?:[0-9a-fA-F]{3,8})/);
+          if (matchHex) {
+            currentBg = matchHex[0];
+          }
           onColorSelect(currentBg);
         }
       });
@@ -295,7 +299,7 @@ function BlockContextMenu({
       label: "",
       icon: null,
       keywords: [],
-      action: () => {},
+      action: () => { },
       isSeparator: true,
     },
     {
@@ -324,13 +328,13 @@ function BlockContextMenu({
 
   const filtered = search.trim()
     ? menuItems.filter((item) => {
-        if (item.isSeparator) return false
-        const q = search.toLowerCase()
-        return (
-          item.label.toLowerCase().includes(q) ||
-          item.keywords.some((k) => k.includes(q))
-        )
-      })
+      if (item.isSeparator) return false
+      const q = search.toLowerCase()
+      return (
+        item.label.toLowerCase().includes(q) ||
+        item.keywords.some((k) => k.includes(q))
+      )
+    })
     : menuItems
 
   // Adjust menu position so it stays in viewport
@@ -405,13 +409,13 @@ function BlockContextMenu({
                 <div className="block-context-submenu">
                   <div className="block-context-menu-section-label" style={{ padding: "4px 8px 2px" }}>Turn into</div>
                   {[
-                    { label: "Text",          type: "paragraph" as TurnIntoType, icon: <TextIcon /> },
-                    { label: "Heading 1",     type: "h1"        as TurnIntoType, icon: <H1Icon /> },
-                    { label: "Heading 2",     type: "h2"        as TurnIntoType, icon: <H2Icon /> },
-                    { label: "Heading 3",     type: "h3"        as TurnIntoType, icon: <H3Icon /> },
-                    { label: "Bulleted List", type: "bullet"    as TurnIntoType, icon: <BulletIcon /> },
-                    { label: "Numbered List", type: "number"    as TurnIntoType, icon: <NumberIcon /> },
-                    { label: "Quote",         type: "quote"     as TurnIntoType, icon: <QuoteIcon /> },
+                    { label: "Text", type: "paragraph" as TurnIntoType, icon: <TextIcon /> },
+                    { label: "Heading 1", type: "h1" as TurnIntoType, icon: <H1Icon /> },
+                    { label: "Heading 2", type: "h2" as TurnIntoType, icon: <H2Icon /> },
+                    { label: "Heading 3", type: "h3" as TurnIntoType, icon: <H3Icon /> },
+                    { label: "Bulleted List", type: "bullet" as TurnIntoType, icon: <BulletIcon /> },
+                    { label: "Numbered List", type: "number" as TurnIntoType, icon: <NumberIcon /> },
+                    { label: "Quote", type: "quote" as TurnIntoType, icon: <QuoteIcon /> },
                   ].map((opt) => (
                     <button
                       key={opt.type}
@@ -437,6 +441,7 @@ function BlockContextMenu({
                       setColorOpen(false);
                       onClose();
                     }}
+                    useTransparentBg={true}
                   />
                 </div>
               )}
@@ -458,75 +463,75 @@ function BlockContextMenu({
 function SearchIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-      <circle cx="6.5" cy="6.5" r="4.5"/>
-      <path d="M10.5 10.5L14 14"/>
+      <circle cx="6.5" cy="6.5" r="4.5" />
+      <path d="M10.5 10.5L14 14" />
     </svg>
   )
 }
 function TurnIntoIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 4h8M2 8h5M2 12h7"/>
-      <path d="M12 5l2.5 3L12 11" strokeWidth="1.5"/>
+      <path d="M2 4h8M2 8h5M2 12h7" />
+      <path d="M12 5l2.5 3L12 11" strokeWidth="1.5" />
     </svg>
   )
 }
 function ColorIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="8" cy="8" r="5.5"/>
-      <path d="M8 2.5v11M2.5 8h11" strokeWidth="1"/>
+      <circle cx="8" cy="8" r="5.5" />
+      <path d="M8 2.5v11M2.5 8h11" strokeWidth="1" />
     </svg>
   )
 }
 function LinkIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6.5 9.5a3.536 3.536 0 005 0l2-2a3.536 3.536 0 00-5-5L7 4"/>
-      <path d="M9.5 6.5a3.536 3.536 0 00-5 0l-2 2a3.536 3.536 0 005 5L9 12"/>
+      <path d="M6.5 9.5a3.536 3.536 0 005 0l2-2a3.536 3.536 0 00-5-5L7 4" />
+      <path d="M9.5 6.5a3.536 3.536 0 00-5 0l-2 2a3.536 3.536 0 005 5L9 12" />
     </svg>
   )
 }
 function DuplicateIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="5" y="5" width="8" height="8" rx="1.5"/>
-      <path d="M3 11V3.5A1.5 1.5 0 014.5 2H11"/>
+      <rect x="5" y="5" width="8" height="8" rx="1.5" />
+      <path d="M3 11V3.5A1.5 1.5 0 014.5 2H11" />
     </svg>
   )
 }
 function DeleteIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 4h12M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1M6 7v5M10 7v5M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9"/>
+      <path d="M2 4h12M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1M6 7v5M10 7v5M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9" />
     </svg>
   )
 }
 function MoveTopIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 2h12M8 14V5M4 9l4-4 4 4"/>
+      <path d="M2 2h12M8 14V5M4 9l4-4 4 4" />
     </svg>
   )
 }
 function MoveBottomIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 14h12M8 2v9M4 7l4 4 4-4"/>
+      <path d="M2 14h12M8 2v9M4 7l4 4 4-4" />
     </svg>
   )
 }
 function ChevronRightIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 2l4 4-4 4"/>
+      <path d="M4 2l4 4-4 4" />
     </svg>
   )
 }
 function TextIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-      <path d="M2 4h12M8 4v8M5 12h6"/>
+      <path d="M2 4h12M8 4v8M5 12h6" />
     </svg>
   )
 }
@@ -555,12 +560,12 @@ function H3Icon() {
 function BulletIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ opacity: 0.9 }}>
-      <circle cx="3.5" cy="4.5" r="1.2"/>
-      <rect x="7" y="3.8" width="7" height="1.4" rx="0.5"/>
-      <circle cx="3.5" cy="8.5" r="1.2"/>
-      <rect x="7" y="7.8" width="7" height="1.4" rx="0.5"/>
-      <circle cx="3.5" cy="12.5" r="1.2"/>
-      <rect x="7" y="11.8" width="7" height="1.4" rx="0.5"/>
+      <circle cx="3.5" cy="4.5" r="1.2" />
+      <rect x="7" y="3.8" width="7" height="1.4" rx="0.5" />
+      <circle cx="3.5" cy="8.5" r="1.2" />
+      <rect x="7" y="7.8" width="7" height="1.4" rx="0.5" />
+      <circle cx="3.5" cy="12.5" r="1.2" />
+      <rect x="7" y="11.8" width="7" height="1.4" rx="0.5" />
     </svg>
   )
 }
@@ -568,18 +573,18 @@ function NumberIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ opacity: 0.9 }}>
       <text x="1" y="6" fontFamily="system-ui" fontWeight="600" fontSize="7">1</text>
-      <rect x="7" y="4" width="7" height="1.4" rx="0.5"/>
+      <rect x="7" y="4" width="7" height="1.4" rx="0.5" />
       <text x="1" y="11" fontFamily="system-ui" fontWeight="600" fontSize="7">2</text>
-      <rect x="7" y="9" width="7" height="1.4" rx="0.5"/>
+      <rect x="7" y="9" width="7" height="1.4" rx="0.5" />
       <text x="1" y="15" fontFamily="system-ui" fontWeight="600" fontSize="7">3</text>
-      <rect x="7" y="13" width="7" height="1.4" rx="0.5"/>
+      <rect x="7" y="13" width="7" height="1.4" rx="0.5" />
     </svg>
   )
 }
 function QuoteIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ opacity: 0.9 }}>
-      <path d="M3.5 4h3v3h-2l1 2.5h-2L4.5 7h-1V4zm6 0h3v3h-2l1 2.5h-2L10.5 7h-1V4z"/>
+      <path d="M3.5 4h3v3h-2l1 2.5h-2L4.5 7h-1V4zm6 0h3v3h-2l1 2.5h-2L10.5 7h-1V4z" />
     </svg>
   )
 }
@@ -609,13 +614,13 @@ export default function BlockHandlePlugin({
   useEffect(() => {
     return editor.registerUpdateListener(({ editorState }) => {
       lastEditedRef.current = new Date()
-      
+
       // Lexical's ParagraphNode/HeadingNode doesn't apply `style` to the DOM natively.
       // We manually apply it here after every update so that the color renders.
       editorState.read(() => {
         const rootDOM = editor.getRootElement();
         if (!rootDOM) return;
-        
+
         const applyStyles = (node: LexicalNode) => {
           if ($isElementNode(node)) {
             const el = editor.getElementByKey(node.getKey());
@@ -736,10 +741,9 @@ export default function BlockHandlePlugin({
         const rect = blockEl.getBoundingClientRect()
         const rootRect = root.getBoundingClientRect()
 
-        // Use viewport-relative coords (no scrollX/Y) since gutter uses position:fixed
         let leftPos = rect.left + 4
         if (isNested) {
-          leftPos = rect.left - 50
+          leftPos = rect.left - 30
         } else if (
           blockEl.classList.contains("lexical-table") ||
           blockEl.classList.contains("columns-outer-wrapper") ||
@@ -748,7 +752,10 @@ export default function BlockHandlePlugin({
         ) {
           leftPos = rect.left - 52
         }
-        leftPos = Math.max(rootRect.left - 56, leftPos)
+        
+        if (!blockEl.classList.contains("lexical-image-wrapper")) {
+          leftPos = Math.max(rootRect.left - 56, leftPos)
+        }
 
         const newTop = rect.top
         const newLeft = leftPos
@@ -863,7 +870,7 @@ export default function BlockHandlePlugin({
         const node = $getNodeByKey(handle.nodeKey);
         if (node && $isElementNode(node)) {
           if (color && color !== "transparent" && color !== "default") {
-            node.setStyle(`background: ${color};`);
+            node.setStyle(`background: color-mix(in srgb, ${color} 40%, transparent);`);
           } else {
             node.setStyle("");
           }
@@ -931,7 +938,7 @@ export default function BlockHandlePlugin({
   // FIX 7d: copy link + toast
   const handleCopyLink = useCallback(() => {
     const url = `${window.location.href.split("#")[0]}#block-${handle?.nodeKey ?? ""}`
-    navigator.clipboard.writeText(url).catch(() => {/* ignore */})
+    navigator.clipboard.writeText(url).catch(() => {/* ignore */ })
     setToast("Link copied")
     setTimeout(() => setToast(null), 2000)
   }, [handle])

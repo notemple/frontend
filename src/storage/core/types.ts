@@ -2,6 +2,10 @@ export interface NoteDocument {
   id: string;
   title: string;
   content: string;
+  /** Serialised Lexical EditorState JSON — used by the Lexical editor for persistence */
+  lexicalState?: string | null;
+  /** Plain-text snapshot extracted from the Lexical state (for word count & search) */
+  contentText?: string | null;
   tags: string[];
   type: string;
   updatedAt: string;

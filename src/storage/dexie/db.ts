@@ -29,6 +29,14 @@ export class TemplnoteDexieDB extends Dexie {
       metadata: "key",
       images: "id"
     });
+    // Version 3: adds lexicalState column for Lexical editor persistence
+    this.version(3).stores({
+      documents: "id, folderId, updatedAt, isFavorite",
+      folders: "id",
+      tasks: "id, completed, deadline, createdAt",
+      metadata: "key",
+      images: "id"
+    });
   }
 }
 

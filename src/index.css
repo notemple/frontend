@@ -277,26 +277,7 @@
   }
 }
 
-.tippy-box[data-theme~='slash-command'] {
-  background-color: transparent;
-  border: none;
-  border-radius: 0.125rem;
-  box-shadow: none;
-}
-.tippy-box[data-theme~='slash-command'] .tippy-content {
-  padding: 0;
-}
-.tiptap .is-empty::before,
-.tiptap p.is-editor-empty:first-child::before {
-  color: var(--muted-foreground);
-  content: attr(data-placeholder);
-  float: left;
-  height: 0;
-  pointer-events: none;
-  opacity: 0.55;
-}
-
-.tiptap table {
+.lexical-root table {
   border-collapse: collapse;
   margin: 0;
   overflow: hidden;
@@ -304,8 +285,8 @@
   width: 100%;
 }
 
-.tiptap table td,
-.tiptap table th {
+.lexical-root table td,
+.lexical-root table th {
   border: 1px solid var(--border);
   box-sizing: border-box;
   min-width: 1em;
@@ -314,15 +295,15 @@
   vertical-align: top;
 }
 
-.tiptap table th {
+.lexical-root table th {
   background-color: var(--muted);
   font-weight: 600;
   text-align: left;
 }
 
-.tiptap img,
+.lexical-image-wrapper img,
 .prose img,
-.ProseMirror img {
+.lexical-root img {
   display: block;
   height: auto;
   max-width: 100%;
@@ -331,18 +312,16 @@
   margin-bottom: 0 !important;
 }
 
-.tiptap hr,
-.ProseMirror hr {
+.lexical-root hr {
   border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
   opacity: 1 !important;
 }
 
-html.light .tiptap hr,
-html.light .ProseMirror hr {
+html.light .lexical-root hr {
   border-top: 1px solid rgba(0, 0, 0, 0.15) !important;
 }
 
-.tiptap blockquote {
+.lexical-blockquote {
   border-left: 3px solid var(--border);
   margin: 1.5rem 0;
   padding-left: 1rem;
@@ -350,16 +329,17 @@ html.light .ProseMirror hr {
   font-style: italic;
 }
 
-.tiptap pre {
+.lexical-code-block {
   background: #111;
   border-radius: 0.125rem;
   color: #fff;
   font-family: var(--font-mono);
   padding: 1rem;
   overflow-x: auto;
+  display: block;
 }
 
-.tiptap pre code {
+.lexical-code-block .lexical-inline-code {
   background: none;
   color: inherit;
   font-size: 0.875rem;
@@ -410,114 +390,64 @@ html.light .ProseMirror hr {
   --folder-text: var(--folder-text-dark);
 }
 
-/* Premium TaskList / Todo list styles */
-.tiptap ul[data-type="taskList"] {
+/* ── Lexical Checklist / Todo list styles ───────────────────────────────────── */
+
+.lexical-ul.PlaygroundEditorTheme__ul {
   list-style: none;
   padding: 0;
   margin: 1rem 0;
 }
 
-.tiptap li[data-type="taskItem"] {
+.lexical-listitem--unchecked,
+.lexical-listitem--checked {
   display: flex !important;
   align-items: flex-start;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
-}
-
-.tiptap li[data-type="taskItem"]::before {
-  content: none !important;
-}
-
-.tiptap li[data-type="taskItem"] > div {
-  flex: 1 1 auto !important;
-  min-width: 0;
-  margin: 0 !important;
-}
-
-.tiptap li[data-type="taskItem"] > div > p {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-.tiptap li[data-type="taskItem"] > label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  user-select: none;
-  margin-top: 0.25rem;
+  list-style: none;
   position: relative;
-  cursor: pointer;
+  padding-left: 1.5rem;
 }
 
-/* Hide default checkbox styling and apply customized modern check box */
-.tiptap li[data-type="taskItem"] > label input[type="checkbox"] {
-  appearance: none;
-  background-color: transparent;
-  margin: 0;
-  font: inherit;
-  color: currentColor;
+.lexical-listitem--unchecked::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.2rem;
   width: 1rem;
   height: 1rem;
   border: 1.5px solid var(--muted-foreground);
   border-radius: 0.125rem;
-  display: grid;
-  place-content: center;
+  background: transparent;
   transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
 }
 
-.tiptap li[data-type="taskItem"] > label input[type="checkbox"]:hover {
-  border-color: var(--foreground);
-  background-color: rgba(255, 255, 255, 0.05);
-  transform: scale(1.05);
+.lexical-listitem--checked::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.2rem;
+  width: 1rem;
+  height: 1rem;
+  background-color: #10b981;
+  border: 1.5px solid #10b981;
+  border-radius: 0.125rem;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='8' viewBox='0 0 10 8'%3E%3Cpath d='M1 4L3.5 6.5L9 1' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
-.tiptap li[data-type="taskItem"] > label input[type="checkbox"]:checked {
-  background-color: #10b981; /* Emerald-500 */
-  border-color: #10b981;
-  transform: scale(0.95);
-}
-
-.tiptap li[data-type="taskItem"] > label input[type="checkbox"]::before {
-  content: "";
-  width: 0.5rem;
-  height: 0.3rem;
-  transform: scale(0) rotate(-45deg);
-  transform-origin: center;
-  border-left: 1.5px solid white;
-  border-bottom: 1.5px solid white;
-  margin-top: -2px;
-  transition: transform 120ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.tiptap li[data-type="taskItem"] > label input[type="checkbox"]:checked::before {
-  transform: scale(1) rotate(-45deg);
-}
-
-/* Checked content styling with smooth fade and line-through */
-.tiptap li[data-type="taskItem"][data-checked="true"] > div {
+.lexical-listitem--checked {
   text-decoration: line-through;
   color: var(--muted-foreground);
   opacity: 0.65;
   transition: all 180ms ease-out;
 }
 
-.tiptap li[data-type="taskItem"]:not([data-checked="true"]) > div {
-  text-decoration: none;
-  color: var(--foreground);
-  opacity: 1;
-  transition: all 180ms ease-out;
-}
-
 
 /* ── dnd-kit block drag ─────────────────────────────────────────────────────── */
-
-/* Source block while dragging — opacity is applied inline via JS for perf,
-   but this class can be used as a fallback / for targeting in tests. */
-.prosemirror-dragging-block {
-  opacity: 0.22 !important;
-  transition: opacity 120ms ease;
-}
 
 /* Drag overlay ghost — GPU-accelerated, no layout thrashing */
 [data-dnd-overlay],
@@ -525,155 +455,90 @@ html.light .ProseMirror hr {
   will-change: transform;
   transform: translate3d(0, 0, 0);
   pointer-events: none;
-  transition: none !important; /* Forces zero lag relative to the pointer */
+  transition: none !important;
 }
 
-/* ── Tight premium vertical spacing between editor blocks ── */
-.ProseMirror > * {
+/* ── Tight premium vertical spacing between Lexical editor blocks ── */
+.lexical-root > * {
   margin-top: 20px !important;
   margin-bottom: 20px !important;
 }
 
-.ProseMirror > .group\/img,
-.ProseMirror > .group\/gallery-wrapper {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-}
-
 /* Hierarchy spacing with tight visual bounds */
-.ProseMirror > h1 {
+.lexical-h1 {
   margin-top: 36px !important;
   margin-bottom: 16px !important;
 }
-.ProseMirror > h2 {
+.lexical-h2 {
   margin-top: 30px !important;
   margin-bottom: 16px !important;
 }
-.ProseMirror > h3 {
+.lexical-h3 {
   margin-top: 24px !important;
   margin-bottom: 12px !important;
 }
-.ProseMirror > blockquote,
-.ProseMirror > pre,
-.ProseMirror > table,
-.ProseMirror > [data-type="taskList"],
-.ProseMirror > ul,
-.ProseMirror > ol {
+.lexical-blockquote,
+.lexical-code-block,
+.lexical-table,
+.lexical-ul,
+.lexical-ol {
   margin-top: 22px !important;
   margin-bottom: 22px !important;
 }
 
-/* Tight vertical spacing between list items in numbered and bulleted lists */
-.ProseMirror ol li,
-.ProseMirror ul li {
+/* Tight vertical spacing between list items */
+.lexical-ol .lexical-listitem,
+.lexical-ul .lexical-listitem {
   margin-top: 2px !important;
   margin-bottom: 2px !important;
 }
 
-/* Remove margins on paragraphs inside list items to maintain the tight layout */
-.ProseMirror ol li > p,
-.ProseMirror ul li > p {
+/* Remove margins on paragraphs inside list items */
+.lexical-ol .lexical-listitem > .lexical-paragraph,
+.lexical-ul .lexical-listitem > .lexical-paragraph {
   margin-top: 0px !important;
   margin-bottom: 0px !important;
 }
 
 
-/* ── Multi-Column Layout System ───────────────────────────────────────────── */
+/* ── Lexical Multi-Column Layout System ───────────────────────────────────── */
 
-/* Columns Container Block */
-.templnote-columns {
+/* Outer wrapper created by ColumnsContainerNode.createDOM() */
+.columns-outer-wrapper {
   display: flex;
-  gap: 1.25rem;
+  flex-direction: row;
   width: 100%;
   margin-top: 1.25rem;
   margin-bottom: 1.25rem;
-  flex-wrap: wrap; /* Allows wrapping to next line if screen is narrow or too many columns are added */
-  align-items: stretch;
 }
 
-/* Individual Column Block */
-.templnote-column {
-  flex: 1 1 auto; /* Grows and shrinks depending on content size */
-  min-width: 220px; /* Sensible min-width to avoid microscopic column widths */
-  max-width: 100%; /* Guarantees no horizontal overflow */
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
-  padding: 0.875rem 1.125rem;
-  background-color: rgba(255, 255, 255, 0.005);
-  transition: border-color 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out;
+/* The React-rendered flex row inside ColumnsContainerComponent */
+.columns-container {
+  display: block;
+  width: 100%;
+}
+
+/* Column DOM element created by ColumnNode.createDOM() */
+/* Note: width/flex are applied as inline styles — these are fallback styles only */
+.column-block {
   position: relative;
-}
-
-/* Hover highlights on columns */
-.templnote-column:hover {
-  border-color: rgba(255, 255, 255, 0.12);
-  background-color: rgba(255, 255, 255, 0.015);
-}
-
-/* Focused/active column with cursor inside */
-.templnote-column:focus-within {
-  border-color: rgba(168, 85, 247, 0.25);
-  box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.1);
-  background-color: rgba(168, 85, 247, 0.003);
-}
-
-/* Column Toolbar hover transitions */
-.column-toolbar {
-  opacity: 0;
-  transition: opacity 120ms ease-out;
-}
-.templnote-column:hover .column-toolbar {
-  opacity: 1;
-}
-
-/* Fit Content / Adaptive Column Widths */
-.templnote-column.width-auto {
-  flex: 0 1 auto !important;
-  width: auto !important;
-  min-width: 120px !important;
-}
-
-/* Light Mode specific colors */
-html.light .templnote-column {
-  border-color: rgba(0, 0, 0, 0.05);
-  background-color: rgba(0, 0, 0, 0.003);
-}
-
-html.light .templnote-column:hover {
-  border-color: rgba(0, 0, 0, 0.1);
-  background-color: rgba(0, 0, 0, 0.01);
-}
-
-html.light .templnote-column:focus-within {
-  border-color: rgba(168, 85, 247, 0.2);
-  box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.06);
-  background-color: rgba(168, 85, 247, 0.002);
-}
-
-/* Column Empty placeholder guides to make dragging or typing highly intuitive */
-.templnote-column:empty::before,
-.templnote-column > .ProseMirror-placeholder:only-child::before {
-  content: 'Empty column — click to type...';
-  color: var(--muted-foreground);
-  font-size: 0.825rem;
-  opacity: 0.35;
-  pointer-events: none;
-  font-family: var(--font-sans);
+  box-sizing: border-box;
+  min-height: 80px;
 }
 
 
 /* ── Immersive Full-Height Editor Canvas ───────────────────────────────────── */
 
-/* Make the intermediate wrappers stretch vertically to occupy all paper space */
-.templnote-editor-wrapper .tiptap,
+/* Make the editor wrapper and its children stretch vertically */
+.templnote-editor-wrapper,
 .templnote-editor-wrapper > div {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-/* Make ProseMirror fill the entire layout height so any empty card area is natively interactive */
-.ProseMirror {
+/* Make Lexical ContentEditable fill the entire layout height */
+.lexical-root {
   flex: 1;
   min-height: 420px;
   cursor: text;
@@ -685,80 +550,57 @@ html.light .templnote-column:focus-within {
 
 /* ── Premium Layout resizing & Drag-beside visual chrome ────────────────────── */
 
-/* Columns Resizing Drag target line overlays */
-.column-resize-handle {
-  width: 8px !important;
-  background-color: transparent;
-  transition: background-color 150ms ease-out, box-shadow 150ms ease-out;
-  cursor: col-resize;
-  border-radius: 9999px;
-}
-
-.column-resize-handle:hover,
-.column-resize-handle:active {
-  background-color: rgba(168, 85, 247, 0.45) !important; /* Glow purple dragline matching Templnote visual style */
-  box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
-}
-
-/* Beautiful rounded glowing drag insertion guidelines (both horizontal and vertical) */
+/* Glowing drag insertion guidelines */
 div[class*="bg-purple-500/80"] {
   border-radius: 9999px;
   box-shadow: 0 0 10px rgba(168, 85, 247, 0.6) !important;
 }
 
-/* ── Object Hover Highlights & Tight Drag Preview ────────────────────────── */
+/* ── Object Hover Highlights in Lexical editor ────────────────────────── */
 
-/* Hover highlights on individual content objects in the editor */
-.ProseMirror p,
-.ProseMirror h1,
-.ProseMirror h2,
-.ProseMirror h3,
-.ProseMirror blockquote,
-.ProseMirror pre,
-.ProseMirror [data-type="taskItem"],
-.ProseMirror [data-type="image"],
-.ProseMirror [data-type="table"],
-.ProseMirror table {
+.lexical-paragraph,
+.lexical-h1,
+.lexical-h2,
+.lexical-h3,
+.lexical-blockquote,
+.lexical-code-block,
+.lexical-image-wrapper,
+.lexical-table {
   transition: background-color 150ms ease-out, box-shadow 150ms ease-out;
   border-radius: 4px;
 }
 
-.ProseMirror p:hover,
-.ProseMirror h1:hover,
-.ProseMirror h2:hover,
-.ProseMirror h3:hover,
-.ProseMirror blockquote:hover,
-.ProseMirror pre:hover,
-.ProseMirror [data-type="taskItem"]:hover,
-.ProseMirror [data-type="image"]:hover,
-.ProseMirror [data-type="table"]:hover,
-.ProseMirror table:hover {
-  background-color: rgba(168, 85, 247, 0.02) !important; /* Extremely subtle transparent purple tint matching Templnote style */
+.lexical-paragraph:hover,
+.lexical-h1:hover,
+.lexical-h2:hover,
+.lexical-h3:hover,
+.lexical-blockquote:hover,
+.lexical-code-block:hover,
+.lexical-image-wrapper:hover,
+.lexical-table:hover {
+  background-color: rgba(168, 85, 247, 0.02) !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 0 1px rgba(168, 85, 247, 0.05) !important;
 }
 
-html.light .ProseMirror p:hover,
-html.light .ProseMirror h1:hover,
-html.light .ProseMirror h2:hover,
-html.light .ProseMirror h3:hover,
-html.light .ProseMirror blockquote:hover,
-html.light .ProseMirror pre:hover,
-html.light .ProseMirror [data-type="taskItem"]:hover,
-html.light .ProseMirror [data-type="image"]:hover,
-html.light .ProseMirror [data-type="table"]:hover,
-html.light .ProseMirror table:hover {
+html.light .lexical-paragraph:hover,
+html.light .lexical-h1:hover,
+html.light .lexical-h2:hover,
+html.light .lexical-h3:hover,
+html.light .lexical-blockquote:hover,
+html.light .lexical-code-block:hover,
+html.light .lexical-table:hover {
   background-color: rgba(168, 85, 247, 0.015) !important;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02), 0 0 1px rgba(168, 85, 247, 0.03) !important;
 }
 
 /* Restrict height and strip heavy margins on components inside the drag overlay */
-.dnd-drag-overlay .ProseMirror {
+.dnd-drag-overlay .lexical-root {
   padding: 0 !important;
   margin: 0 !important;
-  max-height: 180px !important; /* Cap high blocks (like giant tables/code) to keep it compact and lightweight */
+  max-height: 180px !important;
 }
 
-.dnd-drag-overlay .ProseMirror > * {
+.dnd-drag-overlay .lexical-root > * {
   margin-top: 0 !important;
   margin-bottom: 0 !important;
   padding-top: 4px !important;
@@ -866,4 +708,193 @@ html.dark .neu-btn:active {
 
 .animate-marquee-scroll {
   animation-name: marqueeScroll;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LEXICAL EDITOR — Typography & UI
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Headings ─────────────────────────────────────────────────────────────── */
+.lexical-h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--foreground);
+  letter-spacing: -0.02em;
+}
+.lexical-h2 {
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.3;
+  color: var(--foreground);
+  letter-spacing: -0.01em;
+}
+.lexical-h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--foreground);
+}
+.lexical-h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+
+/* ── Paragraph ────────────────────────────────────────────────────────────── */
+.lexical-paragraph {
+  line-height: 1.7;
+  color: var(--body-text);
+}
+
+/* ── Inline text styles ───────────────────────────────────────────────────── */
+.lexical-inline-code {
+  background: var(--muted);
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  padding: 0.1em 0.35em;
+  border-radius: 0.2rem;
+  border: 1px solid var(--border);
+}
+
+.lexical-highlight {
+  background: rgba(250, 204, 21, 0.25);
+  border-radius: 2px;
+  padding: 0.05em 0.1em;
+}
+
+/* ── Link ─────────────────────────────────────────────────────────────────── */
+.lexical-link {
+  color: #818cf8;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+.lexical-link:hover { color: #a5b4fc; }
+html.light .lexical-link { color: #4f46e5; }
+html.light .lexical-link:hover { color: #4338ca; }
+
+/* ── Lists ────────────────────────────────────────────────────────────────── */
+.lexical-ul { list-style: disc; padding-left: 1.5rem; margin: 0.5rem 0; }
+.lexical-ol { list-style: decimal; padding-left: 1.5rem; margin: 0.5rem 0; }
+.lexical-listitem { margin: 0.15rem 0; line-height: 1.65; }
+.lexical-nested-listitem { list-style: none; }
+
+/* ── Table ────────────────────────────────────────────────────────────────── */
+.lexical-table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+.lexical-table-cell {
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+  vertical-align: top;
+  min-width: 1em;
+  position: relative;
+}
+.lexical-table-cell--header {
+  background-color: var(--muted);
+  font-weight: 600;
+  text-align: left;
+}
+
+/* ── Code block ───────────────────────────────────────────────────────────── */
+.lexical-code-block {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  tab-size: 2;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* ── Prism / code highlight tokens ───────────────────────────────────────── */
+.token-comment, .token-prolog, .token-doctype, .token-cdata { color: #6b7280; font-style: italic; }
+.token-punctuation { color: #9ca3af; }
+.token-property, .token-tag, .token-boolean, .token-number,
+.token-constant, .token-symbol, .token-deleted { color: #f87171; }
+.token-selector, .token-attr, .token-string, .token-char,
+.token-builtin, .token-inserted { color: #86efac; }
+.token-operator, .token-entity, .token-url { color: #93c5fd; }
+.token-atrule, .token-attr-value, .token-keyword { color: #c084fc; }
+.token-function, .token-class-name { color: #fbbf24; }
+.token-regex, .token-important, .token-variable { color: #fb923c; }
+.token-namespace { opacity: 0.7; }
+.token-class { color: #34d399; }
+
+/* ── Page link ────────────────────────────────────────────────────────────── */
+.lexical-page-link {
+  color: #a78bfa;
+  background: rgba(167, 139, 250, 0.08);
+  border-radius: 3px;
+  padding: 0 2px;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.lexical-page-link:hover { background: rgba(167, 139, 250, 0.18); }
+
+/* ── Callouts ─────────────────────────────────────────────────────────────── */
+.lexical-callout {
+  border-left: 3px solid;
+  border-radius: 0.375rem;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+}
+.lexical-callout--info    { border-color: #60a5fa; background: rgba(96,165,250,0.06); }
+.lexical-callout--warning { border-color: #fbbf24; background: rgba(251,191,36,0.06); }
+.lexical-callout--success { border-color: #34d399; background: rgba(52,211,153,0.06); }
+.lexical-callout--error   { border-color: #f87171; background: rgba(248,113,113,0.06); }
+
+/* ── Toggle ───────────────────────────────────────────────────────────────── */
+.lexical-toggle {
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  margin: 0.5rem 0;
+}
+.lexical-toggle__summary {
+  cursor: pointer;
+  font-weight: 500;
+  user-select: none;
+  list-style: none;
+}
+.lexical-toggle__summary::-webkit-details-marker { display: none; }
+
+/* ── Horizontal rule ──────────────────────────────────────────────────────── */
+.lexical-hr-wrapper { margin: 1.5rem 0; }
+
+/* ── Equation ─────────────────────────────────────────────────────────────── */
+.lexical-equation--block {
+  display: block;
+  text-align: center;
+  padding: 0.5rem;
+  overflow-x: auto;
+}
+.lexical-equation--inline { display: inline; padding: 0 0.1em; }
+
+/* ── File block ───────────────────────────────────────────────────────────── */
+.lexical-file-block {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  margin: 0.5rem 0;
+  background: var(--muted);
+}
+.lexical-file-link {
+  color: var(--foreground);
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+.lexical-file-size {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
 }

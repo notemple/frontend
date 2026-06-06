@@ -1412,6 +1412,11 @@ html.light .lexical-link:hover { color: #4338ca; }
   background-clip: padding-box !important;
 }
 
+.lexical-root > .lexical-image-wrapper {
+  border-left: 56px solid transparent !important;
+  background-clip: padding-box !important;
+}
+
 .lexical-root > .lexical-callout {
   border-left: 56px solid transparent !important;
   background-clip: padding-box !important;

@@ -5,7 +5,7 @@ import type {
   SerializedLexicalNode,
   Spread,
 } from "lexical"
-import { DecoratorNode, $applyNodeReplacement, createEditor } from "lexical"
+import { DecoratorNode, $applyNodeReplacement, createEditor, $getRoot, $createParagraphNode } from "lexical"
 import type { ReactNode } from "react"
 import { Suspense, lazy } from "react"
 import { HeadingNode, QuoteNode } from "@lexical/rich-text"
@@ -40,6 +40,7 @@ export type SerializedColumnsContainerNode = Spread<
 
 export function createColumnEditor(editorStateJson?: string): LexicalEditor {
   const config = {
+    namespace: "nested-column-editor",
     theme: editorTheme,
     nodes: [
       HeadingNode,
@@ -64,10 +65,30 @@ export function createColumnEditor(editorStateJson?: string): LexicalEditor {
   if (editorStateJson) {
     try {
       const parsed = editor.parseEditorState(editorStateJson)
-      editor.setEditorState(parsed)
+      const isEmpty = parsed.read(() => {
+        const root = $getRoot()
+        return root.isEmpty()
+      })
+      if (!isEmpty) {
+        editor.setEditorState(parsed)
+      } else {
+        editor.update(() => {
+          const root = $getRoot()
+          root.append($createParagraphNode())
+        })
+      }
     } catch (e) {
       console.warn("Failed to parse nested editor state:", e)
+      editor.update(() => {
+        const root = $getRoot()
+        root.append($createParagraphNode())
+      })
     }
+  } else {
+    editor.update(() => {
+      const root = $getRoot()
+      root.append($createParagraphNode())
+    })
   }
   return editor
 }

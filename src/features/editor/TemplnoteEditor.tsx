@@ -42,31 +42,33 @@ export function TemplnoteEditor({
   return (
     <LexicalComposer initialConfig={{ ...config, editable: !readOnly }}>
       <div className="templnote-editor-wrapper relative flex flex-col w-full h-full">
-        <RichTextPlugin
-          contentEditable={
-            <ContentEditable
-              className="
-                lexical-root
-                outline-none w-full flex-1 cursor-text
-                text-[var(--body-text)]
-                min-h-[420px] px-0 py-0
-              "
-              aria-multiline
-              role="textbox"
-              spellCheck
-            />
-          }
-          placeholder={
-            <div className="
-              absolute top-0 left-0
-              text-[var(--muted-foreground)] text-base opacity-55
-              pointer-events-none select-none
-            ">
-              Press '/' for commands…
-            </div>
-          }
-          ErrorBoundary={SafeErrorBoundary}
-        />
+        <div className="editor-container">
+          <RichTextPlugin
+            contentEditable={
+              <ContentEditable
+                className="
+                  lexical-root
+                  outline-none w-full cursor-text
+                  text-[var(--body-text)]
+                  min-h-[420px] px-0 py-0
+                "
+                aria-multiline
+                role="textbox"
+                spellCheck
+              />
+            }
+            placeholder={
+              <div className="
+                absolute top-0 left-0
+                text-[var(--muted-foreground)] text-base opacity-55
+                pointer-events-none select-none
+              ">
+                Press '/' for commands…
+              </div>
+            }
+            ErrorBoundary={SafeErrorBoundary}
+          />
+        </div>
 
         <HistoryPlugin />
         <ListPlugin />

@@ -537,6 +537,13 @@ html.light .lexical-root hr {
   flex-direction: column;
 }
 
+.editor-container {
+  display: block !important;
+  flex: 1;
+  position: relative;
+  width: 100%;
+}
+
 /* Make Lexical ContentEditable fill the entire layout height */
 .lexical-root {
   flex: 1;

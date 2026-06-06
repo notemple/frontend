@@ -109,10 +109,9 @@ export default function SlashCommandMenu({
                       w-[calc(100%-8px)] h-9 flex items-center gap-2.5
                       px-2.5 mx-1 rounded-md text-left
                       text-sm transition-colors duration-75
-                      ${
-                        isSelected
-                          ? "bg-[rgba(168,85,247,0.1)] text-[#d8b4fe]"
-                          : "text-[var(--foreground)] hover:bg-[var(--muted)]"
+                      ${isSelected
+                        ? "bg-[rgba(168,85,247,0.1)] text-[#d8b4fe]"
+                        : "text-[var(--foreground)] hover:bg-[var(--muted)]"
                       }
                     `}
                     onMouseEnter={() => onHover(idx)}

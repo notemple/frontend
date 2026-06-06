@@ -21,6 +21,7 @@ function ImageComponent({
   src,
   alt,
   width: initialWidth,
+  height: initialHeight,
 }: {
   nodeKey: NodeKey
   src: string
@@ -29,52 +30,81 @@ function ImageComponent({
   height?: number
 }) {
   const [editor] = useLexicalComposerContext()
-  const [width, setWidth] = useState<number>(initialWidth ?? 720)
+  const targetWidth = initialWidth ?? 720
+  const [width, setWidth] = useState<number>(targetWidth)
   const [isHovered, setIsHovered] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
   const [isInColumn, setIsInColumn] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const [aspectRatio, setAspectRatio] = useState<number | null>(() => {
+    if (initialWidth && initialHeight) {
+      return initialWidth / initialHeight
+    }
+    return null
+  })
 
-  // Keep state in sync with Lexical node updates and layout constraints
+  // Detect column ancestor on mount
   useEffect(() => {
     const colAncestor = containerRef.current?.closest('[data-type="column"]') || 
                         containerRef.current?.closest('.column-block')
-    if (colAncestor) {
-      setIsInColumn(true)
-      if (initialWidth !== undefined) {
-        setWidth(initialWidth)
-      } else {
-        setWidth(colAncestor.getBoundingClientRect().width)
-      }
-    } else {
-      setIsInColumn(false)
-      if (initialWidth !== undefined) {
-        setWidth(initialWidth)
-      } else {
-        const parentWidth = containerRef.current?.parentElement?.getBoundingClientRect().width
-        if (parentWidth) {
-          setWidth(parentWidth)
-        }
-      }
-    }
-  }, [initialWidth])
+    setIsInColumn(!!colAncestor)
+  }, [])
 
-  // Sync the parent .lexical-image-wrapper DOM element's width to match the image's width
+  // Helper to compute max allowed width based on layout
+  const getMaxAllowedWidth = (): number => {
+    const colAncestor = containerRef.current?.closest('[data-type="column"]') || 
+                        containerRef.current?.closest('.column-block')
+    if (colAncestor) {
+      return colAncestor.getBoundingClientRect().width
+    }
+    // Let it grow up to 90vw in the main editor
+    return window.innerWidth * 0.9
+  }
+
+  // Handle window resizing and layout changes
+  useEffect(() => {
+    if (isResizing) return
+
+    const handleResize = () => {
+      const maxW = getMaxAllowedWidth()
+      setWidth(Math.min(targetWidth, maxW))
+    }
+
+    // Run once layout is stable
+    const timer = setTimeout(handleResize, 100)
+
+    window.addEventListener("resize", handleResize)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener("resize", handleResize)
+    }
+  }, [targetWidth, isInColumn, isResizing])
+
+  // Sync parent wrapper style on every render/update to keep it sized and centered with the image
   useEffect(() => {
     const wrapper = containerRef.current?.parentElement
     if (wrapper) {
       if (isInColumn) {
-        wrapper.style.width = ""
-        wrapper.style.maxWidth = ""
-        wrapper.style.margin = ""
-      } else {
-        const usePixelWidth = isResizing || initialWidth !== undefined || !isInColumn
-        wrapper.style.width = usePixelWidth ? `${width}px` : "100%"
+        wrapper.style.width = "100%"
         wrapper.style.maxWidth = "100%"
-        wrapper.style.margin = "0 auto"
+        wrapper.style.height = ""
+        wrapper.style.padding = ""
+        wrapper.style.marginLeft = ""
+        wrapper.style.marginRight = ""
+      } else {
+        wrapper.style.width = `${width}px`
+        wrapper.style.maxWidth = "90vw"
+        wrapper.style.padding = "0px"
+        wrapper.style.marginLeft = `calc(50% - ${width / 2}px - 56px)`
+        wrapper.style.marginRight = `calc(50% - ${width / 2}px)`
+        if (aspectRatio) {
+          wrapper.style.height = `${(width - 48) / aspectRatio}px`
+        } else {
+          wrapper.style.height = ""
+        }
       }
     }
-  }, [width, isInColumn, isResizing, initialWidth])
+  })
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -90,12 +120,7 @@ function ImageComponent({
     // Find horizontal center X coordinate of the image
     const centerX = imgRect.left + imgRect.width / 2
     
-    // Determine max allowed width based on layout
-    const colAncestor = containerRef.current?.closest('[data-type="column"]') || 
-                        containerRef.current?.closest('.column-block')
-    const maxAllowedWidth = colAncestor 
-      ? colAncestor.getBoundingClientRect().width 
-      : window.innerWidth * 0.9
+    const maxAllowedWidth = getMaxAllowedWidth()
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const distanceFromCenter = Math.abs(moveEvent.clientX - centerX)
@@ -121,6 +146,9 @@ function ImageComponent({
         const node = $getNodeByKey(nodeKey)
         if ($isImageNode(node)) {
           node.setWidth(finalWidth)
+          if (aspectRatio) {
+            node.setHeight(finalWidth / aspectRatio)
+          }
         }
       })
     }
@@ -128,8 +156,6 @@ function ImageComponent({
     window.addEventListener("mousemove", handleMouseMove)
     window.addEventListener("mouseup", handleMouseUp)
   }
-
-  const usePixelWidth = isResizing || initialWidth !== undefined || !isInColumn
 
   return (
     <div
@@ -140,7 +166,7 @@ function ImageComponent({
       style={{
         position: "relative",
         maxWidth: isInColumn ? "100%" : "90vw",
-        width: usePixelWidth ? `${width}px` : "100%",
+        width: "100%",
         padding: "0px 24px",
         boxSizing: "border-box",
       }}
@@ -148,6 +174,33 @@ function ImageComponent({
       <img
         src={src}
         alt={alt}
+        onLoad={(e) => {
+          const img = e.currentTarget
+          const naturalRatio = img.naturalWidth / img.naturalHeight
+          setAspectRatio(naturalRatio)
+          
+          if (initialWidth === undefined) {
+            const maxW = getMaxAllowedWidth()
+            const defaultWidth = Math.min(img.naturalWidth, maxW)
+            setWidth(defaultWidth)
+            if (editor.isEditable()) {
+              editor.update(() => {
+                const node = $getNodeByKey(nodeKey)
+                if ($isImageNode(node)) {
+                  node.setWidth(defaultWidth)
+                  node.setHeight(defaultWidth / naturalRatio)
+                }
+              })
+            }
+          } else if (initialHeight === undefined && editor.isEditable()) {
+            editor.update(() => {
+              const node = $getNodeByKey(nodeKey)
+              if ($isImageNode(node)) {
+                node.setHeight(initialWidth / naturalRatio)
+              }
+            })
+          }
+        }}
         className="select-none rounded-md border border-zinc-200/20 transition-shadow duration-200"
         style={{
           width: "100%",

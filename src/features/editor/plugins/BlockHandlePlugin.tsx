@@ -756,7 +756,10 @@ export default function BlockHandlePlugin({
         ) {
           leftPos = rect.left - 52
         }
-        leftPos = Math.max(rootRect.left - 56, leftPos)
+        
+        if (!blockEl.classList.contains("lexical-image-wrapper")) {
+          leftPos = Math.max(rootRect.left - 56, leftPos)
+        }
 
         const newTop = rect.top
         const newLeft = leftPos

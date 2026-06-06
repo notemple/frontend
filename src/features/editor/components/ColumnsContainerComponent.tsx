@@ -385,7 +385,8 @@ function ColumnWrapper({
 
   return (
     <div
-      className="group/column relative block"
+      className="group/column relative block column-block"
+      data-type="column"
       style={{
         width: `${col.width}%`,
         flex: `0 0 ${col.width}%`,

@@ -112,6 +112,8 @@ function ImageComponent({
     window.addEventListener("mouseup", handleMouseUp)
   }
 
+  const usePixelWidth = isResizing || initialWidth !== undefined || !isInColumn
+
   return (
     <div
       ref={containerRef}
@@ -121,6 +123,7 @@ function ImageComponent({
       style={{
         position: "relative",
         maxWidth: isInColumn ? "100%" : "90vw",
+        width: (isInColumn && !usePixelWidth) ? "100%" : undefined,
       }}
     >
       <img
@@ -128,7 +131,7 @@ function ImageComponent({
         alt={alt}
         className="select-none rounded-md border border-zinc-200/20 transition-shadow duration-200"
         style={{
-          width: `${width}px`,
+          width: usePixelWidth ? `${width}px` : "100%",
           maxWidth: isInColumn ? "100%" : "90vw",
           height: "auto",
           display: "block",

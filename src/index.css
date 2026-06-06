@@ -634,30 +634,30 @@ div[class*="bg-purple-500/80"] {
   /* No box-shadow transition — it triggers the global box-shadow: none reset */
 }
 
-.lexical-paragraph:hover,
-.lexical-h1:hover,
-.lexical-h2:hover,
-.lexical-h3:hover,
-.lexical-h4:hover,
-.lexical-blockquote:hover,
-.lexical-code-block:hover,
-.lexical-image-wrapper:hover,
-.lexical-table:hover,
-.lexical-ul:hover,
-.lexical-ol:hover {
+.lexical-paragraph:not([style*="background"]):hover,
+.lexical-h1:not([style*="background"]):hover,
+.lexical-h2:not([style*="background"]):hover,
+.lexical-h3:not([style*="background"]):hover,
+.lexical-h4:not([style*="background"]):hover,
+.lexical-blockquote:not([style*="background"]):hover,
+.lexical-code-block:not([style*="background"]):hover,
+.lexical-image-wrapper:not([style*="background"]):hover,
+.lexical-table:not([style*="background"]):hover,
+.lexical-ul:not([style*="background"]):hover,
+.lexical-ol:not([style*="background"]):hover {
   background-color: rgba(255, 255, 255, 0.025) !important;
 }
 
-html.light .lexical-paragraph:hover,
-html.light .lexical-h1:hover,
-html.light .lexical-h2:hover,
-html.light .lexical-h3:hover,
-html.light .lexical-h4:hover,
-html.light .lexical-blockquote:hover,
-html.light .lexical-code-block:hover,
-html.light .lexical-table:hover,
-html.light .lexical-ul:hover,
-html.light .lexical-ol:hover {
+html.light .lexical-paragraph:not([style*="background"]):hover,
+html.light .lexical-h1:not([style*="background"]):hover,
+html.light .lexical-h2:not([style*="background"]):hover,
+html.light .lexical-h3:not([style*="background"]):hover,
+html.light .lexical-h4:not([style*="background"]):hover,
+html.light .lexical-blockquote:not([style*="background"]):hover,
+html.light .lexical-code-block:not([style*="background"]):hover,
+html.light .lexical-table:not([style*="background"]):hover,
+html.light .lexical-ul:not([style*="background"]):hover,
+html.light .lexical-ol:not([style*="background"]):hover {
   background-color: rgba(0, 0, 0, 0.025) !important;
 }
 
@@ -1318,10 +1318,10 @@ html.light .lexical-link:hover { color: #4338ca; }
   padding: 0.75rem 1rem;
   margin: 1rem 0;
 }
-.lexical-callout--info    { border-color: #60a5fa; background: rgba(96,165,250,0.06); }
-.lexical-callout--warning { border-color: #fbbf24; background: rgba(251,191,36,0.06); }
-.lexical-callout--success { border-color: #34d399; background: rgba(52,211,153,0.06); }
-.lexical-callout--error   { border-color: #f87171; background: rgba(248,113,113,0.06); }
+.lexical-callout--info    { border-color: rgba(96, 165, 250, 0.35); background: rgba(96, 165, 250, 0.025); }
+.lexical-callout--warning { border-color: rgba(251, 191, 36, 0.35); background: rgba(251, 191, 36, 0.025); }
+.lexical-callout--success { border-color: rgba(52, 211, 153, 0.35); background: rgba(52, 211, 153, 0.025); }
+.lexical-callout--error   { border-color: rgba(248, 113, 113, 0.35); background: rgba(248, 113, 113, 0.025); }
 
 /* ── Toggle ───────────────────────────────────────────────────────────────── */
 .lexical-toggle {
@@ -1439,10 +1439,10 @@ html.light .lexical-link:hover { color: #4338ca; }
   border-radius: 0.375rem;
   z-index: -1;
 }
-.lexical-root > .lexical-callout--info::before    { border-left: 3px solid #60a5fa !important; background: rgba(96,165,250,0.06) !important; }
-.lexical-root > .lexical-callout--warning::before { border-left: 3px solid #fbbf24 !important; background: rgba(251,191,36,0.06) !important; }
-.lexical-root > .lexical-callout--success::before { border-left: 3px solid #34d399 !important; background: rgba(52,211,153,0.06) !important; }
-.lexical-root > .lexical-callout--error::before   { border-left: 3px solid #f87171 !important; background: rgba(248,113,113,0.06) !important; }
+.lexical-root > .lexical-callout--info::before    { border-left: 3px solid rgba(96, 165, 250, 0.35) !important; background: rgba(96, 165, 250, 0.025) !important; }
+.lexical-root > .lexical-callout--warning::before { border-left: 3px solid rgba(251, 191, 36, 0.35) !important; background: rgba(251, 191, 36, 0.025) !important; }
+.lexical-root > .lexical-callout--success::before { border-left: 3px solid rgba(52, 211, 153, 0.35) !important; background: rgba(52, 211, 153, 0.025) !important; }
+.lexical-root > .lexical-callout--error::before   { border-left: 3px solid rgba(248, 113, 113, 0.35) !important; background: rgba(248, 113, 113, 0.025) !important; }
 
 .lexical-root > .lexical-toggle {
   border: none !important;

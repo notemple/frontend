@@ -1004,14 +1004,32 @@ body.has-active-block-handle .cursor-col-resize {
 }
 
 .editor-content-column {
-  padding-left: 56px;   /* gutter for block handles */
+  padding-left: 0px;   /* gutter is handled by top-level blocks */
   padding-right: 24px;
 }
 /* On narrow viewports collapse the gutter */
 @media (max-width: 768px) {
+  .lexical-root > .lexical-paragraph,
+  .lexical-root > .lexical-h1,
+  .lexical-root > .lexical-h2,
+  .lexical-root > .lexical-h3,
+  .lexical-root > .lexical-h4,
+  .lexical-root > .lexical-blockquote,
+  .lexical-root > .lexical-code-block,
+  .lexical-root > .lexical-ul,
+  .lexical-root > .lexical-ol,
+  .lexical-root > .lexical-callout,
+  .lexical-root > .lexical-toggle {
+    border-left: 0px solid transparent !important;
+  }
+  .lexical-root > .lexical-table,
+  .lexical-root > .columns-outer-wrapper {
+    margin-left: 0px !important;
+    width: 100% !important;
+  }
   .editor-content-column {
-    padding-left: 16px;
-    padding-right: 16px;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
   }
   .block-handle-group {
     display: none;
@@ -1339,4 +1357,93 @@ html.light .lexical-link:hover { color: #4338ca; }
 .lexical-file-size {
   color: var(--muted-foreground);
   font-size: 0.75rem;
+}
+
+/* ── Gutter spacing on top-level blocks so block and gutter are on the same DOM element ── */
+.lexical-root > .lexical-paragraph,
+.lexical-root > .lexical-h1,
+.lexical-root > .lexical-h2,
+.lexical-root > .lexical-h3,
+.lexical-root > .lexical-h4 {
+  border-left: 56px solid transparent !important;
+  background-clip: padding-box !important;
+}
+
+.lexical-root > .lexical-ul,
+.lexical-root > .lexical-ol {
+  border-left: 56px solid transparent !important;
+  background-clip: padding-box !important;
+  padding-left: 1.5rem !important;
+}
+
+.lexical-root > .lexical-blockquote {
+  border-left: 56px solid transparent !important;
+  background-clip: padding-box !important;
+  padding-left: 1rem !important;
+  position: relative;
+}
+.lexical-blockquote {
+  border-left: none !important;
+}
+.lexical-root > .lexical-blockquote::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--border);
+}
+
+.lexical-root > .lexical-code-block {
+  border-left: 56px solid transparent !important;
+  background-clip: padding-box !important;
+}
+
+.lexical-root > .lexical-callout {
+  border-left: 56px solid transparent !important;
+  background-clip: padding-box !important;
+  position: relative;
+  background: transparent !important;
+}
+.lexical-callout {
+  border-left: none !important;
+}
+.lexical-root > .lexical-callout::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 0.375rem;
+  z-index: -1;
+}
+.lexical-root > .lexical-callout--info::before    { border-left: 3px solid #60a5fa !important; background: rgba(96,165,250,0.06) !important; }
+.lexical-root > .lexical-callout--warning::before { border-left: 3px solid #fbbf24 !important; background: rgba(251,191,36,0.06) !important; }
+.lexical-root > .lexical-callout--success::before { border-left: 3px solid #34d399 !important; background: rgba(52,211,153,0.06) !important; }
+.lexical-root > .lexical-callout--error::before   { border-left: 3px solid #f87171 !important; background: rgba(248,113,113,0.06) !important; }
+
+.lexical-root > .lexical-toggle {
+  border: none !important;
+  border-left: 56px solid transparent !important;
+  background-clip: padding-box !important;
+  position: relative;
+}
+.lexical-root > .lexical-toggle::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  z-index: -1;
+}
+
+.lexical-root > .lexical-table,
+.lexical-root > .columns-outer-wrapper {
+  margin-left: 56px !important;
+  width: calc(100% - 56px) !important;
 }

@@ -47,15 +47,45 @@ function EditorScrollContainer({ children }: { children: React.ReactNode }) {
 
   const handleScrollAreaClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement
-    // Trigger if clicking on the scroll area (margins) or the spacer at the bottom
+    
+    // Check if clicked in empty space below blocks
+    const rootEl = editor.getRootElement()
+    let isBelowBlocks = false
+
+    if (rootEl) {
+      const lastChild = rootEl.lastElementChild
+      if (lastChild) {
+        const lastChildRect = lastChild.getBoundingClientRect()
+        // If click is below the bottom of the last block
+        if (e.clientY > lastChildRect.bottom) {
+          isBelowBlocks = true
+        }
+      } else {
+        // No blocks exist yet
+        isBelowBlocks = true
+      }
+    }
+
+    // Trigger if clicking on the scroll area (margins), the spacer at the bottom,
+    // or the empty space below the last block in the content editable
     if (
       target.classList.contains("editor-scroll-area") ||
-      target.classList.contains("editor-click-target")
+      target.classList.contains("editor-click-target") ||
+      target.classList.contains("lexical-editor-root") ||
+      isBelowBlocks
     ) {
       e.preventDefault()
       e.stopPropagation()
       editor.update(() => {
         const root = $getRoot()
+        const lastChild = root.getLastChild()
+        
+        // If the last child is already an empty paragraph, just select it
+        if (lastChild && $isParagraphNode(lastChild) && lastChild.getTextContent() === "") {
+          lastChild.select()
+          return
+        }
+
         const newParagraph = $createParagraphNode()
         root.append(newParagraph)
         newParagraph.select()
@@ -190,7 +220,7 @@ export function TemplnoteEditor({
                   </div>
                 }
                 placeholder={
-                  <div className="absolute top-0 left-0 pointer-events-none select-none text-[var(--muted-foreground)] opacity-40 text-base leading-7">
+                  <div className="absolute top-0 left-14 pointer-events-none select-none text-[var(--muted-foreground)] opacity-40 text-base leading-7">
                     Press '/' for commands…
                   </div>
                 }

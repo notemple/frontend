@@ -6,9 +6,15 @@ import {
   $getNodeByKey,
   $createParagraphNode,
   $isElementNode,
+  $getSelection,
+  $isRangeSelection,
   type LexicalNode,
 } from "lexical"
-import { $createHeadingNode } from "@lexical/rich-text"
+import { $createHeadingNode, $createQuoteNode } from "@lexical/rich-text"
+import {
+  INSERT_ORDERED_LIST_COMMAND,
+  INSERT_UNORDERED_LIST_COMMAND,
+} from "@lexical/list"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -18,7 +24,7 @@ interface HandleState {
   nodeKey: string
 }
 
-type TurnIntoType = "paragraph" | "h1" | "h2" | "h3" | "h4"
+type TurnIntoType = "paragraph" | "h1" | "h2" | "h3" | "h4" | "bullet" | "number" | "quote"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -353,10 +359,13 @@ function BlockContextMenu({
                 <div className="block-context-submenu">
                   <div className="block-context-menu-section-label" style={{ padding: "4px 8px 2px" }}>Turn into</div>
                   {[
-                    { label: "Text",      type: "paragraph" as TurnIntoType, icon: <TextIcon /> },
-                    { label: "Heading 1", type: "h1"        as TurnIntoType, icon: <H1Icon /> },
-                    { label: "Heading 2", type: "h2"        as TurnIntoType, icon: <H2Icon /> },
-                    { label: "Heading 3", type: "h3"        as TurnIntoType, icon: <H3Icon /> },
+                    { label: "Text",          type: "paragraph" as TurnIntoType, icon: <TextIcon /> },
+                    { label: "Heading 1",     type: "h1"        as TurnIntoType, icon: <H1Icon /> },
+                    { label: "Heading 2",     type: "h2"        as TurnIntoType, icon: <H2Icon /> },
+                    { label: "Heading 3",     type: "h3"        as TurnIntoType, icon: <H3Icon /> },
+                    { label: "Bulleted List", type: "bullet"    as TurnIntoType, icon: <BulletIcon /> },
+                    { label: "Numbered List", type: "number"    as TurnIntoType, icon: <NumberIcon /> },
+                    { label: "Quote",         type: "quote"     as TurnIntoType, icon: <QuoteIcon /> },
                   ].map((opt) => (
                     <button
                       key={opt.type}
@@ -502,6 +511,38 @@ function H3Icon() {
   )
 }
 
+function BulletIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ opacity: 0.9 }}>
+      <circle cx="3.5" cy="4.5" r="1.2"/>
+      <rect x="7" y="3.8" width="7" height="1.4" rx="0.5"/>
+      <circle cx="3.5" cy="8.5" r="1.2"/>
+      <rect x="7" y="7.8" width="7" height="1.4" rx="0.5"/>
+      <circle cx="3.5" cy="12.5" r="1.2"/>
+      <rect x="7" y="11.8" width="7" height="1.4" rx="0.5"/>
+    </svg>
+  )
+}
+function NumberIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ opacity: 0.9 }}>
+      <text x="1" y="6" fontFamily="system-ui" fontWeight="600" fontSize="7">1</text>
+      <rect x="7" y="4" width="7" height="1.4" rx="0.5"/>
+      <text x="1" y="11" fontFamily="system-ui" fontWeight="600" fontSize="7">2</text>
+      <rect x="7" y="9" width="7" height="1.4" rx="0.5"/>
+      <text x="1" y="15" fontFamily="system-ui" fontWeight="600" fontSize="7">3</text>
+      <rect x="7" y="13" width="7" height="1.4" rx="0.5"/>
+    </svg>
+  )
+}
+function QuoteIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ opacity: 0.9 }}>
+      <path d="M3.5 4h3v3h-2l1 2.5h-2L4.5 7h-1V4zm6 0h3v3h-2l1 2.5h-2L10.5 7h-1V4z"/>
+    </svg>
+  )
+}
+
 // ─── Main plugin ──────────────────────────────────────────────────────────────
 
 export default function BlockHandlePlugin({
@@ -544,74 +585,92 @@ export default function BlockHandlePlugin({
 
     const onMouseMove = (e: MouseEvent) => {
       if (menuOpen) return
-      if (
-        e.target instanceof HTMLElement &&
-        e.target.closest(".block-handle-group")
-      ) {
+
+      const target = e.target as HTMLElement | null
+      if (!target) return
+
+      // 1. If mouse is over the gutter buttons, keep them visible
+      if (target.closest(".block-handle-group")) {
         clearTimeout(hideTimer.current)
         return
       }
-      clearTimeout(hideTimer.current)
 
-      if (e.buttons > 0) {
-        setHandle(null)
-        return
-      }
+      // 2. If mouse is inside the editor, track the block
+      if (root.contains(target)) {
+        clearTimeout(hideTimer.current)
 
-      if (
-        e.target instanceof HTMLElement &&
-        (e.target.classList.contains("cursor-col-resize") ||
-          e.target.closest(".cursor-col-resize"))
-      ) {
-        setHandle(null)
-        return
-      }
+        if (e.buttons > 0) {
+          setHandle(null)
+          return
+        }
 
-      let target = e.target as HTMLElement | null
-      while (target && target.parentElement !== root) {
-        target = target.parentElement
-      }
-      if (!target || target === root) {
-        scheduleHide()
-        return
-      }
+        if (
+          target.classList.contains("cursor-col-resize") ||
+          target.closest(".cursor-col-resize")
+        ) {
+          setHandle(null)
+          return
+        }
 
-      let key = target.getAttribute("data-lexical-node-key")
-      if (!key) {
-        const elements = target.querySelectorAll("[data-lexical-node-key]")
-        for (const el of Array.from(elements)) {
-          if (el.closest(".lexical-editor-root") === root) {
-            key = el.getAttribute("data-lexical-node-key")
-            break
+        // Find the top-level block node child of the root editor
+        let blockEl: HTMLElement | null = target
+        while (blockEl && blockEl.parentElement !== root) {
+          blockEl = blockEl.parentElement
+        }
+
+        if (!blockEl || blockEl === root) {
+          scheduleHide()
+          return
+        }
+
+        let key = blockEl.getAttribute("data-lexical-node-key")
+        if (!key) {
+          const elements = blockEl.querySelectorAll("[data-lexical-node-key]")
+          for (const el of Array.from(elements)) {
+            if (el.closest(".lexical-editor-root") === root) {
+              key = el.getAttribute("data-lexical-node-key")
+              break
+            }
           }
         }
-      }
 
-      const rect = target.getBoundingClientRect()
-      const rootRect = root.getBoundingClientRect()
+        const rect = blockEl.getBoundingClientRect()
+        const rootRect = root.getBoundingClientRect()
 
-      const isColumnsContainer = target.classList.contains("columns-outer-wrapper")
-      // Use viewport-relative coords (no scrollX/Y) since gutter div uses position:fixed
-      let leftPos = rect.left - 52
-      if (isNested) {
-        leftPos = rect.left - 60
-      } else if (isColumnsContainer) {
-        const columnsContainer = target.querySelector(".columns-container")
-        if (columnsContainer) {
-          const colRect = columnsContainer.getBoundingClientRect()
-          leftPos = colRect.left - 52
-        } else {
+        // Use viewport-relative coords (no scrollX/Y) since gutter uses position:fixed
+        let leftPos = rect.left + 4
+        if (isNested) {
+          leftPos = rect.left - 60
+        } else if (
+          blockEl.classList.contains("lexical-table") ||
+          blockEl.classList.contains("columns-outer-wrapper") ||
+          blockEl.closest(".lexical-table") ||
+          blockEl.closest(".columns-outer-wrapper")
+        ) {
           leftPos = rect.left - 52
         }
-      }
-      leftPos = Math.max(rootRect.left - 56, leftPos)
+        leftPos = Math.max(rootRect.left - 56, leftPos)
 
-      setHandle({
-        // FIX 7e: top-align to block (4px offset from top) — viewport-relative
-        top: rect.top,
-        left: leftPos,
-        nodeKey: key ?? "",
-      })
+        const newTop = rect.top
+        const newLeft = leftPos
+        const newKey = key ?? ""
+
+        setHandle((prev) => {
+          if (
+            prev &&
+            prev.top === newTop &&
+            prev.left === newLeft &&
+            prev.nodeKey === newKey
+          ) {
+            return prev
+          }
+          return { top: newTop, left: newLeft, nodeKey: newKey }
+        })
+        return
+      }
+
+      // 3. If mouse is anywhere else, hide the gutter buttons
+      scheduleHide()
     }
 
     const scheduleHide = () => {
@@ -620,17 +679,19 @@ export default function BlockHandlePlugin({
       hideTimer.current = setTimeout(() => setHandle(null), 300)
     }
 
-    const onMouseLeave = () => scheduleHide()
-    const onMouseDown = () => setHandle(null)
+    const onMouseDown = (e: MouseEvent) => {
+      // If clicking inside the editor, hide the handles immediately
+      if (root.contains(e.target as Node)) {
+        setHandle(null)
+      }
+    }
 
-    root.addEventListener("mousemove", onMouseMove)
-    root.addEventListener("mouseleave", onMouseLeave)
-    root.addEventListener("mousedown", onMouseDown)
+    document.addEventListener("mousemove", onMouseMove)
+    document.addEventListener("mousedown", onMouseDown)
 
     return () => {
-      root.removeEventListener("mousemove", onMouseMove)
-      root.removeEventListener("mouseleave", onMouseLeave)
-      root.removeEventListener("mousedown", onMouseDown)
+      document.removeEventListener("mousemove", onMouseMove)
+      document.removeEventListener("mousedown", onMouseDown)
       clearTimeout(hideTimer.current)
     }
   }, [editor, menuOpen, isNested])
@@ -693,6 +754,27 @@ export default function BlockHandlePlugin({
         if (!handle?.nodeKey) return
         const node = $getNodeByKey(handle.nodeKey)
         if (!node) return
+
+        if (type === "bullet") {
+          node.selectEnd()
+          editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined)
+          return
+        }
+        if (type === "number") {
+          node.selectEnd()
+          editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined)
+          return
+        }
+        if (type === "quote") {
+          const quoteNode = $createQuoteNode()
+          if ($isElementNode(node)) {
+            node.getChildren().forEach((child) => {
+              quoteNode.append(cloneNode(child))
+            })
+          }
+          node.replace(quoteNode)
+          return
+        }
 
         let newNode
         if (type === "paragraph") {
@@ -772,9 +854,10 @@ export default function BlockHandlePlugin({
         className="block-handle-group"
         style={{
           position: "fixed",
-          // FIX 7e: 4px offset from top of block, not centered
-          top: handle.top + 4,
-          left: handle.left,
+          // Adjust top/left to compensate for the padding so the buttons remain in the same position
+          top: handle.top - 6, // +4 offset - 10px padding
+          left: handle.left - 24, // left offset - 24px padding
+          padding: "10px 24px",
           zIndex: 50,
           display: "flex",
           alignItems: "center",

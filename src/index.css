@@ -536,7 +536,7 @@ html.light .lexical-root hr {
 
 .columns-container .lexical-root > .lexical-image-wrapper {
   border-left: 0px solid transparent !important;
-  padding: 12px 32px !important;
+  padding: 0px !important;
   box-sizing: border-box !important;
 }
 
@@ -641,7 +641,7 @@ div[class*="bg-purple-500/80"] {
 }
 
 .lexical-image-wrapper {
-  padding: 12px;
+  padding: 0px;
   box-sizing: border-box;
 }
 

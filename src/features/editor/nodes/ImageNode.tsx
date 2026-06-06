@@ -98,7 +98,8 @@ function ImageComponent({
         wrapper.style.marginLeft = `calc(50% - ${width / 2}px - 56px)`
         wrapper.style.marginRight = `calc(50% - ${width / 2}px)`
         if (aspectRatio) {
-          wrapper.style.height = `${(width - 48) / aspectRatio}px`
+          const contentWidth = isInColumn ? width : width - 56
+          wrapper.style.height = `${contentWidth / aspectRatio}px`
         } else {
           wrapper.style.height = ""
         }
@@ -147,7 +148,8 @@ function ImageComponent({
         if ($isImageNode(node)) {
           node.setWidth(finalWidth)
           if (aspectRatio) {
-            node.setHeight(finalWidth / aspectRatio)
+            const contentWidth = isInColumn ? finalWidth : finalWidth - 56
+            node.setHeight(contentWidth / aspectRatio)
           }
         }
       })
@@ -167,7 +169,7 @@ function ImageComponent({
         position: "relative",
         maxWidth: isInColumn ? "100%" : "90vw",
         width: "100%",
-        padding: "0px 24px",
+        padding: "0px",
         boxSizing: "border-box",
       }}
     >
@@ -188,7 +190,8 @@ function ImageComponent({
                 const node = $getNodeByKey(nodeKey)
                 if ($isImageNode(node)) {
                   node.setWidth(defaultWidth)
-                  node.setHeight(defaultWidth / naturalRatio)
+                  const contentWidth = isInColumn ? defaultWidth : defaultWidth - 56
+                  node.setHeight(contentWidth / naturalRatio)
                 }
               })
             }
@@ -196,7 +199,8 @@ function ImageComponent({
             editor.update(() => {
               const node = $getNodeByKey(nodeKey)
               if ($isImageNode(node)) {
-                node.setHeight(initialWidth / naturalRatio)
+                const contentWidth = isInColumn ? initialWidth : initialWidth - 56
+                node.setHeight(contentWidth / naturalRatio)
               }
             })
           }

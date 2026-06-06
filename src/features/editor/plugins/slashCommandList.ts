@@ -165,6 +165,7 @@ export const slashCommands: SlashCommand[] = [
         if ($isRangeSelection(sel)) {
           const node = $createCalloutNode("info")
           sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
+          node.select()
         }
       }),
   },

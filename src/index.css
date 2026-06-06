@@ -530,9 +530,14 @@ html.light .lexical-root hr {
 .columns-container .lexical-root > .lexical-ul,
 .columns-container .lexical-root > .lexical-ol,
 .columns-container .lexical-root > .lexical-callout,
-.columns-container .lexical-root > .lexical-toggle,
+.columns-container .lexical-root > .lexical-toggle {
+  border-left: 0px solid transparent !important;
+}
+
 .columns-container .lexical-root > .lexical-image-wrapper {
   border-left: 0px solid transparent !important;
+  padding: 0 32px !important;
+  box-sizing: border-box !important;
 }
 
 /* Column DOM element created by ColumnNode.createDOM() */

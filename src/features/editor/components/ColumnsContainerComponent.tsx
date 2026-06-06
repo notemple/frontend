@@ -160,6 +160,15 @@ export default function ColumnsContainerComponent({
           newOffset = Math.max(0, so - deltaX)
         }
 
+        // Limit the maximum width of the column node to 90% of the screen/viewport width
+        const limitWidth = Math.min(
+          window.innerWidth,
+          containerRef.current?.closest(".editor-scroll-area")?.getBoundingClientRect().width ?? window.innerWidth
+        ) * 0.90
+        const parentWidth = containerRef.current?.parentElement?.getBoundingClientRect().width ?? 720
+        const maxOffset = Math.max(0, (limitWidth - parentWidth) / 2)
+        newOffset = Math.min(maxOffset, newOffset)
+
         editor.update(() => {
           const containerNode = $getNodeByKey(nodeKey)
           if ($isColumnsContainerNode(containerNode)) {

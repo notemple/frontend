@@ -1415,6 +1415,9 @@ html.light .lexical-link:hover { color: #4338ca; }
 .lexical-root > .lexical-image-wrapper {
   border-left: 56px solid transparent !important;
   background-clip: padding-box !important;
+  display: flex !important;
+  justify-content: center !important;
+  overflow: visible !important;
 }
 
 .lexical-root > .lexical-callout {

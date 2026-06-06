@@ -8,15 +8,52 @@ import {
   $isElementNode,
   $getSelection,
   $isRangeSelection,
+  $getRoot,
+  $parseSerializedNode,
+  $getNearestNodeFromDOMNode,
+  $isRootNode,
   type LexicalNode,
+  ElementNode,
 } from "lexical"
-import { $createHeadingNode, $createQuoteNode } from "@lexical/rich-text"
+import { $createHeadingNode, $createQuoteNode, HeadingNode, QuoteNode } from "@lexical/rich-text"
+import { $setBlocksType } from "@lexical/selection"
 import {
   INSERT_ORDERED_LIST_COMMAND,
   INSERT_UNORDERED_LIST_COMMAND,
 } from "@lexical/list"
-
+import { ColorPicker } from '../../../shared/ui/ColorPicker';
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+// --- MONKEY PATCH FOR ELEMENT NODE STYLES ---
+// Lexical's ElementNode does not serialize `__style` by default.
+// We patch it here globally so that block background colors are permanent.
+if (!('__patchedElementNode' in ElementNode.prototype)) {
+  Object.defineProperty(ElementNode.prototype, '__patchedElementNode', { value: true, enumerable: false });
+
+  const originalExportJSON = ElementNode.prototype.exportJSON;
+  ElementNode.prototype.exportJSON = function () {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const json = originalExportJSON.call(this) as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((this as any).__style) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      json.style = (this as any).__style;
+    }
+    return json;
+  };
+
+  const originalUpdateFromJSON = ElementNode.prototype.updateFromJSON;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ElementNode.prototype.updateFromJSON = function (serializedNode: any) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const node = originalUpdateFromJSON.call(this, serializedNode) as any;
+    if (serializedNode.style) {
+      node.setStyle(serializedNode.style);
+    }
+    return node;
+  };
+}
+// --------------------------------------------
 
 interface HandleState {
   top: number
@@ -27,18 +64,6 @@ interface HandleState {
 type TurnIntoType = "paragraph" | "h1" | "h2" | "h3" | "h4" | "bullet" | "number" | "quote"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function cloneNode(node: LexicalNode): LexicalNode {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const nodeClass = node.constructor as any
-  const clone = nodeClass.clone(node)
-  if ($isElementNode(node) && $isElementNode(clone)) {
-    node.getChildren().forEach((child) => {
-      clone.append(cloneNode(child))
-    })
-  }
-  return clone
-}
 
 function formatTimeAgo(date: Date): string {
   const now = new Date()
@@ -168,10 +193,13 @@ interface MenuProps {
   onMoveToTop: () => void
   onMoveToBottom: () => void
   lastEdited: Date
+  selectedColor: string
+  onColorSelect: (color: string) => void
 }
 
 function BlockContextMenu({
   position,
+  nodeKey,
   onClose,
   onDuplicate,
   onDelete,
@@ -180,7 +208,10 @@ function BlockContextMenu({
   onMoveToTop,
   onMoveToBottom,
   lastEdited,
+  selectedColor,
+  onColorSelect,
 }: MenuProps) {
+  const [editor] = useLexicalComposerContext()
   const [search, setSearch] = useState("")
   const [turnIntoOpen, setTurnIntoOpen] = useState(false)
   const [colorOpen, setColorOpen] = useState(false)
@@ -209,6 +240,21 @@ function BlockContextMenu({
       document.removeEventListener("keydown", handleKeyDown, true)
     }
   }, [onClose])
+
+  // Sync selectedColor when colorOpen changes
+  useEffect(() => {
+    if (colorOpen && nodeKey) {
+      editor.getEditorState().read(() => {
+        const node = $getNodeByKey(nodeKey);
+        if (node && $isElementNode(node)) {
+          const style = node.getStyle();
+          const match = style.match(/background:\s*([^;]+)/i);
+          const currentBg = match ? match[1].trim() : "transparent";
+          onColorSelect(currentBg);
+        }
+      });
+    }
+  }, [colorOpen, nodeKey, editor, onColorSelect]);
 
   const menuItems = [
     {
@@ -384,19 +430,14 @@ function BlockContextMenu({
               {item.id === "color" && colorOpen && (
                 <div className="block-context-submenu block-context-submenu-color">
                   <div className="block-context-menu-section-label" style={{ padding: "4px 8px 2px" }}>Color</div>
-                  <div className="color-grid">
-                    {COLORS.map((color) => (
-                      <button
-                        key={color.value}
-                        className="color-swatch-btn"
-                        style={{ background: color.bg === "transparent" ? "var(--muted)" : color.bg }}
-                        title={color.label}
-                        onClick={onClose}
-                        role="menuitem"
-                        aria-label={color.label}
-                      />
-                    ))}
-                  </div>
+                  <ColorPicker
+                    currentColor={selectedColor}
+                    onChange={(color) => {
+                      onColorSelect(color);
+                      setColorOpen(false);
+                      onClose();
+                    }}
+                  />
                 </div>
               )}
             </div>
@@ -556,17 +597,46 @@ export default function BlockHandlePlugin({
   useEffect(() => {
     handleRef.current = handle
   }, [handle])
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [selectedColor, setSelectedColor] = useState<string>('transparent');
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const lastEditedRef = useRef<Date>(new Date())
   // FIX 7d: toast state
   const [toast, setToast] = useState<string | null>(null)
 
-  // Track last edit time
+  // Track last edit time and apply block styles to the DOM
   useEffect(() => {
-    return editor.registerUpdateListener(() => {
+    return editor.registerUpdateListener(({ editorState }) => {
       lastEditedRef.current = new Date()
+      
+      // Lexical's ParagraphNode/HeadingNode doesn't apply `style` to the DOM natively.
+      // We manually apply it here after every update so that the color renders.
+      editorState.read(() => {
+        const rootDOM = editor.getRootElement();
+        if (!rootDOM) return;
+        
+        const applyStyles = (node: LexicalNode) => {
+          if ($isElementNode(node)) {
+            const el = editor.getElementByKey(node.getKey());
+            if (el) {
+              const style = node.getStyle();
+              const match = style.match(/background:\s*([^;]+)/i);
+              const color = match ? match[1].trim() : "";
+              if (color && color !== "transparent" && color !== "default") {
+                el.style.background = color;
+                el.style.borderRadius = "4px";
+                el.style.transition = "background 0.2s ease";
+              } else {
+                el.style.background = "";
+                el.style.borderRadius = "";
+              }
+            }
+            node.getChildren().forEach(applyStyles);
+          }
+        };
+        $getRoot().getChildren().forEach(applyStyles);
+      });
     })
   }, [editor])
 
@@ -646,16 +716,22 @@ export default function BlockHandlePlugin({
           return
         }
 
-        let key = blockEl.getAttribute("data-lexical-node-key")
-        if (!key) {
-          const elements = blockEl.querySelectorAll("[data-lexical-node-key]")
-          for (const el of Array.from(elements)) {
-            if (el.closest(".lexical-editor-root") === root) {
-              key = el.getAttribute("data-lexical-node-key")
-              break
+        let key: string | null = null
+        editor.read(() => {
+          try {
+            let node = $getNearestNodeFromDOMNode(target!)
+            if (!node) return
+            // Walk up to the direct child of root
+            while (node.getParent() && !$isRootNode(node.getParent())) {
+              node = node.getParent()!
             }
+            key = node.getKey()
+          } catch {
+            // Element not in this editor's node map (decorator UI chrome etc.)
           }
-        }
+        })
+
+        if (!key) { scheduleHide(); return }
 
         const rect = blockEl.getBoundingClientRect()
         const rootRect = root.getBoundingClientRect()
@@ -717,7 +793,9 @@ export default function BlockHandlePlugin({
       document.removeEventListener("mousedown", onMouseDown)
       clearTimeout(hideTimer.current)
     }
-  }, [editor, menuOpen, isNested])
+  }, [editor, menuOpen, isNested]);
+
+
 
   // ── Actions ──────────────────────────────────────────────────────────────────
 
@@ -754,12 +832,41 @@ export default function BlockHandlePlugin({
       if (!handle?.nodeKey) return
       const node = $getNodeByKey(handle.nodeKey)
       if (!node) return
-      const clone = cloneNode(node)
+
+      function deepClone(n: LexicalNode): LexicalNode {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const NodeClass = n.constructor as any
+        const clone = NodeClass.clone(n)
+        if ($isElementNode(n) && $isElementNode(clone)) {
+          n.getChildren().forEach((child) => {
+            clone.append(deepClone(child))
+          })
+        }
+        return clone
+      }
+
+      const clone = deepClone(node)
       node.insertAfter(clone)
     })
     setMenuOpen(false)
     setHandle(null)
   }, [editor, handle])
+
+  const handleColorSelect = useCallback((color: string) => {
+    if (handle?.nodeKey) {
+      editor.update(() => {
+        const node = $getNodeByKey(handle.nodeKey);
+        if (node && $isElementNode(node)) {
+          if (color && color !== "transparent" && color !== "default") {
+            node.setStyle(`background: ${color};`);
+          } else {
+            node.setStyle("");
+          }
+        }
+      });
+    }
+    setSelectedColor(color);
+  }, [editor, handle]);
 
   const handleDelete = useCallback(() => {
     editor.update(() => {
@@ -773,48 +880,45 @@ export default function BlockHandlePlugin({
 
   const handleTurnInto = useCallback(
     (type: TurnIntoType) => {
+      setMenuOpen(false)
+      setHandle(null)
+
+      if (type === "bullet" || type === "number") {
+        // Must select the node first, then dispatch the command outside update()
+        editor.update(() => {
+          if (!handle?.nodeKey) return
+          const node = $getNodeByKey(handle.nodeKey)
+          if (!node) return
+          node.selectEnd()
+        })
+        setTimeout(() => {
+          if (type === "bullet") {
+            editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined)
+          } else {
+            editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined)
+          }
+        }, 0)
+        return
+      }
+
       editor.update(() => {
         if (!handle?.nodeKey) return
         const node = $getNodeByKey(handle.nodeKey)
-        if (!node) return
-
-        if (type === "bullet") {
-          node.selectEnd()
-          editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined)
-          return
-        }
-        if (type === "number") {
-          node.selectEnd()
-          editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined)
-          return
-        }
-        if (type === "quote") {
-          const quoteNode = $createQuoteNode()
-          if ($isElementNode(node)) {
-            node.getChildren().forEach((child) => {
-              quoteNode.append(cloneNode(child))
-            })
-          }
-          node.replace(quoteNode)
-          return
-        }
+        if (!node || !$isElementNode(node)) return
 
         let newNode
         if (type === "paragraph") {
           newNode = $createParagraphNode()
+        } else if (type === "quote") {
+          newNode = $createQuoteNode()
         } else {
           newNode = $createHeadingNode(type as "h1" | "h2" | "h3" | "h4")
         }
 
-        if ($isElementNode(node)) {
-          node.getChildren().forEach((child) => {
-            newNode.append(cloneNode(child))
-          })
-        }
+        node.getChildren().forEach((child) => newNode.append(child))
         node.replace(newNode)
+        newNode.selectEnd()
       })
-      setMenuOpen(false)
-      setHandle(null)
     },
     [editor, handle]
   )
@@ -914,6 +1018,8 @@ export default function BlockHandlePlugin({
           onMoveToTop={handleMoveToTop}
           onMoveToBottom={handleMoveToBottom}
           lastEdited={lastEditedRef.current}
+          selectedColor={selectedColor}
+          onColorSelect={handleColorSelect}
         />
       )}
 

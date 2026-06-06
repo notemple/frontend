@@ -24,6 +24,10 @@ export default function PersistencePlugin({ documentId, onWordCountChange }: Pro
       if (!doc?.lexicalState) return
       try {
         const parsed = editor.parseEditorState(doc.lexicalState)
+        if (parsed.isEmpty()) {
+          console.warn("[PersistencePlugin] Parsed state is empty. Ignoring.")
+          return
+        }
         // setEditorState must be called outside of editor.update()
         queueMicrotask(() => editor.setEditorState(parsed))
       } catch (err) {
@@ -38,6 +42,9 @@ export default function PersistencePlugin({ documentId, onWordCountChange }: Pro
       const serialized = JSON.stringify(editorState.toJSON())
       const textContent = editorState.read(() => $getRoot().getTextContent())
       const wordCount = textContent.trim().split(/\s+/).filter(Boolean).length
+
+      // Prevent saving empty states that could corrupt the document
+      if (editorState.isEmpty()) return
 
       await db.documents.update(documentId, {
         lexicalState: serialized,

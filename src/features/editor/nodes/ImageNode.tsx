@@ -32,6 +32,7 @@ function ImageComponent({
   const [editor] = useLexicalComposerContext()
   const targetWidth = initialWidth ?? 720
   const [width, setWidth] = useState<number>(targetWidth)
+  const [isLoaded, setIsLoaded] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
   const [isInColumn, setIsInColumn] = useState(false)
@@ -91,8 +92,8 @@ function ImageComponent({
         wrapper.style.padding = ""
         wrapper.style.marginLeft = ""
         wrapper.style.marginRight = ""
-        if (aspectRatio) {
-          const contentWidth = Math.max(0, width - 64)
+        if (!isLoaded && aspectRatio) {
+          const contentWidth = width
           wrapper.style.height = `${contentWidth / aspectRatio}px`
         } else {
           wrapper.style.height = ""
@@ -103,7 +104,7 @@ function ImageComponent({
         wrapper.style.padding = "0px"
         wrapper.style.marginLeft = `calc(50% - ${width / 2}px - 56px)`
         wrapper.style.marginRight = `calc(50% - ${width / 2}px)`
-        if (aspectRatio) {
+        if (!isLoaded && aspectRatio) {
           const contentWidth = Math.max(0, width - 56)
           wrapper.style.height = `${contentWidth / aspectRatio}px`
         } else {
@@ -154,7 +155,7 @@ function ImageComponent({
         if ($isImageNode(node)) {
           node.setWidth(finalWidth)
           if (aspectRatio) {
-            const contentWidth = isInColumn ? Math.max(0, finalWidth - 64) : Math.max(0, finalWidth - 56)
+            const contentWidth = isInColumn ? finalWidth : Math.max(0, finalWidth - 56)
             node.setHeight(contentWidth / aspectRatio)
           }
         }
@@ -168,11 +169,12 @@ function ImageComponent({
   return (
     <div
       ref={containerRef}
-      className="lexical-image-container group relative inline-block"
+      className="lexical-image-container group relative block"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
         position: "relative",
+        display: "block",
         maxWidth: isInColumn ? "100%" : "90vw",
         width: "100%",
         padding: "0px",
@@ -186,6 +188,7 @@ function ImageComponent({
           const img = e.currentTarget
           const naturalRatio = img.naturalWidth / img.naturalHeight
           setAspectRatio(naturalRatio)
+          setIsLoaded(true)
           
           if (initialWidth === undefined) {
             const maxW = getMaxAllowedWidth()
@@ -196,7 +199,7 @@ function ImageComponent({
                 const node = $getNodeByKey(nodeKey)
                 if ($isImageNode(node)) {
                   node.setWidth(defaultWidth)
-                  const contentWidth = isInColumn ? Math.max(0, defaultWidth - 64) : Math.max(0, defaultWidth - 56)
+                  const contentWidth = isInColumn ? defaultWidth : Math.max(0, defaultWidth - 56)
                   node.setHeight(contentWidth / naturalRatio)
                 }
               })
@@ -205,7 +208,7 @@ function ImageComponent({
             editor.update(() => {
               const node = $getNodeByKey(nodeKey)
               if ($isImageNode(node)) {
-                const contentWidth = isInColumn ? Math.max(0, initialWidth - 64) : Math.max(0, initialWidth - 56)
+                const contentWidth = isInColumn ? initialWidth : Math.max(0, initialWidth - 56)
                 node.setHeight(contentWidth / naturalRatio)
               }
             })

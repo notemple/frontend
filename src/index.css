@@ -460,30 +460,31 @@ html.light .lexical-root hr {
 
 /* ── Tight premium vertical spacing between Lexical editor blocks ── */
 .lexical-root > * {
-  margin-top: 20px !important;
-  margin-bottom: 20px !important;
+  margin-top: 1px !important;
+  margin-bottom: 1px !important;
 }
 
-/* Hierarchy spacing with tight visual bounds */
-.lexical-h1 {
-  margin-top: 36px !important;
-  margin-bottom: 16px !important;
+/* Headings get more breathing room */
+.lexical-root > .lexical-h1 { margin-top: 2rem !important; margin-bottom: 0.5rem !important; }
+.lexical-root > .lexical-h2 { margin-top: 1.5rem !important; margin-bottom: 0.4rem !important; }
+.lexical-root > .lexical-h3 { margin-top: 1.25rem !important; margin-bottom: 0.35rem !important; }
+
+/* Blocks that need more vertical separation */
+.lexical-root > .lexical-blockquote,
+.lexical-root > .lexical-code-block,
+.lexical-root > .lexical-table,
+.lexical-root > .lexical-ul,
+.lexical-root > .lexical-ol,
+.lexical-root > .columns-outer-wrapper {
+  margin-top: 0.75rem !important;
+  margin-bottom: 0.75rem !important;
 }
-.lexical-h2 {
-  margin-top: 30px !important;
-  margin-bottom: 16px !important;
-}
-.lexical-h3 {
-  margin-top: 24px !important;
-  margin-bottom: 12px !important;
-}
-.lexical-blockquote,
-.lexical-code-block,
-.lexical-table,
-.lexical-ul,
-.lexical-ol {
-  margin-top: 22px !important;
-  margin-bottom: 22px !important;
+
+/* Paragraph spacing — tight like Notion */
+.lexical-root > .lexical-paragraph {
+  margin-top: 1px !important;
+  margin-bottom: 1px !important;
+  min-height: 1.7em;      /* ensures empty paragraphs are clickable */
 }
 
 /* Tight vertical spacing between list items */
@@ -527,31 +528,69 @@ html.light .lexical-root hr {
 }
 
 
-/* ── Immersive Full-Height Editor Canvas ───────────────────────────────────── */
-
-/* Make the editor wrapper and its children stretch vertically */
-.templnote-editor-wrapper,
-.templnote-editor-wrapper > div {
-  flex: 1;
+/* ── Editor wrapper fills parent height ──────────────── */
+.templnote-editor-wrapper {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;        /* wrapper clips, scroll-area scrolls */
+}
+
+.editor-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  /* Custom scrollbar matching app style */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.editor-scroll-area::-webkit-scrollbar {
+  width: 6px;
+}
+.editor-scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+.editor-scroll-area::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+
+.editor-content-column {
+  /* Centered column with comfortable reading width */
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding-bottom: 6rem;    /* breathing room at the bottom */
 }
 
 .editor-container {
-  display: block !important;
-  flex: 1;
   position: relative;
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
-/* Make Lexical ContentEditable fill the entire layout height */
+/* Lexical root inside the column */
 .lexical-root {
   flex: 1;
-  min-height: 420px;
+  min-height: 60vh;
   cursor: text;
   outline: none;
   width: 100%;
-  max-width: 100%;
+  line-height: 1.7;
+  font-size: 1rem;
+  color: var(--body-text);
+  caret-color: #a855f7;   /* purple caret matching app accent */
+}
+
+/* Click target below content */
+.editor-click-target {
+  min-height: 10rem;
+  cursor: text;
+  width: 100%;
 }
 
 
@@ -563,41 +602,104 @@ div[class*="bg-purple-500/80"] {
   box-shadow: 0 0 10px rgba(168, 85, 247, 0.6) !important;
 }
 
-/* ── Object Hover Highlights in Lexical editor ────────────────────────── */
-
+/* ── Block hover states ─────────────────────────────── */
 .lexical-paragraph,
 .lexical-h1,
 .lexical-h2,
 .lexical-h3,
+.lexical-h4,
 .lexical-blockquote,
 .lexical-code-block,
 .lexical-image-wrapper,
-.lexical-table {
-  transition: background-color 150ms ease-out, box-shadow 150ms ease-out;
+.lexical-table,
+.lexical-ul,
+.lexical-ol {
   border-radius: 4px;
+  transition: background-color 200ms ease-out;
+  /* No box-shadow transition — it triggers the global box-shadow: none reset */
 }
 
 .lexical-paragraph:hover,
 .lexical-h1:hover,
 .lexical-h2:hover,
 .lexical-h3:hover,
+.lexical-h4:hover,
 .lexical-blockquote:hover,
 .lexical-code-block:hover,
 .lexical-image-wrapper:hover,
-.lexical-table:hover {
-  background-color: rgba(168, 85, 247, 0.02) !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 0 1px rgba(168, 85, 247, 0.05) !important;
+.lexical-table:hover,
+.lexical-ul:hover,
+.lexical-ol:hover {
+  background-color: rgba(255, 255, 255, 0.025) !important;
 }
 
 html.light .lexical-paragraph:hover,
 html.light .lexical-h1:hover,
 html.light .lexical-h2:hover,
 html.light .lexical-h3:hover,
+html.light .lexical-h4:hover,
 html.light .lexical-blockquote:hover,
 html.light .lexical-code-block:hover,
-html.light .lexical-table:hover {
-  background-color: rgba(168, 85, 247, 0.015) !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02), 0 0 1px rgba(168, 85, 247, 0.03) !important;
+html.light .lexical-table:hover,
+html.light .lexical-ul:hover,
+html.light .lexical-ol:hover {
+  background-color: rgba(0, 0, 0, 0.025) !important;
+}
+
+/* Remove hover on blocks that are actively being edited */
+.lexical-paragraph:focus-within,
+.lexical-h1:focus-within,
+.lexical-h2:focus-within,
+.lexical-h3:focus-within {
+  background-color: transparent !important;
+}
+
+/* ── Block handle gutter buttons ─────────────────── */
+.block-handle-btn {
+  opacity: 0;
+  transition: opacity 150ms ease-out, background-color 100ms ease-out,
+    color 100ms ease-out;
+}
+
+/* Show handles when the group is hovered */
+.block-handle-group:hover .block-handle-btn,
+.block-handle-group .block-handle-btn:hover {
+  opacity: 1;
+}
+
+/* The editor content column must have enough left margin/padding so the
+   gutter handles don't overlap text */
+.editor-content-column {
+  padding-left: 56px;   /* gutter for block handles */
+  padding-right: 24px;
+}
+
+/* On narrow viewports collapse the gutter */
+@media (max-width: 768px) {
+  .editor-content-column {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .block-handle-group {
+    display: none;
+  }
+}
+
+/* ── Slash Command Menu Entrance Animation ────────── */
+@keyframes slash-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.slash-command-menu {
+  animation: slash-menu-in 120ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: top left;
 }
 
 /* Restrict height and strip heavy margins on components inside the drag overlay */

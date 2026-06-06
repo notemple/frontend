@@ -33,26 +33,31 @@ export default function SlashCommandMenu({
   return (
     <div
       data-testid="slash-menu"
-      className="
-        fixed z-[9999] w-64 max-h-[420px] overflow-y-auto
-        bg-[var(--card-bg)] border border-[var(--card-border)]
-        rounded-lg shadow-xl
-        py-1
-      "
-      style={{ top: position.top, left: position.left }}
+      className="slash-command-menu w-[260px] max-h-[380px] overflow-y-auto rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+      style={{
+        position: "fixed",
+        top: position.top,
+        left: Math.min(
+          position.left,
+          window.innerWidth - 280  // prevent overflow off right edge
+        ),
+        zIndex: 9999,
+      }}
       onMouseDown={(e) => {
         e.preventDefault()
         e.stopPropagation()
       }}
     >
-      {Object.entries(grouped).map(([category, items]) => (
+      {Object.entries(grouped).map(([category, items], catIdx) => (
         <div key={category}>
-          <div className="
-            px-3 pt-2 pb-1
-            text-[10px] font-semibold uppercase tracking-wider
-            text-[var(--muted-foreground)] opacity-60
-            select-none
-          ">
+          <div
+            className="
+              font-semibold uppercase select-none
+              text-[10px] tracking-[0.08em] text-[var(--muted-foreground)] opacity-50
+              px-3 pb-1
+            "
+            style={{ paddingTop: catIdx === 0 ? 4 : 8 }}
+          >
             {category}
           </div>
           {items.map((cmd) => {
@@ -64,24 +69,29 @@ export default function SlashCommandMenu({
               <button
                 key={cmd.title}
                 className={`
-                  w-full flex items-center gap-2.5
-                  px-3 py-1.5 text-left
-                  text-sm text-[var(--foreground)]
-                  transition-colors duration-75
-                  ${isSelected ? "bg-purple-500/15 text-purple-300" : "hover:bg-[var(--muted)]"}
+                  w-[calc(100%-8px)] h-9 flex items-center gap-2.5
+                  px-2.5 mx-1 rounded-md text-left
+                  text-sm transition-colors duration-75
+                  ${
+                    isSelected
+                      ? "bg-[rgba(168,85,247,0.1)] text-[#d8b4fe]"
+                      : "text-[var(--foreground)] hover:bg-[var(--muted)]"
+                  }
                 `}
                 onMouseEnter={() => onHover(idx)}
                 onMouseDown={(e) => {
                   e.preventDefault()
+                  e.stopPropagation()
                   onSelect(cmd)
                 }}
               >
                 <span
-                  className={`
-                    flex-shrink-0 w-7 h-7 flex items-center justify-center
-                    rounded bg-[var(--muted)] text-[var(--muted-foreground)]
-                    ${isSelected ? "bg-purple-500/20 text-purple-400" : ""}
-                  `}
+                  className="w-[26px] h-[26px] rounded-[5px] flex items-center justify-center flex-shrink-0"
+                  style={{
+                    backgroundColor: isSelected
+                      ? "rgba(168, 85, 247, 0.15)"
+                      : "var(--muted)",
+                  }}
                 >
                   {IconComponent ? (
                     <IconComponent size={14} weight="duotone" />

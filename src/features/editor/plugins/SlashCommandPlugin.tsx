@@ -26,30 +26,49 @@ export default function SlashCommandPlugin(): ReactNode {
     ? fuse.current.search(query).map((r: { item: SlashCommand }) => r.item)
     : slashCommands
 
-  // Open menu when "/" is typed
+  // Open menu and position it when "/" is typed
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== "/") return
-      const domSel = window.getSelection()
-      if (!domSel || domSel.rangeCount === 0) return
+    return editor.registerUpdateListener(({ editorState }) => {
+      editorState.read(() => {
+        const selection = $getSelection()
+        if (!$isRangeSelection(selection) || !selection.isCollapsed()) return
 
-      const range = domSel.getRangeAt(0)
-      const rect = range.getBoundingClientRect()
+        const anchor = selection.anchor
+        const node = anchor.getNode()
+        if (!$isTextNode(node)) return
 
-      setPosition({
-        top: rect.bottom + window.scrollY + 6,
-        left: rect.left + window.scrollX,
+        const text = node.getTextContent()
+        const offset = anchor.offset
+
+        // Detect "/" typed at end of current word/line
+        if (text[offset - 1] !== "/") {
+          if (open) setOpen(false)
+          return
+        }
+
+        // Get caret position from the DOM now that "/" is rendered
+        const domSelection = window.getSelection()
+        if (!domSelection || domSelection.rangeCount === 0) return
+        const domRange = domSelection.getRangeAt(0)
+        const rect = domRange.getBoundingClientRect()
+
+        // rect.left can be 0 if the range collapsed — use the editor root
+        // position as fallback
+        const editorEl = editor.getRootElement()
+        const editorRect = editorEl?.getBoundingClientRect()
+
+        setPosition({
+          top: rect.bottom + window.scrollY + 8,
+          left: rect.left > 0
+            ? rect.left + window.scrollX
+            : (editorRect?.left ?? 0) + window.scrollX + 96,
+        })
+        setQuery("")
+        setSelectedIdx(0)
+        setOpen(true)
       })
-      setQuery("")
-      setSelectedIdx(0)
-      setOpen(true)
-    }
-
-    return editor.registerRootListener((rootEl, prevRootEl) => {
-      prevRootEl?.removeEventListener("keydown", handleKeyDown)
-      rootEl?.addEventListener("keydown", handleKeyDown)
     })
-  }, [editor])
+  }, [editor, open])
 
   // Update query + handle keyboard nav while open
   useEffect(() => {

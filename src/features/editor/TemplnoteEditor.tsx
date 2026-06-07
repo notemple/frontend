@@ -19,6 +19,7 @@ import PersistencePlugin from "./plugins/PersistencePlugin"
 import ScrollIntoViewPlugin from "./plugins/ScrollIntoViewPlugin"
 import BlockHandlePlugin from "./plugins/BlockHandlePlugin"
 import BackspacePlugin from "./plugins/BackspacePlugin"
+import FloatingToolbarPlugin from "./plugins/FloatingToolbarPlugin"
 
 import EmojiPicker from "emoji-picker-react"
 import { useDocumentStore } from "../documents/store"
@@ -293,6 +294,7 @@ export function TemplnoteEditor({
         <ScrollIntoViewPlugin />
         <BlockHandlePlugin />
         <BackspacePlugin />
+        <FloatingToolbarPlugin />
         <PersistencePlugin
           documentId={documentId}
           onWordCountChange={onWordCountChange}

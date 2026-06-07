@@ -154,6 +154,20 @@ export function TemplnoteEditor({
     titleStyle.color = '#ffffff';
   }
 
+  let resolvedTextColor: string | undefined = undefined;
+  if (doc?.linkBackdropToCover) {
+    resolvedTextColor = doc?.topSectionTextColor;
+  } else {
+    resolvedTextColor = doc?.textColor;
+  }
+
+  const editorTextStyle: React.CSSProperties = {};
+  if (resolvedTextColor) {
+    editorTextStyle.color = resolvedTextColor;
+    (editorTextStyle as any)['--body-text'] = resolvedTextColor;
+    (editorTextStyle as any)['--foreground'] = resolvedTextColor;
+  }
+
   return (
     <LexicalComposer initialConfig={{ ...config, editable: !readOnly }}>
       <div 
@@ -234,7 +248,10 @@ export function TemplnoteEditor({
             </div>
           </div>
 
-          <div className="editor-content-column w-full max-w-[720px] px-6 md:px-8 relative flex flex-col pb-12 pt-4">
+          <div 
+            className="editor-content-column w-full max-w-[720px] px-6 md:px-8 relative flex flex-col pb-12 pt-4"
+            style={editorTextStyle}
+          >
 
             {/* The actual Lexical editable area */}
             <div className="editor-container relative flex flex-col flex-1">

@@ -16,7 +16,8 @@ import { CustomDatePicker } from "@/features/tasks/components/CustomDatePicker"
 import { CustomPriorityPicker } from "@/features/tasks/components/CustomPriorityPicker"
 import { TaskTitleInput } from "@/features/tasks/components/TaskTitleInput"
 import { motion } from "motion/react"
-import { CalendarBlank, Clock, Flag, Play, Pause, Stop, Trash } from "@phosphor-icons/react"
+import { CalendarBlank, Clock, Flag, Play, Pause, Stop, PencilSimple } from "@phosphor-icons/react"
+import { TaskEditorModal } from "@/features/tasks/components/TaskEditorModal"
 
 export type SerializedTaskNode = Spread<
   { taskId: string },
@@ -44,6 +45,7 @@ const TaskNodeComponent: React.FC<{
   const stopTimer = useTaskTimerStore((state) => state.stopTimer)
 
   const [localTitle, setLocalTitle] = useState(task?.title || "")
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     if (task) {
@@ -215,12 +217,20 @@ const TaskNodeComponent: React.FC<{
 
       <div className="flex items-center gap-1 flex-shrink-0 ml-4 pl-4 border-l border-border transition-opacity opacity-0 group-hover:opacity-100">
         <button
-          onClick={handleDelete}
-          className="text-muted-foreground/60 hover:text-red-500 transition-colors flex items-center justify-center w-8 h-8 hover:bg-red-500/10 rounded"
+          onClick={() => setIsModalOpen(true)}
+          className="text-muted-foreground/60 hover:text-foreground transition-colors flex items-center justify-center w-8 h-8 hover:bg-muted rounded cursor-pointer"
+          title="Edit task details"
         >
-          <Trash size={16} />
+          <PencilSimple size={16} />
         </button>
       </div>
+
+      {isModalOpen && (
+        <TaskEditorModal
+          taskId={task.id}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </div>
   )
 }

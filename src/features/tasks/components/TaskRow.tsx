@@ -5,7 +5,7 @@ import { CustomPriorityPicker } from "./CustomPriorityPicker";
 import { cn } from '@/shared/lib/utils';
 import { useTaskTimerStore } from '@/shared/store/taskTimerStore';
 import { useUiStore } from '@/shared/store/uiStore';
-import { ArrowCircleRight,CalendarBlank,Clock,Flag,Pause,Play,Stop,Trash } from '@phosphor-icons/react';
+import { CalendarBlank,Clock,Flag,Pause,Play,Stop,Trash,PencilSimple } from '@phosphor-icons/react';
 import { motion } from 'motion/react';
 import React,{ useEffect,useState } from 'react';
 import { type Task } from '../store';
@@ -202,9 +202,10 @@ export const TaskRow = React.memo(({
         <button
           onClick={onOpen}
           data-onboarding-task-edit={task.id}
-          className={`text-muted-foreground/60 hover:text-foreground transition-colors flex items-center justify-center w-8 h-8 hover:bg-muted opacity-0 group-hover:opacity-100 ${isEditClickStep ? 'opacity-100' : ''}`}
+          className={`text-muted-foreground/60 hover:text-foreground transition-colors flex items-center justify-center w-8 h-8 hover:bg-muted rounded cursor-pointer opacity-0 group-hover:opacity-100 ${isEditClickStep ? 'opacity-100' : ''}`}
+          title="Edit task details"
         >
-          <ArrowCircleRight size={16} />
+          <PencilSimple size={16} />
         </button>
       </div>
     </motion.div>

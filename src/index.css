@@ -460,8 +460,8 @@ html.light .lexical-root hr {
 
 /* ── Tight premium vertical spacing between Lexical editor blocks ── */
 .lexical-root > * {
-  margin-top: 1px !important;
-  margin-bottom: 1px !important;
+  margin-top: 8px !important;
+  margin-bottom: 8px !important;
 }
 
 /* Headings get more breathing room */
@@ -482,8 +482,8 @@ html.light .lexical-root hr {
 
 /* Paragraph spacing — tight like Notion */
 .lexical-root > .lexical-paragraph {
-  margin-top: 1px !important;
-  margin-bottom: 1px !important;
+  margin-top: 8px !important;
+  margin-bottom: 8px !important;
   min-height: 1.7em;      /* ensures empty paragraphs are clickable */
 }
 
@@ -1393,19 +1393,19 @@ html.light .lexical-link:hover { color: #4338ca; }
 .lexical-root > .lexical-h2,
 .lexical-root > .lexical-h3,
 .lexical-root > .lexical-h4 {
-  border-left: 56px solid transparent !important;
+  border-left: 0px solid transparent !important;
   background-clip: padding-box !important;
 }
 
 .lexical-root > .lexical-ul,
 .lexical-root > .lexical-ol {
-  border-left: 56px solid transparent !important;
+  border-left: 0px solid transparent !important;
   background-clip: padding-box !important;
   padding-left: 1.5rem !important;
 }
 
 .lexical-root > .lexical-blockquote {
-  border-left: 56px solid transparent !important;
+  border-left: 0px solid transparent !important;
   background-clip: padding-box !important;
   padding-left: 1rem !important;
   position: relative;
@@ -1424,12 +1424,12 @@ html.light .lexical-link:hover { color: #4338ca; }
 }
 
 .lexical-root > .lexical-code-block {
-  border-left: 56px solid transparent !important;
+  border-left: 0px solid transparent !important;
   background-clip: padding-box !important;
 }
 
 .lexical-root > .lexical-image-wrapper {
-  border-left: 56px solid transparent !important;
+  border-left: 0px solid transparent !important;
   background-clip: padding-box !important;
   display: flex !important;
   justify-content: center !important;
@@ -1449,12 +1449,12 @@ html.light .lexical-link:hover { color: #4338ca; }
 .lexical-root > .lexical-image-wrapper,
 .lexical-root > .lexical-callout,
 .lexical-root > .lexical-toggle {
-  border-top-left-radius: calc(56px + var(--app-border-radius)) var(--app-border-radius) !important;
-  border-bottom-left-radius: calc(56px + var(--app-border-radius)) var(--app-border-radius) !important;
+  border-top-left-radius: var(--app-border-radius) !important;
+  border-bottom-left-radius: var(--app-border-radius) !important;
 }
 
 .lexical-root > .lexical-callout {
-  border-left: 56px solid transparent !important;
+  border-left: 0px solid transparent !important;
   background-clip: padding-box !important;
   position: relative;
   background: transparent !important;
@@ -1479,7 +1479,7 @@ html.light .lexical-link:hover { color: #4338ca; }
 
 .lexical-root > .lexical-toggle {
   border: none !important;
-  border-left: 56px solid transparent !important;
+  border-left: 0px solid transparent !important;
   background-clip: padding-box !important;
   position: relative;
 }
@@ -1497,6 +1497,6 @@ html.light .lexical-link:hover { color: #4338ca; }
 
 .lexical-root > .lexical-table,
 .lexical-root > .columns-outer-wrapper {
-  margin-left: 56px !important;
-  width: calc(100% - 56px) !important;
+  margin-left: 0px !important;
+  width: 100% !important;
 }

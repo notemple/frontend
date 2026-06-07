@@ -7,3 +7,5 @@ export { ImageNode, $createImageNode, $isImageNode } from "./ImageNode"
 export { FileNode, $createFileNode, $isFileNode } from "./FileNode"
 export { HorizontalRuleNode, $createHorizontalRuleNode, $isHorizontalRuleNode } from "./HorizontalRuleNode"
 export { PageLinkNode, $createPageLinkNode, $isPageLinkNode } from "./PageLinkNode"
+export { TaskNode, $createTaskNode, $isTaskNode } from "./TaskNode"
+

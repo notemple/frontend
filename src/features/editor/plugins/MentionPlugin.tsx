@@ -1,9 +1,10 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
-import { $getSelection, $isRangeSelection, $isTextNode } from "lexical"
+import { $getSelection, $isRangeSelection, $isTextNode, $createParagraphNode } from "lexical"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import type { ReactNode } from "react"
 import { $createPageLinkNode } from "../nodes/PageLinkNode"
+import { $createTaskNode } from "../nodes/TaskNode"
 import MentionMenu from "../components/MentionMenu"
 
 export default function MentionPlugin(): ReactNode {
@@ -105,9 +106,19 @@ export default function MentionPlugin(): ReactNode {
         // Delete from "@" symbol to the current cursor position
         anchor.spliceText(atPos, sel.anchor.offset - atPos, "")
 
-        // Create and insert PageLinkNode reference
-        const mentionNode = $createPageLinkNode(payload.id, payload.title)
-        sel.insertNodes([mentionNode])
+        if (payload.type === "task") {
+          const topLevelElement = anchor.getTopLevelElementOrThrow()
+          const taskNode = $createTaskNode(payload.id)
+          topLevelElement.replace(taskNode)
+
+          const paragraphNode = $createParagraphNode()
+          taskNode.insertAfter(paragraphNode)
+          paragraphNode.select()
+        } else {
+          // Create and insert PageLinkNode reference
+          const mentionNode = $createPageLinkNode(payload.id, payload.title)
+          sel.insertNodes([mentionNode])
+        }
       })
 
       atStartRef.current = null

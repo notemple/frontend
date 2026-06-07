@@ -15,6 +15,7 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { $getRoot, $isParagraphNode, $createParagraphNode } from "lexical"
 import { createEditorConfig } from "./editorConfig"
 import SlashCommandPlugin from "./plugins/SlashCommandPlugin"
+import MentionPlugin from "./plugins/MentionPlugin"
 import PersistencePlugin from "./plugins/PersistencePlugin"
 import ScrollIntoViewPlugin from "./plugins/ScrollIntoViewPlugin"
 import BlockHandlePlugin from "./plugins/BlockHandlePlugin"
@@ -291,6 +292,7 @@ export function TemplnoteEditor({
         <TablePlugin />
         <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
         <SlashCommandPlugin />
+        <MentionPlugin />
         <ScrollIntoViewPlugin />
         <BlockHandlePlugin />
         <BackspacePlugin />

@@ -128,11 +128,6 @@ export const StoryPanel: React.FC<StoryPanelProps> = ({ step }) => {
         .animate-float-left { animation: floatLeft 16s ease-in-out infinite; }
         .animate-float-right { animation: floatRight 13s ease-in-out infinite; }
         
-        .dot-grid {
-          background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-          background-size: 24px 24px;
-        }
-        
         .floating-element {
           transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -145,9 +140,6 @@ export const StoryPanel: React.FC<StoryPanelProps> = ({ step }) => {
         }
       `}} />
 
-      {/* Modern, sleek mesh background overlay */}
-      <div className="absolute inset-0 dot-grid z-0" />
-      
       {/* Soft glowing ambient orbs */}
       <div className="absolute top-[20%] left-[30%] w-72 h-72 rounded-full bg-[#BDE0FE]/10 blur-[100px] pointer-events-none z-0 animate-pulse duration-[8000ms]" />
       <div className="absolute bottom-[25%] right-[20%] w-80 h-80 rounded-full bg-[#FFC8DD]/10 blur-[110px] pointer-events-none z-0 animate-pulse duration-[10000ms]" />

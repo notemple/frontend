@@ -26,6 +26,7 @@ import {
 import { editorTheme } from "../editorTheme"
 import SlashCommandPlugin from "../plugins/SlashCommandPlugin"
 import BlockHandlePlugin from "../plugins/BlockHandlePlugin"
+import FloatingToolbarPlugin from "../plugins/FloatingToolbarPlugin"
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -519,6 +520,7 @@ function ColumnWrapper({
         <ListPlugin />
         <SlashCommandPlugin />
         <BlockHandlePlugin isNested={true} />
+        <FloatingToolbarPlugin />
       </LexicalNestedComposer>
 
       {/* Inner Column Resize handle */}

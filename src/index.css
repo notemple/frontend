@@ -24,7 +24,7 @@
   --color-icy-blue: var(--icy-blue);
   --color-sky-blue: var(--sky-blue);
 
-  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Newsreader", ui-serif, Georgia, serif;
   --font-content: "Newsreader", ui-serif, Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }

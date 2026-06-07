@@ -76,7 +76,7 @@ export const EmptyPaneState = ({ paneId }: { paneId: string }) => {
       label: 'New Page',
       icon: <PlusCircle size={16} className="text-emerald-500 shrink-0" />,
       action: handleNewPage,
-      visible: true,
+      visible: panes.length > 1,
     },
     {
       label: 'Split Workspace',
@@ -132,25 +132,24 @@ export const EmptyPaneState = ({ paneId }: { paneId: string }) => {
 
   return (
     <div className="h-full w-full flex flex-col items-center justify-center p-6 md:p-12 overflow-y-auto no-scrollbar select-none bg-workspace">
-      <div className="max-w-3xl w-full flex flex-col items-center gap-12 text-center">
-        {/* Shadowy Neumorphic templ Card */}
-        <div className="w-full neu-card py-20 px-8 flex flex-col items-center justify-center relative overflow-hidden group select-none hover:scale-[1.01] active:scale-[0.99] duration-300">
-          <div className="absolute inset-0 bg-gradient-to-tr from-sky-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-          <h1 className="font-sans text-8xl md:text-9xl font-black tracking-widest uppercase select-none transition-all duration-300 text-[#ebe8e4] [text-shadow:4px_4px_8px_#c3c0ba,-4px_-4px_8px_#ffffff] dark:text-[#3a3a3a] dark:[text-shadow:3px_3px_6px_rgba(0,0,0,0.85),-3px_-3px_6px_rgba(255,255,255,0.055)] cursor-default">
+      <div className="w-full max-w-[95vw] flex flex-col items-center gap-12 text-center">
+        {/* Full-width "templ" text with Newsreader font */}
+        <div className="w-full flex flex-col items-center justify-center select-none">
+          <h1 className="w-full text-center font-content text-[15vw] sm:text-[16vw] font-bold tracking-tight lowercase leading-none select-none text-[#ebe8e4] [text-shadow:4px_4px_8px_#c3c0ba,-4px_-4px_8px_#ffffff] dark:text-[#2d2d2d] dark:[text-shadow:3px_3px_6px_rgba(0,0,0,0.85),-3px_-3px_6px_rgba(255,255,255,0.055)]">
             templ
           </h1>
-          <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground/40 mt-4 font-semibold select-none group-hover:text-muted-foreground/60 transition-colors duration-300">
+          <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground/40 mt-2 font-semibold select-none">
             Minimalist workspace
           </p>
         </div>
 
         {/* Wrapping Horizontal Row of Options */}
-        <div className="flex flex-row flex-wrap items-center justify-center gap-4 w-full px-4 mt-2">
+        <div className="flex flex-row flex-wrap items-center justify-center gap-4 w-full px-4 max-w-4xl mt-2">
           {activeOptions.map((opt, idx) => (
             <button
               key={idx}
               onClick={opt.action}
-              className="neu-btn select-none hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 shadow-sm"
+              className="neu-btn select-none hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 shadow-sm flex items-center gap-2"
             >
               {opt.icon}
               <span className="font-semibold text-xs md:text-sm tracking-tight">{opt.label}</span>

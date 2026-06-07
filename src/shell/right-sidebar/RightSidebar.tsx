@@ -837,13 +837,13 @@ const StyleTab = () => {
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Custom Header Color:</span>
-                      <span className="text-accent text-[10px] uppercase font-bold">{document.topSectionColor || '#ffffff'}</span>
+                      <span className="text-accent text-[10px] uppercase font-bold">{document.topSectionColor || 'Default'}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ background: document.topSectionColor || '#ffffff' }} />
+                      <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ background: document.topSectionColor || 'var(--background)' }} />
                       <input
                         type="color"
-                        value={document.topSectionColor || '#ffffff'}
+                        value={document.topSectionColor || '#050505'}
                         onChange={(e) => updateDocument(document.id, { topSectionColor: e.target.value, topSectionColorType: 'solid' })}
                         className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
                       />

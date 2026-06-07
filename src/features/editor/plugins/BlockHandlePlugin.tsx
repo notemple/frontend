@@ -747,8 +747,10 @@ export default function BlockHandlePlugin({
         } else if (
           blockEl.classList.contains("lexical-table") ||
           blockEl.classList.contains("columns-outer-wrapper") ||
+          blockEl.classList.contains("lexical-task-node-wrapper") ||
           blockEl.closest(".lexical-table") ||
-          blockEl.closest(".columns-outer-wrapper")
+          blockEl.closest(".columns-outer-wrapper") ||
+          blockEl.closest(".lexical-task-node-wrapper")
         ) {
           leftPos = rect.left - 52
         }

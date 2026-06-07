@@ -243,7 +243,13 @@ export class TaskNode extends DecoratorNode<ReactNode> {
 
   createDOM(): HTMLElement {
     const el = document.createElement("div")
-    el.className = "lexical-task-node-wrapper w-full my-2"
+    el.className = "lexical-task-node-wrapper"
+    el.style.width = "fit-content"
+    el.style.height = "fit-content"
+    el.style.display = "block"
+    el.style.margin = "0"
+    el.style.padding = "0"
+    el.style.maxWidth = "100%"
     return el
   }
 

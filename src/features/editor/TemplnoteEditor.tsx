@@ -146,14 +146,14 @@ export function TemplnoteEditor({
   if (doc?.topSectionColor) {
     bannerStyle.background = doc.topSectionColor;
   } else {
-    bannerStyle.background = 'linear-gradient(to right, #2a4e6c, #527d97, #b8c5cc)';
+    bannerStyle.background = 'var(--background)';
   }
 
   const titleStyle: React.CSSProperties = {};
   if (doc?.topSectionTextColor) {
     titleStyle.color = doc.topSectionTextColor;
   } else {
-    titleStyle.color = '#ffffff';
+    titleStyle.color = 'var(--foreground)';
   }
 
   let resolvedTextColor: string | undefined = undefined;
@@ -197,8 +197,8 @@ export function TemplnoteEditor({
                     <div 
                       className="w-12 h-12 rounded-full border-2 border-dashed flex items-center justify-center transition-colors bg-current/10"
                       style={{
-                        borderColor: doc?.topSectionTextColor ? `${doc.topSectionTextColor}99` : 'rgba(255, 255, 255, 0.6)',
-                        color: doc?.topSectionTextColor || '#ffffff'
+                        borderColor: doc?.topSectionTextColor ? `${doc.topSectionTextColor}99` : 'var(--border)',
+                        color: doc?.topSectionTextColor || 'var(--foreground)'
                       }}
                     >
                       <Plus size={18} weight="bold" />

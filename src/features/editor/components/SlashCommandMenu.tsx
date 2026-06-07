@@ -12,7 +12,7 @@ interface Props {
   onClose: () => void
 }
 
-const CATEGORY_ORDER = ["Basic", "Lists", "Layout", "Media", "Advanced"]
+export const CATEGORY_ORDER = ["Basic", "Lists", "Layout", "Media", "Advanced"]
 
 export default function SlashCommandMenu({
   commands,

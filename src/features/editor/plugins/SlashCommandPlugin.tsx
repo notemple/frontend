@@ -5,7 +5,7 @@ import { createPortal } from "react-dom"
 import type { ReactNode } from "react"
 import Fuse from "fuse.js"
 import { slashCommands, type SlashCommand } from "./slashCommandList"
-import SlashCommandMenu from "../components/SlashCommandMenu"
+import SlashCommandMenu, { CATEGORY_ORDER } from "../components/SlashCommandMenu"
 
 export default function SlashCommandPlugin(): ReactNode {
   const [editor] = useLexicalComposerContext()
@@ -25,9 +25,13 @@ export default function SlashCommandPlugin(): ReactNode {
     })
   )
 
-  const filtered: SlashCommand[] = query.trim()
+  const unfiltered: SlashCommand[] = query.trim()
     ? fuse.current.search(query).map((r: { item: SlashCommand }) => r.item)
     : slashCommands
+
+  const filtered = CATEGORY_ORDER.reduce<SlashCommand[]>((acc, cat) => {
+    return acc.concat(unfiltered.filter((c) => c.category === cat))
+  }, [])
 
   // Open, position, and filter menu when "/" is typed
   useEffect(() => {

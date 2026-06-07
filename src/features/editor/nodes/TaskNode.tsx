@@ -117,21 +117,25 @@ const TaskNodeComponent: React.FC<{
 
         <div className="flex items-center gap-2">
           {/* Date Pickers */}
-          <CustomDatePicker
-            small
-            value={task.startDate || ""}
-            onChange={(v: string) => updateTask(task.id, { startDate: v })}
-            placeholder="Start"
-            icon={<CalendarBlank size={12} />}
-          />
+          {!timer.isRunning && (
+            <>
+              <CustomDatePicker
+                small
+                value={task.startDate || ""}
+                onChange={(v: string) => updateTask(task.id, { startDate: v })}
+                placeholder="Start"
+                icon={<CalendarBlank size={12} />}
+              />
 
-          <CustomDatePicker
-            small
-            value={task.deadline || ""}
-            onChange={(v: string) => updateTask(task.id, { deadline: v })}
-            placeholder="Deadline"
-            icon={<Flag size={12} />}
-          />
+              <CustomDatePicker
+                small
+                value={task.deadline || ""}
+                onChange={(v: string) => updateTask(task.id, { deadline: v })}
+                placeholder="Deadline"
+                icon={<Flag size={12} />}
+              />
+            </>
+          )}
 
           {/* Time spent */}
           {timer.seconds >= 60 && (
@@ -162,7 +166,7 @@ const TaskNodeComponent: React.FC<{
 
           {/* Task Timer Widget */}
           <div className="flex items-center gap-1.5 ml-2 pl-2 border-l border-border/60 shrink-0">
-            {timer.seconds > 0 && (
+            {timer.isRunning && (
               <span className="text-[11px] font-semibold font-mono text-muted-foreground/80 tracking-tight select-none">
                 {(() => {
                   const hrs = Math.floor(timer.seconds / 3600)

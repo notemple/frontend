@@ -440,6 +440,7 @@ export const MainWorkspace = () => {
       if (activeTabId === 'section-daily-notes') return 'Daily notes';
       if (activeTabId === 'section-tasks') return 'Tasks';
       if (activeTabId === 'section-tags') return 'Tags';
+      if (activeTabId === 'section-ask-ai') return 'Ask AI';
       if (activeTabId.startsWith('section-')) {
         const cleanId = activeTabId.replace('section-', '');
         return cleanId.charAt(0).toUpperCase() + cleanId.slice(1);

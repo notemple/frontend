@@ -741,16 +741,9 @@ export default function BlockHandlePlugin({
         const rect = blockEl.getBoundingClientRect()
         const rootRect = root.getBoundingClientRect()
 
-        let leftPos = rect.left + 4
+        let leftPos = rect.left - 52
         if (isNested) {
           leftPos = rect.left - 30
-        } else if (
-          blockEl.classList.contains("lexical-table") ||
-          blockEl.classList.contains("columns-outer-wrapper") ||
-          blockEl.closest(".lexical-table") ||
-          blockEl.closest(".columns-outer-wrapper")
-        ) {
-          leftPos = rect.left - 52
         }
         
         if (!blockEl.classList.contains("lexical-image-wrapper")) {

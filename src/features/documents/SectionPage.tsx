@@ -1,4 +1,5 @@
 
+import { AskAiPage } from '@/features/ai/AskAiPage';
 import { DailyNotesPage } from '@/features/daily-notes/DailyNotesPage';
 import { useDocumentStore } from '@/features/documents/store';
 import { GlancePage } from '@/features/glance/GlancePage';
@@ -177,6 +178,9 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
   }
   if (sectionId === 'section-glance') {
     return <GlancePage paneId={paneId} />;
+  }
+  if (sectionId === 'section-ask-ai') {
+    return <AskAiPage />;
   }
   if (sectionId === 'section-wall') {
     return (

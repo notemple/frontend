@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react"
 import type { EditorState } from "lexical"
 import { $getRoot } from "lexical"
 import { db } from "../../../storage/dexie/db"
+import { $generateNodesFromDOM } from "@lexical/html"
 
 interface Props {
   documentId: string
@@ -21,17 +22,34 @@ export default function PersistencePlugin({ documentId, onWordCountChange }: Pro
     hydratedRef.current = true
 
     db.documents.get(documentId).then((doc) => {
-      if (!doc?.lexicalState) return
-      try {
-        const parsed = editor.parseEditorState(doc.lexicalState)
-        if (parsed.isEmpty()) {
-          console.warn("[PersistencePlugin] Parsed state is empty. Ignoring.")
-          return
+      if (!doc) return
+      
+      if (doc.lexicalState) {
+        try {
+          const parsed = editor.parseEditorState(doc.lexicalState)
+          if (parsed.isEmpty()) {
+            console.warn("[PersistencePlugin] Parsed state is empty. Ignoring.")
+            return
+          }
+          // setEditorState must be called outside of editor.update()
+          queueMicrotask(() => editor.setEditorState(parsed))
+        } catch (err) {
+          console.warn("[PersistencePlugin] Failed to restore state:", err)
         }
-        // setEditorState must be called outside of editor.update()
-        queueMicrotask(() => editor.setEditorState(parsed))
-      } catch (err) {
-        console.warn("[PersistencePlugin] Failed to restore state:", err)
+      } else if (doc.content) {
+        // Fallback: Convert raw HTML content to Lexical nodes on first load
+        try {
+          const parser = new DOMParser()
+          const dom = parser.parseFromString(doc.content, "text/html")
+          editor.update(() => {
+            const nodes = $generateNodesFromDOM(editor, dom)
+            const root = $getRoot()
+            root.clear()
+            root.append(...nodes)
+          })
+        } catch (err) {
+          console.warn("[PersistencePlugin] Failed to parse HTML content fallback:", err)
+        }
       }
     })
   }, [documentId, editor])

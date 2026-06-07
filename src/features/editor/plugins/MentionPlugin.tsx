@@ -1,39 +1,24 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
-import { $getSelection, $isRangeSelection, $isTextNode } from "lexical"
+import { $getSelection, $isRangeSelection, $isTextNode, $createParagraphNode } from "lexical"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import type { ReactNode } from "react"
-import Fuse from "fuse.js"
-import { slashCommands, type SlashCommand } from "./slashCommandList"
-import SlashCommandMenu, { CATEGORY_ORDER } from "../components/SlashCommandMenu"
+import { $createPageLinkNode } from "../nodes/PageLinkNode"
+import { $createTaskNode } from "../nodes/TaskNode"
+import MentionMenu from "../components/MentionMenu"
 
-export default function SlashCommandPlugin(): ReactNode {
+export default function MentionPlugin(): ReactNode {
   const [editor] = useLexicalComposerContext()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const [selectedIdx, setSelectedIdx] = useState(0)
+  const [itemsCount, setItemsCount] = useState(0)
 
-  // Track the exact slash position so executeCommand can delete precisely
-  const slashStartRef = useRef<{ nodeKey: string; offset: number } | null>(null)
+  // Track the exact @ position so insertMention can delete precisely
+  const atStartRef = useRef<{ nodeKey: string; offset: number } | null>(null)
 
-  const fuse = useRef(
-    new Fuse(slashCommands, {
-      keys: ["title", "keywords", "description"],
-      threshold: 0.38,
-      includeScore: true,
-    })
-  )
-
-  const unfiltered: SlashCommand[] = query.trim()
-    ? fuse.current.search(query).map((r: { item: SlashCommand }) => r.item)
-    : slashCommands
-
-  const filtered = CATEGORY_ORDER.reduce<SlashCommand[]>((acc, cat) => {
-    return acc.concat(unfiltered.filter((c) => c.category === cat))
-  }, [])
-
-  // Open, position, and filter menu when "/" is typed
+  // Open, position, and filter menu when "@" is typed
   useEffect(() => {
     return editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
@@ -55,26 +40,26 @@ export default function SlashCommandPlugin(): ReactNode {
 
         // Only look at text before cursor
         const textBeforeCursor = textContent.slice(0, offset)
-        const lastSlashIdx = textBeforeCursor.lastIndexOf("/")
+        const lastAtIdx = textBeforeCursor.lastIndexOf("@")
 
-        // Close if no "/" found before cursor
-        if (lastSlashIdx === -1) {
+        // Close if no "@" found before cursor
+        if (lastAtIdx === -1) {
           if (open) setOpen(false)
           return
         }
 
-        // FIX 2: slash must be at start of node, or preceded by whitespace
-        const charBefore = lastSlashIdx > 0 ? textBeforeCursor[lastSlashIdx - 1] : null
+        // Trigger must be preceded by whitespace or at start of node
+        const charBefore = lastAtIdx > 0 ? textBeforeCursor[lastAtIdx - 1] : null
         const isValidTrigger = charBefore === null || /\s/.test(charBefore)
         if (!isValidTrigger) {
           if (open) setOpen(false)
           return
         }
 
-        const queryText = textBeforeCursor.slice(lastSlashIdx + 1)
+        const queryText = textBeforeCursor.slice(lastAtIdx + 1)
 
-        // Close if query contains a space or newline (user typed prose, not a command)
-        if (queryText.includes(" ") || queryText.includes("\n")) {
+        // Close if query contains a newline, is too long, or has too many spaces
+        if (queryText.includes("\n") || queryText.length > 30 || queryText.split(" ").length > 4) {
           if (open) setOpen(false)
           return
         }
@@ -88,48 +73,56 @@ export default function SlashCommandPlugin(): ReactNode {
         const editorEl = editor.getRootElement()
         const editorRect = editorEl?.getBoundingClientRect()
 
-        // FIX 1: fixed positioning — no scrollX/Y offsets
         setPosition({
           top: rect.bottom + 8,
-          left: rect.width > 0
-            ? rect.left
-            : (editorRect?.left ?? 100),
+          left: rect.width > 0 ? rect.left : (editorRect?.left ?? 100),
         })
 
-        // FIX 3: track the slash start for precise deletion
-        slashStartRef.current = {
+        // Track the at position
+        atStartRef.current = {
           nodeKey: anchor.key,
-          offset: lastSlashIdx,
+          offset: lastAtIdx,
         }
 
         setQuery(queryText)
-        setSelectedIdx(0)
         setOpen(true)
       })
     })
   }, [editor, open])
 
-  const executeCommand = useCallback(
-    (command: SlashCommand) => {
+  const insertMention = useCallback(
+    (payload: { type: "doc" | "task" | "date"; id: string; title: string }) => {
       setOpen(false)
 
-      // FIX 3: delete from the tracked slash position to current cursor
       editor.update(() => {
         const sel = $getSelection()
         if (!$isRangeSelection(sel)) return
         const anchor = sel.anchor.getNode()
         if (!$isTextNode(anchor)) return
 
-        const slashPos = slashStartRef.current?.offset ?? anchor.getTextContent().lastIndexOf("/")
-        if (slashPos === -1) return
+        const atPos = atStartRef.current?.offset ?? anchor.getTextContent().lastIndexOf("@")
+        if (atPos === -1) return
 
-        // Delete from slash position to current cursor offset
-        anchor.spliceText(slashPos, sel.anchor.offset - slashPos, "")
+        // Delete from "@" symbol to the current cursor position
+        anchor.spliceText(atPos, sel.anchor.offset - atPos, "")
+
+        if (payload.type === "task") {
+          const topLevelElement = anchor.getTopLevelElementOrThrow()
+          const taskNode = $createTaskNode(payload.id)
+
+          const paragraphNode = $createParagraphNode()
+          topLevelElement.insertAfter(paragraphNode)
+          paragraphNode.select()
+
+          topLevelElement.replace(taskNode)
+        } else {
+          // Create and insert PageLinkNode reference
+          const mentionNode = $createPageLinkNode(payload.id, payload.title)
+          sel.insertNodes([mentionNode])
+        }
       })
 
-      slashStartRef.current = null
-      // Run command synchronously — no setTimeout needed
-      command.onSelect(editor)
+      atStartRef.current = null
     },
     [editor]
   )
@@ -148,26 +141,20 @@ export default function SlashCommandPlugin(): ReactNode {
       if (e.key === "ArrowDown") {
         e.preventDefault()
         e.stopPropagation()
-        setSelectedIdx((i) => (i + 1) % Math.max(filtered.length, 1))
+        setSelectedIdx((i) => (i + 1) % Math.max(itemsCount, 1))
         return
       }
       if (e.key === "ArrowUp") {
         e.preventDefault()
         e.stopPropagation()
-        setSelectedIdx((i) => (i - 1 + Math.max(filtered.length, 1)) % Math.max(filtered.length, 1))
-        return
-      }
-      if (e.key === "Enter") {
-        e.preventDefault()
-        e.stopPropagation()
-        if (filtered[selectedIdx]) executeCommand(filtered[selectedIdx])
+        setSelectedIdx((i) => (i - 1 + Math.max(itemsCount, 1)) % Math.max(itemsCount, 1))
         return
       }
     }
 
     window.addEventListener("keydown", handleKeyDown, true)
     return () => window.removeEventListener("keydown", handleKeyDown, true)
-  }, [open, filtered, selectedIdx, executeCommand])
+  }, [open, itemsCount, selectedIdx])
 
   // Close when clicking outside
   useEffect(() => {
@@ -177,18 +164,17 @@ export default function SlashCommandPlugin(): ReactNode {
     return () => window.removeEventListener("mousedown", handleClick)
   }, [open])
 
-  // FIX 6: keep menu open even with 0 results (shows empty state)
   if (!open) return null
 
   return createPortal(
-    <SlashCommandMenu
-      commands={filtered}
+    <MentionMenu
       selectedIdx={selectedIdx}
       position={position}
       currentQuery={query}
-      onSelect={(cmd) => executeCommand(cmd)}
-      onHover={(idx) => setSelectedIdx(idx)}
+      onSelect={insertMention}
+      onHover={setSelectedIdx}
       onClose={() => setOpen(false)}
+      onItemsChange={setItemsCount}
     />,
     document.body
   )

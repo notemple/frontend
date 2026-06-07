@@ -1,5 +1,6 @@
 import {
 	CaretDown,
+	Command,
 	FileText,
 	Keyboard,
 	Tag
@@ -8,7 +9,7 @@ import React,{ useState } from 'react';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
-type NavItem = 'keyboard-shortcuts' | 'release-notes' | 'terms-of-service';
+type NavItem = 'keyboard-shortcuts' | 'slash-commands' | 'release-notes' | 'terms-of-service';
 
 interface Release {
   version: string;
@@ -47,6 +48,55 @@ const KEYBOARD_SHORTCUTS: { category: string; shortcuts: { key: string; desc: st
       { key: 'Ctrl + Alt + N', desc: 'Split pane' },
       { key: 'Ctrl + Alt + Q', desc: 'Close active pane' },
       { key: 'Ctrl + K', desc: 'Document search' },
+    ],
+  },
+];
+
+const SLASH_COMMANDS_HELP: { category: string; commands: { title: string; trigger: string; desc: string; keywords: string }[] }[] = [
+  {
+    category: 'Basic Blocks',
+    commands: [
+      { title: 'Text', trigger: '/text', desc: 'Plain paragraph text', keywords: 'text, paragraph, p, plain' },
+      { title: 'Heading 1', trigger: '/h1', desc: 'Large section heading', keywords: 'h1, heading, title, heading1' },
+      { title: 'Heading 2', trigger: '/h2', desc: 'Medium section heading', keywords: 'h2, heading, heading2' },
+      { title: 'Heading 3', trigger: '/h3', desc: 'Small section heading', keywords: 'h3, heading, heading3' },
+      { title: 'Quote', trigger: '/quote', desc: 'Capture a quote block', keywords: 'quote, blockquote' },
+      { title: 'Code block', trigger: '/code', desc: 'Syntax-highlighted code block', keywords: 'code, pre, codeblock, snippet' },
+      { title: 'Divider', trigger: '/divider', desc: 'Horizontal line divider', keywords: 'divider, hr, rule, separator' },
+      { title: 'Callout', trigger: '/callout', desc: 'A colored highlight or warning box', keywords: 'callout, info, highlight, box, note, alert, warning' },
+      { title: 'Toggle', trigger: '/toggle', desc: 'Collapsible details section', keywords: 'toggle, collapse, expand, accordion' },
+      { title: 'Table', trigger: '/table', desc: 'Insert a simple 3x3 table', keywords: 'table, grid, rows, columns' },
+    ],
+  },
+  {
+    category: 'Lists',
+    commands: [
+      { title: 'Bullet List', trigger: '/bullet', desc: 'An unordered bullet list', keywords: 'bullet, list, ul, unordered' },
+      { title: 'Numbered List', trigger: '/numbered', desc: 'An ordered numbered list', keywords: 'numbered, list, ol, ordered, number' },
+      { title: 'To-do List', trigger: '/todo', desc: 'Task checklist with checkboxes', keywords: 'todo, checklist, task, checkbox' },
+      { title: 'Toggle List', trigger: '/toggle list', desc: 'Collapsible list items', keywords: 'toggle list, collapsible, expandable' },
+    ],
+  },
+  {
+    category: 'Layout',
+    commands: [
+      { title: '2 Columns', trigger: '/2 columns', desc: 'Split layout into 2 side-by-side columns', keywords: '2 columns, split, layout, col' },
+      { title: '3 Columns', trigger: '/3 columns', desc: 'Split layout into 3 side-by-side columns', keywords: '3 columns, split, layout, col' },
+      { title: '4 Columns', trigger: '/4 columns', desc: 'Split layout into 4 side-by-side columns', keywords: '4 columns, split, layout, col' },
+      { title: '5 Columns', trigger: '/5 columns', desc: 'Split layout into 5 side-by-side columns', keywords: '5 columns, split, layout, col' },
+    ],
+  },
+  {
+    category: 'Media',
+    commands: [
+      { title: 'Image', trigger: '/image', desc: 'Upload or embed a photo/picture', keywords: 'image, photo, picture, upload, img' },
+      { title: 'Video', trigger: '/video', desc: 'Embed a video by URL (YouTube, MP4, etc.)', keywords: 'video, youtube, embed, mp4' },
+    ],
+  },
+  {
+    category: 'Advanced',
+    commands: [
+      { title: 'Math Equation', trigger: '/math', desc: 'LaTeX block equation', keywords: 'math, equation, latex, formula, katex' },
     ],
   },
 ];
@@ -111,6 +161,55 @@ function KeyboardShortcuts() {
                 </kbd>
               </div>
             ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SlashCommandsHelp() {
+  return (
+    <div className="flex flex-col gap-8">
+      <div>
+        <h2 className="text-2xl font-bold text-foreground tracking-tight mb-1">Slash Commands</h2>
+        <p className="text-sm text-muted-foreground">
+          Type <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border/60 text-xs font-mono font-bold text-teal-500 dark:text-teal-400">/</kbd> on a new line in the editor to insert block elements.
+        </p>
+      </div>
+      {SLASH_COMMANDS_HELP.map((section) => (
+        <div key={section.category} className="flex flex-col gap-2">
+          <h3 className="text-xs font-semibold uppercase tracking-widest text-teal-500 dark:text-teal-400 mb-1">
+            {section.category}
+          </h3>
+          <div className="rounded-xl border border-border/50 overflow-hidden">
+            <table className="w-full border-collapse text-left text-sm">
+              <thead>
+                <tr className="bg-muted/30 border-b border-border/50 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <th className="px-4 py-3 w-1/4">Command</th>
+                  <th className="px-4 py-3 w-1/4">Trigger</th>
+                  <th className="px-4 py-3 w-1/2">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {section.commands.map((cmd, i) => (
+                  <tr
+                    key={cmd.title}
+                    className={`hover:bg-muted/30 transition-colors ${
+                      i !== 0 ? 'border-t border-border/30' : ''
+                    }`}
+                  >
+                    <td className="px-4 py-3 font-medium text-foreground">{cmd.title}</td>
+                    <td className="px-4 py-3">
+                      <kbd className="px-2 py-0.5 rounded-md bg-muted border border-border/60 text-[11px] font-mono text-teal-600 dark:text-teal-400 font-bold shadow-sm">
+                        {cmd.trigger}
+                      </kbd>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{cmd.desc}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       ))}
@@ -193,6 +292,7 @@ function TermsOfService() {
 
 const NAV_ITEMS: { id: NavItem; label: string; icon: React.ReactNode }[] = [
   { id: 'keyboard-shortcuts', label: 'Keyboard Shortcuts', icon: <Keyboard size={15} /> },
+  { id: 'slash-commands', label: 'Slash Commands', icon: <Command size={15} /> },
   { id: 'release-notes', label: 'Release Notes', icon: <Tag size={15} /> },
   { id: 'terms-of-service', label: 'Terms of Service', icon: <FileText size={15} /> },
 ];
@@ -242,6 +342,7 @@ export const HelpPage: React.FC = () => {
       <div className="flex-1 overflow-y-auto no-scrollbar">
         <div className="max-w-2xl mx-auto px-10 py-10">
           {activeNav === 'keyboard-shortcuts' && <KeyboardShortcuts />}
+          {activeNav === 'slash-commands' && <SlashCommandsHelp />}
           {activeNav === 'release-notes' && (
             <ReleaseNotes selectedRelease={selectedRelease} onSelectRelease={setSelectedRelease} />
           )}

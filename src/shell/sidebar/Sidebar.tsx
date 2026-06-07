@@ -5,9 +5,8 @@ import { gsap } from 'gsap';
 import { motion } from 'motion/react';
 import React,{ useEffect,useRef,useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-
-import { useSettingsStore } from '@/features/settings/store';
 import { ColorPicker } from '@/shared/ui/ColorPicker';
+import { TnLogo } from '@/shared/ui/TnLogo';
 import {
 	Book,
 	CalendarBlank,
@@ -370,14 +369,6 @@ export const Sidebar = () => {
       isTutorialActive: state.isTutorialActive,
     }))
   );
-
-  const { spaceName, spaceIcon } = useSettingsStore(
-    useShallow((state) => ({
-      spaceName: state.spaceName,
-      spaceIcon: state.spaceIcon,
-    }))
-  );
-
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   // Stable selector references
@@ -510,6 +501,7 @@ export const Sidebar = () => {
 
       // Build a flat ordered list of all currently-visible navigable IDs
       const ids: string[] = [
+        'section-ask-ai',
         'section-daily-notes',
         'section-tasks',
         'section-tags',
@@ -706,24 +698,27 @@ export const Sidebar = () => {
         pointerEvents: isSidebarOpen ? "auto" : "none"
       }}
     >
-      <div className={cn("flex items-center mb-8 shrink-0 relative z-10 h-8 w-full", isSidebarOpen ? "justify-between px-1" : "justify-center px-0")}>
+      <div className={cn("flex items-center mb-8 shrink-0 relative z-10 w-full", isSidebarOpen ? "justify-start px-1.5 h-11" : "justify-center px-0 h-8")}>
           {isSidebarOpen ? (
-            <button
-              className="flex items-center gap-2.5 px-2 hover:bg-muted py-1.5 rounded-sm-sm w-full text-left transition-all whitespace-nowrap overflow-hidden group/personal"
-            >
-              <div className="w-5 h-5 bg-muted flex items-center justify-center text-foreground font-bold text-[10px] shrink-0 rounded-sm-sm border border-border shadow-sm-sm group-hover/personal:bg-muted/80 transition-all">
-                {spaceIcon}
+            <div className="flex items-center gap-3 transition-all whitespace-nowrap overflow-hidden">
+              {/* Small periodic table logo */}
+              <TnLogo className="w-8 h-8 shrink-0" glow={false} />
+
+              {/* Stacked Branding text logo */}
+              <div className="flex flex-col select-none cursor-pointer" style={{ fontFamily: 'var(--font-sans), "Newsreader", serif' }}>
+                <span className="text-[19px] font-bold leading-none tracking-tight">
+                  <span className="text-[#bde0fe]">t</span>
+                  <span className="text-foreground">emp</span>
+                  <span className="text-[#ffb7b2]">l</span>
+                </span>
+                <span className="text-[13px] font-normal leading-none text-muted-foreground/60 mt-[3.5px] pl-[1px]">
+                  note
+                </span>
               </div>
-              <span className="font-semibold tracking-tight text-[13px] flex-1 truncate text-foreground">{spaceName}</span>
-              <CaretDown size={12} className="text-muted-foreground mr-2 group-hover/personal:text-foreground" />
-            </button>
+            </div>
           ) : (
-            <div
-              className="w-full flex justify-center py-1.5"
-            >
-              <div className="w-6 h-6 bg-muted flex items-center justify-center text-foreground font-bold text-xs shrink-0 rounded-sm-sm border border-border shadow-sm-sm">
-                {spaceIcon}
-              </div>
+            <div className="w-full flex justify-center py-1.5">
+              <TnLogo className="w-7 h-7" glow={false} />
             </div>
           )}
       </div>
@@ -733,7 +728,16 @@ export const Sidebar = () => {
         <div className="space-y-[2px]">
           <SidebarItem icon={<Plus size={16} className={isDocActive('new-note') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="New Note" isOpen={isSidebarOpen} highlight={isDocActive('new-note')} onClick={handleNewNoteClick} activeBgClass="bg-blush-pop/90 dark:bg-blush-pop/35 border-blush-pop/75 dark:border-blush-pop/50 border" activeTextClass="!text-black dark:!text-white font-semibold" />
           <SidebarItem icon={<MagnifyingGlass size={16} className="text-sky-500/80 dark:text-sky-400/80" />} label="Search" isOpen={isSidebarOpen} />
-          <SidebarItem id="onboarding-ask-ai" icon={<Sparkle size={16} className="text-purple-500/90 dark:text-purple-400/90" />} label="Ask AI" isOpen={isSidebarOpen} />
+          <SidebarItem 
+            id="onboarding-ask-ai" 
+            icon={<Sparkle size={16} className={isDocActive('section-ask-ai') ? "text-current" : "text-purple-500/90 dark:text-purple-400/90"} />} 
+            label="Ask AI" 
+            isOpen={isSidebarOpen}
+            highlight={isDocActive('section-ask-ai')}
+            onClick={() => handleDocClick('section-ask-ai')}
+            activeBgClass="bg-purple-500/20 dark:bg-purple-500/15 border-purple-500/40 dark:border-purple-500/30 border"
+            activeTextClass="!text-purple-600 dark:!text-purple-400 font-semibold"
+          />
           <div
             draggable
             onDragStart={(e) => {

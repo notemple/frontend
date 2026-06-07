@@ -16,6 +16,7 @@ import {
   FileNode,
   HorizontalRuleNode,
   PageLinkNode,
+  TaskNode,
 } from "./nodes"
 
 export function createEditorConfig(documentId: string): InitialConfigType {
@@ -44,6 +45,7 @@ export function createEditorConfig(documentId: string): InitialConfigType {
       FileNode,
       HorizontalRuleNode,
       PageLinkNode,
+      TaskNode,
     ],
     onError: (error: Error) => {
       console.error("[TemplnoteEditor]", error)

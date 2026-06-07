@@ -158,7 +158,7 @@ export class ColumnsContainerNode extends DecoratorNode<ReactNode> {
 
   setColumns(columns: ColumnData[]): this {
     const writable = this.getWritable()
-    writable.__columns = columns
+    writable.__columns = [...columns]
     writable.__columnCount = columns.length
     return writable
   }

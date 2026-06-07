@@ -319,6 +319,72 @@ export const OnboardingScreen = () => {
       <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">Ctrl + K</td>
     </tr>
   </tbody>
+</table>
+
+<hr />
+
+<h3>⚡ Slash Commands Guide</h3>
+<p>Type <code>/</code> on a new line inside the editor to open the command menu. Here are the available commands to build your notes faster:</p>
+<table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px;">
+  <thead>
+    <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); text-align: left;">
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 25%;">Command</th>
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 25%;">Trigger</th>
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 50%;">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Heading 1</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">/h1</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Large section heading</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Heading 2</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">/h2</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Medium section heading</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Bullet List</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">/bullet</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">An unordered bullet list</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">To-do List</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">/todo</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Task checklist with checkboxes</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Quote</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">/quote</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Capture a blockquote</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Code Block</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">/code</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Code snippet with syntax highlighting</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Callout</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">/callout</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Highlighted note or warning box</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">/toggle</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Collapsible section or toggle list</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Table</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">/table</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Insert a simple table</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Columns</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">/2 columns</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Split layout into 2-5 columns</td>
+    </tr>
+  </tbody>
 </table>`
             }
           );
@@ -392,7 +458,73 @@ export const OnboardingScreen = () => {
       <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">Ctrl + K</td>
     </tr>
   </tbody>
-</table>`
+</table>
+
+<hr />
+
+<h3>⚡ Slash Commands Guide</h3>
+<p>Type <code>/</code> on a new line inside the editor to open the command menu. Here are the available commands to build your notes faster:</p>
+<table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px;">
+  <thead>
+    <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); text-align: left;">
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 25%;">Command</th>
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 25%;">Trigger</th>
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 50%;">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Heading 1</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">/h1</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Large section heading</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Heading 2</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">/h2</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Medium section heading</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Bullet List</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">/bullet</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">An unordered bullet list</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">To-do List</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">/todo</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Task checklist with checkboxes</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Quote</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">/quote</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Capture a blockquote</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Code Block</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">/code</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Code snippet with syntax highlighting</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Callout</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">/callout</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Highlighted note or warning box</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">/toggle</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Collapsible section or toggle list</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Table</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">/table</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Insert a simple table</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Columns</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">/2 columns</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Split layout into 2-5 columns</td>
+    </tr>
+  </tbody>
+</table>`,
             },
             {
               id: 'doc-stud-overview',
@@ -492,7 +624,72 @@ export const OnboardingScreen = () => {
       <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">Ctrl + K</td>
     </tr>
   </tbody>
-</table>`
+</table>
+
+<hr />
+
+<h3>⚡ Slash Commands Guide</h3>
+<p>Type <code>/</code> on a new line inside the editor to open the command menu. Here are the available commands to build your notes faster:</p>
+<table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px;">
+  <thead>
+    <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); text-align: left;">
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 25%;">Command</th>
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 25%;">Trigger</th>
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 50%;">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Heading 1</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">/h1</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Large section heading</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Heading 2</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">/h2</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Medium section heading</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">/bullet</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">An unordered bullet list</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">To-do List</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">/todo</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Task checklist with checkboxes</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Quote</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">/quote</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Capture a blockquote</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Code Block</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">/code</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Code snippet with syntax highlighting</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Callout</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">/callout</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Highlighted note or warning box</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">/toggle</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Collapsible section or toggle list</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Table</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">/table</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Insert a simple table</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Columns</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">/2 columns</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Split layout into 2-5 columns</td>
+    </tr>
+  </tbody>
+</table>`,
             },
             {
               id: 'doc-creat-calendar',
@@ -580,7 +777,7 @@ export const OnboardingScreen = () => {
       <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">Ctrl + Alt + H / J</td>
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-      <td style="padding: 8px 12px; color: #e4e4e7;">Split Pane</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">Split Pane</td>
       <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">Ctrl + Alt + N</td>
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
@@ -592,7 +789,72 @@ export const OnboardingScreen = () => {
       <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">Ctrl + K</td>
     </tr>
   </tbody>
-</table>`
+</table>
+
+<hr />
+
+<h3>⚡ Slash Commands Guide</h3>
+<p>Type <code>/</code> on a new line inside the editor to open the command menu. Here are the available commands to build your notes faster:</p>
+<table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px;">
+  <thead>
+    <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); text-align: left;">
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 25%;">Command</th>
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 25%;">Trigger</th>
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 50%;">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Heading 1</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">/h1</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Large section heading</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Heading 2</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">/h2</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Medium section heading</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">/bullet</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">An unordered bullet list</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">To-do List</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">/todo</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Task checklist with checkboxes</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Quote</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">/quote</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Capture a blockquote</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Code Block</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">/code</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Code snippet with syntax highlighting</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Callout</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">/callout</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Highlighted note or warning box</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">/toggle</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Collapsible section or toggle list</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Table</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">/table</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Insert a simple table</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Columns</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">/2 columns</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Split layout into 2-5 columns</td>
+    </tr>
+  </tbody>
+</table>`,
             },
             {
               id: 'doc-res-thesis',
@@ -692,7 +954,72 @@ export const OnboardingScreen = () => {
       <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">Ctrl + K</td>
     </tr>
   </tbody>
-</table>`
+</table>
+
+<hr />
+
+<h3>⚡ Slash Commands Guide</h3>
+<p>Type <code>/</code> on a new line inside the editor to open the command menu. Here are the available commands to build your notes faster:</p>
+<table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px;">
+  <thead>
+    <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); text-align: left;">
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 25%;">Command</th>
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 25%;">Trigger</th>
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 50%;">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Heading 1</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">/h1</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Large section heading</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">/h2</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Medium section heading</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Bullet List</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">/bullet</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">An unordered bullet list</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">To-do List</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">/todo</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Task checklist with checkboxes</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Quote</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">/quote</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Capture a blockquote</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Code Block</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">/code</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Code snippet with syntax highlighting</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Callout</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">/callout</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Highlighted note or warning box</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">/toggle</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Collapsible section or toggle list</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Table</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">/table</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Insert a simple table</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Columns</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">/2 columns</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Split layout into 2-5 columns</td>
+    </tr>
+  </tbody>
+</table>`,
             },
             {
               id: 'doc-start-onepager',
@@ -793,7 +1120,72 @@ export const OnboardingScreen = () => {
       <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">Ctrl + K</td>
     </tr>
   </tbody>
-</table>`
+</table>
+
+<hr />
+
+<h3>⚡ Slash Commands Guide</h3>
+<p>Type <code>/</code> on a new line inside the editor to open the command menu. Here are the available commands to build your notes faster:</p>
+<table style="width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px;">
+  <thead>
+    <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); text-align: left;">
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 25%;">Command</th>
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 25%;">Trigger</th>
+      <th style="padding: 8px 12px; color: #a1a1aa; width: 50%;">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Heading 1</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">/h1</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Large section heading</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">/h2</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Medium section heading</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Bullet List</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">/bullet</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">An unordered bullet list</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">To-do List</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">/todo</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Task checklist with checkboxes</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Quote</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">/quote</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Capture a blockquote</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Code Block</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">/code</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Code snippet with syntax highlighting</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Callout</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">/callout</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Highlighted note or warning box</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">/toggle</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Collapsible section or toggle list</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Table</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">/table</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Insert a simple table</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Columns</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">/2 columns</td>
+      <td style="padding: 8px 12px; color: #a1a1aa;">Split layout into 2-5 columns</td>
+    </tr>
+  </tbody>
+</table>`,
             },
             {
               id: 'doc-pers-goals',
@@ -827,11 +1219,8 @@ export const OnboardingScreen = () => {
           // No default tasks for Personal style
         }
 
-        for (const folder of createdFolders) {
-          await documentService.saveFolder(folder);
-        }
-
-        const folderIds = createdFolders.map(f => f.id);
+        // No folders are saved per user request
+        const folderIds: string[] = [];
         const activePageIds = activePages.map(p => p.id);
         const filteredDocs = createdDocs.filter(d => 
           activePageIds.includes(d.id.startsWith('daily-note-') ? 'daily-note' : d.id)
@@ -857,7 +1246,7 @@ export const OnboardingScreen = () => {
             title: doc.title,
             content: doc.content,
             tags: docTags,
-            folderId: doc.folderId,
+            folderId: null, // Placed at root since no folders are generated
             icon: doc.icon,
             type: doc.id.startsWith('daily-note-') ? 'daily-note' : 'page',
             updatedAt: new Date().toISOString(),

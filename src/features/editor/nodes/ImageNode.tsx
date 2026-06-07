@@ -30,13 +30,42 @@ function ImageComponent({
   height?: number
 }) {
   const [editor] = useLexicalComposerContext()
-  const targetWidth = initialWidth ?? 720
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // Helper to compute default width of a node
+  const getDefaultNodeWidth = (): number => {
+    const colAncestor = containerRef.current?.closest('[data-type="column"]') || 
+                        containerRef.current?.closest('.column-block')
+    if (colAncestor) {
+      return colAncestor.getBoundingClientRect().width
+    }
+    const contentColumn = containerRef.current?.closest('.editor-content-column')
+    if (contentColumn) {
+      const rect = contentColumn.getBoundingClientRect()
+      const style = window.getComputedStyle(contentColumn)
+      const paddingLeft = parseFloat(style.paddingLeft) || 0
+      const paddingRight = parseFloat(style.paddingRight) || 0
+      return rect.width - paddingLeft - paddingRight
+    }
+    return 720
+  }
+
+  // Helper to compute max allowed width based on layout
+  const getMaxAllowedWidth = (): number => {
+    const colAncestor = containerRef.current?.closest('[data-type="column"]') || 
+                        containerRef.current?.closest('.column-block')
+    if (colAncestor) {
+      return colAncestor.getBoundingClientRect().width
+    }
+    return window.innerWidth * 0.9
+  }
+
+  const targetWidth = initialWidth ?? getDefaultNodeWidth()
   const [width, setWidth] = useState<number>(targetWidth)
   const [isLoaded, setIsLoaded] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
   const [isInColumn, setIsInColumn] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
   const [aspectRatio, setAspectRatio] = useState<number | null>(() => {
     if (initialWidth && initialHeight) {
       return initialWidth / initialHeight
@@ -50,17 +79,6 @@ function ImageComponent({
                         containerRef.current?.closest('.column-block')
     setIsInColumn(!!colAncestor)
   }, [])
-
-  // Helper to compute max allowed width based on layout
-  const getMaxAllowedWidth = (): number => {
-    const colAncestor = containerRef.current?.closest('[data-type="column"]') || 
-                        containerRef.current?.closest('.column-block')
-    if (colAncestor) {
-      return colAncestor.getBoundingClientRect().width
-    }
-    // Let it grow up to 90vw in the main editor
-    return window.innerWidth * 0.9
-  }
 
   // Handle window resizing and layout changes
   useEffect(() => {
@@ -102,10 +120,10 @@ function ImageComponent({
         wrapper.style.width = `${width}px`
         wrapper.style.maxWidth = "90vw"
         wrapper.style.padding = "0px"
-        wrapper.style.marginLeft = `calc(50% - ${width / 2}px - 56px)`
+        wrapper.style.marginLeft = `calc(50% - ${width / 2}px)`
         wrapper.style.marginRight = `calc(50% - ${width / 2}px)`
         if (!isLoaded && aspectRatio) {
-          const contentWidth = Math.max(0, width - 56)
+          const contentWidth = width
           wrapper.style.height = `${contentWidth / aspectRatio}px`
         } else {
           wrapper.style.height = ""
@@ -155,7 +173,7 @@ function ImageComponent({
         if ($isImageNode(node)) {
           node.setWidth(finalWidth)
           if (aspectRatio) {
-            const contentWidth = isInColumn ? finalWidth : Math.max(0, finalWidth - 56)
+            const contentWidth = finalWidth
             node.setHeight(contentWidth / aspectRatio)
           }
         }
@@ -191,15 +209,14 @@ function ImageComponent({
           setIsLoaded(true)
           
           if (initialWidth === undefined) {
-            const maxW = getMaxAllowedWidth()
-            const defaultWidth = Math.min(img.naturalWidth, maxW)
+            const defaultWidth = getDefaultNodeWidth()
             setWidth(defaultWidth)
             if (editor.isEditable()) {
               editor.update(() => {
                 const node = $getNodeByKey(nodeKey)
                 if ($isImageNode(node)) {
                   node.setWidth(defaultWidth)
-                  const contentWidth = isInColumn ? defaultWidth : Math.max(0, defaultWidth - 56)
+                  const contentWidth = defaultWidth
                   node.setHeight(contentWidth / naturalRatio)
                 }
               })
@@ -208,7 +225,7 @@ function ImageComponent({
             editor.update(() => {
               const node = $getNodeByKey(nodeKey)
               if ($isImageNode(node)) {
-                const contentWidth = isInColumn ? initialWidth : Math.max(0, initialWidth - 56)
+                const contentWidth = initialWidth
                 node.setHeight(contentWidth / naturalRatio)
               }
             })

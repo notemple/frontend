@@ -15,10 +15,13 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { $getRoot, $isParagraphNode, $createParagraphNode } from "lexical"
 import { createEditorConfig } from "./editorConfig"
 import SlashCommandPlugin from "./plugins/SlashCommandPlugin"
+import MentionPlugin from "./plugins/MentionPlugin"
 import PersistencePlugin from "./plugins/PersistencePlugin"
 import ScrollIntoViewPlugin from "./plugins/ScrollIntoViewPlugin"
 import BlockHandlePlugin from "./plugins/BlockHandlePlugin"
 import BackspacePlugin from "./plugins/BackspacePlugin"
+import FloatingToolbarPlugin from "./plugins/FloatingToolbarPlugin"
+import PageLinkPreviewPlugin from "./plugins/PageLinkPreviewPlugin"
 
 import EmojiPicker from "emoji-picker-react"
 import { useDocumentStore } from "../documents/store"
@@ -108,6 +111,7 @@ export function TemplnoteEditor({
   documentId,
   readOnly = false,
   onWordCountChange,
+  paneId,
 }: Props) {
   const config = createEditorConfig(documentId)
   const contentEditableRef = useRef<HTMLDivElement>(null)
@@ -135,13 +139,61 @@ export function TemplnoteEditor({
     }
   }, [isEmojiPickerOpen])
 
+  const wrapperStyle: React.CSSProperties = {};
+  if (doc?.backdropType && doc.backdropType !== 'none' && doc.backdropColor) {
+    wrapperStyle.background = doc.backdropColor;
+  }
+
+  const bannerStyle: React.CSSProperties = {};
+  if (doc?.topSectionColor) {
+    bannerStyle.background = doc.topSectionColor;
+  } else {
+    bannerStyle.background = 'var(--background)';
+  }
+
+  const resolvedFontFamily = doc?.fontFamily === 'sans' ? 'var(--font-sans)' :
+                             doc?.fontFamily === 'sans-serif' ? '"Geist", sans-serif' :
+                             doc?.fontFamily === 'monospace' ? 'var(--font-mono)' :
+                             undefined;
+
+  const titleStyle: React.CSSProperties = {};
+  if (doc?.topSectionTextColor) {
+    titleStyle.color = doc.topSectionTextColor;
+  } else {
+    titleStyle.color = 'var(--foreground)';
+  }
+  if (resolvedFontFamily) {
+    titleStyle.fontFamily = resolvedFontFamily;
+  }
+
+  let resolvedTextColor: string | undefined = undefined;
+  if (doc?.linkBackdropToCover) {
+    resolvedTextColor = doc?.topSectionTextColor;
+  } else {
+    resolvedTextColor = doc?.textColor;
+  }
+
+  const editorTextStyle: React.CSSProperties = {};
+  if (resolvedTextColor) {
+    editorTextStyle.color = resolvedTextColor;
+    (editorTextStyle as any)['--body-text'] = resolvedTextColor;
+    (editorTextStyle as any)['--foreground'] = resolvedTextColor;
+  }
+  if (resolvedFontFamily) {
+    editorTextStyle.fontFamily = resolvedFontFamily;
+  }
+
   return (
     <LexicalComposer initialConfig={{ ...config, editable: !readOnly }}>
-      <div className="templnote-editor-wrapper relative flex flex-col w-full h-full overflow-y-auto">
+      <div 
+        className="templnote-editor-wrapper relative flex flex-col w-full h-full overflow-y-auto"
+        style={wrapperStyle}
+      >
         <EditorScrollContainer>
           {/* Banner with gradient background */}
           <div 
-            className="w-full h-44 bg-gradient-to-r from-[#2a4e6c] via-[#527d97] to-[#b8c5cc] shrink-0 relative flex items-center justify-center" 
+            className="w-full h-44 shrink-0 relative flex items-center justify-center" 
+            style={bannerStyle}
             contentEditable={false}
           >
             <div className="flex flex-row items-center justify-center gap-4 w-full max-w-[720px] px-6 md:px-8 z-10 group/titlearea">
@@ -155,12 +207,18 @@ export function TemplnoteEditor({
                   {doc?.icon ? (
                     doc.icon
                   ) : (
-                    <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/60 hover:border-white/90 flex items-center justify-center text-white/70 hover:text-white transition-colors bg-white/10">
+                    <div 
+                      className="w-12 h-12 rounded-full border-2 border-dashed flex items-center justify-center transition-colors bg-current/10"
+                      style={{
+                        borderColor: doc?.topSectionTextColor ? `${doc.topSectionTextColor}99` : 'var(--border)',
+                        color: doc?.topSectionTextColor || 'var(--foreground)'
+                      }}
+                    >
                       <Plus size={18} weight="bold" />
                     </div>
                   )}
                 </button>
-
+ 
                 {isEmojiPickerOpen && (
                   <div 
                     className="absolute top-18 left-0 z-50 rounded-lg shadow-xl bg-white dark:bg-[#1f1f22] border border-zinc-200 dark:border-zinc-800 p-2 flex flex-col gap-2"
@@ -192,19 +250,23 @@ export function TemplnoteEditor({
                   </div>
                 )}
               </div>
-
+ 
               {/* Page Title Input */}
               <input
                 type="text"
                 placeholder="Untitled"
                 value={doc?.title ?? ""}
                 onChange={(e) => updateDocument(documentId, { title: e.target.value })}
-                className="flex-1 bg-transparent border-none outline-none text-4xl font-bold text-white placeholder-white/50 font-sans tracking-tight drop-shadow-md min-w-0"
+                className="flex-1 bg-transparent border-none outline-none text-4xl font-bold font-sans tracking-tight drop-shadow-md min-w-0 placeholder-current placeholder-opacity-50"
+                style={titleStyle}
               />
             </div>
           </div>
 
-          <div className="editor-content-column w-full max-w-[720px] px-6 md:px-8 relative flex flex-col pb-12 pt-4">
+          <div 
+            className="editor-content-column w-full max-w-[720px] px-6 md:px-8 relative flex flex-col pb-12 pt-4"
+            style={editorTextStyle}
+          >
 
             {/* The actual Lexical editable area */}
             <div className="editor-container relative flex flex-col flex-1">
@@ -221,8 +283,11 @@ export function TemplnoteEditor({
                   </div>
                 }
                 placeholder={
-                  <div className="absolute top-0 left-14 pointer-events-none select-none text-[var(--muted-foreground)] opacity-40 text-base leading-7">
-                    Press '/' for commands…
+                  <div 
+                    className="absolute top-4 left-0.5 pointer-events-none select-none text-[var(--muted-foreground)] opacity-40 text-[19px] leading-[1.95] font-sans"
+                    style={resolvedFontFamily ? { fontFamily: resolvedFontFamily } : undefined}
+                  >
+                    press '/' or '@' for commands or 'tab' for ai
                   </div>
                 }
                 ErrorBoundary={SafeErrorBoundary}
@@ -243,9 +308,12 @@ export function TemplnoteEditor({
         <TablePlugin />
         <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
         <SlashCommandPlugin />
+        <MentionPlugin />
         <ScrollIntoViewPlugin />
         <BlockHandlePlugin />
         <BackspacePlugin />
+        <FloatingToolbarPlugin />
+        <PageLinkPreviewPlugin paneId={paneId} />
         <PersistencePlugin
           documentId={documentId}
           onWordCountChange={onWordCountChange}

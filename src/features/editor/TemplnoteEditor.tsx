@@ -135,13 +135,36 @@ export function TemplnoteEditor({
     }
   }, [isEmojiPickerOpen])
 
+  const wrapperStyle: React.CSSProperties = {};
+  if (doc?.backdropType && doc.backdropType !== 'none' && doc.backdropColor) {
+    wrapperStyle.background = doc.backdropColor;
+  }
+
+  const bannerStyle: React.CSSProperties = {};
+  if (doc?.topSectionColor) {
+    bannerStyle.background = doc.topSectionColor;
+  } else {
+    bannerStyle.background = 'linear-gradient(to right, #2a4e6c, #527d97, #b8c5cc)';
+  }
+
+  const titleStyle: React.CSSProperties = {};
+  if (doc?.topSectionTextColor) {
+    titleStyle.color = doc.topSectionTextColor;
+  } else {
+    titleStyle.color = '#ffffff';
+  }
+
   return (
     <LexicalComposer initialConfig={{ ...config, editable: !readOnly }}>
-      <div className="templnote-editor-wrapper relative flex flex-col w-full h-full overflow-y-auto">
+      <div 
+        className="templnote-editor-wrapper relative flex flex-col w-full h-full overflow-y-auto"
+        style={wrapperStyle}
+      >
         <EditorScrollContainer>
           {/* Banner with gradient background */}
           <div 
-            className="w-full h-44 bg-gradient-to-r from-[#2a4e6c] via-[#527d97] to-[#b8c5cc] shrink-0 relative flex items-center justify-center" 
+            className="w-full h-44 shrink-0 relative flex items-center justify-center" 
+            style={bannerStyle}
             contentEditable={false}
           >
             <div className="flex flex-row items-center justify-center gap-4 w-full max-w-[720px] px-6 md:px-8 z-10 group/titlearea">
@@ -155,12 +178,18 @@ export function TemplnoteEditor({
                   {doc?.icon ? (
                     doc.icon
                   ) : (
-                    <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/60 hover:border-white/90 flex items-center justify-center text-white/70 hover:text-white transition-colors bg-white/10">
+                    <div 
+                      className="w-12 h-12 rounded-full border-2 border-dashed flex items-center justify-center transition-colors bg-current/10"
+                      style={{
+                        borderColor: doc?.topSectionTextColor ? `${doc.topSectionTextColor}99` : 'rgba(255, 255, 255, 0.6)',
+                        color: doc?.topSectionTextColor || '#ffffff'
+                      }}
+                    >
                       <Plus size={18} weight="bold" />
                     </div>
                   )}
                 </button>
-
+ 
                 {isEmojiPickerOpen && (
                   <div 
                     className="absolute top-18 left-0 z-50 rounded-lg shadow-xl bg-white dark:bg-[#1f1f22] border border-zinc-200 dark:border-zinc-800 p-2 flex flex-col gap-2"
@@ -192,14 +221,15 @@ export function TemplnoteEditor({
                   </div>
                 )}
               </div>
-
+ 
               {/* Page Title Input */}
               <input
                 type="text"
                 placeholder="Untitled"
                 value={doc?.title ?? ""}
                 onChange={(e) => updateDocument(documentId, { title: e.target.value })}
-                className="flex-1 bg-transparent border-none outline-none text-4xl font-bold text-white placeholder-white/50 font-sans tracking-tight drop-shadow-md min-w-0"
+                className="flex-1 bg-transparent border-none outline-none text-4xl font-bold font-sans tracking-tight drop-shadow-md min-w-0 placeholder-current placeholder-opacity-50"
+                style={titleStyle}
               />
             </div>
           </div>

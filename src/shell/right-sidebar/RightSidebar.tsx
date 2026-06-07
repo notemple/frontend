@@ -387,264 +387,297 @@ const StyleTab = () => {
 
       {/* Backdrop Module */}
       <div className="space-y-4">
-        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Backdrop</span>
-
-        {/* Segmented Control Selector for Types - Matches mockup precisely */}
-        <div className="grid grid-cols-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
-          {/* None/Disabled */}
-          <button
-            onClick={() => setBackdropType('none')}
-            className={cn(
-              "py-2 flex items-center justify-center rounded-sm-sm transition-all text-xs relative group-hover:bg-black/5 dark:group-hover:bg-white/5 cursor-pointer",
-              currentType === 'none'
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
-                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
-            )}
-            title="No Backdrop"
-          >
-            <div className="w-5 h-5 flex items-center justify-center relative">
-              <div className="border border-current w-3.5 h-3.5 rounded-sm-sm relative">
-                <div className="absolute top-1/2 left-0 right-0 border-t border-current -rotate-45 transform origin-center" />
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Backdrop</span>
+          {/* Link with Editor Cover Checkbox/Toggle */}
+          <label className="flex items-center gap-1.5 cursor-pointer group select-none">
+            <div className="relative w-3.5 h-3.5 rounded-sm border border-black/30 dark:border-white/20 bg-black/5 dark:bg-white/5 transition-all flex items-center justify-center shadow-sm-sm group-hover:border-sky-500/50">
+              <input
+                type="checkbox"
+                checked={!!document.linkBackdropToCover}
+                onChange={(e) => updateDocument(document.id, { linkBackdropToCover: e.target.checked })}
+                className="absolute inset-0 opacity-0 cursor-pointer z-10"
+              />
+              <div className={cn(
+                "absolute inset-0 rounded-sm bg-sky-500 border border-sky-500 transition-opacity flex items-center justify-center",
+                document.linkBackdropToCover ? "opacity-100" : "opacity-0"
+              )}>
+                <Check
+                  size={9}
+                  weight="bold"
+                  className="text-white"
+                />
               </div>
             </div>
-          </button>
-
-          {/* Solid */}
-          <button
-            onClick={() => setBackdropType('solid')}
-            className={cn(
-              "py-2 flex items-center justify-center rounded-sm-sm transition-all text-xs cursor-pointer",
-              currentType === 'solid'
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
-                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
-            )}
-            title="Solid Backdrop"
-          >
-            <div className="w-3.5 h-3.5 bg-current rounded-sm-sm border border-current" />
-          </button>
-
-          {/* Gradient */}
-          <button
-            onClick={() => setBackdropType('gradient')}
-            className={cn(
-              "py-2 flex items-center justify-center rounded-sm-sm transition-all text-xs cursor-pointer",
-              currentType === 'gradient'
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
-                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
-            )}
-            title="Gradient Backdrop"
-          >
-            <div className="w-3.5 h-3.5 rounded-sm-sm border border-current bg-gradient-to-tr from-muted-foreground to-foreground opacity-90" />
-          </button>
+            <span className="text-[10px] font-mono text-muted-foreground group-hover:text-foreground transition-colors">
+              Link to Cover
+            </span>
+          </label>
         </div>
 
-
-
-        {/* Type Dependent Swatches Grid */}
-        {currentType === 'solid' && (
-          <div className="space-y-3">
-            <div className="grid grid-cols-6 gap-2 pt-1">
-              {solidPresets.map((color, idx) => {
-                const isSelected = document.backdropColor === color;
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      handleSolidColorSelect(color);
-                      setShowColorPickerInline(false);
-                    }}
-                    className={cn(
-                      "w-8 h-8 rounded-sm-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
-                      isSelected ? "scale-105" : ""
-                    )}
-                    style={{ 
-                      backgroundColor: color,
-                      boxShadow: isSelected 
-                        ? `0 0 0 2px var(--background), 0 0 0 4px ${color}` 
-                        : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
-                    }}
-                  >
-                    {isSelected && (
-                      <Check
-                        size={12}
-                        className={cn(
-                          "font-bold drop-shadow-sm z-10",
-                          color === '#fafafa' || color === '#f4f1ea'
-                            ? "text-slate-800 dark:text-slate-200"
-                            : "text-white"
-                        )}
-                      />
-                    )}
-                  </button>
-                );
-              })}
-
-              {/* Rainbow selector matches image mockup */}
-              <button
-                onClick={() => setShowColorPickerInline(!showColorPickerInline)}
-                className={cn(
-                  "w-8 h-8 rounded-sm-full border transition-all duration-200 shrink-0 flex items-center justify-center relative overflow-hidden group justify-self-center cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
-                  showColorPickerInline ? "scale-105" : ""
-                )}
-                style={{
-                  boxShadow: showColorPickerInline 
-                    ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6' 
-                    : '0 0 0 2px var(--background), 0 0 0 4px var(--foreground)'
-                }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 opacity-90 group-hover:opacity-100" />
-                <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow-sm" />
-              </button>
-            </div>
-
-            {/* Stable inline picker - absolutely non-glitchy, won't disappear */}
-            {showColorPickerInline && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className="p-3 bg-black/20 border border-white/5 rounded-sm-sm space-y-2.5 overflow-hidden font-mono text-[11px]"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Select Custom Color:</span>
-                  <span className="text-accent text-[10px] uppercase font-bold">{document.backdropColor}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: document.backdropColor || '#ffffff' }} />
-                  <input
-                    type="color"
-                    value={document.backdropColor || '#ffffff'}
-                    onChange={(e) => handleSolidColorSelect(e.target.value)}
-                    className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
-                  />
-                </div>
-              </motion.div>
-            )}
+        {document.linkBackdropToCover && (
+          <div className="text-[10px] text-sky-600 dark:text-sky-400 bg-sky-500/10 dark:bg-sky-500/5 border border-sky-500/20 p-2.5 rounded-sm-sm font-mono flex flex-col gap-0.5">
+            <span className="font-semibold">Linked to Editor Cover Color</span>
+            <span className="text-muted-foreground text-[9px] leading-tight">Theme changes to the banner/cover above will sync here automatically.</span>
           </div>
         )}
 
-        {/* Gradient Selection Panel - Image 3 Design */}
-        {currentType === 'gradient' && (
-          <div className="space-y-4 pt-1">
-            {/* Swatch circle gradient presets */}
-            <div className="grid grid-cols-6 gap-2">
-              {gradientPresets.map((preset, idx) => {
-                // Determine if preset matches (via start/end matching)
-                const isSelected = currentStart.toLowerCase() === preset.start.toLowerCase() &&
-                  currentEnd.toLowerCase() === preset.end.toLowerCase();
-
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => handleGradientPresetSelect(preset)}
-                    className={cn(
-                      "w-8 h-8 rounded-sm-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
-                      isSelected ? "scale-105" : ""
-                    )}
-                    style={{ 
-                      background: preset.dir,
-                      boxShadow: isSelected 
-                        ? `0 0 0 2px var(--background), 0 0 0 4px ${preset.start}` 
-                        : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
-                    }}
-                    title={preset.name}
-                  >
-                    {isSelected && (
-                      <Check
-                        size={12}
-                        className={cn(
-                          "font-bold drop-shadow-sm z-10",
-                          preset.start === '#fdf4ff' || preset.start === '#f0fdf4'
-                            ? "text-slate-800 dark:text-slate-200"
-                            : "text-white"
-                        )}
-                      />
-                    )}
-                  </button>
-                );
-              })}
-
-              {/* Rainbow arrow circle inline picker toggle */}
-              <button
-                onClick={() => setShowColorPickerInline(!showColorPickerInline)}
-                className={cn(
-                  "w-8 h-8 rounded-sm-full border transition-all duration-200 shrink-0 flex items-center justify-center relative overflow-hidden group justify-self-center cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
-                  showColorPickerInline ? "scale-105" : ""
-                )}
-                style={{
-                  boxShadow: showColorPickerInline 
-                    ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6' 
-                    : '0 0 0 2px var(--background), 0 0 0 4px var(--foreground)'
-                }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 opacity-90 group-hover:opacity-100" />
-                <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow-sm" />
-              </button>
-            </div>
-
-            {/* Custom inputs from Mockup 3 for Start/End color styling */}
-            {showColorPickerInline && (
-              <div className="space-y-4 p-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 rounded-sm-sm font-mono text-[11px] transition-all">
-                {/* Start Color picker */}
-                <div className="space-y-2 pb-2.5 border-b border-black/10 dark:border-white/5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-sm-full bg-accent" />
-                      Start Color
-                    </span>
-                    <span className="text-accent text-[10px] uppercase font-bold">{currentStart}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: currentStart }} />
-                    <input
-                      type="color"
-                      value={currentStart}
-                      onChange={(e) => handleGradientCustomUpdate({ start: e.target.value })}
-                      className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
-                    />
-                  </div>
-                </div>
-
-                {/* End Color picker */}
-                <div className="space-y-2 pb-2.5 border-b border-black/10 dark:border-white/5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-sm-full bg-pink-400" />
-                      End Color
-                    </span>
-                    <span className="text-pink-400 text-[10px] uppercase font-bold">{currentEnd}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: currentEnd }} />
-                    <input
-                      type="color"
-                      value={currentEnd}
-                      onChange={(e) => handleGradientCustomUpdate({ end: e.target.value })}
-                      className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
-                    />
-                  </div>
-                </div>
-
-                {/* Direction dropdown picker */}
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-muted-foreground">Direction</span>
-                  <select
-                    value={currentDir}
-                    onChange={(e) => handleGradientCustomUpdate({ dir: e.target.value })}
-                    className="flex-1 max-w-[124px] bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 rounded-sm-sm text-foreground dark:text-white/95 px-2.5 py-1 text-[11px] outline-none hover:border-black/20 dark:hover:border-white/20 transition-all font-mono"
-                  >
-                    <option className="bg-neutral-100 dark:bg-neutral-900" value="180deg">Top to Bottom</option>
-                    <option className="bg-neutral-100 dark:bg-neutral-900" value="90deg">Left to Right</option>
-                    <option className="bg-neutral-100 dark:bg-neutral-900" value="45deg">Diagonal Up</option>
-                    <option className="bg-neutral-100 dark:bg-neutral-900" value="135deg">Diagonal Down</option>
-                    <option className="bg-neutral-100 dark:bg-neutral-900" value="radial">Radial Circle</option>
-                  </select>
+        <div className={cn("space-y-4", document.linkBackdropToCover && "opacity-40 pointer-events-none")}>
+          {/* Segmented Control Selector for Types - Matches mockup precisely */}
+          <div className="grid grid-cols-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
+            {/* None/Disabled */}
+            <button
+              onClick={() => setBackdropType('none')}
+              className={cn(
+                "py-2 flex items-center justify-center rounded-sm-sm transition-all text-xs relative group-hover:bg-black/5 dark:group-hover:bg-white/5 cursor-pointer",
+                currentType === 'none'
+                  ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                  : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+              )}
+              title="No Backdrop"
+            >
+              <div className="w-5 h-5 flex items-center justify-center relative">
+                <div className="border border-current w-3.5 h-3.5 rounded-sm-sm relative">
+                  <div className="absolute top-1/2 left-0 right-0 border-t border-current -rotate-45 transform origin-center" />
                 </div>
               </div>
-            )}
+            </button>
+
+            {/* Solid */}
+            <button
+              onClick={() => setBackdropType('solid')}
+              className={cn(
+                "py-2 flex items-center justify-center rounded-sm-sm transition-all text-xs cursor-pointer",
+                currentType === 'solid'
+                  ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                  : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+              )}
+              title="Solid Backdrop"
+            >
+              <div className="w-3.5 h-3.5 bg-current rounded-sm-sm border border-current" />
+            </button>
+
+            {/* Gradient */}
+            <button
+              onClick={() => setBackdropType('gradient')}
+              className={cn(
+                "py-2 flex items-center justify-center rounded-sm-sm transition-all text-xs cursor-pointer",
+                currentType === 'gradient'
+                  ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                  : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+              )}
+              title="Gradient Backdrop"
+            >
+              <div className="w-3.5 h-3.5 rounded-sm-sm border border-current bg-gradient-to-tr from-muted-foreground to-foreground opacity-90" />
+            </button>
           </div>
-        )}
+
+          {/* Type Dependent Swatches Grid */}
+          {currentType === 'solid' && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-6 gap-2 pt-1">
+                {solidPresets.map((color, idx) => {
+                  const isSelected = document.backdropColor === color;
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        handleSolidColorSelect(color);
+                        setShowColorPickerInline(false);
+                      }}
+                      className={cn(
+                        "w-8 h-8 rounded-sm-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
+                        isSelected ? "scale-105" : ""
+                      )}
+                      style={{ 
+                        backgroundColor: color,
+                        boxShadow: isSelected 
+                          ? `0 0 0 2px var(--background), 0 0 0 4px ${color}` 
+                          : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
+                      }}
+                    >
+                      {isSelected && (
+                        <Check
+                          size={12}
+                          className={cn(
+                            "font-bold drop-shadow-sm z-10",
+                            color === '#fafafa' || color === '#f4f1ea'
+                              ? "text-slate-800 dark:text-slate-200"
+                              : "text-white"
+                          )}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+
+                {/* Rainbow selector matches image mockup */}
+                <button
+                  onClick={() => setShowColorPickerInline(!showColorPickerInline)}
+                  className={cn(
+                    "w-8 h-8 rounded-sm-full border transition-all duration-200 shrink-0 flex items-center justify-center relative overflow-hidden group justify-self-center cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
+                    showColorPickerInline ? "scale-105" : ""
+                  )}
+                  style={{
+                    boxShadow: showColorPickerInline 
+                      ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6' 
+                      : '0 0 0 2px var(--background), 0 0 0 4px var(--foreground)'
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 opacity-90 group-hover:opacity-100" />
+                  <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow-sm" />
+                </button>
+              </div>
+
+              {/* Stable inline picker - absolutely non-glitchy, won't disappear */}
+              {showColorPickerInline && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="p-3 bg-black/20 border border-white/5 rounded-sm-sm space-y-2.5 overflow-hidden font-mono text-[11px]"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Select Custom Color:</span>
+                    <span className="text-accent text-[10px] uppercase font-bold">{document.backdropColor}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: document.backdropColor || '#ffffff' }} />
+                    <input
+                      type="color"
+                      value={document.backdropColor || '#ffffff'}
+                      onChange={(e) => handleSolidColorSelect(e.target.value)}
+                      className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          )}
+
+          {/* Gradient Selection Panel - Image 3 Design */}
+          {currentType === 'gradient' && (
+            <div className="space-y-4 pt-1">
+              {/* Swatch circle gradient presets */}
+              <div className="grid grid-cols-6 gap-2">
+                {gradientPresets.map((preset, idx) => {
+                  // Determine if preset matches (via start/end matching)
+                  const isSelected = currentStart.toLowerCase() === preset.start.toLowerCase() &&
+                    currentEnd.toLowerCase() === preset.end.toLowerCase();
+
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handleGradientPresetSelect(preset)}
+                      className={cn(
+                        "w-8 h-8 rounded-sm-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
+                        isSelected ? "scale-105" : ""
+                      )}
+                      style={{ 
+                        background: preset.dir,
+                        boxShadow: isSelected 
+                          ? `0 0 0 2px var(--background), 0 0 0 4px ${preset.start}` 
+                          : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
+                      }}
+                      title={preset.name}
+                    >
+                      {isSelected && (
+                        <Check
+                          size={12}
+                          className={cn(
+                            "font-bold drop-shadow-sm z-10",
+                            preset.start === '#fdf4ff' || preset.start === '#f0fdf4'
+                              ? "text-slate-800 dark:text-slate-200"
+                              : "text-white"
+                          )}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+
+                {/* Rainbow arrow circle inline picker toggle */}
+                <button
+                  onClick={() => setShowColorPickerInline(!showColorPickerInline)}
+                  className={cn(
+                    "w-8 h-8 rounded-sm-full border transition-all duration-200 shrink-0 flex items-center justify-center relative overflow-hidden group justify-self-center cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
+                    showColorPickerInline ? "scale-105" : ""
+                  )}
+                  style={{
+                    boxShadow: showColorPickerInline 
+                      ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6' 
+                      : '0 0 0 2px var(--background), 0 0 0 4px var(--foreground)'
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 opacity-90 group-hover:opacity-100" />
+                  <CaretDown size={11} className="text-white relative z-10 font-bold drop-shadow-sm" />
+                </button>
+              </div>
+
+              {/* Custom inputs from Mockup 3 for Start/End color styling */}
+              {showColorPickerInline && (
+                <div className="space-y-4 p-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 rounded-sm-sm font-mono text-[11px] transition-all">
+                  {/* Start Color picker */}
+                  <div className="space-y-2 pb-2.5 border-b border-black/10 dark:border-white/5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-sm-full bg-accent" />
+                        Start Color
+                      </span>
+                      <span className="text-accent text-[10px] uppercase font-bold">{currentStart}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: currentStart }} />
+                      <input
+                        type="color"
+                        value={currentStart}
+                        onChange={(e) => handleGradientCustomUpdate({ start: e.target.value })}
+                        className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
+                      />
+                    </div>
+                  </div>
+
+                  {/* End Color picker */}
+                  <div className="space-y-2 pb-2.5 border-b border-black/10 dark:border-white/5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-sm-full bg-pink-400" />
+                        End Color
+                      </span>
+                      <span className="text-pink-400 text-[10px] uppercase font-bold">{currentEnd}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: currentEnd }} />
+                      <input
+                        type="color"
+                        value={currentEnd}
+                        onChange={(e) => handleGradientCustomUpdate({ end: e.target.value })}
+                        className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Direction dropdown picker */}
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-muted-foreground">Direction</span>
+                    <select
+                      value={currentDir}
+                      onChange={(e) => handleGradientCustomUpdate({ dir: e.target.value })}
+                      className="flex-1 max-w-[124px] bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 rounded-sm-sm text-foreground dark:text-white/95 px-2.5 py-1 text-[11px] outline-none hover:border-black/20 dark:hover:border-white/20 transition-all font-mono"
+                    >
+                      <option className="bg-neutral-100 dark:bg-neutral-900" value="180deg">Top to Bottom</option>
+                      <option className="bg-neutral-100 dark:bg-neutral-900" value="90deg">Left to Right</option>
+                      <option className="bg-neutral-100 dark:bg-neutral-900" value="45deg">Diagonal Up</option>
+                      <option className="bg-neutral-100 dark:bg-neutral-900" value="135deg">Diagonal Down</option>
+                      <option className="bg-neutral-100 dark:bg-neutral-900" value="radial">Radial Circle</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Paper and text parameters */}

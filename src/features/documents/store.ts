@@ -178,31 +178,70 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
     let newDoc: NoteDocument;
     let newOrder = get().documentOrder;
 
-    let finalTitle = updates.title;
+    let finalUpdates = { ...updates };
+    const finalLink = updates.linkBackdropToCover !== undefined
+      ? updates.linkBackdropToCover
+      : (existing ? existing.linkBackdropToCover : false);
+
+    if (finalLink) {
+      const topColorType = updates.topSectionColorType !== undefined ? updates.topSectionColorType : existing?.topSectionColorType;
+      const topColor = updates.topSectionColor !== undefined ? updates.topSectionColor : existing?.topSectionColor;
+      const topStart = updates.topSectionGradientStart !== undefined ? updates.topSectionGradientStart : existing?.topSectionGradientStart;
+      const topEnd = updates.topSectionGradientEnd !== undefined ? updates.topSectionGradientEnd : existing?.topSectionGradientEnd;
+      const topDir = updates.topSectionGradientDirection !== undefined ? updates.topSectionGradientDirection : existing?.topSectionGradientDirection;
+
+      if (topColorType === 'solid') {
+        finalUpdates.backdropType = 'solid';
+        finalUpdates.backdropColor = topColor;
+      } else if (topColorType === 'gradient') {
+        finalUpdates.backdropType = 'gradient';
+        finalUpdates.backdropColor = topColor;
+        finalUpdates.backdropGradientStart = topStart;
+        finalUpdates.backdropGradientEnd = topEnd;
+        finalUpdates.backdropGradientDirection = topDir;
+      } else {
+        finalUpdates.backdropType = 'none';
+        finalUpdates.backdropColor = undefined;
+      }
+    } else {
+      if (
+        updates.backdropColor !== undefined ||
+        updates.backdropType !== undefined ||
+        updates.backdropGradientStart !== undefined ||
+        updates.backdropGradientEnd !== undefined ||
+        updates.backdropGradientDirection !== undefined
+      ) {
+        if (updates.linkBackdropToCover === undefined) {
+          finalUpdates.linkBackdropToCover = false;
+        }
+      }
+    }
+
+    let finalTitle = finalUpdates.title;
     if (id.startsWith('daily-note-')) {
       const { timezone } = useSettingsStore.getState();
       finalTitle = getDailyNoteTitle(id, timezone);
     } else if (existing) {
-      finalTitle = updates.title !== undefined ? updates.title : existing.title;
+      finalTitle = finalUpdates.title !== undefined ? finalUpdates.title : existing.title;
     }
 
     if (!existing) {
       newDoc = {
         id,
         title: finalTitle || '',
-        content: updates.content || '',
-        tags: updates.tags || [],
-        type: updates.type || 'page',
-        createdAt: updates.createdAt || new Date().toISOString(),
-        author: updates.author || 'new user',
+        content: finalUpdates.content || '',
+        tags: finalUpdates.tags || [],
+        type: finalUpdates.type || 'page',
+        createdAt: finalUpdates.createdAt || new Date().toISOString(),
+        author: finalUpdates.author || 'new user',
         updatedAt: new Date().toISOString(),
-        ...updates
+        ...finalUpdates
       };
       newOrder = [...get().documentOrder, id];
     } else {
       newDoc = {
         ...existing,
-        ...updates,
+        ...finalUpdates,
         title: finalTitle,
         updatedAt: new Date().toISOString()
       };

@@ -37,6 +37,7 @@ export interface NoteDocument {
   isDeleted?: boolean;
   deletedAt?: string;
   icon?: string;
+  linkBackdropToCover?: boolean;
 }
 
 export interface Folder {

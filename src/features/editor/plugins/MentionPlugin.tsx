@@ -109,11 +109,12 @@ export default function MentionPlugin(): ReactNode {
         if (payload.type === "task") {
           const topLevelElement = anchor.getTopLevelElementOrThrow()
           const taskNode = $createTaskNode(payload.id)
-          topLevelElement.replace(taskNode)
 
           const paragraphNode = $createParagraphNode()
-          taskNode.insertAfter(paragraphNode)
+          topLevelElement.insertAfter(paragraphNode)
           paragraphNode.select()
+
+          topLevelElement.replace(taskNode)
         } else {
           // Create and insert PageLinkNode reference
           const mentionNode = $createPageLinkNode(payload.id, payload.title)

@@ -357,7 +357,8 @@ const StyleTab = () => {
       topSectionGradientStart: undefined,
       topSectionGradientEnd: undefined,
       topSectionGradientDirection: undefined,
-      topSectionTextColor: undefined
+      topSectionTextColor: undefined,
+      fontFamily: undefined
     });
     setShowColorPickerInline(false);
     setShowPaperColorPickerInline(false);
@@ -1066,6 +1067,54 @@ const StyleTab = () => {
               </motion.div>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Font Family Selection */}
+      <div className="space-y-3 pt-4 border-t border-black/10 dark:border-white/5">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Font Family</span>
+        <div className="grid grid-cols-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
+          {/* Sans (Newsreader) */}
+          <button
+            onClick={() => updateDocument(document.id, { fontFamily: 'sans' })}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+              (!document.fontFamily || document.fontFamily === 'sans')
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+            style={{ fontFamily: 'var(--font-sans)' }}
+          >
+            Sans
+          </button>
+
+          {/* Sans-Serif (Geist) */}
+          <button
+            onClick={() => updateDocument(document.id, { fontFamily: 'sans-serif' })}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+              document.fontFamily === 'sans-serif'
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+            style={{ fontFamily: '"Geist", sans-serif' }}
+          >
+            Sans-Serif
+          </button>
+
+          {/* Monospace (JetBrains Mono) */}
+          <button
+            onClick={() => updateDocument(document.id, { fontFamily: 'monospace' })}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+              document.fontFamily === 'monospace'
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+            style={{ fontFamily: 'var(--font-mono)' }}
+          >
+            Mono
+          </button>
         </div>
       </div>
 

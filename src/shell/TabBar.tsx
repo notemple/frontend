@@ -19,7 +19,7 @@ import {
 	useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Book,CalendarBlank,CheckSquare,Eye,FileText,Folder,Gear,SquaresFour,Star,Tag,Trash,User,X } from '@phosphor-icons/react';
+import { Book,CalendarBlank,CheckSquare,Eye,FileText,Folder,Gear,Sparkle,SquaresFour,Star,Tag,Trash,User,X } from '@phosphor-icons/react';
 import React from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -76,6 +76,7 @@ function getSectionColor(tabId: string, type: string, folderColor?: string): str
   if (tabId === 'section-daily-notes') return '#10b981'; // Emerald
   if (tabId === 'section-tasks') return '#3b82f6'; // Blue
   if (tabId === 'section-tags') return '#f59e0b'; // Amber
+  if (tabId === 'section-ask-ai') return '#a855f7'; // Purple/AI Accent
   if (tabId === 'section-glance') return '#6366f1'; // Indigo
   if (tabId === 'section-wall') return '#ec4899'; // Pink
   if (tabId === 'section-help') return '#14b8a6'; // Teal
@@ -103,6 +104,7 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
       if (tabId === 'section-daily-notes') return { title: 'Daily Notes', type: 'daily-notes', icon: undefined };
       if (tabId === 'section-tasks') return { title: 'Tasks', type: 'tasks', icon: undefined };
       if (tabId === 'section-tags') return { title: 'Tags', type: 'tags', icon: undefined };
+      if (tabId === 'section-ask-ai') return { title: 'Ask AI', type: 'ask-ai', icon: undefined };
       if (tabId === 'section-glance') return { title: 'Glance', type: 'glance', icon: undefined };
       if (tabId === 'section-wall') return { title: 'Wall', type: 'wall', icon: undefined };
       if (tabId === 'section-help') return { title: 'Help', type: 'help', icon: undefined };
@@ -414,6 +416,7 @@ function getIcon(type: string, emoji?: string) {
     case 'page': return <FileText size={14} />;
     case 'book': return <Book size={14} />;
     case 'person': return <User size={14} />;
+    case 'ask-ai': return <Sparkle size={14} />;
     case 'daily-notes': return <CalendarBlank size={14} />;
     case 'tasks': return <CheckSquare size={14} />;
     case 'tags': return <Tag size={14} />;

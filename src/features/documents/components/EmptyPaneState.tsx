@@ -10,6 +10,7 @@ import {
 } from '@phosphor-icons/react';
 import React from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { TnLogo } from '@/shared/ui/TnLogo';
 
 export const EmptyPaneState = ({ paneId }: { paneId: string }) => {
   const { addPane, openDocument, removePane, panes } = useUiStore(
@@ -135,7 +136,8 @@ export const EmptyPaneState = ({ paneId }: { paneId: string }) => {
       <div className="w-full max-w-[95vw] flex flex-col items-center gap-12 text-center">
         {/* Full-width "templ" text with Newsreader font */}
         <div className="w-full flex flex-col items-center justify-center select-none">
-          <h1 className="w-full text-center font-content text-[15vw] sm:text-[16vw] font-bold tracking-tight lowercase leading-none select-none text-[#ebe8e4] [text-shadow:4px_4px_8px_#c3c0ba,-4px_-4px_8px_#ffffff] dark:text-[#2d2d2d] dark:[text-shadow:3px_3px_6px_rgba(0,0,0,0.85),-3px_-3px_6px_rgba(255,255,255,0.055)]">
+          <TnLogo className="w-16 h-16 sm:w-20 sm:h-20 mb-6" />
+          <h1 className="w-full text-center font-content text-[15vw] sm:text-[16vw] font-bold tracking-tight lowercase leading-none select-none bg-gradient-to-br from-[#BDE0FE] via-[#FFC8DD] to-[#B5EAD7] bg-clip-text text-transparent">
             templ
           </h1>
           <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground/40 mt-2 font-semibold select-none">

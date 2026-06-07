@@ -482,9 +482,9 @@ html.light .lexical-root hr {
 
 /* Paragraph spacing — tight like Notion */
 .lexical-root > .lexical-paragraph {
-  margin-top: 8px !important;
-  margin-bottom: 8px !important;
-  min-height: 1.7em;      /* ensures empty paragraphs are clickable */
+  margin-top: 16px !important;
+  margin-bottom: 16px !important;
+  min-height: 1.95em;      /* ensures empty paragraphs are clickable */
 }
 
 /* Tight vertical spacing between list items */
@@ -1232,7 +1232,8 @@ html.dark .neu-btn:active {
 
 /* ── Paragraph ────────────────────────────────────────────────────────────── */
 .lexical-paragraph {
-  line-height: 1.7;
+  font-size: 19px;
+  line-height: 1.95;
   color: var(--body-text);
 }
 
@@ -1318,14 +1319,120 @@ html.light .lexical-link:hover { color: #4338ca; }
 
 /* ── Page link ────────────────────────────────────────────────────────────── */
 .lexical-page-link {
-  color: #a78bfa;
-  background: rgba(167, 139, 250, 0.08);
-  border-radius: 3px;
-  padding: 0 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: currentColor; /* Inherits text color from Tailwind color class or var(--folder-text) */
+  background: rgba(167, 139, 250, 0.08); /* fallback */
+  border: 1.5px solid rgba(167, 139, 250, 0.15); /* fallback */
+  border-radius: 12px;
+  padding: 8px 16px;
+  margin: 4px 6px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 120ms ease;
+  transition: all 120ms ease;
+  vertical-align: middle;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  line-height: 1.4;
+  min-height: 42px;
 }
-.lexical-page-link:hover { background: rgba(167, 139, 250, 0.18); }
+.lexical-page-link:hover {
+  filter: brightness(1.08) contrast(1.03);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+.lexical-page-link.folder-element {
+  color: var(--folder-text);
+}
+.lexical-page-link-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  font-family: sans-serif;
+  vertical-align: middle;
+}
+.lexical-page-link-icon.custom-emoji {
+  font-size: 1.1em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.lexical-page-link-icon.default-icon {
+  background-color: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M224,120v96a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V40a8,8,0,0,1,8-8h96a8,8,0,0,1,5.66,2.34l80,80A8,8,0,0,1,224,120Zm-16,4H144V48ZM128,48H48V208H208V140H136a8,8,0,0,1-8-8ZM80,120h48a8,8,0,0,1,0,16H80a8,8,0,0,1,0-16Zm80,32H80a8,8,0,0,0,0,16h80a8,8,0,0,0,0-16Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M224,120v96a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V40a8,8,0,0,1,8-8h96a8,8,0,0,1,5.66,2.34l80,80A8,8,0,0,1,224,120Zm-16,4H144V48ZM128,48H48V208H208V140H136a8,8,0,0,1-8-8ZM80,120h48a8,8,0,0,1,0,16H80a8,8,0,0,1,0-16Zm80,32H80a8,8,0,0,0,0,16h80a8,8,0,0,0,0-16Z'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+.lexical-page-link-icon.default-icon.is-date {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Z'/%3E%3C/svg%3E");
+}
+.lexical-page-link-icon.default-icon.is-book {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M208,24H72A32,32,0,0,0,40,56V224a8,8,0,0,0,8,8H192a8,8,0,0,0,0-16H56a16,16,0,0,1,16-16H208a8,8,0,0,0,8-8V32A8,8,0,0,0,208,24Zm-8,160H72a31.82,31.82,0,0,0-16,4.29V56A16,16,0,0,1,72,40H200Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M208,24H72A32,32,0,0,0,40,56V224a8,8,0,0,0,8,8H192a8,8,0,0,0,0-16H56a16,16,0,0,1,16-16H208a8,8,0,0,0,8-8V32A8,8,0,0,0,208,24Zm-8,160H72a31.82,31.82,0,0,0-16,4.29V56A16,16,0,0,1,72,40H200Z'/%3E%3C/svg%3E");
+}
+.lexical-page-link-icon.default-icon.is-person {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z'/%3E%3C/svg%3E");
+}
+
+/* Pseudo-element icon implementation for PageLinkNode */
+.lexical-page-link::before {
+  content: "";
+  display: inline-block;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  font-family: sans-serif;
+  vertical-align: middle;
+}
+.lexical-page-link.has-custom-emoji::before {
+  content: attr(data-emoji);
+  font-size: 1.1em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.lexical-page-link.has-default-icon::before {
+  background-color: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M224,120v96a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V40a8,8,0,0,1,8-8h96a8,8,0,0,1,5.66,2.34l80,80A8,8,0,0,1,224,120Zm-16,4H144V48ZM128,48H48V208H208V140H136a8,8,0,0,1-8-8ZM80,120h48a8,8,0,0,1,0,16H80a8,8,0,0,1,0-16Zm80,32H80a8,8,0,0,0,0,16h80a8,8,0,0,0,0-16Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M224,120v96a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V40a8,8,0,0,1,8-8h96a8,8,0,0,1,5.66,2.34l80,80A8,8,0,0,1,224,120Zm-16,4H144V48ZM128,48H48V208H208V140H136a8,8,0,0,1-8-8ZM80,120h48a8,8,0,0,1,0,16H80a8,8,0,0,1,0-16Zm80,32H80a8,8,0,0,0,0,16h80a8,8,0,0,0,0-16Z'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+.lexical-page-link.has-default-icon.is-date::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Z'/%3E%3C/svg%3E");
+}
+.lexical-page-link.has-default-icon.is-book::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M208,24H72A32,32,0,0,0,40,56V224a8,8,0,0,0,8,8H192a8,8,0,0,0,0-16H56a16,16,0,0,1,16-16H208a8,8,0,0,0,8-8V32A8,8,0,0,0,208,24Zm-8,160H72a31.82,31.82,0,0,0-16,4.29V56A16,16,0,0,1,72,40H200Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M208,24H72A32,32,0,0,0,40,56V224a8,8,0,0,0,8,8H192a8,8,0,0,0,0-16H56a16,16,0,0,1,16-16H208a8,8,0,0,0,8-8V32A8,8,0,0,0,208,24Zm-8,160H72a31.82,31.82,0,0,0-16,4.29V56A16,16,0,0,1,72,40H200Z'/%3E%3C/svg%3E");
+}
+.lexical-page-link.has-default-icon.is-person::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z'/%3E%3C/svg%3E");
+}
+
+/* Ensure editor lines that contain a page link card have slightly more vertical line-height spacing to avoid clipping or overlap */
+.lexical-paragraph:has(.lexical-page-link),
+.lexical-h1:has(.lexical-page-link),
+.lexical-h2:has(.lexical-page-link),
+.lexical-h3:has(.lexical-page-link),
+.lexical-blockquote:has(.lexical-page-link),
+.lexical-listitem:has(.lexical-page-link) {
+  line-height: 2.6;
+}
 
 /* ── Callouts ─────────────────────────────────────────────────────────────── */
 .lexical-callout {

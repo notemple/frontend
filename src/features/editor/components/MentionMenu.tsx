@@ -236,9 +236,25 @@ export default function MentionMenu({
       case "folder":
         return <Icons.Folder size={14} className="text-amber-400" />
       case "doc":
-        return <Icons.FileText size={14} className="text-teal-400" />
-      case "date":
+        if (item.doc.icon) {
+          return <span className="text-sm leading-none select-none font-sans">{item.doc.icon}</span>
+        }
+        switch (item.doc.type) {
+          case "book":
+            return <Icons.Book size={14} className="text-orange-400" />
+          case "person":
+            return <Icons.User size={14} className="text-purple-400" />
+          default:
+            return <Icons.FileText size={14} className="text-teal-400" />
+        }
+      case "date": {
+        const docId = `daily-note-${item.dateStr}`
+        const doc = documentsDict[docId]
+        if (doc?.icon) {
+          return <span className="text-sm leading-none select-none font-sans">{doc.icon}</span>
+        }
         return <Icons.CalendarBlank size={14} className="text-sky-400" />
+      }
     }
   }
 

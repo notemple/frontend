@@ -14,6 +14,7 @@ import {
 	Gear,
 	MagnifyingGlass,
 	PlusCircle,
+	Sparkle,
 	Tag,
 	X
 } from '@phosphor-icons/react';
@@ -92,6 +93,7 @@ export const CommandPalette = () => {
       };
 
       const navigationItems = [
+        { title: 'Ask AI', icon: <Sparkle size={16} style={{ color: '#a855f7' }} />, action: () => { openDocument('section-ask-ai', activePaneId || undefined); setIsOpen(false); } },
         { title: 'Daily Notes', icon: <CalendarBlank size={16} style={{ color: '#10b981' }} />, action: () => { openDocument('section-daily-notes', activePaneId || undefined); setIsOpen(false); } },
         { title: 'Tasks', icon: <CheckSquare size={16} style={{ color: '#3b82f6' }} />, action: () => { openDocument('section-tasks', activePaneId || undefined); setIsOpen(false); } },
         { title: 'Tags', icon: <Tag size={16} style={{ color: '#a855f7' }} />, action: () => { openDocument('section-tags', activePaneId || undefined); setIsOpen(false); } },
@@ -294,6 +296,7 @@ export const CommandPalette = () => {
       }
 
       items.push({ type: 'header', title: 'Navigation' });
+      items.push({ type: 'navigation', title: 'Ask AI', icon: <Sparkle size={16} style={{ color: '#a855f7' }} />, action: () => { openDocument('section-ask-ai', activePaneId || undefined); setIsOpen(false); } });
       items.push({ type: 'navigation', title: 'Daily Notes', icon: <CalendarBlank size={16} style={{ color: '#10b981' }} />, action: () => { openDocument('section-daily-notes', activePaneId || undefined); setIsOpen(false); } });
       items.push({ type: 'navigation', title: 'Tasks', icon: <CheckSquare size={16} style={{ color: '#3b82f6' }} />, action: () => { openDocument('section-tasks', activePaneId || undefined); setIsOpen(false); } });
       items.push({ type: 'navigation', title: 'Tags', icon: <Tag size={16} style={{ color: '#a855f7' }} />, action: () => { openDocument('section-tags', activePaneId || undefined); setIsOpen(false); } });

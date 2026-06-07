@@ -21,6 +21,7 @@ import ScrollIntoViewPlugin from "./plugins/ScrollIntoViewPlugin"
 import BlockHandlePlugin from "./plugins/BlockHandlePlugin"
 import BackspacePlugin from "./plugins/BackspacePlugin"
 import FloatingToolbarPlugin from "./plugins/FloatingToolbarPlugin"
+import PageLinkPreviewPlugin from "./plugins/PageLinkPreviewPlugin"
 
 import EmojiPicker from "emoji-picker-react"
 import { useDocumentStore } from "../documents/store"
@@ -110,6 +111,7 @@ export function TemplnoteEditor({
   documentId,
   readOnly = false,
   onWordCountChange,
+  paneId,
 }: Props) {
   const config = createEditorConfig(documentId)
   const contentEditableRef = useRef<HTMLDivElement>(null)
@@ -149,11 +151,19 @@ export function TemplnoteEditor({
     bannerStyle.background = 'var(--background)';
   }
 
+  const resolvedFontFamily = doc?.fontFamily === 'sans' ? 'var(--font-sans)' :
+                             doc?.fontFamily === 'sans-serif' ? '"Geist", sans-serif' :
+                             doc?.fontFamily === 'monospace' ? 'var(--font-mono)' :
+                             undefined;
+
   const titleStyle: React.CSSProperties = {};
   if (doc?.topSectionTextColor) {
     titleStyle.color = doc.topSectionTextColor;
   } else {
     titleStyle.color = 'var(--foreground)';
+  }
+  if (resolvedFontFamily) {
+    titleStyle.fontFamily = resolvedFontFamily;
   }
 
   let resolvedTextColor: string | undefined = undefined;
@@ -168,6 +178,9 @@ export function TemplnoteEditor({
     editorTextStyle.color = resolvedTextColor;
     (editorTextStyle as any)['--body-text'] = resolvedTextColor;
     (editorTextStyle as any)['--foreground'] = resolvedTextColor;
+  }
+  if (resolvedFontFamily) {
+    editorTextStyle.fontFamily = resolvedFontFamily;
   }
 
   return (
@@ -270,8 +283,11 @@ export function TemplnoteEditor({
                   </div>
                 }
                 placeholder={
-                  <div className="absolute top-0 left-14 pointer-events-none select-none text-[var(--muted-foreground)] opacity-40 text-base leading-7">
-                    Press '/' for commands…
+                  <div 
+                    className="absolute top-4 left-0.5 pointer-events-none select-none text-[var(--muted-foreground)] opacity-40 text-[19px] leading-[1.95] font-sans"
+                    style={resolvedFontFamily ? { fontFamily: resolvedFontFamily } : undefined}
+                  >
+                    press '/' or '@' for commands or 'tab' for ai
                   </div>
                 }
                 ErrorBoundary={SafeErrorBoundary}
@@ -297,6 +313,7 @@ export function TemplnoteEditor({
         <BlockHandlePlugin />
         <BackspacePlugin />
         <FloatingToolbarPlugin />
+        <PageLinkPreviewPlugin paneId={paneId} />
         <PersistencePlugin
           documentId={documentId}
           onWordCountChange={onWordCountChange}

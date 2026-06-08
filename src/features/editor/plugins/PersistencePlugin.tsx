@@ -6,6 +6,9 @@ import { $getRoot } from "lexical"
 import { db } from "../../../storage/dexie/db"
 import { $generateNodesFromDOM } from "@lexical/html"
 
+import { useDocumentStore, getDailyNoteTitle } from "@/features/documents/store"
+import { useSettingsStore } from "@/features/settings/store"
+
 interface Props {
   documentId: string
   onWordCountChange?: (words: number) => void
@@ -59,16 +62,51 @@ export default function PersistencePlugin({ documentId, onWordCountChange }: Pro
     debounceRef.current = setTimeout(async () => {
       const serialized = JSON.stringify(editorState.toJSON())
       const textContent = editorState.read(() => $getRoot().getTextContent())
-      const wordCount = textContent.trim().split(/\s+/).filter(Boolean).length
+      const trimmedText = textContent.trim()
+      const wordCount = trimmedText.split(/\s+/).filter(Boolean).length
 
-      // Prevent saving empty states that could corrupt the document
-      if (editorState.isEmpty()) return
+      if (documentId.startsWith("daily-note-")) {
+        const { timezone } = useSettingsStore.getState()
+        const existingDoc = useDocumentStore.getState().documents[documentId]
+        const currentTitle = existingDoc ? existingDoc.title : ""
+        const defaultTitle = getDailyNoteTitle(documentId, timezone)
 
-      await db.documents.update(documentId, {
-        lexicalState: serialized,
-        contentText: textContent,
-        updatedAt: String(Date.now()),
-      })
+        const hasCharacter = trimmedText.length > 0
+        const hasTitle = currentTitle && currentTitle.trim().length > 0 && currentTitle !== defaultTitle
+
+        if (!hasCharacter && !hasTitle) {
+          // Remove/delete empty daily note document
+          if (existingDoc) {
+            await useDocumentStore.getState().deleteDocument(documentId)
+          }
+          return
+        }
+
+        // Save daily note document
+        if (!existingDoc) {
+          await useDocumentStore.getState().updateDocument(documentId, {
+            lexicalState: serialized,
+            contentText: textContent,
+            tags: ["notes"],
+            folderId: null, // Don't save in folders
+          })
+        } else {
+          await useDocumentStore.getState().updateDocument(documentId, {
+            lexicalState: serialized,
+            contentText: textContent,
+            folderId: null, // Keep in daily notes page only
+          })
+        }
+      } else {
+        // Prevent saving empty states that could corrupt the document
+        if (editorState.isEmpty()) return
+
+        await db.documents.update(documentId, {
+          lexicalState: serialized,
+          contentText: textContent,
+          updatedAt: String(Date.now()),
+        })
+      }
 
       onWordCountChange?.(wordCount)
     }, 500)

@@ -3,7 +3,7 @@ import { useDocumentStore } from '@/features/documents/store';
 import { useSettingsStore } from '@/features/settings/store';
 import { formatDisplayDate } from '@/shared/lib/time';
 import { getTagStyle } from '@/shared/lib/utils';
-import { CalendarBlank,FileText,Tag } from '@phosphor-icons/react';
+import { CalendarBlank, FileText, Tag } from '@phosphor-icons/react';
 import { toDate } from 'date-fns-tz';
 import { useCallback } from 'react';
 import { useShallow } from 'zustand/react/shallow';
@@ -12,7 +12,7 @@ export const MonthViewItem = ({ docId, onClick }: { docId: string; onClick: () =
   const docSelector = useCallback(
     (state: any) => {
       const doc = state.documents[docId];
-      return doc ? { title: doc.title, content: doc.content, tags: doc.tags || [] } : null;
+      return doc ? { title: doc.title, content: doc.content, contentText: doc.contentText, tags: doc.tags || [], icon: doc.icon } : null;
     },
     [docId]
   );
@@ -24,17 +24,10 @@ export const MonthViewItem = ({ docId, onClick }: { docId: string; onClick: () =
   return (
     <div
       onClick={onClick}
-      className="p-4 rounded-sm-sm border border-border bg-muted hover:bg-muted/80 transition-colors duration-150 cursor-pointer group flex flex-col gap-4 min-h-[260px]"
+      className="p-4 rounded-sm-sm border border-border bg-muted hover:bg-muted/80 transition-colors duration-150 cursor-pointer group flex flex-col gap-4 min-h-[260px] h-full"
     >
-      <div className="flex items-center gap-2 mb-1">
-        <span className="text-[10px] pr-2 font-medium text-blue-800 dark:text-blue-400 bg-blue-100 dark:bg-blue-500/20 py-0.5 rounded-sm border border-blue-300 dark:border-blue-500/30 flex items-center gap-1 w-fit whitespace-nowrap border">
-          <div className="bg-blue-200/50 dark:bg-blue-500/20 p-1 rounded-sm-sm ml-0.5 border border-blue-300 dark:border-blue-500/30">
-            <CalendarBlank size={12} weight="fill" />
-          </div>{" "}
-          Daily Note
-        </span>
-      </div>
-      <h3 className="text-xl font-bold text-foreground whitespace-nowrap overflow-hidden text-ellipsis">
+      <h3 className="text-xl font-bold text-foreground whitespace-nowrap overflow-hidden text-ellipsis flex items-center gap-2">
+        {doc?.icon && <span className="select-none">{doc.icon}</span>}
         {(() => {
           const dateStr = docId.replace("daily-note-", "");
           const { timezone } = useSettingsStore.getState();
@@ -43,20 +36,11 @@ export const MonthViewItem = ({ docId, onClick }: { docId: string; onClick: () =
         })()}
       </h3>
       <div className="flex-1 bg-background group-hover:bg-muted/40 rounded-sm-sm p-5 transition-colors border border-border overflow-hidden flex flex-col min-h-[140px]">
-        {doc.title && (
-          <div className="flex items-center gap-2 mb-2">
-            <div className="flex items-center gap-2 text-sm font-bold text-foreground overflow-hidden text-ellipsis whitespace-nowrap">
-              <div className="bg-rose-200/80 text-rose-900 dark:text-rose-400 p-1.5 rounded-sm border border-rose-400 dark:border-rose-300">
-                <FileText size={12} weight="fill" />
-              </div>
-              {doc.title}
-            </div>
-          </div>
-        )}
         <div
-          className="text-muted-foreground text-sm line-clamp-6 prose max-w-none prose-p:my-0 text-ellipsis break-words"
-          dangerouslySetInnerHTML={{ __html: doc.content }}
-        />
+          className="text-muted-foreground text-sm line-clamp-6 prose max-w-none prose-p:my-0 text-ellipsis break-words whitespace-pre-wrap"
+        >
+          {doc.contentText || doc.content || "Empty note..."}
+        </div>
       </div>
       <div className="flex flex-wrap items-center gap-1.5 text-muted-foreground text-xs mt-auto pt-2 border-t border-border/25 font-sans">
         <Tag size={12} className="shrink-0 text-muted-foreground opacity-60" />

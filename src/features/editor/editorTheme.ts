@@ -67,4 +67,5 @@ export const editorTheme: EditorThemeClasses = {
   tableCell: "lexical-table-cell",
   tableRow: "lexical-table-row",
   tableCellHeader: "lexical-table-cell--header",
+  tableCellSelected: "lexical-table-cell-selected",
 }

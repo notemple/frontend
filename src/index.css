@@ -1273,24 +1273,326 @@ html.light .lexical-link:hover { color: #4338ca; }
 .lexical-nested-listitem { list-style: none; }
 
 /* ── Table ────────────────────────────────────────────────────────────────── */
+/* ── Table ────────────────────────────────────────────────────────────────── */
 .lexical-table {
   border-collapse: collapse;
   table-layout: fixed;
   width: 100%;
-  overflow: hidden;
-  margin: 1rem 0;
+  margin: 1.5rem 0;
+  border-spacing: 0;
 }
 .lexical-table-cell {
   border: 1px solid var(--border);
-  padding: 6px 8px;
+  padding: 8px 10px;
   vertical-align: top;
-  min-width: 1em;
+  min-width: 50px;
   position: relative;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--body-text);
+  background: transparent;
+  transition: background-color 100ms ease;
+  outline: none;
+}
+html.light .lexical-table-cell {
+  border-color: rgba(55, 53, 47, 0.09);
+}
+html.dark .lexical-table-cell {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.lexical-table-cell:focus,
+.lexical-table-cell:focus-within {
+  outline: 2px solid #2383e2;
+  outline-offset: -1px;
+  z-index: 10;
+}
+.lexical-table-cell-selected {
+  background-color: rgba(35, 131, 226, 0.12) !important;
 }
 .lexical-table-cell--header {
-  background-color: var(--muted);
   font-weight: 600;
   text-align: left;
+  background-color: var(--muted);
+}
+html.light .lexical-table-cell--header {
+  background-color: rgba(242, 241, 237, 0.6);
+  color: rgba(55, 53, 47, 0.65);
+}
+html.dark .lexical-table-cell--header {
+  background-color: rgba(255, 255, 255, 0.035);
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* ── Notion Table Overlays & Controllers ───────────────────────────── */
+.table-control-overlay {
+  transition: opacity 150ms ease, visibility 150ms ease;
+}
+
+/* Column Top Pill Handle */
+.table-column-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #2e2e2e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  cursor: pointer;
+  z-index: 45;
+  transition: background 100ms ease, opacity 100ms ease;
+  opacity: 0.8;
+}
+.table-column-handle:hover {
+  background: #3e3e3e;
+  opacity: 1;
+}
+html.light .table-column-handle {
+  background: #f1f0f0;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+html.light .table-column-handle:hover {
+  background: #e4e3e3;
+}
+
+/* Column Top Pill handle inner indicator bar */
+.table-column-handle-bar {
+  width: 12px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 1px;
+}
+html.light .table-column-handle-bar {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Row Left Handle Container */
+.table-row-handle-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  z-index: 45;
+  opacity: 0.8;
+  transition: opacity 100ms ease;
+}
+.table-row-handle-group:hover {
+  opacity: 1;
+}
+
+/* Row handle buttons */
+.table-row-handle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: background 100ms, color 100ms;
+}
+.table-row-handle-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+}
+html.light .table-row-handle-btn {
+  color: rgba(0, 0, 0, 0.4);
+}
+html.light .table-row-handle-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.8);
+}
+
+/* Column/Row Append Bars */
+.table-append-column-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 40;
+  transition: background 150ms ease;
+  width: 24px;
+}
+.table-append-column-bar:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+html.light .table-append-column-bar:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.table-append-column-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 24px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.25);
+  transition: color 100ms ease, background 100ms ease;
+  cursor: pointer;
+}
+.table-append-column-bar:hover .table-append-column-btn {
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.06);
+}
+html.light .table-append-column-bar:hover .table-append-column-btn {
+  color: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.table-append-row-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 40;
+  transition: background 150ms ease;
+  height: 24px;
+}
+.table-append-row-bar:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+html.light .table-append-row-bar:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.table-append-row-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+  width: 24px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.25);
+  transition: color 100ms ease, background 100ms ease;
+  cursor: pointer;
+}
+.table-append-row-bar:hover .table-append-row-btn {
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.06);
+}
+html.light .table-append-row-bar:hover .table-append-row-btn {
+  color: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* Tooltip for hover info */
+.table-control-tooltip {
+  position: absolute;
+  background: #111;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: pre-line;
+  pointer-events: none;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  line-height: 1.4;
+  text-align: center;
+}
+html.light .table-control-tooltip {
+  background: #ffffff;
+  color: rgba(0, 0, 0, 0.8);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Floating Table Dropdown Menu */
+.table-control-menu {
+  position: absolute;
+  min-width: 170px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 4px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+html.light .table-control-menu {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.table-control-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  transition: background 80ms;
+}
+.table-control-menu-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.table-control-menu-item.danger {
+  color: #ef4444;
+}
+.table-control-menu-item.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+html.light .table-control-menu-item {
+  color: rgba(0, 0, 0, 0.8);
+}
+html.light .table-control-menu-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+html.light .table-control-menu-item.danger:hover {
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.table-control-menu-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  opacity: 0.6;
+}
+.table-control-menu-item:hover .table-control-menu-item-icon {
+  opacity: 0.9;
+}
+
+.table-control-menu-separator {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 3px 6px;
+}
+html.light .table-control-menu-separator {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.table-control-menu-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.35);
+  padding: 3px 8px 1px;
+  pointer-events: none;
+}
+html.light .table-control-menu-label {
+  color: rgba(0, 0, 0, 0.4);
 }
 
 /* ── Code block ───────────────────────────────────────────────────────────── */

@@ -1364,43 +1364,40 @@ html.light .table-column-handle-bar {
   background: rgba(0, 0, 0, 0.3);
 }
 
-/* Row Left Handle Container */
-.table-row-handle-group {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  z-index: 45;
-  opacity: 0.8;
-  transition: opacity 100ms ease;
-}
-.table-row-handle-group:hover {
-  opacity: 1;
-}
-
-/* Row handle buttons */
-.table-row-handle-btn {
+/* Row Left Handle */
+.table-row-handle {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  border: none;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.45);
+  background: #2e2e2e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
   cursor: pointer;
-  transition: background 100ms, color 100ms;
+  z-index: 45;
+  transition: background 100ms ease, opacity 100ms ease;
+  opacity: 0.8;
 }
-.table-row-handle-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.85);
+.table-row-handle:hover {
+  background: #3e3e3e;
+  opacity: 1;
 }
-html.light .table-row-handle-btn {
-  color: rgba(0, 0, 0, 0.4);
+html.light .table-row-handle {
+  background: #f1f0f0;
+  border-color: rgba(0, 0, 0, 0.08);
 }
-html.light .table-row-handle-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: rgba(0, 0, 0, 0.8);
+html.light .table-row-handle:hover {
+  background: #e4e3e3;
+}
+
+/* Row Left Pill handle inner indicator bar */
+.table-row-handle-bar {
+  width: 3px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 1px;
+}
+html.light .table-row-handle-bar {
+  background: rgba(0, 0, 0, 0.3);
 }
 
 /* Column/Row Append Bars */

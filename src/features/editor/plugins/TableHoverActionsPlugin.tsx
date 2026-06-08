@@ -419,7 +419,7 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
         type: 'row',
         index: coords.rowIndex,
         top: coords.cellTop,
-        left: coords.tableLeft - 180, // Position menu nicely to the left
+        left: Math.max(8, coords.tableLeft - 180), // Position menu nicely to the left
       })
     }
   }
@@ -431,7 +431,7 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
       setActiveMenu({
         type: 'column',
         index: coords.colIndex,
-        top: coords.tableTop - 12,
+        top: coords.tableTop - 6,
         left: coords.cellLeft + (coords.cellWidth / 2) - 85, // Centered menu
       })
     }
@@ -456,65 +456,35 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
     <>
       <div className="absolute inset-0 pointer-events-none select-none z-40" contentEditable={false}>
 
-        {/* ROW HOVER CONTROLS (Left side `+` and `::` drag handle) */}
-        <div
-          className="table-row-handle-group table-control-overlay absolute pointer-events-auto"
+        {/* ROW HOVER CONTROLLER (Left center pill handle) */}
+        <div 
+          className="table-row-handle table-control-overlay absolute pointer-events-auto"
           style={{
-            top: coords.cellTop + (coords.cellHeight / 2) - 9,
-            left: Math.max(4, coords.tableLeft - 40),
+            top: coords.cellTop + (coords.cellHeight / 2) - 12,
+            left: Math.max(4, coords.tableLeft - 6),
+            width: 12,
+            height: 24,
           }}
+          onClick={handleRowMenuToggle}
+          onMouseEnter={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect()
+            const containerRect = container.getBoundingClientRect()
+            setTooltip({
+              text: "Row actions",
+              top: rect.top - containerRect.top + container.scrollTop - 32,
+              left: rect.left - containerRect.left + container.scrollLeft - 25,
+            })
+          }}
+          onMouseLeave={() => setTooltip(null)}
         >
-          <button
-            type="button"
-            className="table-row-handle-btn"
-            onClick={() => insertRowBelow(coords.rowIndex, coords.firstCellDOM)}
-            onMouseEnter={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect()
-              const containerRect = container.getBoundingClientRect()
-              setTooltip({
-                text: "Insert row below",
-                top: rect.top - containerRect.top + container.scrollTop - 32,
-                left: rect.left - containerRect.left + container.scrollLeft - 40,
-              })
-            }}
-            onMouseLeave={() => setTooltip(null)}
-          >
-            <svg width="12" height="12" viewBox="0 0 256 256" fill="currentColor">
-              <path d="M228,128a12,12,0,0,1-12,12H140v76a12,12,0,0,1-24,0V140H40a12,12,0,0,1,0-24h76V40a12,12,0,0,1,24,0v76h76A12,12,0,0,1,228,128Z" />
-            </svg>
-          </button>
-
-          <button
-            type="button"
-            className="table-row-handle-btn"
-            onClick={handleRowMenuToggle}
-            onMouseEnter={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect()
-              const containerRect = container.getBoundingClientRect()
-              setTooltip({
-                text: "Row actions",
-                top: rect.top - containerRect.top + container.scrollTop - 32,
-                left: rect.left - containerRect.left + container.scrollLeft - 30,
-              })
-            }}
-            onMouseLeave={() => setTooltip(null)}
-          >
-            <svg width="10" height="15" viewBox="0 0 10 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="2" cy="2.5" r="1.5" fill="currentColor" />
-              <circle cx="2" cy="7.5" r="1.5" fill="currentColor" />
-              <circle cx="2" cy="12.5" r="1.5" fill="currentColor" />
-              <circle cx="8" cy="2.5" r="1.5" fill="currentColor" />
-              <circle cx="8" cy="7.5" r="1.5" fill="currentColor" />
-              <circle cx="8" cy="12.5" r="1.5" fill="currentColor" />
-            </svg>
-          </button>
+          <div className="table-row-handle-bar" />
         </div>
 
         {/* COLUMN HOVER CONTROLLER (Top center pill handle) */}
         <div
           className="table-column-handle table-control-overlay absolute pointer-events-auto"
           style={{
-            top: coords.tableTop - 12,
+            top: coords.tableTop - 6,
             left: coords.cellLeft + (coords.cellWidth / 2) - 12,
             width: 24,
             height: 12,

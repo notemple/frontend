@@ -231,13 +231,13 @@ export function TemplnoteEditor({
             style={bannerStyle}
             contentEditable={false}
           >
-            <div className="flex flex-row items-center justify-center gap-4 w-full max-w-[720px] px-6 md:px-8 z-10 group/titlearea">
+            <div className="flex flex-col items-start justify-center gap-3 w-full max-w-[720px] pl-4 pr-4 md:pl-0 md:pr-6 z-10 group/titlearea">
               {/* Emoji Button */}
               <div ref={pickerRef} className="relative z-50">
                 <button
                   type="button"
                   onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
-                  className="w-16 h-16 flex items-center justify-center text-6xl hover:scale-105 transition-all cursor-pointer select-none bg-transparent border-none outline-none relative"
+                  className="w-16 h-16 flex items-center justify-start text-6xl hover:scale-105 transition-all cursor-pointer select-none bg-transparent border-none outline-none relative"
                 >
                   {doc?.icon ? (
                     doc.icon
@@ -287,7 +287,7 @@ export function TemplnoteEditor({
               </div>
  
               {/* Title and Tags container */}
-              <div className="flex-1 flex flex-col gap-2 min-w-0">
+              <div className="w-full flex flex-col gap-2 min-w-0">
                 {/* Page Title Input */}
                 <input
                   type="text"

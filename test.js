@@ -80,20 +80,98 @@ import puppeteer from 'puppeteer';
     let clicked = false;
     for (const button of buttons) {
       const text = await page.evaluate(el => el.textContent, button);
-      if (text.includes('2 Columns')) {
+      if (text.includes('Table')) {
         await button.click();
-        console.log('Clicked 2 Columns');
+        console.log('Clicked Table');
         clicked = true;
         break;
       }
     }
     
     if (!clicked) {
-      throw new Error('Could not find 2 Columns option');
+      throw new Error('Could not find Table option');
     }
 
-    // Wait a moment for any errors or DOM updates
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Wait for the table to render
+    await page.waitForSelector('.lexical-table', { timeout: 4000 });
+    console.log('Table rendered');
+
+
+
+    // Click the first table cell
+    await page.click('.lexical-table-cell');
+    console.log('Clicked table cell');
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Hover or trigger row handle
+    // In our code, we can click the row handle directly since it should be rendered when active cell is set.
+    await page.waitForSelector('.table-row-handle', { timeout: 4000 });
+    console.log('Row handle visible');
+    await page.click('.table-row-handle');
+    console.log('Clicked row handle');
+
+    // Wait for context menu
+    await page.waitForSelector('.table-control-menu', { timeout: 4000 });
+    console.log('Context menu visible');
+
+    // Find and click "Background Color" item
+    const menuItems = await page.$$('.table-control-menu-item');
+    let clickedBgColor = false;
+    for (const item of menuItems) {
+      const text = await page.evaluate(el => el.textContent, item);
+      if (text.includes('Background Color')) {
+        await item.click();
+        console.log('Clicked Background Color option');
+        clickedBgColor = true;
+        break;
+      }
+    }
+
+    if (!clickedBgColor) {
+      throw new Error('Could not find Background Color option');
+    }
+
+    // Wait for color submenu
+    await page.waitForSelector('.table-control-submenu', { timeout: 4000 });
+    console.log('Color submenu visible');
+
+    // Click "Pink Orchid" color option
+    const colorItems = await page.$$('.table-control-submenu .table-control-menu-item');
+    let clickedColor = false;
+    for (const item of colorItems) {
+      const text = await page.evaluate(el => el.textContent, item);
+      if (text.includes('Pink Orchid')) {
+        await item.click();
+        console.log('Clicked Pink Orchid color');
+        clickedColor = true;
+        break;
+      }
+    }
+
+    if (!clickedColor) {
+      throw new Error('Could not find Pink Orchid color option');
+    }
+
+    // Click outside the table to deselect the cell
+    await page.click('.editor-click-target');
+    console.log('Clicked outside to deselect cell');
+
+    // Wait 5 seconds to check if background color persists
+    console.log('Waiting 5 seconds to observe background color...');
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
+    // Inspect first cell's DOM attributes and computed style
+    const cellData = await page.evaluate(() => {
+      const cell = document.querySelector('.lexical-table-cell');
+      const table = document.querySelector('.lexical-table');
+      if (!cell) return 'No cell found';
+      return {
+        styleAttr: cell.getAttribute('style'),
+        computedBgColor: window.getComputedStyle(cell).backgroundColor,
+        tableHtml: table ? table.outerHTML : 'no table'
+      };
+    });
+    console.log('Cell DOM inspection:', cellData);
   } catch (e) {
     console.error('Failed test:', e);
   }

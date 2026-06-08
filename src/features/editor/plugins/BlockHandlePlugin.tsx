@@ -622,6 +622,14 @@ export default function BlockHandlePlugin({
         if (!rootDOM) return;
 
         const applyStyles = (node: LexicalNode) => {
+          const type = node.getType()
+          if (type === 'tablecell' || type === 'tablerow' || type === 'table') {
+            if ($isElementNode(node)) {
+              node.getChildren().forEach(applyStyles)
+            }
+            return
+          }
+
           if ($isElementNode(node)) {
             const el = editor.getElementByKey(node.getKey());
             if (el) {

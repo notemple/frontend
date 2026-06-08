@@ -7,7 +7,7 @@ import type {
 } from "lexical"
 import { DecoratorNode, $applyNodeReplacement, createEditor, $getRoot, $createParagraphNode } from "lexical"
 import type { ReactNode } from "react"
-import { Suspense, lazy } from "react"
+import ColumnsContainerComponent from "../components/ColumnsContainerComponent"
 import { HeadingNode, QuoteNode } from "@lexical/rich-text"
 import { ListNode, ListItemNode } from "@lexical/list"
 import { LinkNode, AutoLinkNode } from "@lexical/link"
@@ -23,9 +23,7 @@ import { ImageNode } from "./ImageNode"
 import { FileNode } from "./FileNode"
 import { editorTheme } from "../editorTheme"
 
-const ColumnsContainerComponent = lazy(
-  () => import("../components/ColumnsContainerComponent")
-)
+// Statically imported above
 
 export interface ColumnData {
   key: string
@@ -249,13 +247,11 @@ export class ColumnsContainerNode extends DecoratorNode<ReactNode> {
 
   decorate(editor: LexicalEditor, _config: EditorConfig): ReactNode {
     return (
-      <Suspense fallback={null}>
-        <ColumnsContainerComponent
-          nodeKey={this.__key}
-          columnCount={this.__columnCount}
-          editor={editor}
-        />
-      </Suspense>
+      <ColumnsContainerComponent
+        nodeKey={this.__key}
+        columnCount={this.__columnCount}
+        editor={editor}
+      />
     )
   }
 

@@ -37,7 +37,10 @@ function insertColumns(editor: LexicalEditor, count: number) {
 
     const anchorNode = selection.anchor.getNode()
     const topLevel = anchorNode.getTopLevelElementOrThrow()
+    const newParagraph = $createParagraphNode()
+    topLevel.insertAfter(newParagraph)
     topLevel.replace(container)
+    newParagraph.select()
   })
 }
 
@@ -180,7 +183,11 @@ export const slashCommands: SlashCommand[] = [
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
           const node = $createToggleNode("Toggle")
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
+          const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
+          const newParagraph = $createParagraphNode()
+          topLevel.insertAfter(newParagraph)
+          topLevel.replace(node)
+          newParagraph.select()
         }
       }),
   },
@@ -292,7 +299,11 @@ export const slashCommands: SlashCommand[] = [
             const sel = $getSelection()
             if (!$isRangeSelection(sel)) return
             const imgNode = $createImageNode(src, file.name)
-            sel.anchor.getNode().getTopLevelElementOrThrow().replace(imgNode)
+            const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
+            const newParagraph = $createParagraphNode()
+            topLevel.insertAfter(newParagraph)
+            topLevel.replace(imgNode)
+            newParagraph.select()
           })
         }
         reader.readAsDataURL(file)
@@ -331,7 +342,11 @@ export const slashCommands: SlashCommand[] = [
         const sel = $getSelection()
         if (!$isRangeSelection(sel)) return
         const node = $createEquationNode("E = mc^2", false)
-        sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
+        const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
+        const newParagraph = $createParagraphNode()
+        topLevel.insertAfter(newParagraph)
+        topLevel.replace(node)
+        newParagraph.select()
       })
     },
   },

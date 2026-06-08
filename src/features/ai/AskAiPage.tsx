@@ -96,7 +96,7 @@ I have prepared a task board with lists categorized by priority and completion s
 - [ ] **Configure midnight reset for Focus Timer** — *TIME-09* (Assigned to: Sarah)
 
 #### 🟢 Completed
-- [x] **Setup Geist and Newsreader fonts in CSS theme** — *THEME-01*
+- [x] **Setup Outfit, Crimson Text and Fira Code fonts in CSS theme** — *THEME-01*
 - [x] **Deploy beta staging server** — *INFRA-02*`;
 
 const RESPONSE_NOTION = `### ✍️ Notion Editor Typography Guide
@@ -107,17 +107,17 @@ Notion uses a carefully curated set of fonts for its clean, minimal aesthetic:
 - **Serif:** For a more literary or structured look, Notion uses a serif stack centered around \`Lyon-Text\` or fallback serif fonts like \`Georgia\` and \`Times New Roman\`.
 - **Mono:** For code snippets, math formulas, and tabular data, Notion uses a monospaced font stack featuring \`SFMono-Regular\`, \`Consolas\`, \`Liberation Mono\`, and \`monospace\`.
 
-#### 💡 How to map this in Templnote:
-In Templnote, we have successfully mapped these styles under the Style Tab in the Right Sidebar:
-- **Sans** -> Newsreader (\`var(--font-sans)\`)
-- **Sans-Serif** -> Geist (\`"Geist", sans-serif\`)
-- **Mono** -> JetBrains Mono (\`var(--font-mono)\`)`;
+#### 💡 How to map this in templ:
+In templ, we have successfully mapped these styles under the Style Tab in the Right Sidebar:
+- **Sans** -> Outfit (\`var(--font-sans)\`)
+- **Serif** -> Crimson Text (\`var(--font-serif)\`)
+- **Mono** -> Fira Code (\`var(--font-mono)\`)`;
 
 const RESPONSE_GENERIC = (query: string) => `### 🤖 AI Assistant Response
 
 I've received your query: "**${query}**"
 
-As an AI assistant integrated with Templnote, I can help you:
+As an AI assistant integrated with templ, I can help you:
 - **Write and format** meeting agendas, essays, or notes.
 - **Create task lists** and track priorities.
 - **Explain concepts** like editor typography and styles.

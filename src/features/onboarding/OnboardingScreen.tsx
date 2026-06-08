@@ -51,32 +51,32 @@ export const OnboardingScreen = () => {
     if (selectedStyle === 'Developer') {
       tags = ['development', 'backlog', 'bugs', 'docs', 'releases'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Templnote' }
+        { id: 'welcome-doc', title: 'Welcome to templ' }
       ];
     } else if (selectedStyle === 'Student') {
       tags = ['lectures', 'homework', 'exams', 'readings', 'schedule'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Templnote' }
+        { id: 'welcome-doc', title: 'Welcome to templ' }
       ];
     } else if (selectedStyle === 'Creator') {
       tags = ['ideas', 'drafts', 'production', 'editing', 'published'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Templnote' }
+        { id: 'welcome-doc', title: 'Welcome to templ' }
       ];
     } else if (selectedStyle === 'Researcher') {
       tags = ['literature', 'experiments', 'data', 'writing', 'references'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Templnote' }
+        { id: 'welcome-doc', title: 'Welcome to templ' }
       ];
     } else if (selectedStyle === 'Startup') {
       tags = ['strategy', 'product', 'growth', 'fundraising', 'meetings'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Templnote' }
+        { id: 'welcome-doc', title: 'Welcome to templ' }
       ];
     } else {
       tags = ['journal', 'goals', 'finance', 'health', 'reminders'];
       pages = [
-        { id: 'welcome-doc', title: 'Welcome to Templnote' }
+        { id: 'welcome-doc', title: 'Welcome to templ' }
       ];
     }
 
@@ -256,12 +256,12 @@ export const OnboardingScreen = () => {
           createdDocs.push(
             {
               id: 'welcome-doc',
-              title: 'Welcome to Templnote',
+              title: 'Welcome to templ',
               icon: '💻',
               folderId: null,
               tags: ['guide', 'dev'],
               content: `<h1>Welcome to your Developer Workspace</h1>
-<p>Templnote is a high-performance local-first developer environment tailored for flow state. Manage codebases, track features, and write clean markdown documentation side-by-side.</p>
+<p>templ is a high-performance local-first developer environment tailored for flow state. Manage codebases, track features, and write clean markdown documentation side-by-side.</p>
 
 <hr />
 
@@ -398,12 +398,12 @@ export const OnboardingScreen = () => {
           createdDocs.push(
             {
               id: 'welcome-doc',
-              title: 'Welcome to Templnote',
+              title: 'Welcome to templ',
               icon: '🎓',
               folderId: null,
               tags: ['guide', 'school'],
               content: `<h1>Welcome to your Student Workspace</h1>
-<p>Organize your academic life. Templnote brings class notes, study schedules, and reading checksheets together into one gorgeous workspace.</p>
+<p>Organize your academic life. templ brings class notes, study schedules, and reading checksheets together into one gorgeous workspace.</p>
 
 <hr />
 
@@ -565,7 +565,7 @@ export const OnboardingScreen = () => {
           createdDocs.push(
             {
               id: 'welcome-doc',
-              title: 'Welcome to Templnote',
+              title: 'Welcome to templ',
               icon: '🎨',
               folderId: null,
               tags: ['guide', 'creative'],
@@ -730,7 +730,7 @@ export const OnboardingScreen = () => {
           createdDocs.push(
             {
               id: 'welcome-doc',
-              title: 'Welcome to Templnote',
+              title: 'Welcome to templ',
               icon: '🔬',
               folderId: null,
               tags: ['guide', 'research'],
@@ -895,12 +895,12 @@ export const OnboardingScreen = () => {
           createdDocs.push(
             {
               id: 'welcome-doc',
-              title: 'Welcome to Templnote',
+              title: 'Welcome to templ',
               icon: '🚀',
               folderId: null,
               tags: ['guide', 'startup'],
               content: `<h1>Welcome to your Startup Workspace</h1>
-<p>Build and scale. Templnote aggregates product roadmaps, strategy documents, pitch narrative files, and team updates in a secure space.</p>
+<p>Build and scale. templ aggregates product roadmaps, strategy documents, pitch narrative files, and team updates in a secure space.</p>
 
 <hr />
 
@@ -1026,7 +1026,7 @@ export const OnboardingScreen = () => {
               title: 'One Pager Strategy',
               folderId: 'folder-start-strategy',
               tags: ['strategy'],
-              content: `<h1>Templnote Strategy One-Pager</h1><p>Building the next-generation intelligent local-first productivity workspace for writers and developer teams.</p><h3>Target Audience</h3><p>Knowledge workers, developers, and writers seeking high-focus local-first tools.</p>`
+              content: `<h1>templ Strategy One-Pager</h1><p>Building the next-generation intelligent local-first productivity workspace for writers and developer teams.</p><h3>Target Audience</h3><p>Knowledge workers, developers, and writers seeking high-focus local-first tools.</p>`
             },
             {
               id: 'doc-start-prd',
@@ -1040,7 +1040,7 @@ export const OnboardingScreen = () => {
               title: 'Pitch Deck Outline',
               folderId: 'folder-start-strategy',
               tags: ['strategy', 'fundraising'],
-              content: `<h1>Startup Seed Pitch Narrative</h1><p>Slide outline, talking points, and data projections for the seed funding round.</p><h3>Slide List</h3><ul><li><strong>Slide 1: Problem:</strong> Information fragmentation in knowledge teams.</li><li><strong>Slide 2: Solution:</strong> Local-first collaborative workspace templnote.</li><li><strong>Slide 3: Market Size:</strong> $12B TAM in SaaS workspace automation.</li></ul>`
+              content: `<h1>Startup Seed Pitch Narrative</h1><p>Slide outline, talking points, and data projections for the seed funding round.</p><h3>Slide List</h3><ul><li><strong>Slide 1: Problem:</strong> Information fragmentation in knowledge teams.</li><li><strong>Slide 2: Solution:</strong> Local-first collaborative workspace templ.</li><li><strong>Slide 3: Market Size:</strong> $12B TAM in SaaS workspace automation.</li></ul>`
             },
             {
               id: dailyNoteId,
@@ -1061,11 +1061,11 @@ export const OnboardingScreen = () => {
           createdDocs.push(
             {
               id: 'welcome-doc',
-              title: 'Welcome to Templnote',
+              title: 'Welcome to templ',
               icon: '👤',
               folderId: null,
               tags: ['guide', 'personal'],
-              content: `<h1>Welcome to Templnote</h1>
+              content: `<h1>Welcome to templ</h1>
 <p>Your minimalist home for daily reflection, tracking life goals, and structuring routines without noise.</p>
 
 <hr />

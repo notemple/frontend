@@ -1,14 +1,14 @@
-import { AnimatePresence,motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import React from 'react';
-import { 
-  CheckSquare, 
-  CalendarBlank, 
-  Clock, 
-  Sparkle, 
-  BookOpen, 
-  Target, 
-  FileText, 
-  Brain, 
+import {
+  CheckSquare,
+  CalendarBlank,
+  Clock,
+  Sparkle,
+  BookOpen,
+  Target,
+  FileText,
+  Brain,
   Pencil,
   Notebook,
   ChartLineUp,
@@ -170,11 +170,10 @@ export const StoryPanel: React.FC<StoryPanelProps> = ({ step }) => {
       <div className="absolute inset-0 bg-gradient-to-tr from-zinc-950 via-transparent to-zinc-950/80 pointer-events-none z-2" />
 
       <div className="relative z-10 flex flex-col h-full justify-between text-left font-sans pointer-events-none">
-        {/* Brand title: split-line templ + note at the top taking full width */}
+        {/* Brand title: templ at the top taking full width */}
         <div className="w-full pt-4 pointer-events-auto">
-          <h1 className="text-[16vw] md:text-[6.5vw] font-black leading-[0.8] tracking-tighter bg-gradient-to-br from-[#BDE0FE] via-[#FFC8DD] to-[#B5EAD7] bg-clip-text text-transparent font-sans lowercase select-none">
-            templ<br />
-            note
+          <h1 className="text-[16vw] md:text-[6.5vw] font-black leading-[0.8] tracking-tighter bg-gradient-to-br from-[#BDE0FE] via-[#FFC8DD] to-[#B5EAD7] bg-clip-text text-transparent font-serif lowercase select-none">
+            templ
           </h1>
           <h2 className="text-[10px] font-semibold tracking-[0.25em] text-zinc-500 uppercase font-mono mt-4">
             AI-Enhanced Minimal Workspace
@@ -195,7 +194,7 @@ export const StoryPanel: React.FC<StoryPanelProps> = ({ step }) => {
               >
                 <h3 className="text-xl md:text-2xl font-bold tracking-tight text-[#FFB7B2]">Welcome</h3>
                 <p className="text-sm md:text-base leading-relaxed text-zinc-400 font-sans max-w-[280px] md:max-w-xs select-none">
-                  Templnote is designed to be a friction-free environment for your notes, focus, and tasks. A place to write, plan, and think without clutter.
+                  templ is designed to be a friction-free environment for your notes, focus, and tasks. A place to write, plan, and think without clutter.
                 </p>
               </motion.div>
             )}
@@ -210,7 +209,7 @@ export const StoryPanel: React.FC<StoryPanelProps> = ({ step }) => {
               >
                 <h3 className="text-xl md:text-2xl font-bold tracking-tight text-[#BDE0FE]">Our Story</h3>
                 <p className="text-sm md:text-base leading-relaxed text-zinc-400 font-sans max-w-[280px] md:max-w-xs select-none">
-                  Templnote was built from a simple realization: modern productivity tools have too many boxes and templates. We wanted a place that feels like a clean physical notebook, but runs on an intelligent local-first sync engine.
+                  templ was built from a simple realization: modern productivity tools have too many boxes and templates. We wanted a place that feels like a clean physical notebook, but runs on an intelligent local-first sync engine.
                 </p>
               </motion.div>
             )}
@@ -225,7 +224,7 @@ export const StoryPanel: React.FC<StoryPanelProps> = ({ step }) => {
               >
                 <h3 className="text-xl md:text-2xl font-bold tracking-tight text-[#B5EAD7]">How It's Better</h3>
                 <p className="text-sm md:text-base leading-relaxed text-zinc-400 font-sans max-w-[280px] md:max-w-xs select-none">
-                  By aligning folders, default templates, and daily notes with your selected workspace style, Templnote adapts to you from the start. No complex configurations, no empty space. Just write.
+                  By aligning folders, default templates, and daily notes with your selected workspace style, templ adapts to you from the start. No complex configurations, no empty space. Just write.
                 </p>
               </motion.div>
             )}

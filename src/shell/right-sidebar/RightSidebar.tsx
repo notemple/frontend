@@ -1150,16 +1150,16 @@ const FormattingTab = () => {
             Sans
           </button>
           <button
-            onClick={() => updateDocument(document.id, { fontFamily: 'sans-serif' })}
+            onClick={() => updateDocument(document.id, { fontFamily: 'serif' })}
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              document.fontFamily === 'sans-serif'
+              (document.fontFamily === 'serif' || document.fontFamily === 'sans-serif')
                 ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
-            style={{ fontFamily: '"Geist", sans-serif' }}
+            style={{ fontFamily: 'var(--font-serif)' }}
           >
-            Sans-Serif
+            Serif
           </button>
           <button
             onClick={() => updateDocument(document.id, { fontFamily: 'monospace' })}

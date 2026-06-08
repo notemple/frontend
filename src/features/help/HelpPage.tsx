@@ -24,7 +24,7 @@ const RELEASES: Release[] = [
     version: '0.0.1',
     date: 'June 2, 2026',
     changes: [
-      'Initial beta release of Templnote',
+      'Initial beta release of templ',
       'Basic document management and workspace layout options',
       'Glance page with activity logs and quick capture',
     ],
@@ -104,16 +104,16 @@ const SLASH_COMMANDS_HELP: { category: string; commands: { title: string; trigge
 const TERMS = `Last updated: May 2026
 
 1. Acceptance of Terms
-By accessing or using Templnote, you agree to be bound by these Terms of Service. If you do not agree to all the terms, please do not use the application.
+By accessing or using templ, you agree to be bound by these Terms of Service. If you do not agree to all the terms, please do not use the application.
 
 2. Use of the Service
-Templnote is a personal productivity and note-taking application. You may use the service for lawful purposes only. You agree not to misuse the application or help anyone else do so.
+templ is a personal productivity and note-taking application. You may use the service for lawful purposes only. You agree not to misuse the application or help anyone else do so.
 
 3. Your Content
-You retain ownership of any notes, documents, and data you create within Templnote. We do not claim any intellectual property rights over your content. Your data is stored locally and/or synced as per your chosen settings.
+You retain ownership of any notes, documents, and data you create within templ. We do not claim any intellectual property rights over your content. Your data is stored locally and/or synced as per your chosen settings.
 
 4. Privacy
-We are committed to protecting your privacy. Templnote processes your data locally by default. Any cloud sync features are opt-in and governed by our Privacy Policy.
+We are committed to protecting your privacy. templ processes your data locally by default. Any cloud sync features are opt-in and governed by our Privacy Policy.
 
 5. Modifications
 We may update or modify the application at any time. We will provide reasonable notice of significant changes via in-app release notes.
@@ -122,7 +122,7 @@ We may update or modify the application at any time. We will provide reasonable 
 The service is provided "as is" without warranties of any kind, either express or implied. We do not warrant that the service will be error-free or uninterrupted.
 
 7. Limitation of Liability
-To the fullest extent permitted by law, Templnote and its developers shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the service.
+To the fullest extent permitted by law, templ and its developers shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the service.
 
 8. Termination
 We reserve the right to suspend or terminate your access to the service at our discretion, without notice, for conduct that we believe violates these Terms of Service.
@@ -131,7 +131,7 @@ We reserve the right to suspend or terminate your access to the service at our d
 These terms shall be governed by and construed in accordance with applicable laws, without regard to conflict of law principles.
 
 10. Contact
-If you have any questions about these Terms of Service, please reach out via the official Templnote support channels.`;
+If you have any questions about these Terms of Service, please reach out via the official templ support channels.`;
 
 // ── Sub-components ─────────────────────────────────────────────────────────
 
@@ -224,7 +224,7 @@ function ReleaseNotes({ selectedRelease, onSelectRelease }: { selectedRelease: s
     <div className="flex flex-col gap-6">
       <div>
         <h2 className="text-2xl font-bold text-foreground tracking-tight mb-1">Release Notes</h2>
-        <p className="text-sm text-muted-foreground">What's new in each version of Templnote.</p>
+        <p className="text-sm text-muted-foreground">What's new in each version of templ.</p>
       </div>
 
       {/* Version dropdown */}
@@ -268,7 +268,7 @@ function TermsOfService() {
     <div className="flex flex-col gap-6">
       <div>
         <h2 className="text-2xl font-bold text-foreground tracking-tight mb-1">Terms of Service</h2>
-        <p className="text-sm text-muted-foreground">Please read these terms carefully before using Templnote.</p>
+        <p className="text-sm text-muted-foreground">Please read these terms carefully before using templ.</p>
       </div>
       <div className="rounded-xl border border-border/50 bg-muted/20 p-6">
         {TERMS.split('\n\n').map((para, i) => {
@@ -333,7 +333,7 @@ export const HelpPage: React.FC = () => {
 
         {/* Version badge */}
         <div className="px-3 pt-4 border-t border-border/25 mt-4">
-          <p className="text-[11px] text-muted-foreground">Templnote</p>
+          <p className="text-[11px] text-muted-foreground">templ</p>
           <p className="text-xs font-semibold text-foreground/60 mt-0.5">v{APP_VERSION}</p>
         </div>
       </div>

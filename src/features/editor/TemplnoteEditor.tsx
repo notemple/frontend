@@ -114,6 +114,7 @@ export function TemplnoteEditor({
   readOnly = false,
   onWordCountChange,
   paneId,
+  onClosePopup,
 }: Props) {
   const config = createEditorConfig(documentId)
   const contentEditableRef = useRef<HTMLDivElement>(null)
@@ -187,7 +188,8 @@ export function TemplnoteEditor({
   }
 
   const resolvedFontFamily = doc?.fontFamily === 'sans' ? 'var(--font-sans)' :
-                             doc?.fontFamily === 'sans-serif' ? '"Geist", sans-serif' :
+                             doc?.fontFamily === 'serif' ? 'var(--font-serif)' :
+                             doc?.fontFamily === 'sans-serif' ? 'var(--font-sans)' :
                              doc?.fontFamily === 'monospace' ? 'var(--font-mono)' :
                              undefined;
 
@@ -248,6 +250,17 @@ export function TemplnoteEditor({
         className="templnote-editor-wrapper relative flex flex-col w-full h-full overflow-y-auto"
         style={wrapperStyle}
       >
+        {onClosePopup && (
+          <button
+            type="button"
+            onClick={onClosePopup}
+            className="absolute top-4 right-6 z-50 p-2 rounded-sm border border-border/80 bg-muted/65 backdrop-blur-md text-muted-foreground hover:text-foreground hover:bg-muted/90 hover:scale-[1.05] transition-all cursor-pointer shadow-sm flex items-center gap-1.5 text-[10px] font-mono font-semibold uppercase tracking-wider select-none"
+            title="Minimize"
+          >
+            <X size={11} weight="bold" />
+            Minimize
+          </button>
+        )}
         <EditorScrollContainer>
           {/* Banner with gradient background */}
           <div 

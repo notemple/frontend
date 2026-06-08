@@ -29,6 +29,13 @@ export const TnLogo: React.FC<TnLogoProps> = ({
           glow && "drop-shadow-md"
         )}
       >
+        <defs>
+          <linearGradient id="templ-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#BDE0FE" />
+            <stop offset="50%" stopColor="#FFC8DD" />
+            <stop offset="100%" stopColor="#B5EAD7" />
+          </linearGradient>
+        </defs>
         {/* Outer rounded rect */}
         <rect 
           x="6" 
@@ -57,10 +64,10 @@ export const TnLogo: React.FC<TnLogoProps> = ({
           x="50" 
           y="62" 
           textAnchor="middle" 
-          fill="#bde0fe" 
+          fill="url(#templ-gradient)" 
           fontSize="36" 
-          fontWeight="bold" 
-          fontFamily="system-ui, sans-serif"
+          fontWeight="900" 
+          fontFamily="var(--font-sans), sans-serif"
         >
           Tn
         </text>

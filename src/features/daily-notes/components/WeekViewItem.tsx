@@ -19,7 +19,7 @@ export const WeekViewItem = ({ date, formattedId, setView, setSelectedDate, onOp
   const docSelector = useCallback(
     (state: any) => {
       const doc = state.documents[did];
-      return doc ? { title: doc.title, content: doc.content, tags: doc.tags || [] } : null;
+      return doc ? { title: doc.title, content: doc.content, contentText: doc.contentText, tags: doc.tags || [], icon: doc.icon } : null;
     },
     [did]
   );
@@ -58,7 +58,8 @@ export const WeekViewItem = ({ date, formattedId, setView, setSelectedDate, onOp
       </div>
 
       <div className="flex items-baseline gap-4 mt-2 mb-4">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          {doc?.icon && <span className="select-none">{doc.icon}</span>}
           {formatDisplayDate(date.toISOString(), "MMMM d, yyyy")}
         </h1>
         <span className="text-muted-foreground font-medium text-sm">
@@ -101,7 +102,8 @@ export const WeekViewItem = ({ date, formattedId, setView, setSelectedDate, onOp
                 <div className="bg-rose-200/80 text-rose-900 dark:text-rose-400 p-1.5 rounded-sm-sm border border-rose-400 dark:border-rose-300">
                   <FileText size={16} weight="fill" />
                 </div>
-                <span className="text-foreground font-bold">
+                <span className="text-foreground font-bold flex items-center gap-1.5">
+                  {doc.icon && <span className="select-none">{doc.icon}</span>}
                   {doc.title}
                 </span>
               </div>
@@ -111,11 +113,10 @@ export const WeekViewItem = ({ date, formattedId, setView, setSelectedDate, onOp
             </div>
           )}
           <div
-            className="text-foreground/90 text-sm mt-1 prose max-w-none prose-p:my-1 line-clamp-2 overflow-hidden text-ellipsis"
-            dangerouslySetInnerHTML={{
-              __html: doc.content,
-            }}
-          />
+            className="text-foreground/90 text-sm mt-1 prose max-w-none prose-p:my-1 line-clamp-2 overflow-hidden text-ellipsis whitespace-pre-wrap"
+          >
+            {doc.contentText || doc.content || "Empty note..."}
+          </div>
         </div>
       ) : (
         <div className="text-muted-foreground text-sm italic mt-2">

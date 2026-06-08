@@ -705,14 +705,9 @@ export const Sidebar = () => {
               <TnLogo className="w-8 h-8 shrink-0" glow={false} />
 
               {/* Stacked Branding text logo */}
-              <div className="flex flex-col select-none cursor-pointer" style={{ fontFamily: 'var(--font-sans), "Newsreader", serif' }}>
-                <span className="text-[19px] font-bold leading-none tracking-tight">
-                  <span className="text-[#bde0fe]">t</span>
-                  <span className="text-foreground">emp</span>
-                  <span className="text-[#ffb7b2]">l</span>
-                </span>
-                <span className="text-[13px] font-normal leading-none text-muted-foreground/60 mt-[3.5px] pl-[1px]">
-                  note
+              <div className="flex flex-col select-none cursor-pointer" style={{ fontFamily: 'var(--font-sans), sans-serif' }}>
+                <span className="text-[22px] font-black leading-none tracking-tighter lowercase bg-gradient-to-br from-[#BDE0FE] via-[#FFC8DD] to-[#B5EAD7] bg-clip-text text-transparent">
+                  templ
                 </span>
               </div>
             </div>

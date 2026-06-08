@@ -134,10 +134,10 @@ export const EmptyPaneState = ({ paneId }: { paneId: string }) => {
   return (
     <div className="h-full w-full flex flex-col items-center justify-center p-6 md:p-12 overflow-y-auto no-scrollbar select-none bg-workspace">
       <div className="w-full max-w-[95vw] flex flex-col items-center gap-12 text-center">
-        {/* Full-width "templ" text with Newsreader font */}
+        {/* Full-width "templ" text with Outfit font */}
         <div className="w-full flex flex-col items-center justify-center select-none">
           <TnLogo className="w-16 h-16 sm:w-20 sm:h-20 mb-6" />
-          <h1 className="w-full text-center font-content text-[15vw] sm:text-[16vw] font-bold tracking-tight lowercase leading-none select-none bg-gradient-to-br from-[#BDE0FE] via-[#FFC8DD] to-[#B5EAD7] bg-clip-text text-transparent">
+          <h1 className="w-full text-center font-sans text-[15vw] sm:text-[16vw] font-black tracking-tighter lowercase leading-none select-none bg-gradient-to-br from-[#BDE0FE] via-[#FFC8DD] to-[#B5EAD7] bg-clip-text text-transparent">
             templ
           </h1>
           <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground/40 mt-2 font-semibold select-none">

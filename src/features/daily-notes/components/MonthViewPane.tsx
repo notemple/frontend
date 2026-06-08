@@ -51,7 +51,7 @@ export const MonthViewPane = ({ selectedDate, setView, setSelectedDate }: {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start w-full max-w-none">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-none">
       {monthDocIds.map((docId) => {
         const dateParts = docId.replace("daily-note-", "").split("-");
         const docYear = dateParts[0];

@@ -151,6 +151,22 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
     if (doc.id.startsWith('daily-note-')) {
       const { timezone } = useSettingsStore.getState();
       finalTitle = getDailyNoteTitle(doc.id, timezone);
+      doc.folderId = null; // Don't save in folders
+      if (!doc.tags || doc.tags.length === 0) {
+        doc.tags = ['notes']; // 'notes' tag by default
+      }
+
+      const trimmedTag = 'notes';
+      if (!get().createdTags.includes(trimmedTag)) {
+        const newCreatedTags = [...get().createdTags, trimmedTag];
+        const newTagColors = { ...get().tagColors, [trimmedTag]: '#D8F3DC' };
+        set({
+          createdTags: newCreatedTags,
+          tagColors: newTagColors
+        });
+        await documentService.setMetadata("createdTags", newCreatedTags);
+        await documentService.setMetadata("tagColors", newTagColors);
+      }
     }
     const docWithMetadata = {
       ...doc,
@@ -179,6 +195,44 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
     let newOrder = get().documentOrder;
 
     let finalUpdates = { ...updates };
+    
+    // Enforce: Daily notes cannot be saved in folders
+    if (id.startsWith('daily-note-')) {
+      finalUpdates.folderId = null;
+    }
+
+    if (id.startsWith('daily-note-') || (finalUpdates.tags && finalUpdates.tags.includes('notes'))) {
+      const trimmedTag = 'notes';
+      if (!get().createdTags.includes(trimmedTag)) {
+        const newCreatedTags = [...get().createdTags, trimmedTag];
+        const newTagColors = { ...get().tagColors, [trimmedTag]: '#D8F3DC' };
+        set({
+          createdTags: newCreatedTags,
+          tagColors: newTagColors
+        });
+        await documentService.setMetadata("createdTags", newCreatedTags);
+        await documentService.setMetadata("tagColors", newTagColors);
+      }
+    }
+
+    // Daily notes automatic cleanup: delete if no character and no custom title
+    if (id.startsWith('daily-note-')) {
+      const { timezone } = useSettingsStore.getState();
+      const defaultTitle = getDailyNoteTitle(id, timezone);
+      const newTitle = finalUpdates.title !== undefined ? finalUpdates.title : (existing ? existing.title : "");
+      const contentText = finalUpdates.contentText !== undefined ? finalUpdates.contentText : (existing ? existing.contentText : "");
+      
+      const hasCharacter = contentText && contentText.trim().length > 0;
+      const hasTitle = newTitle && newTitle.trim().length > 0 && newTitle !== defaultTitle;
+
+      if (!hasCharacter && !hasTitle) {
+        if (existing) {
+          await get().deleteDocument(id);
+        }
+        return;
+      }
+    }
+
     const finalLink = updates.linkBackdropToCover !== undefined
       ? updates.linkBackdropToCover
       : (existing ? existing.linkBackdropToCover : false);
@@ -220,7 +274,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
     let finalTitle = finalUpdates.title;
     if (id.startsWith('daily-note-')) {
       const { timezone } = useSettingsStore.getState();
-      finalTitle = getDailyNoteTitle(id, timezone);
+      finalTitle = finalUpdates.title !== undefined ? finalUpdates.title : (existing ? existing.title : getDailyNoteTitle(id, timezone));
     } else if (existing) {
       finalTitle = finalUpdates.title !== undefined ? finalUpdates.title : existing.title;
     }
@@ -230,7 +284,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
         id,
         title: finalTitle || '',
         content: finalUpdates.content || '',
-        tags: finalUpdates.tags || [],
+        tags: finalUpdates.tags || (id.startsWith('daily-note-') ? ['notes'] : []),
         type: finalUpdates.type || 'page',
         createdAt: finalUpdates.createdAt || new Date().toISOString(),
         author: finalUpdates.author || 'new user',
@@ -429,6 +483,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
   },
 
   moveDocument: async (docId, targetFolderId, targetIndex) => {
+    if (docId.startsWith('daily-note-')) return; // Enforce: daily notes cannot be saved in folders
     const doc = get().documents[docId];
     if (!doc) return;
 

@@ -26,9 +26,10 @@ import TableHoverActionsPlugin from "./plugins/TableHoverActionsPlugin"
 
 import EmojiPicker from "emoji-picker-react"
 import { useDocumentStore } from "../documents/store"
-import { ChatCircleText, Plus, Tag, X } from "@phosphor-icons/react"
+import { ChatCircleText, Plus, Tag, X, Layout } from "@phosphor-icons/react"
 import { useState, useEffect, useMemo } from "react"
 import { getTagStyle, cn } from "@/shared/lib/utils"
+import { useUiStore } from "@/shared/store/uiStore"
 
 // Cast is needed because @lexical/react's RichTextPlugin ErrorBoundary prop type
 // is narrower than the actual LexicalErrorBoundary component type in this version
@@ -121,6 +122,8 @@ export function TemplnoteEditor({
   isMinimized = false,
 }: Props) {
   const config = createEditorConfig(documentId)
+  const isRightSidebarOpen = useUiStore(state => state.isRightSidebarOpen)
+  const toggleRightSidebar = useUiStore(state => state.toggleRightSidebar)
   const contentEditableRef = useRef<HTMLDivElement>(null)
   
   const doc = useDocumentStore(state => state.documents[documentId])

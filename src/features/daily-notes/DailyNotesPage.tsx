@@ -257,7 +257,8 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
     setActiveTab, 
     openDocument,
     isDailyNoteFullView: isFullEditorOpen,
-    setDailyNoteFullView: setIsFullEditorOpen
+    setDailyNoteFullView: setIsFullEditorOpen,
+    isRightSidebarOpen
   } = useUiStore(
     useShallow((state) => ({
       selectedDailyNoteDate: state.selectedDailyNoteDate,
@@ -266,6 +267,7 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
       openDocument: state.openDocument,
       isDailyNoteFullView: state.isDailyNoteFullView,
       setDailyNoteFullView: state.setDailyNoteFullView,
+      isRightSidebarOpen: state.isRightSidebarOpen,
     }))
   );
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -462,7 +464,10 @@ export const DailyNotesPage = ({ paneId }: { paneId: string }) => {
 
   if (isFullEditorOpen) {
     return (
-      <div className="flex w-full h-full text-foreground bg-workspace overflow-hidden relative">
+      <div className={cn(
+        "flex w-full h-full text-foreground bg-workspace overflow-hidden relative transition-all duration-300",
+        isRightSidebarOpen ? "pr-[320px]" : "pr-0"
+      )}>
         <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar relative min-h-full">
           <TemplnoteEditor
             key={documentId}

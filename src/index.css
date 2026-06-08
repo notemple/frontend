@@ -1302,24 +1302,34 @@ html.dark .lexical-table-cell {
 }
 .lexical-table-cell:focus,
 .lexical-table-cell:focus-within {
-  outline: 2px solid #2383e2;
+  outline: 2px solid rgba(255, 255, 255, 0.35);
   outline-offset: -1px;
   z-index: 10;
 }
+html.light .lexical-table-cell:focus,
+html.light .lexical-table-cell:focus-within {
+  outline: 2px solid rgba(0, 0, 0, 0.2);
+}
 .lexical-table-cell-selected {
   background-color: rgba(35, 131, 226, 0.12) !important;
+  outline: 2px solid rgba(0, 0, 0, 0.2) !important;
+  outline-offset: -1px;
+  z-index: 10;
+}
+html.dark .lexical-table-cell-selected {
+  outline: 2px solid rgba(255, 255, 255, 0.35) !important;
 }
 .lexical-table-cell--header {
   font-weight: 600;
   text-align: left;
-  background-color: var(--muted);
+  background-color: transparent;
 }
 html.light .lexical-table-cell--header {
-  background-color: rgba(242, 241, 237, 0.6);
+  background-color: transparent;
   color: rgba(55, 53, 47, 0.65);
 }
 html.dark .lexical-table-cell--header {
-  background-color: rgba(255, 255, 255, 0.035);
+  background-color: transparent;
   color: rgba(255, 255, 255, 0.45);
 }
 

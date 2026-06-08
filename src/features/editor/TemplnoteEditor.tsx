@@ -28,7 +28,7 @@ import EmojiPicker from "emoji-picker-react"
 import { useDocumentStore } from "../documents/store"
 import { ChatCircleText, Plus, Tag, X } from "@phosphor-icons/react"
 import { useState, useEffect, useMemo } from "react"
-import { getTagStyle } from "@/shared/lib/utils"
+import { getTagStyle, cn } from "@/shared/lib/utils"
 
 // Cast is needed because @lexical/react's RichTextPlugin ErrorBoundary prop type
 // is narrower than the actual LexicalErrorBoundary component type in this version
@@ -218,6 +218,30 @@ export function TemplnoteEditor({
     editorTextStyle.fontFamily = resolvedFontFamily;
   }
 
+  // Formatting styles mapping
+  const resolvedBaseFontSize = doc?.fontSize === 'small' ? '14px' :
+                               doc?.fontSize === 'large' ? '18px' :
+                               '16px'; // default
+  (editorTextStyle as any)['--editor-base-size'] = resolvedBaseFontSize;
+
+  const resolvedLineHeightParagraph = doc?.lineHeight === 'compact' ? '1.5' :
+                                      doc?.lineHeight === 'loose' ? '2.25' :
+                                      '1.95'; // default
+  const resolvedLineHeightRoot = doc?.lineHeight === 'compact' ? '1.4' :
+                                 doc?.lineHeight === 'loose' ? '2.0' :
+                                 '1.7'; // default
+  const resolvedLineHeightList = doc?.lineHeight === 'compact' ? '1.45' :
+                                 doc?.lineHeight === 'loose' ? '1.95' :
+                                 '1.65'; // default
+
+  (editorTextStyle as any)['--editor-line-height-paragraph'] = resolvedLineHeightParagraph;
+  (editorTextStyle as any)['--editor-line-height-root'] = resolvedLineHeightRoot;
+  (editorTextStyle as any)['--editor-line-height-list'] = resolvedLineHeightList;
+
+  // Page Width
+  (editorTextStyle as any)['--editor-max-width'] = doc?.pageWidth === 'wide' ? '90%' : '720px';
+  const maxWidthClass = doc?.pageWidth === 'wide' ? 'max-w-[90%]' : 'max-w-[720px]';
+
   return (
     <LexicalComposer initialConfig={{ ...config, editable: !readOnly }}>
       <div 
@@ -231,7 +255,7 @@ export function TemplnoteEditor({
             style={bannerStyle}
             contentEditable={false}
           >
-            <div className="flex flex-col items-start justify-center gap-3 w-full max-w-[720px] pl-4 pr-4 md:pl-0 md:pr-6 z-10 group/titlearea">
+            <div className={cn("flex flex-col items-start justify-center gap-3 w-full pl-4 pr-4 md:pl-0 md:pr-6 z-10 group/titlearea", maxWidthClass)}>
               {/* Emoji Button */}
               <div ref={pickerRef} className="relative z-50">
                 <button
@@ -470,7 +494,7 @@ export function TemplnoteEditor({
           </div>
 
           <div 
-            className="editor-content-column w-full max-w-[720px] px-6 md:px-8 relative flex flex-col pb-12 pt-4"
+            className={cn("editor-content-column w-full px-6 md:px-8 relative flex flex-col pb-12 pt-4", maxWidthClass)}
             style={editorTextStyle}
           >
             {/* The actual Lexical editable area */}
@@ -489,8 +513,12 @@ export function TemplnoteEditor({
                 }
                 placeholder={
                   <div 
-                    className="absolute top-4 left-0.5 pointer-events-none select-none text-[var(--muted-foreground)] opacity-40 text-[19px] leading-[1.95] font-sans"
-                    style={resolvedFontFamily ? { fontFamily: resolvedFontFamily } : undefined}
+                    className="absolute top-4 left-0.5 pointer-events-none select-none text-[var(--muted-foreground)] opacity-40 font-sans"
+                    style={{
+                      fontSize: 'calc(var(--editor-base-size, 16px) * 1.1875)',
+                      lineHeight: 'var(--editor-line-height-paragraph, 1.95)',
+                      ...(resolvedFontFamily ? { fontFamily: resolvedFontFamily } : {})
+                    }}
                   >
                     press '/' or '@' for commands or 'tab' for ai
                   </div>

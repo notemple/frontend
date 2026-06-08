@@ -3,6 +3,7 @@ import { useSettingsStore } from '@/features/settings/store';
 import { getRelativeTimeString } from '@/shared/lib/time';
 import { cn } from '@/shared/lib/utils';
 import { useUiStore } from '@/shared/store/uiStore';
+import { formatInTimeZone } from 'date-fns-tz';
 import {
 	ArrowCounterClockwise,
 	Calendar,
@@ -10,6 +11,7 @@ import {
 	Check,
 	Clock,
 	PaintBrush,
+	TextT,
 	User,
 	X
 } from '@phosphor-icons/react';
@@ -24,9 +26,9 @@ export const RightSidebar = () => {
       toggleRightSidebar: state.toggleRightSidebar,
     }))
   );
-  const [activeTab, setActiveTab] = useState('Style');
+  const [activeTab, setActiveTab] = useState('Formatting');
 
-  const tabs = ['Style', 'Info'];
+  const tabs = ['Formatting', 'Style', 'Info'];
 
   return (
     <motion.div
@@ -73,6 +75,7 @@ export const RightSidebar = () => {
 
           {/* Body Content */}
           <div className="flex-1 p-4 overflow-y-auto overflow-x-hidden no-scrollbar bg-background">
+            {activeTab === 'Formatting' && <FormattingTab />}
             {activeTab === 'Style' && <StyleTab />}
             {activeTab === 'Info' && <InfoTab />}
           </div>
@@ -81,12 +84,14 @@ export const RightSidebar = () => {
 };
 
 const StyleTab = () => {
-  const { panes, activePaneId } = useUiStore(
+  const { panes, activePaneId, selectedDailyNoteDate } = useUiStore(
     useShallow((state) => ({
       panes: state.panes,
       activePaneId: state.activePaneId,
+      selectedDailyNoteDate: state.selectedDailyNoteDate,
     }))
   );
+  const timezone = useSettingsStore(state => state.timezone);
   const updateDocument = useDocumentStore(state => state.updateDocument);
 
   // Custom picker expand collapse to prevent glitches and keep selection stable
@@ -103,10 +108,17 @@ const StyleTab = () => {
   // Retrieve ONLY the active document using a targeted selector to prevent re-renders when other documents are edited
   const documentSelector = useCallback(
     state => {
-      if (!activeDocId || activeDocId.startsWith('section-') || activeDocId === 'new-note') return null;
+      if (!activeDocId || activeDocId === 'new-note') return null;
+      if (activeDocId.startsWith('section-')) {
+        if (activeDocId === 'section-daily-notes') {
+          const dailyNoteDocId = `daily-note-${formatInTimeZone(selectedDailyNoteDate, timezone, "yyyy-MM-dd")}`;
+          return state.documents[dailyNoteDocId] || null;
+        }
+        return null;
+      }
       return state.documents[activeDocId] || null;
     },
-    [activeDocId]
+    [activeDocId, selectedDailyNoteDate, timezone]
   );
   const document = useDocumentStore(useShallow(documentSelector));
   const topSectionPresets = [
@@ -1070,54 +1082,6 @@ const StyleTab = () => {
         </div>
       </div>
 
-      {/* Font Family Selection */}
-      <div className="space-y-3 pt-4 border-t border-black/10 dark:border-white/5">
-        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Font Family</span>
-        <div className="grid grid-cols-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
-          {/* Sans (Newsreader) */}
-          <button
-            onClick={() => updateDocument(document.id, { fontFamily: 'sans' })}
-            className={cn(
-              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              (!document.fontFamily || document.fontFamily === 'sans')
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
-                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
-            )}
-            style={{ fontFamily: 'var(--font-sans)' }}
-          >
-            Sans
-          </button>
-
-          {/* Sans-Serif (Geist) */}
-          <button
-            onClick={() => updateDocument(document.id, { fontFamily: 'sans-serif' })}
-            className={cn(
-              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              document.fontFamily === 'sans-serif'
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
-                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
-            )}
-            style={{ fontFamily: '"Geist", sans-serif' }}
-          >
-            Sans-Serif
-          </button>
-
-          {/* Monospace (JetBrains Mono) */}
-          <button
-            onClick={() => updateDocument(document.id, { fontFamily: 'monospace' })}
-            className={cn(
-              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              document.fontFamily === 'monospace'
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
-                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
-            )}
-            style={{ fontFamily: 'var(--font-mono)' }}
-          >
-            Mono
-          </button>
-        </div>
-      </div>
-
       <div className="p-3 bg-black/5 dark:bg-white/[0.02] border border-black/10 dark:border-white/5 rounded-sm-sm">
         <p className="text-[10px] text-muted-foreground leading-relaxed font-mono">
           <strong>Tip:</strong> Create sophisticated document styles. Combine gradients for backdrops and documents to achieve stunning custom visual templates.
@@ -1127,14 +1091,219 @@ const StyleTab = () => {
   );
 };
 
-const InfoTab = () => {
-  const userName = useSettingsStore(state => state.userName);
-  const { panes, activePaneId } = useUiStore(
+const FormattingTab = () => {
+  const { panes, activePaneId, selectedDailyNoteDate } = useUiStore(
     useShallow((state) => ({
       panes: state.panes,
       activePaneId: state.activePaneId,
+      selectedDailyNoteDate: state.selectedDailyNoteDate,
     }))
   );
+  const timezone = useSettingsStore(state => state.timezone);
+  const updateDocument = useDocumentStore(state => state.updateDocument);
+
+  const activePane = panes.find(p => p?.id === activePaneId) || panes[0];
+  const activeDocId = activePane?.activeTabId;
+
+  const documentSelector = useCallback(
+    state => {
+      if (!activeDocId || activeDocId === 'new-note') return null;
+      if (activeDocId.startsWith('section-')) {
+        if (activeDocId === 'section-daily-notes') {
+          const dailyNoteDocId = `daily-note-${formatInTimeZone(selectedDailyNoteDate, timezone, "yyyy-MM-dd")}`;
+          return state.documents[dailyNoteDocId] || null;
+        }
+        return null;
+      }
+      return state.documents[activeDocId] || null;
+    },
+    [activeDocId, selectedDailyNoteDate, timezone]
+  );
+  const document = useDocumentStore(useShallow(documentSelector));
+
+  if (!document) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center text-center p-4">
+        <TextT size={32} className="text-muted-foreground mb-3 opacity-30" />
+        <p className="text-xs text-muted-foreground font-mono">No active document selected.</p>
+        <p className="text-[10px] text-muted-foreground/60 mt-1 max-w-[200px]">Open a document from the sidebar to customize its formatting.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Font Family Selection */}
+      <div className="space-y-3">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Font Family</span>
+        <div className="grid grid-cols-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
+          <button
+            onClick={() => updateDocument(document.id, { fontFamily: 'sans' })}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+              (!document.fontFamily || document.fontFamily === 'sans')
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+            style={{ fontFamily: 'var(--font-sans)' }}
+          >
+            Sans
+          </button>
+          <button
+            onClick={() => updateDocument(document.id, { fontFamily: 'sans-serif' })}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+              document.fontFamily === 'sans-serif'
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+            style={{ fontFamily: '"Geist", sans-serif' }}
+          >
+            Sans-Serif
+          </button>
+          <button
+            onClick={() => updateDocument(document.id, { fontFamily: 'monospace' })}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+              document.fontFamily === 'monospace'
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+            style={{ fontFamily: 'var(--font-mono)' }}
+          >
+            Mono
+          </button>
+        </div>
+      </div>
+
+      {/* Font Size Selection */}
+      <div className="space-y-3 pt-4 border-t border-black/10 dark:border-white/5">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Font Size</span>
+        <div className="grid grid-cols-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
+          <button
+            onClick={() => updateDocument(document.id, { fontSize: 'small' })}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+              document.fontSize === 'small'
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+          >
+            Small
+          </button>
+          <button
+            onClick={() => updateDocument(document.id, { fontSize: 'normal' })}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+              (!document.fontSize || document.fontSize === 'normal')
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+          >
+            Normal
+          </button>
+          <button
+            onClick={() => updateDocument(document.id, { fontSize: 'large' })}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+              document.fontSize === 'large'
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+          >
+            Large
+          </button>
+        </div>
+      </div>
+
+      {/* Line Height Selection */}
+      <div className="space-y-3 pt-4 border-t border-black/10 dark:border-white/5">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Line Spacing</span>
+        <div className="grid grid-cols-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
+          <button
+            onClick={() => updateDocument(document.id, { lineHeight: 'compact' })}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+              document.lineHeight === 'compact'
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+          >
+            Compact
+          </button>
+          <button
+            onClick={() => updateDocument(document.id, { lineHeight: 'normal' })}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+              (!document.lineHeight || document.lineHeight === 'normal')
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+          >
+            Normal
+          </button>
+          <button
+            onClick={() => updateDocument(document.id, { lineHeight: 'loose' })}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+              document.lineHeight === 'loose'
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+          >
+            Loose
+          </button>
+        </div>
+      </div>
+
+      {/* Page Width Selection */}
+      <div className="space-y-3 pt-4 border-t border-black/10 dark:border-white/5">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Page Width</span>
+        <div className="grid grid-cols-2 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
+          <button
+            onClick={() => updateDocument(document.id, { pageWidth: 'narrow' })}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+              (!document.pageWidth || document.pageWidth === 'narrow')
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+          >
+            Readable (Narrow)
+          </button>
+          <button
+            onClick={() => updateDocument(document.id, { pageWidth: 'wide' })}
+            className={cn(
+              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+              document.pageWidth === 'wide'
+                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+            )}
+          >
+            Full Width (Wide)
+          </button>
+        </div>
+      </div>
+
+      <div className="p-3 bg-black/5 dark:bg-white/[0.02] border border-black/10 dark:border-white/5 rounded-sm-sm">
+        <p className="text-[10px] text-muted-foreground leading-relaxed font-mono">
+          <strong>Tip:</strong> Formatting preferences apply per document. Toggle full width for tables or code blocks, and customize font sizing/spacing to fit your reading preferences.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+const InfoTab = () => {
+  const userName = useSettingsStore(state => state.userName);
+  const { panes, activePaneId, selectedDailyNoteDate } = useUiStore(
+    useShallow((state) => ({
+      panes: state.panes,
+      activePaneId: state.activePaneId,
+      selectedDailyNoteDate: state.selectedDailyNoteDate,
+    }))
+  );
+  const timezone = useSettingsStore(state => state.timezone);
   const [subTab, setSubTab] = useState('Page Info');
 
   const activePane = panes.find(p => p?.id === activePaneId) || panes[0];
@@ -1143,10 +1312,17 @@ const InfoTab = () => {
   // Retrieve ONLY the active document using a targeted selector to prevent re-renders when other documents are edited
   const documentSelector = useCallback(
     state => {
-      if (!activeDocId || activeDocId.startsWith('section-') || activeDocId === 'new-note') return null;
+      if (!activeDocId || activeDocId === 'new-note') return null;
+      if (activeDocId.startsWith('section-')) {
+        if (activeDocId === 'section-daily-notes') {
+          const dailyNoteDocId = `daily-note-${formatInTimeZone(selectedDailyNoteDate, timezone, "yyyy-MM-dd")}`;
+          return state.documents[dailyNoteDocId] || null;
+        }
+        return null;
+      }
       return state.documents[activeDocId] || null;
     },
-    [activeDocId]
+    [activeDocId, selectedDailyNoteDate, timezone]
   );
   const document = useDocumentStore(useShallow(documentSelector));
 

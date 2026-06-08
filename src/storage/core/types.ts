@@ -32,6 +32,9 @@ export interface NoteDocument {
   topSectionTextColor?: string;
   color?: string;
   fontFamily?: string;
+  fontSize?: 'small' | 'normal' | 'large';
+  lineHeight?: 'compact' | 'normal' | 'loose';
+  pageWidth?: 'narrow' | 'wide';
   folderId?: string | null;
   isFavorite?: boolean;
   isDeleted?: boolean;

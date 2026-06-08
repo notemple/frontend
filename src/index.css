@@ -611,7 +611,7 @@ html.light .lexical-root hr {
 .editor-content-column {
   /* Centered column with comfortable reading width */
   width: 100%;
-  max-width: 720px;
+  max-width: var(--editor-max-width, 720px);
   margin: 0 auto;
   padding-bottom: 6rem;    /* breathing room at the bottom */
 }
@@ -630,8 +630,8 @@ html.light .lexical-root hr {
   cursor: text;
   outline: none;
   width: 100%;
-  line-height: 1.7;
-  font-size: 1rem;
+  line-height: var(--editor-line-height-root, 1.7);
+  font-size: var(--editor-base-size, 16px);
   color: var(--body-text);
   caret-color: #a855f7;   /* purple caret matching app accent */
 }
@@ -1228,27 +1228,27 @@ html.dark .neu-btn:active {
 
 /* ── Headings ─────────────────────────────────────────────────────────────── */
 .lexical-h1 {
-  font-size: 2rem;
+  font-size: calc(var(--editor-base-size, 16px) * 2);
   font-weight: 700;
   line-height: 1.2;
   color: var(--foreground);
   letter-spacing: -0.02em;
 }
 .lexical-h2 {
-  font-size: 1.5rem;
+  font-size: calc(var(--editor-base-size, 16px) * 1.5);
   font-weight: 650;
   line-height: 1.3;
   color: var(--foreground);
   letter-spacing: -0.01em;
 }
 .lexical-h3 {
-  font-size: 1.25rem;
+  font-size: calc(var(--editor-base-size, 16px) * 1.25);
   font-weight: 600;
   line-height: 1.35;
   color: var(--foreground);
 }
 .lexical-h4 {
-  font-size: 1.1rem;
+  font-size: calc(var(--editor-base-size, 16px) * 1.1);
   font-weight: 600;
   line-height: 1.4;
   color: var(--foreground);
@@ -1256,8 +1256,8 @@ html.dark .neu-btn:active {
 
 /* ── Paragraph ────────────────────────────────────────────────────────────── */
 .lexical-paragraph {
-  font-size: 19px;
-  line-height: 1.95;
+  font-size: calc(var(--editor-base-size, 16px) * 1.1875);
+  line-height: var(--editor-line-height-paragraph, 1.95);
   color: var(--body-text);
 }
 
@@ -1293,7 +1293,7 @@ html.light .lexical-link:hover { color: #4338ca; }
 /* ── Lists ────────────────────────────────────────────────────────────────── */
 .lexical-ul { list-style: disc; padding-left: 1.5rem; margin: 0.5rem 0; }
 .lexical-ol { list-style: decimal; padding-left: 1.5rem; margin: 0.5rem 0; }
-.lexical-listitem { margin: 0.15rem 0; line-height: 1.65; }
+.lexical-listitem { margin: 0.15rem 0; line-height: var(--editor-line-height-list, 1.65); }
 .lexical-nested-listitem { list-style: none; }
 
 /* ── Table ────────────────────────────────────────────────────────────────── */

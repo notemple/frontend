@@ -227,7 +227,7 @@ export function TemplnoteEditor({
         <EditorScrollContainer>
           {/* Banner with gradient background */}
           <div 
-            className="w-full h-44 shrink-0 relative flex items-center justify-center" 
+            className="w-full min-h-[11rem] py-6 shrink-0 relative flex items-center justify-center" 
             style={bannerStyle}
             contentEditable={false}
           >
@@ -286,15 +286,186 @@ export function TemplnoteEditor({
                 )}
               </div>
  
-              {/* Page Title Input */}
-              <input
-                type="text"
-                placeholder="Untitled"
-                value={doc?.title ?? ""}
-                onChange={(e) => updateDocument(documentId, { title: e.target.value })}
-                className="flex-1 bg-transparent border-none outline-none text-4xl font-bold font-sans tracking-tight drop-shadow-md min-w-0 placeholder-current placeholder-opacity-50"
-                style={titleStyle}
-              />
+              {/* Title and Tags container */}
+              <div className="flex-1 flex flex-col gap-2 min-w-0">
+                {/* Page Title Input */}
+                <input
+                  type="text"
+                  placeholder="Untitled"
+                  value={doc?.title ?? ""}
+                  onChange={(e) => updateDocument(documentId, { title: e.target.value })}
+                  className="w-full bg-transparent border-none outline-none text-4xl font-bold font-sans tracking-tight drop-shadow-md placeholder-current placeholder-opacity-50"
+                  style={titleStyle}
+                />
+
+                {/* Tags Section */}
+                {(!readOnly || (doc?.tags && doc.tags.length > 0)) && (
+                  <div 
+                    className="flex flex-wrap items-center gap-1.5 text-sm font-sans select-none" 
+                    contentEditable={false}
+                  >
+                    <Tag 
+                      size={16} 
+                      className="mr-1 opacity-70 shrink-0" 
+                      style={{ color: doc?.topSectionTextColor || 'var(--muted-foreground)' }} 
+                    />
+                    
+                    {doc?.tags && doc.tags.length > 0 ? (
+                      doc.tags.map(tag => {
+                        const tagStyle = getTagStyle(tag, tagColors);
+                        return (
+                          <span
+                            key={tag}
+                            className="tag-element flex items-center gap-1 border text-xs px-2 py-0.5 transition-colors font-medium rounded-sm-sm group/tag relative"
+                            style={{
+                              backgroundColor: 'var(--tag-bg)',
+                              borderColor: 'var(--tag-border)',
+                              color: 'var(--tag-text)',
+                              ...tagStyle
+                            }}
+                          >
+                            <span>{tag}</span>
+                            {!readOnly && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newTags = (doc.tags || []).filter(t => t !== tag);
+                                  updateDocument(documentId, { tags: newTags });
+                                }}
+                                className="hover:bg-black/10 dark:hover:bg-white/10 rounded-full p-0.5 cursor-pointer opacity-70 hover:opacity-100 transition-opacity flex items-center justify-center"
+                              >
+                                <X size={10} weight="bold" />
+                              </button>
+                            )}
+                          </span>
+                        )
+                      })
+                    ) : (
+                      <span 
+                        className="text-xs italic font-normal mr-2 opacity-60"
+                        style={{ color: doc?.topSectionTextColor || 'var(--muted-foreground)' }}
+                      >
+                        No tags
+                      </span>
+                    )}
+
+                    {/* Add Tag Popover */}
+                    {!readOnly && (
+                      <div ref={popoverRef} className="relative">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsTagPopoverOpen(!isTagPopoverOpen);
+                            setTagSearchQuery("");
+                          }}
+                          className="flex items-center gap-1 px-2 py-0.5 border border-dashed rounded-sm text-xs transition-colors cursor-pointer opacity-70 hover:opacity-100 hover:bg-black/5 dark:hover:bg-black/30"
+                          style={{
+                            color: doc?.topSectionTextColor || 'var(--muted-foreground)',
+                            borderColor: doc?.topSectionTextColor ? `${doc.topSectionTextColor}66` : 'var(--border)'
+                          }}
+                        >
+                          <Plus size={12} weight="bold" />
+                          <span>Add Tag</span>
+                        </button>
+
+                        {isTagPopoverOpen && (
+                          <div 
+                            className="absolute top-7 left-0 z-50 w-64 rounded-lg shadow-xl bg-white dark:bg-[#1f1f22] border border-zinc-200 dark:border-zinc-800 p-2 flex flex-col gap-2"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <input
+                              autoFocus
+                              type="text"
+                              placeholder="Search or create tag..."
+                              value={tagSearchQuery}
+                              onChange={(e) => setTagSearchQuery(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  const trimmed = tagSearchQuery.trim();
+                                  if (trimmed) {
+                                    if (!createdTags.includes(trimmed)) {
+                                      createTag(trimmed);
+                                    }
+                                    const currentTags = doc?.tags || [];
+                                    if (!currentTags.includes(trimmed)) {
+                                      updateDocument(documentId, { tags: [...currentTags, trimmed] });
+                                    }
+                                    setTagSearchQuery("");
+                                    setIsTagPopoverOpen(false);
+                                  }
+                                } else if (e.key === "Escape") {
+                                  setIsTagPopoverOpen(false);
+                                }
+                              }}
+                              className="w-full px-2.5 py-1.5 text-xs bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded outline-none focus:border-purple-500 dark:focus:border-purple-400 text-foreground placeholder-muted-foreground/60"
+                            />
+
+                            <div className="max-h-48 overflow-y-auto flex flex-col gap-0.5 custom-scrollbar">
+                              {filteredSuggestions.map((tag) => {
+                                const tagStyle = getTagStyle(tag, tagColors);
+                                return (
+                                  <button
+                                    key={tag}
+                                    type="button"
+                                    onClick={() => {
+                                      const currentTags = doc?.tags || [];
+                                      if (!currentTags.includes(tag)) {
+                                        updateDocument(documentId, { tags: [...currentTags, tag] });
+                                      }
+                                      setTagSearchQuery("");
+                                      setIsTagPopoverOpen(false);
+                                    }}
+                                    className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-between group/item cursor-pointer text-foreground"
+                                  >
+                                    <div className="flex items-center gap-1.5">
+                                      <span 
+                                        className="w-2.5 h-2.5 rounded-full border tag-element" 
+                                        style={{ 
+                                          backgroundColor: 'var(--tag-bg)', 
+                                          borderColor: 'var(--tag-border)',
+                                          ...tagStyle 
+                                        }} 
+                                      />
+                                      <span>{tag}</span>
+                                    </div>
+                                    <span className="text-[10px] text-muted-foreground opacity-0 group-hover/item:opacity-100 transition-opacity">Select</span>
+                                  </button>
+                                );
+                              })}
+
+                              {tagSearchQuery.trim() && !createdTags.includes(tagSearchQuery.trim()) && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const trimmed = tagSearchQuery.trim();
+                                    createTag(trimmed);
+                                    const currentTags = doc?.tags || [];
+                                    if (!currentTags.includes(trimmed)) {
+                                      updateDocument(documentId, { tags: [...currentTags, trimmed] });
+                                    }
+                                    setTagSearchQuery("");
+                                    setIsTagPopoverOpen(false);
+                                  }}
+                                  className="w-full text-left px-2 py-2 text-xs rounded text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/20 font-medium flex items-center gap-1.5 cursor-pointer"
+                                >
+                                  <Plus size={12} weight="bold" />
+                                  <span>Create &quot;{tagSearchQuery.trim()}&quot;</span>
+                                </button>
+                              )}
+
+                              {filteredSuggestions.length === 0 && !tagSearchQuery.trim() && (
+                                <div className="px-2 py-3 text-xs text-muted-foreground/60 text-center italic">
+                                  No other tags available
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -302,161 +473,6 @@ export function TemplnoteEditor({
             className="editor-content-column w-full max-w-[720px] px-6 md:px-8 relative flex flex-col pb-12 pt-4"
             style={editorTextStyle}
           >
-            {/* Tags Section */}
-            {(!readOnly || (doc?.tags && doc.tags.length > 0)) && (
-              <div 
-                className="flex flex-wrap items-center gap-1.5 mb-6 text-sm font-sans select-none border-b border-zinc-100 dark:border-zinc-800/60 pb-4" 
-                contentEditable={false}
-              >
-                <Tag size={16} className="text-muted-foreground mr-1 opacity-70 shrink-0" />
-                
-                {doc?.tags && doc.tags.length > 0 ? (
-                  doc.tags.map(tag => {
-                    const tagStyle = getTagStyle(tag, tagColors);
-                    return (
-                      <span
-                        key={tag}
-                        className="tag-element flex items-center gap-1 border text-xs px-2 py-0.5 transition-colors font-medium rounded-sm-sm group/tag relative"
-                        style={{
-                          backgroundColor: 'var(--tag-bg)',
-                          borderColor: 'var(--tag-border)',
-                          color: 'var(--tag-text)',
-                          ...tagStyle
-                        }}
-                      >
-                        <span>{tag}</span>
-                        {!readOnly && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newTags = (doc.tags || []).filter(t => t !== tag);
-                              updateDocument(documentId, { tags: newTags });
-                            }}
-                            className="hover:bg-black/10 dark:hover:bg-white/10 rounded-full p-0.5 cursor-pointer opacity-70 hover:opacity-100 transition-opacity flex items-center justify-center"
-                          >
-                            <X size={10} weight="bold" />
-                          </button>
-                        )}
-                      </span>
-                    )
-                  })
-                ) : (
-                  <span className="text-xs text-muted-foreground/60 italic font-normal mr-2">No tags</span>
-                )}
-
-                {/* Add Tag Popover */}
-                {!readOnly && (
-                  <div ref={popoverRef} className="relative">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsTagPopoverOpen(!isTagPopoverOpen);
-                        setTagSearchQuery("");
-                      }}
-                      className="flex items-center gap-1 px-2 py-0.5 border border-dashed border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 rounded-sm text-xs text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-black/30 transition-colors cursor-pointer"
-                    >
-                      <Plus size={12} weight="bold" />
-                      <span>Add Tag</span>
-                    </button>
-
-                    {isTagPopoverOpen && (
-                      <div 
-                        className="absolute top-7 left-0 z-50 w-64 rounded-lg shadow-xl bg-white dark:bg-[#1f1f22] border border-zinc-200 dark:border-zinc-800 p-2 flex flex-col gap-2"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <input
-                          autoFocus
-                          type="text"
-                          placeholder="Search or create tag..."
-                          value={tagSearchQuery}
-                          onChange={(e) => setTagSearchQuery(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              const trimmed = tagSearchQuery.trim();
-                              if (trimmed) {
-                                if (!createdTags.includes(trimmed)) {
-                                  createTag(trimmed);
-                                }
-                                const currentTags = doc?.tags || [];
-                                if (!currentTags.includes(trimmed)) {
-                                  updateDocument(documentId, { tags: [...currentTags, trimmed] });
-                                }
-                                setTagSearchQuery("");
-                                setIsTagPopoverOpen(false);
-                              }
-                            } else if (e.key === "Escape") {
-                              setIsTagPopoverOpen(false);
-                            }
-                          }}
-                          className="w-full px-2.5 py-1.5 text-xs bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded outline-none focus:border-purple-500 dark:focus:border-purple-400 text-foreground placeholder-muted-foreground/60"
-                        />
-
-                        <div className="max-h-48 overflow-y-auto flex flex-col gap-0.5 custom-scrollbar">
-                          {filteredSuggestions.map((tag) => {
-                            const tagStyle = getTagStyle(tag, tagColors);
-                            return (
-                              <button
-                                key={tag}
-                                type="button"
-                                onClick={() => {
-                                  const currentTags = doc?.tags || [];
-                                  if (!currentTags.includes(tag)) {
-                                    updateDocument(documentId, { tags: [...currentTags, tag] });
-                                  }
-                                  setTagSearchQuery("");
-                                  setIsTagPopoverOpen(false);
-                                }}
-                                className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-between group/item cursor-pointer text-foreground"
-                              >
-                                <div className="flex items-center gap-1.5">
-                                  <span 
-                                    className="w-2.5 h-2.5 rounded-full border tag-element" 
-                                    style={{ 
-                                      backgroundColor: 'var(--tag-bg)', 
-                                      borderColor: 'var(--tag-border)',
-                                      ...tagStyle 
-                                    }} 
-                                  />
-                                  <span>{tag}</span>
-                                </div>
-                                <span className="text-[10px] text-muted-foreground opacity-0 group-hover/item:opacity-100 transition-opacity">Select</span>
-                              </button>
-                            );
-                          })}
-
-                          {tagSearchQuery.trim() && !createdTags.includes(tagSearchQuery.trim()) && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const trimmed = tagSearchQuery.trim();
-                                createTag(trimmed);
-                                const currentTags = doc?.tags || [];
-                                if (!currentTags.includes(trimmed)) {
-                                  updateDocument(documentId, { tags: [...currentTags, trimmed] });
-                                }
-                                setTagSearchQuery("");
-                                setIsTagPopoverOpen(false);
-                              }}
-                              className="w-full text-left px-2 py-2 text-xs rounded text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/20 font-medium flex items-center gap-1.5 cursor-pointer"
-                            >
-                              <Plus size={12} weight="bold" />
-                              <span>Create &quot;{tagSearchQuery.trim()}&quot;</span>
-                            </button>
-                          )}
-
-                          {filteredSuggestions.length === 0 && !tagSearchQuery.trim() && (
-                            <div className="px-2 py-3 text-xs text-muted-foreground/60 text-center italic">
-                              No other tags available
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* The actual Lexical editable area */}
             <div className="editor-container relative flex flex-col flex-1">
               <RichTextPlugin
@@ -494,7 +510,7 @@ export function TemplnoteEditor({
         <CheckListPlugin />
         <LinkPlugin />
         <TabIndentationPlugin />
-        <TablePlugin />
+        <TablePlugin hasCellBackgroundColor={true} />
         <TableHoverActionsPlugin />
         <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
         <SlashCommandPlugin />

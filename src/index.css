@@ -64,6 +64,18 @@
     --active-tab-purple: rgba(168, 85, 247, 0.15);
     --active-tab-sky: rgba(14, 165, 233, 0.15);
     --active-tab-amber: rgba(245, 158, 11, 0.15);
+
+    /* Table Background Colors */
+    --table-bg-default: transparent;
+    --table-bg-gray: #252525;
+    --table-bg-brown: #2b1e19;
+    --table-bg-orange: #43220f;
+    --table-bg-yellow: #392c0f;
+    --table-bg-green: #1c301e;
+    --table-bg-blue: #142d36;
+    --table-bg-purple: #251c38;
+    --table-bg-pink: #301a24;
+    --table-bg-red: #341a1a;
   }
 
   html.light {
@@ -100,6 +112,18 @@
     --task-row-bg: rgba(252, 251, 249, 0.55);
     --task-row-border: rgba(0, 0, 0, 0.045);
     --task-row-hover-bg: rgba(252, 251, 249, 0.85);
+
+    /* Table Background Colors */
+    --table-bg-default: transparent;
+    --table-bg-gray: #f1f1ef;
+    --table-bg-brown: #f4f0ec;
+    --table-bg-orange: #fbecdd;
+    --table-bg-yellow: #fbf3db;
+    --table-bg-green: #edf3ec;
+    --table-bg-blue: #e7f3f8;
+    --table-bg-purple: #f4f0f7;
+    --table-bg-pink: #f9eef3;
+    --table-bg-red: #fdebec;
   }
 }
 
@@ -1600,6 +1624,37 @@ html.light .table-control-menu-separator {
 }
 html.light .table-control-menu-label {
   color: rgba(0, 0, 0, 0.4);
+}
+
+/* Floating Table Submenu */
+.table-control-submenu {
+  position: absolute;
+  min-width: 150px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 4px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+html.light .table-control-submenu {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.table-color-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+}
+html.light .table-color-swatch {
+  border-color: rgba(0, 0, 0, 0.15);
 }
 
 /* ── Code block ───────────────────────────────────────────────────────────── */

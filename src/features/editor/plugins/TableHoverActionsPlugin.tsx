@@ -21,6 +21,7 @@ import {
   $isTableCellNode,
   $findTableNode
 } from "@lexical/table"
+import { TAG_COLOR_PRESETS } from "@/shared/constants/colors"
 
 interface HoveredCellInfo {
   cellDOM: HTMLElement
@@ -78,6 +79,69 @@ function duplicateNodeRecursive(node: LexicalNode): LexicalNode {
   return copy
 }
 
+const COLOR_OPTIONS = [
+  { name: 'Default', value: null, hex: 'transparent' },
+  ...TAG_COLOR_PRESETS.map((preset) => ({
+    name: preset.name,
+    value: preset.bg,
+    hex: preset.hex,
+  })),
+]
+
+// Monkey-patch TableCellNode.prototype.createDOM
+const originalCreateDOM = TableCellNode.prototype.createDOM;
+// @ts-ignore
+TableCellNode.prototype.createDOM = function (
+  this: any,
+  config: any
+): HTMLElement {
+  const dom = originalCreateDOM.call(this, config);
+  console.log('[TableHoverActions] createDOM called - key:', this.getKey(), 'bg:', this.__backgroundColor, 'styleAttr:', dom.getAttribute('style'));
+  if (this.__backgroundColor) {
+    dom.style.backgroundColor = this.__backgroundColor;
+  }
+  return dom;
+};
+
+// Monkey-patch TableCellNode.prototype.updateDOM to correctly apply style updates in Lexical's DOM reconciliation loop
+const originalUpdateDOM = TableCellNode.prototype.updateDOM;
+// @ts-ignore
+TableCellNode.prototype.updateDOM = function (
+  this: any,
+  prevNode: any,
+  dom: HTMLElement,
+  config: any
+): boolean {
+  const result = (originalUpdateDOM as any).call(this, prevNode, dom, config);
+  
+  if (dom) {
+    if (this.__backgroundColor) {
+      dom.style.backgroundColor = this.__backgroundColor;
+    } else {
+      dom.style.removeProperty('background-color');
+    }
+    console.log('[TableHoverActions] updateDOM called - key:', this.getKey(), 'bg:', this.__backgroundColor, 'styleAttr:', dom.getAttribute('style'));
+  }
+  
+  return result;
+};
+
+// Monkey-patch TableCellNode.prototype.setBackgroundColor to also update the node's style attribute
+const originalSetBackgroundColor = TableCellNode.prototype.setBackgroundColor;
+// @ts-ignore
+TableCellNode.prototype.setBackgroundColor = function (
+  this: any,
+  newBackgroundColor: null | string
+): any {
+  const self = originalSetBackgroundColor.call(this, newBackgroundColor);
+  if (newBackgroundColor) {
+    self.setStyle(`background-color: ${newBackgroundColor}`);
+  } else {
+    self.setStyle('');
+  }
+  return self;
+};
+
 export default function TableHoverActionsPlugin(): React.ReactPortal | null {
   const [editor] = useLexicalComposerContext()
   const [hoveredCell, setHoveredCell] = useState<HoveredCellInfo | null>(null)
@@ -88,6 +152,11 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
   // Selected cell state
   const [activeCellDOM, setActiveCellDOM] = useState<HTMLElement | null>(null)
   const [cellCoords, setCellCoords] = useState<CellCoordsInfo | null>(null)
+  
+  // Color submenu state
+  const [submenuOpen, setSubmenuOpen] = useState(false)
+  const [submenuTop, setSubmenuTop] = useState(0)
+  const [submenuLeft, setSubmenuLeft] = useState(0)
   
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const containerRef = useRef<HTMLElement | null>(null)
@@ -106,6 +175,7 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
       // If we are currently interacting with active menus, tooltips or overlays, don't trigger updates
       if (
         target.closest('.table-control-menu') || 
+        target.closest('.table-control-submenu') || 
         target.closest('.table-control-overlay') || 
         target.closest('.table-control-tooltip')
       ) {
@@ -210,7 +280,11 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
       }
 
       // 4. Otherwise if focus is in menu or overlay, keep current
-      if (activeEl?.closest('.table-control-menu') || activeEl?.closest('.table-control-overlay')) {
+      if (
+        activeEl?.closest('.table-control-menu') || 
+        activeEl?.closest('.table-control-submenu') || 
+        activeEl?.closest('.table-control-overlay')
+      ) {
         return
       }
 
@@ -365,8 +439,14 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
     if (!activeMenu) return
     const handleOutsideClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement
-      if (!target.closest('.table-control-menu') && !target.closest('.table-column-handle') && !target.closest('.table-row-handle')) {
+      if (
+        !target.closest('.table-control-menu') && 
+        !target.closest('.table-control-submenu') && 
+        !target.closest('.table-column-handle') && 
+        !target.closest('.table-row-handle')
+      ) {
         setActiveMenu(null)
+        setSubmenuOpen(false)
       }
     }
     document.addEventListener('mousedown', handleOutsideClick)
@@ -446,6 +526,28 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
       }
     })
     setActiveMenu(null)
+  }
+
+  const setRowBackgroundColor = (index: number, dom: HTMLElement, colorValue: string | null) => {
+    console.log('[TableHoverActions] setRowBackgroundColor called:', { index, colorValue, domTagName: dom ? dom.tagName : 'no-dom' });
+    editor.update(() => {
+      const cellNode = $getNearestNodeFromDOMNode(dom)
+      console.log('[TableHoverActions] setRowBackgroundColor cellNode:', cellNode ? cellNode.getKey() : 'null', 'instanceof TableCellNode:', cellNode instanceof TableCellNode);
+      if (cellNode instanceof TableCellNode) {
+        const rowNode = cellNode.getParent()
+        console.log('[TableHoverActions] setRowBackgroundColor rowNode:', rowNode ? rowNode.getKey() : 'null', 'isTableRowNode:', $isTableRowNode(rowNode));
+        if (rowNode && $isTableRowNode(rowNode)) {
+          rowNode.getChildren().forEach((child) => {
+            if (child instanceof TableCellNode) {
+              console.log('[TableHoverActions] setRowBackgroundColor child cell:', child.getKey(), 'setting to:', colorValue);
+              child.setBackgroundColor(colorValue)
+            }
+          })
+        }
+      }
+    })
+    setActiveMenu(null)
+    setSubmenuOpen(false)
   }
 
   // COLUMN ACTIONS
@@ -535,6 +637,28 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
     setActiveMenu(null)
   }
 
+  const setColumnBackgroundColor = (index: number, colorValue: string | null) => {
+    if (!hoveredCell) return
+    editor.update(() => {
+      const cellNode = $getNearestNodeFromDOMNode(hoveredCell.cellDOM)
+      if ($isTableCellNode(cellNode)) {
+        const tableNode = $findTableNode(cellNode)
+        if (tableNode) {
+          tableNode.getChildren().forEach((row) => {
+            if ($isTableRowNode(row)) {
+              const cell = row.getChildren()[index]
+              if ($isTableCellNode(cell)) {
+                cell.setBackgroundColor(colorValue)
+              }
+            }
+          })
+        }
+      }
+    })
+    setActiveMenu(null)
+    setSubmenuOpen(false)
+  }
+
   // CELL ACTIONS
   const clearCell = (nodeKey: string) => {
     editor.update(() => {
@@ -559,6 +683,17 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
       }
     })
     setActiveMenu(null)
+  }
+
+  const setCellBackgroundColor = (cellKey: string, colorValue: string | null) => {
+    editor.update(() => {
+      const cellNode = $getNodeByKey(cellKey)
+      if (cellNode instanceof TableCellNode) {
+        cellNode.setBackgroundColor(colorValue)
+      }
+    })
+    setActiveMenu(null)
+    setSubmenuOpen(false)
   }
 
   // Quick Appending Buttons
@@ -593,6 +728,7 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
 
   const handleRowMenuToggle = () => {
     if (!coords) return
+    setSubmenuOpen(false)
     if (activeMenu?.type === 'row' && activeMenu.index === coords.rowIndex) {
       setActiveMenu(null)
     } else {
@@ -607,6 +743,7 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
 
   const handleColMenuToggle = () => {
     if (!coords) return
+    setSubmenuOpen(false)
     if (activeMenu?.type === 'column' && activeMenu.index === coords.colIndex) {
       setActiveMenu(null)
     } else {
@@ -621,6 +758,7 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
 
   const handleCellMenuToggle = () => {
     if (!cellCoords) return
+    setSubmenuOpen(false)
     if (activeMenu?.type === 'cell') {
       setActiveMenu(null)
     } else {
@@ -631,6 +769,16 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
         left: cellCoords.left + cellCoords.width - 6,
       })
     }
+  }
+
+  const handleColorMenuToggle = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const rect = e.currentTarget.getBoundingClientRect()
+    const containerRect = container.getBoundingClientRect()
+    
+    setSubmenuLeft(rect.right - containerRect.left + container.scrollLeft - 4)
+    setSubmenuTop(rect.top - containerRect.top + container.scrollTop - 4)
+    setSubmenuOpen(!submenuOpen)
   }
 
   const renderTooltip = () => {
@@ -820,6 +968,11 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
             <span className="table-control-menu-item-icon">⎚</span>
             <span>Clear Content</span>
           </button>
+          <button className="table-control-menu-item" onClick={handleColorMenuToggle}>
+            <span className="table-control-menu-item-icon">🎨</span>
+            <span>Background Color</span>
+            <span style={{ marginLeft: 'auto', opacity: 0.5 }}>›</span>
+          </button>
           <div className="table-control-menu-separator" />
           <button className="table-control-menu-item danger" onClick={() => deleteRow(activeMenu.index, coords.firstCellDOM)}>
             <span className="table-control-menu-item-icon">🗑</span>
@@ -850,6 +1003,11 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
           <button className="table-control-menu-item" onClick={() => clearColumn(activeMenu.index)}>
             <span className="table-control-menu-item-icon">⎚</span>
             <span>Clear Content</span>
+          </button>
+          <button className="table-control-menu-item" onClick={handleColorMenuToggle}>
+            <span className="table-control-menu-item-icon">🎨</span>
+            <span>Background Color</span>
+            <span style={{ marginLeft: 'auto', opacity: 0.5 }}>›</span>
           </button>
           
           <div className="table-control-menu-separator" />
@@ -890,6 +1048,11 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
             <span className="table-control-menu-item-icon">⎚</span>
             <span>Clear Content</span>
           </button>
+          <button className="table-control-menu-item" onClick={handleColorMenuToggle}>
+            <span className="table-control-menu-item-icon">🎨</span>
+            <span>Background Color</span>
+            <span style={{ marginLeft: 'auto', opacity: 0.5 }}>›</span>
+          </button>
           
           <div className="table-control-menu-separator" />
           <div className="table-control-menu-label">Text Alignment</div>
@@ -905,6 +1068,46 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
             <span className="table-control-menu-item-icon">≓</span>
             <span>Align Right</span>
           </button>
+        </div>
+      )}
+
+      {/* BACKGROUND COLOR SUBMENU PORTAL */}
+      {submenuOpen && activeMenu && (
+        <div
+          className="table-control-submenu font-sans z-50 pointer-events-auto"
+          style={{
+            top: submenuTop,
+            left: submenuLeft,
+          }}
+          contentEditable={false}
+        >
+          <div className="table-control-menu-label">
+            {activeMenu.type === 'row' ? 'Row Background' : activeMenu.type === 'column' ? 'Column Background' : 'Cell Background'}
+          </div>
+          {COLOR_OPTIONS.map((option) => (
+            <button
+              key={option.name}
+              className="table-control-menu-item"
+              onClick={() => {
+                if (activeMenu.type === 'row' && coords) {
+                  setRowBackgroundColor(activeMenu.index, coords.firstCellDOM, option.value)
+                } else if (activeMenu.type === 'column') {
+                  setColumnBackgroundColor(activeMenu.index, option.value)
+                } else if (activeMenu.type === 'cell' && cellCoords) {
+                  setCellBackgroundColor(cellCoords.cellNodeKey, option.value)
+                }
+              }}
+            >
+              <div 
+                className="table-color-swatch" 
+                style={{ 
+                  backgroundColor: option.hex,
+                  border: option.value ? undefined : '1px dashed currentColor',
+                }} 
+              />
+              <span>{option.name}</span>
+            </button>
+          ))}
         </div>
       )}
     </>,

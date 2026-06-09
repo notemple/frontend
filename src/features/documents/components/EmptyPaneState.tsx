@@ -74,12 +74,6 @@ export const EmptyPaneState = ({ paneId }: { paneId: string }) => {
 
   const options: OptionItem[] = [
     {
-      label: 'New Page',
-      icon: <PlusCircle size={16} className="text-emerald-500 shrink-0" />,
-      action: handleNewPage,
-      visible: panes.length > 1,
-    },
-    {
       label: 'Split Workspace',
       icon: <Columns size={16} className="text-zinc-400 dark:text-zinc-500 shrink-0" />,
       action: handleSplitWorkspace,

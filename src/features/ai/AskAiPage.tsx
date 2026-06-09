@@ -17,13 +17,9 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/shared/lib/utils';
 import { TnLogo } from '@/shared/ui/TnLogo';
+import { useAiStore, type Message } from './aiStore';
 
 // ── Types ──────────────────────────────────────────────────────────────────
-
-interface Message {
-  sender: 'user' | 'ai';
-  text: string;
-}
 
 // ── AI Model Presets (matching QuickCaptureBox) ─────────────────────────────
 
@@ -127,7 +123,7 @@ Let me know how you'd like to proceed!`;
 
 // ── Markdown Parser Sub-component ──────────────────────────────────────────
 
-const MarkdownRenderer = ({ text }: { text: string }) => {
+export const MarkdownRenderer = ({ text }: { text: string }) => {
   const lines = text.split('\n');
   const elements: React.ReactNode[] = [];
   let currentTable: string[][] = [];
@@ -232,11 +228,19 @@ const MarkdownRenderer = ({ text }: { text: string }) => {
 // ── Main Page Component ─────────────────────────────────────────────────────
 
 export const AskAiPage = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [isThinking, setIsThinking] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
-  const [currentTypingText, setCurrentTypingText] = useState('');
+  const {
+    messages,
+    input,
+    setInput,
+    isThinking,
+    isTyping,
+    currentTypingText,
+    selectedModel,
+    setSelectedModel,
+    handleSendQuery,
+    clearHistory
+  } = useAiStore();
+
   const [voicePulse, setVoicePulse] = useState(false);
 
   // Settings & Plus menu popovers
@@ -244,10 +248,6 @@ export const AskAiPage = () => {
   const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [creativity, setCreativity] = useState('Medium');
 
-  // AI model select state
-  const [selectedModel, setSelectedModel] = useState(() => {
-    return localStorage.getItem("templnote-selected-ai-model") || "Gemini 3.5 Flash";
-  });
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -280,57 +280,7 @@ export const AskAiPage = () => {
 
   const handleSelectModel = (model: string) => {
     setSelectedModel(model);
-    localStorage.setItem("templnote-selected-ai-model", model);
     setIsModelDropdownOpen(false);
-  };
-
-  // Simulate AI Typing response
-  const handleSendQuery = (queryText: string) => {
-    if (!queryText.trim() || isThinking || isTyping) return;
-
-    // 1. Add user query to chat history
-    const nextMessages = [...messages, { sender: 'user' as const, text: queryText }];
-    setMessages(nextMessages);
-    setInput('');
-    setIsThinking(true);
-    setShowPlusMenu(false);
-    setShowSettings(false);
-
-    // 2. Select appropriate response text
-    let fullResponse = '';
-    const queryLower = queryText.toLowerCase().trim();
-    if (queryLower.includes('agenda') || queryLower.includes('meeting')) {
-      fullResponse = RESPONSE_AGENDA;
-    } else if (queryLower.includes('pdf') || queryLower.includes('image') || queryLower.includes('analyze')) {
-      fullResponse = RESPONSE_ANALYZE;
-    } else if (queryLower.includes('task') || queryLower.includes('tracker')) {
-      fullResponse = RESPONSE_TRACKER;
-    } else if (queryLower.includes('notion') || queryLower.includes('font')) {
-      fullResponse = RESPONSE_NOTION;
-    } else {
-      fullResponse = RESPONSE_GENERIC(queryText);
-    }
-
-    // 3. Simulated network & thinking delay
-    setTimeout(() => {
-      setIsThinking(false);
-      setIsTyping(true);
-      setCurrentTypingText('');
-      
-      let index = 0;
-      const interval = setInterval(() => {
-        if (index < fullResponse.length) {
-          const chunk = fullResponse.slice(index, index + 5);
-          setCurrentTypingText((prev) => prev + chunk);
-          index += 5;
-        } else {
-          clearInterval(interval);
-          setMessages((prev) => [...prev, { sender: 'ai' as const, text: fullResponse }]);
-          setIsTyping(false);
-          setCurrentTypingText('');
-        }
-      }, 15);
-    }, 1100);
   };
 
   const handleVoiceClick = () => {
@@ -353,14 +303,6 @@ export const AskAiPage = () => {
     }
   };
 
-  const handleReset = () => {
-    setMessages([]);
-    setInput('');
-    setIsThinking(false);
-    setIsTyping(false);
-    setCurrentTypingText('');
-  };
-
   const canSubmit = input.trim().length > 0;
 
   return (
@@ -371,7 +313,7 @@ export const AskAiPage = () => {
       {/* Floating reset button when in chat view */}
       {messages.length > 0 && (
         <button
-          onClick={handleReset}
+          onClick={clearHistory}
           className="absolute top-4 right-6 flex items-center gap-1.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted border border-border px-3 py-1.5 rounded-sm transition-all cursor-pointer select-none shadow-sm-sm z-20"
           title="New Chat"
         >

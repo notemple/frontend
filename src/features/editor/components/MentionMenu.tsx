@@ -6,12 +6,13 @@ import { format, addDays, subDays } from "date-fns"
 
 interface Props {
   selectedIdx: number
-  position: { top: number; left: number }
+  position: { top: number; bottom: number; left: number }
   currentQuery: string
   onSelect: (payload: { type: "doc" | "task" | "date"; id: string; title: string }) => void
   onHover: (idx: number) => void
   onClose: () => void
   onItemsChange?: (itemsCount: number) => void
+  triggerType?: "mention" | "doc-only"
 }
 
 type MenuState =
@@ -37,6 +38,7 @@ export default function MentionMenu({
   onSelect,
   onHover,
   onItemsChange,
+  triggerType = "mention",
 }: Props) {
   const [menuState, setMenuState] = useState<MenuState>({ type: "main" })
   const selectedRef = useRef<HTMLButtonElement>(null)
@@ -47,6 +49,31 @@ export default function MentionMenu({
 
   const activeTasks = tasks.filter((t) => !t.isDeleted && t.status !== "done")
   const activeDocs = Object.values(documentsDict).filter((d) => !d.isDeleted && d.type !== "daily-note")
+
+  const menuRef = useRef<HTMLDivElement>(null)
+  const [coords, setCoords] = useState({ top: position.bottom + 8, left: position.left })
+
+  useEffect(() => {
+    const el = menuRef.current
+    if (!el) return
+
+    const rect = el.getBoundingClientRect()
+    const menuHeight = rect.height || 350
+    const menuWidth = rect.width || 280
+
+    // Check space below
+    const spaceBelow = window.innerHeight - position.bottom - 16
+    let targetTop = position.bottom + 8
+
+    if (spaceBelow < menuHeight && position.top > menuHeight + 16) {
+      // Place above the cursor
+      targetTop = position.top - menuHeight - 8
+    }
+
+    const targetLeft = Math.max(10, Math.min(position.left, window.innerWidth - menuWidth - 16))
+
+    setCoords({ top: targetTop, left: targetLeft })
+  }, [position.top, position.bottom, position.left, menuState, currentQuery])
 
   // Generate Date list
   const today = new Date()
@@ -65,35 +92,40 @@ export default function MentionMenu({
   }
 
   // Build the list of items based on state and query
+  // Build the list of items based on state and query
   const getRenderableItems = (): RenderableItem[] => {
     const q = currentQuery.trim().toLowerCase()
 
-    // 1. If we are on the main menu and there is a query, do a flat search!
-    if (menuState.type === "main" && q.length > 0) {
+    // 1. If there is a query, do a flat global search!
+    if (q.length > 0) {
       const results: RenderableItem[] = []
 
-      // Search tasks
-      activeTasks
-        .filter((t) => t.title.toLowerCase().includes(q))
-        .slice(0, 5)
-        .forEach((task) => results.push({ type: "task", task }))
+      if (triggerType !== "doc-only") {
+        // Search tasks
+        activeTasks
+          .filter((t) => (t.title || "").toLowerCase().includes(q))
+          .slice(0, 5)
+          .forEach((task) => results.push({ type: "task", task }))
+      }
 
       // Search documents
       activeDocs
-        .filter((d) => d.title.toLowerCase().includes(q))
-        .slice(0, 5)
+        .filter((d) => (d.title || "").toLowerCase().includes(q))
+        .slice(0, 10)
         .forEach((doc) => results.push({ type: "doc", doc }))
 
       // Search folders
       folders
-        .filter((f) => !f.isDeleted && f.name.toLowerCase().includes(q))
-        .slice(0, 3)
+        .filter((f) => !f.isDeleted && (f.name || "").toLowerCase().includes(q))
+        .slice(0, 5)
         .forEach((folder) => results.push({ type: "folder", folder }))
 
-      // Search dates
-      dateOptions
-        .filter((d) => d.label.toLowerCase().includes(q) || d.dateStr.includes(q))
-        .forEach((d) => results.push({ type: "date", dateStr: d.dateStr, label: d.label }))
+      if (triggerType !== "doc-only") {
+        // Search dates
+        dateOptions
+          .filter((d) => d.label.toLowerCase().includes(q) || d.dateStr.includes(q))
+          .forEach((d) => results.push({ type: "date", dateStr: d.dateStr, label: d.label }))
+      }
 
       return results
     }
@@ -101,6 +133,17 @@ export default function MentionMenu({
     // 2. Normal structured layout
     switch (menuState.type) {
       case "main":
+        if (triggerType === "doc-only") {
+          // Direct layout for documents: show folders and uncategorized documents
+          const items: RenderableItem[] = []
+          folders
+            .filter((f) => !f.isDeleted)
+            .forEach((folder) => items.push({ type: "folder", folder }))
+          activeDocs
+            .filter((d) => !d.folderId)
+            .forEach((doc) => items.push({ type: "doc", doc }))
+          return items
+        }
         return [
           { type: "category", id: "tasks", title: "Tasks", icon: "CheckSquare" },
           { type: "category", id: "date", title: "Date", icon: "CalendarBlank" },
@@ -134,7 +177,8 @@ export default function MentionMenu({
 
       case "folder-docs": {
         const folderId = menuState.folderId
-        const items: RenderableItem[] = [{ type: "back", target: "folders", label: `Back to Folders` }]
+        const target = triggerType === "doc-only" ? "main" : "folders"
+        const items: RenderableItem[] = [{ type: "back", target: target as any, label: `Back to Folders` }]
         const docsInFolder = activeDocs.filter((d) => d.folderId === folderId)
         const filtered = q ? docsInFolder.filter((d) => d.title.toLowerCase().includes(q)) : docsInFolder
         filtered.forEach((doc) => items.push({ type: "doc", doc }))
@@ -191,7 +235,7 @@ export default function MentionMenu({
       return true
     }
     if ((e.key === "ArrowLeft" || e.key === "Backspace") && menuState.type !== "main") {
-      const target = menuState.type === "folder-docs" ? "folders" : "main"
+      const target = menuState.type === "folder-docs" && triggerType !== "doc-only" ? "folders" : "main"
       setMenuState({ type: target as any })
       onHover(0)
       return true
@@ -260,13 +304,14 @@ export default function MentionMenu({
 
   return (
     <div
+      ref={menuRef}
       id="onboarding-mention-list"
       data-testid="mention-menu"
       className="mention-menu w-[280px] rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex flex-col overflow-hidden"
       style={{
         position: "fixed",
-        top: position.top,
-        left: Math.min(position.left, window.innerWidth - 300),
+        top: coords.top,
+        left: coords.left,
         zIndex: 9999,
       }}
       onMouseDown={(e) => {

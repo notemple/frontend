@@ -315,6 +315,10 @@ export const OnboardingScreen = () => {
       <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">Ctrl + Alt + Q</td>
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Minimized AI Chat</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">Ctrl + Alt + B</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Document Search</td>
       <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">Ctrl + K</td>
     </tr>
@@ -452,6 +456,10 @@ export const OnboardingScreen = () => {
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Close Active Pane</td>
       <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">Ctrl + Alt + Q</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Minimized AI Chat</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">Ctrl + Alt + B</td>
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Document Search</td>
@@ -620,6 +628,10 @@ export const OnboardingScreen = () => {
       <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">Ctrl + Alt + Q</td>
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Minimized AI Chat</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">Ctrl + Alt + B</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Document Search</td>
       <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">Ctrl + K</td>
     </tr>
@@ -783,6 +795,10 @@ export const OnboardingScreen = () => {
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Close Active Pane</td>
       <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">Ctrl + Alt + Q</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Minimized AI Chat</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">Ctrl + Alt + B</td>
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Document Search</td>
@@ -950,6 +966,10 @@ export const OnboardingScreen = () => {
       <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">Ctrl + Alt + Q</td>
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Minimized AI Chat</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">Ctrl + Alt + B</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Document Search</td>
       <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">Ctrl + K</td>
     </tr>
@@ -1114,6 +1134,10 @@ export const OnboardingScreen = () => {
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Close Active Pane</td>
       <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">Ctrl + Alt + Q</td>
+    </tr>
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Minimized AI Chat</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">Ctrl + Alt + B</td>
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Document Search</td>

@@ -11,14 +11,15 @@ export default function MentionPlugin(): ReactNode {
   const [editor] = useLexicalComposerContext()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
-  const [position, setPosition] = useState({ top: 0, left: 0 })
+  const [position, setPosition] = useState({ top: 0, bottom: 0, left: 0 })
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [itemsCount, setItemsCount] = useState(0)
+  const [triggerType, setTriggerType] = useState<"mention" | "doc-only">("mention")
 
-  // Track the exact @ position so insertMention can delete precisely
-  const atStartRef = useRef<{ nodeKey: string; offset: number } | null>(null)
+  // Track the exact position and trigger type so insertMention can delete precisely
+  const triggerRef = useRef<{ nodeKey: string; offset: number; type: "mention" | "doc-only" } | null>(null)
 
-  // Open, position, and filter menu when "@" is typed
+  // Open, position, and filter menu when "@" or "[[" is typed
   useEffect(() => {
     return editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
@@ -41,22 +42,35 @@ export default function MentionPlugin(): ReactNode {
         // Only look at text before cursor
         const textBeforeCursor = textContent.slice(0, offset)
         const lastAtIdx = textBeforeCursor.lastIndexOf("@")
+        const lastDoubleBracketIdx = textBeforeCursor.lastIndexOf("[[")
 
-        // Close if no "@" found before cursor
-        if (lastAtIdx === -1) {
+        let triggerIndex = -1
+        let type: "mention" | "doc-only" = "mention"
+
+        if (lastAtIdx !== -1 && lastAtIdx > lastDoubleBracketIdx) {
+          triggerIndex = lastAtIdx
+          type = "mention"
+        } else if (lastDoubleBracketIdx !== -1) {
+          triggerIndex = lastDoubleBracketIdx
+          type = "doc-only"
+        }
+
+        // Close if no trigger found before cursor
+        if (triggerIndex === -1) {
           if (open) setOpen(false)
           return
         }
 
         // Trigger must be preceded by whitespace or at start of node
-        const charBefore = lastAtIdx > 0 ? textBeforeCursor[lastAtIdx - 1] : null
+        const charBefore = triggerIndex > 0 ? textBeforeCursor[triggerIndex - 1] : null
         const isValidTrigger = charBefore === null || /\s/.test(charBefore)
         if (!isValidTrigger) {
           if (open) setOpen(false)
           return
         }
 
-        const queryText = textBeforeCursor.slice(lastAtIdx + 1)
+        const triggerLen = type === "mention" ? 1 : 2
+        const queryText = textBeforeCursor.slice(triggerIndex + triggerLen)
 
         // Close if query contains a newline, is too long, or has too many spaces
         if (queryText.includes("\n") || queryText.length > 30 || queryText.split(" ").length > 4) {
@@ -74,16 +88,19 @@ export default function MentionPlugin(): ReactNode {
         const editorRect = editorEl?.getBoundingClientRect()
 
         setPosition({
-          top: rect.bottom + 8,
+          top: rect.top,
+          bottom: rect.bottom,
           left: rect.width > 0 ? rect.left : (editorRect?.left ?? 100),
         })
 
-        // Track the at position
-        atStartRef.current = {
+        // Track the trigger position
+        triggerRef.current = {
           nodeKey: anchor.key,
-          offset: lastAtIdx,
+          offset: triggerIndex,
+          type,
         }
 
+        setTriggerType(type)
         setQuery(queryText)
         setOpen(true)
       })
@@ -100,10 +117,12 @@ export default function MentionPlugin(): ReactNode {
         const anchor = sel.anchor.getNode()
         if (!$isTextNode(anchor)) return
 
-        const atPos = atStartRef.current?.offset ?? anchor.getTextContent().lastIndexOf("@")
+        const currentType = triggerRef.current?.type ?? "mention"
+        const triggerStr = currentType === "mention" ? "@" : "[["
+        const atPos = triggerRef.current?.offset ?? anchor.getTextContent().lastIndexOf(triggerStr)
         if (atPos === -1) return
 
-        // Delete from "@" symbol to the current cursor position
+        // Delete trigger symbol to the current cursor position
         anchor.spliceText(atPos, sel.anchor.offset - atPos, "")
 
         if (payload.type === "task") {
@@ -122,7 +141,7 @@ export default function MentionPlugin(): ReactNode {
         }
       })
 
-      atStartRef.current = null
+      triggerRef.current = null
     },
     [editor]
   )
@@ -175,6 +194,7 @@ export default function MentionPlugin(): ReactNode {
       onHover={setSelectedIdx}
       onClose={() => setOpen(false)}
       onItemsChange={setItemsCount}
+      triggerType={triggerType}
     />,
     document.body
   )

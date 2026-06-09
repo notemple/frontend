@@ -16,6 +16,7 @@ import { $getRoot, $isParagraphNode, $createParagraphNode } from "lexical"
 import { createEditorConfig } from "./editorConfig"
 import SlashCommandPlugin from "./plugins/SlashCommandPlugin"
 import MentionPlugin from "./plugins/MentionPlugin"
+import EmojiPickerPlugin from "./plugins/EmojiPickerPlugin"
 import PersistencePlugin from "./plugins/PersistencePlugin"
 import ScrollIntoViewPlugin from "./plugins/ScrollIntoViewPlugin"
 import BlockHandlePlugin from "./plugins/BlockHandlePlugin"
@@ -142,6 +143,25 @@ export function TemplnoteEditor({
   useEffect(() => {
     setIsEmojiPickerOpen(false)
     setIsTagPopoverOpen(false)
+  }, [documentId])
+
+  useEffect(() => {
+    return () => {
+      if (documentId) {
+        // Only clean up if the document is no longer the active tab of any pane
+        const activePanes = useUiStore.getState().panes;
+        const isActive = activePanes.some(pane => pane.activeTabId === documentId);
+        if (isActive) {
+          return;
+        }
+
+        const doc = useDocumentStore.getState().documents[documentId];
+        if (doc && doc.isUnsaved) {
+          useDocumentStore.getState().permanentlyDeleteDocument(documentId);
+          useUiStore.getState().closeDocument(documentId);
+        }
+      }
+    };
   }, [documentId])
 
   useEffect(() => {
@@ -574,6 +594,7 @@ export function TemplnoteEditor({
         <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
         <SlashCommandPlugin />
         <MentionPlugin />
+        <EmojiPickerPlugin />
         <ScrollIntoViewPlugin />
         <BlockHandlePlugin />
         <BackspacePlugin />

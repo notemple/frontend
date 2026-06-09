@@ -59,14 +59,65 @@ const getInitialAppearance = (): 'light' | 'dark' | 'system' => {
   return 'system';
 };
 
+const getInitialSidebarOpen = (): boolean => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('ui-storage');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.state && typeof parsed.state.isSidebarOpen === 'boolean') {
+          return parsed.state.isSidebarOpen;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }
+  return true;
+};
+
+const getInitialRightSidebarOpen = (): boolean => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('ui-storage');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.state && typeof parsed.state.isRightSidebarOpen === 'boolean') {
+          return parsed.state.isRightSidebarOpen;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }
+  return false;
+};
+
+const getInitialNavbarManuallyHidden = (): boolean => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('ui-storage');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.state && typeof parsed.state.isNavbarManuallyHidden === 'boolean') {
+          return parsed.state.isNavbarManuallyHidden;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }
+  return false;
+};
+
 export const useUiStore = create<UiState>()(
   persist(
     (set, get) => ({
-      isSidebarOpen: true,
+      isSidebarOpen: getInitialSidebarOpen(),
       toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
       setSidebarOpen: (open) => set({ isSidebarOpen: open }),
 
-      isRightSidebarOpen: false,
+      isRightSidebarOpen: getInitialRightSidebarOpen(),
       toggleRightSidebar: () => set((state) => ({ isRightSidebarOpen: !state.isRightSidebarOpen })),
 
       selectedDailyNoteDate: new Date(),
@@ -83,7 +134,7 @@ export const useUiStore = create<UiState>()(
         set({ appearance });
       },
 
-      isNavbarManuallyHidden: false,
+      isNavbarManuallyHidden: getInitialNavbarManuallyHidden(),
       setNavbarManuallyHidden: (isNavbarManuallyHidden) => set({ isNavbarManuallyHidden }),
 
       currentStepId: null,

@@ -27,7 +27,9 @@ import {
 	ShareFat,
 	Sidebar as SidebarIcon,
 	Sun,
-	Target
+	Target,
+	Sparkle,
+	Trash
 } from '@phosphor-icons/react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { gsap } from 'gsap';
@@ -198,7 +200,7 @@ const GSAPPageWrapper = ({ children, activeTabId }: { children: React.ReactNode;
 };
 
 export const MainWorkspace = () => {
-  const { panes, activePaneId, toggleRightSidebar, appearance, setAppearance, isRightSidebarOpen, toggleSidebar, isSidebarOpen, openDocument, setActivePane, isNavbarManuallyHidden, setNavbarManuallyHidden, updatePaneWidths } = useUiStore(
+  const { panes, activePaneId, toggleRightSidebar, appearance, setAppearance, isRightSidebarOpen, toggleSidebar, isSidebarOpen, openDocument, setActivePane, isNavbarManuallyHidden, setNavbarManuallyHidden, updatePaneWidths, closeDocument } = useUiStore(
     useShallow((state) => ({
       panes: state.panes,
       activePaneId: state.activePaneId,
@@ -213,8 +215,13 @@ export const MainWorkspace = () => {
       isNavbarManuallyHidden: state.isNavbarManuallyHidden,
       setNavbarManuallyHidden: state.setNavbarManuallyHidden,
       updatePaneWidths: state.updatePaneWidths,
+      closeDocument: state.closeDocument,
     }))
   );
+
+  const documents = useDocumentStore(state => state.documents);
+  const restoreDocument = useDocumentStore(state => state.restoreDocument);
+  const permanentlyDeleteDocument = useDocumentStore(state => state.permanentlyDeleteDocument);
 
   const autoHideNavbar = useSettingsStore(state => state.autoHideNavbar);
   const [isNavbarHovered, setIsNavbarHovered] = React.useState(false);
@@ -463,6 +470,7 @@ export const MainWorkspace = () => {
           isRightSidebarOpen ? "pr-[336px]" : "pr-6",
           autoHideNavbar && !showNavbar ? "overflow-hidden" : ""
         )}
+        initial={false}
         animate={{
           height: showNavbar ? 56 : 0,
           opacity: showNavbar ? 1 : 0,
@@ -558,7 +566,19 @@ export const MainWorkspace = () => {
             </button>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
-            <button className="hover:text-foreground transition-colors p-1.5 rounded-sm-sm hover:bg-muted"><Bell size={18} /></button>
+            <button
+              onClick={() => openDocument('section-ask-ai')}
+              className={cn(
+                "transition-all duration-200 p-1.5 rounded-sm-sm hover:bg-muted cursor-pointer",
+                activeTabId === 'section-ask-ai'
+                  ? "text-purple-600 dark:text-purple-400 font-semibold bg-purple-500/10"
+                  : "text-muted-foreground/80 hover:text-purple-600 dark:hover:text-purple-400"
+              )}
+              title="Ask AI"
+            >
+              <Sparkle size={18} weight={activeTabId === 'section-ask-ai' ? "fill" : "regular"} />
+            </button>
+            <button className="hover:text-foreground transition-colors p-1.5 rounded-sm-sm hover:bg-muted cursor-pointer"><Bell size={18} /></button>
             <button className="hover:text-foreground transition-colors p-1.5 rounded-sm-sm hover:bg-muted"><ClockCounterClockwise size={18} /></button>
             <button className={cn("right-sidebar-toggle transition-all duration-200 flex items-center gap-1.5 p-1.5 px-2.5 rounded-sm-sm border", isRightSidebarOpen ? "bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/20 shadow-sm-inner font-semibold" : "text-muted-foreground/80 border-transparent hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-500/5 hover:border-sky-500/10")} onClick={toggleRightSidebar}>
               <Layout size={18} />
@@ -614,16 +634,44 @@ export const MainWorkspace = () => {
                 }}
               >
                 <TabBar paneId={pane.id} />
-                <div className="flex-1 overflow-hidden bg-transparent relative">
-                  <GSAPPageWrapper activeTabId={pane.activeTabId || 'empty'}>
-                    {pane.activeTabId?.startsWith('section-') ? (
-                      <SectionPage paneId={pane.id} sectionId={pane.activeTabId} />
-                    ) : pane.activeTabId ? (
-                      <TemplnoteEditor key={`${pane.id}-${pane.activeTabId}`} paneId={pane.id} documentId={pane.activeTabId} />
-                    ) : (
-                      <EmptyPaneState paneId={pane.id} />
-                    )}
-                  </GSAPPageWrapper>
+                <div className="flex-1 overflow-hidden bg-transparent relative flex flex-col">
+                  {pane.activeTabId && documents[pane.activeTabId]?.isDeleted && (
+                    <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 flex items-center justify-between text-xs text-amber-200 z-30 select-none">
+                      <div className="flex items-center gap-2">
+                        <Trash size={14} className="text-amber-400" />
+                        <span>This document is in the trash.</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => restoreDocument(pane.activeTabId!)}
+                          className="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 font-medium transition-colors cursor-pointer"
+                        >
+                          Restore
+                        </button>
+                        <button
+                           onClick={async () => {
+                            const docId = pane.activeTabId!;
+                            closeDocument(docId, pane.id);
+                            await permanentlyDeleteDocument(docId);
+                          }}
+                          className="px-2 py-1 rounded bg-red-500/20 hover:bg-red-500/30 text-red-200 font-medium transition-colors cursor-pointer"
+                        >
+                          Delete permanently
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex-1 overflow-hidden bg-transparent relative">
+                    <GSAPPageWrapper activeTabId={pane.activeTabId || 'empty'}>
+                      {pane.activeTabId?.startsWith('section-') ? (
+                        <SectionPage paneId={pane.id} sectionId={pane.activeTabId} />
+                      ) : pane.activeTabId ? (
+                        <TemplnoteEditor key={`${pane.id}-${pane.activeTabId}`} paneId={pane.id} documentId={pane.activeTabId} />
+                      ) : (
+                        <EmptyPaneState paneId={pane.id} />
+                      )}
+                    </GSAPPageWrapper>
+                  </div>
 
                   <AnimatePresence>
                     {dragOverPanes[pane.id] && (

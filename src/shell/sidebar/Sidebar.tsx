@@ -305,14 +305,14 @@ let cachedUncategorizedDocIds: string[] = [];
 const GSAPAccordion = ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInitial = useRef(true);
+  const [initialStyle] = useState(() => ({
+    height: isOpen ? "auto" : 0,
+    opacity: isOpen ? 1 : 0
+  }));
 
   useEffect(() => {
     if (containerRef.current) {
       if (isInitial.current) {
-        gsap.set(containerRef.current, {
-          height: isOpen ? "auto" : 0,
-          opacity: isOpen ? 1 : 0
-        });
         isInitial.current = false;
       } else {
         gsap.killTweensOf(containerRef.current);
@@ -339,7 +339,7 @@ const GSAPAccordion = ({ isOpen, children }: { isOpen: boolean; children: React.
   }, [isOpen]);
 
   return (
-    <div ref={containerRef} className="overflow-hidden">
+    <div ref={containerRef} className="overflow-hidden" style={initialStyle}>
       {children}
     </div>
   );
@@ -406,7 +406,26 @@ export const Sidebar = () => {
   const [renamingDocId, setRenamingDocId] = useState<string | null>(null);
   const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
   const [draggedItem, setDraggedItem] = useState<{ id: string, type: 'document' | 'folder' } | null>(null);
-  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(() => new Set(['section-favorites', 'section-folders', 'section-uncategorized', ...folderOrder]));
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebar-expanded-folders');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            return new Set(parsed);
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+    return new Set<string>();
+  });
+
+  useEffect(() => {
+    localStorage.setItem('sidebar-expanded-folders', JSON.stringify(Array.from(expandedFolders)));
+  }, [expandedFolders]);
 
   const [deleteFolderDialogOpen, setDeleteFolderDialogOpen] = useState(false);
   const [deletingFolderId, setDeletingFolderId] = useState<string | null>(null);
@@ -432,7 +451,7 @@ export const Sidebar = () => {
   }, []);
 
   const toggleFolderCollapse = (folderId: string) => {
-    setCollapsedFolders(prev => {
+    setExpandedFolders(prev => {
       const next = new Set(prev);
       if (next.has(folderId)) {
         next.delete(folderId);
@@ -448,7 +467,6 @@ export const Sidebar = () => {
     const COLLAPSIBLE_SECTIONS = new Set([
       'section-favorites',
       'section-folders',
-      'section-uncategorized',
     ]);
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -511,15 +529,15 @@ export const Sidebar = () => {
 
       // Always include section headers; only include children when expanded
       ids.push('section-favorites');
-      if (!collapsedFolders.has('section-favorites')) {
+      if (expandedFolders.has('section-favorites')) {
         ids.push(...favoriteDocIds);
       }
 
       ids.push('section-folders');
-      if (!collapsedFolders.has('section-folders')) {
+      if (expandedFolders.has('section-folders')) {
         for (const folderId of folderOrder) {
           ids.push(`section-folder-${folderId}`);
-          if (!collapsedFolders.has(folderId)) {
+          if (expandedFolders.has(folderId)) {
             const { documents: docs, documentOrder: order } = useDocumentStore.getState();
             const folderDocs = order.filter(id => {
               const doc = docs[id];
@@ -530,10 +548,7 @@ export const Sidebar = () => {
         }
       }
 
-      ids.push('section-uncategorized');
-      if (!collapsedFolders.has('section-uncategorized')) {
-        ids.push(...uncategorizedDocIds);
-      }
+      ids.push(...uncategorizedDocIds);
 
       ids.push('section-trash', 'section-tutorial', 'section-help', 'section-settings');
 
@@ -554,18 +569,18 @@ export const Sidebar = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSidebarOpen, collapsedFolders, favoriteDocIds, folderOrder, uncategorizedDocIds, openDocument, toggleFolderCollapse]);
+  }, [isSidebarOpen, expandedFolders, favoriteDocIds, folderOrder, uncategorizedDocIds, openDocument, toggleFolderCollapse]);
 
 
 
 
-  // Track folder creation to automatically uncollapse the parent Folders section
+  // Track folder creation to automatically expand the parent Folders section
   const prevFolderCountRef = useRef(folderOrder.length);
   useEffect(() => {
     if (folderOrder.length > prevFolderCountRef.current) {
-      setCollapsedFolders(prev => {
+      setExpandedFolders(prev => {
         const next = new Set(prev);
-        next.delete('section-folders');
+        next.add('section-folders');
         return next;
       });
     }
@@ -601,9 +616,9 @@ export const Sidebar = () => {
       folderId: folderId,
       updatedAt: new Date().toISOString()
     });
-    setCollapsedFolders(prev => {
+    setExpandedFolders(prev => {
       const next = new Set(prev);
-      next.delete(folderId);
+      next.add(folderId);
       return next;
     });
     openDocument(newId);
@@ -683,6 +698,7 @@ export const Sidebar = () => {
     <motion.div
       ref={sidebarRef}
       className="h-full flex flex-col border-r border-border bg-muted absolute left-0 top-0 bottom-0 z-30 overflow-y-auto no-scrollbar group/sidebar shadow-md"
+      initial={false}
       animate={{
         width: isSidebarOpen ? 260 : 0,
         padding: isSidebarOpen ? "24px" : "24px 0px",
@@ -721,18 +737,9 @@ export const Sidebar = () => {
       <div className="flex-1 space-y-6 min-w-0">
         {/* Core Actions */}
         <div className="space-y-[2px]">
-          <SidebarItem icon={<Plus size={16} className={isDocActive('new-note') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="New Note" isOpen={isSidebarOpen} highlight={isDocActive('new-note')} onClick={handleNewNoteClick} activeBgClass="bg-blush-pop/90 dark:bg-blush-pop/35 border-blush-pop/75 dark:border-blush-pop/50 border" activeTextClass="!text-black dark:!text-white font-semibold" />
+          <SidebarItem icon={<Plus size={16} className={isDocActive('new-note') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="New Document" isOpen={isSidebarOpen} highlight={isDocActive('new-note')} onClick={handleNewNoteClick} activeBgClass="bg-blush-pop/90 dark:bg-blush-pop/35 border-blush-pop/75 dark:border-blush-pop/50 border" activeTextClass="!text-black dark:!text-white font-semibold" />
           <SidebarItem icon={<MagnifyingGlass size={16} className="text-sky-500/80 dark:text-sky-400/80" />} label="Search" isOpen={isSidebarOpen} />
-          <SidebarItem 
-            id="onboarding-ask-ai" 
-            icon={<Sparkle size={16} className={isDocActive('section-ask-ai') ? "text-current" : "text-purple-500/90 dark:text-purple-400/90"} />} 
-            label="Ask AI" 
-            isOpen={isSidebarOpen}
-            highlight={isDocActive('section-ask-ai')}
-            onClick={() => handleDocClick('section-ask-ai')}
-            activeBgClass="bg-purple-500/20 dark:bg-purple-500/15 border-purple-500/40 dark:border-purple-500/30 border"
-            activeTextClass="!text-purple-600 dark:!text-purple-400 font-semibold"
-          />
+
           <div
             draggable
             onDragStart={(e) => {
@@ -799,11 +806,11 @@ export const Sidebar = () => {
                 onClick={() => toggleFolderCollapse('section-favorites')}
                 className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200"
               >
-                {!collapsedFolders.has('section-favorites') ? <CaretDown size={14} /> : <CaretRight size={14} />}
+                {expandedFolders.has('section-favorites') ? <CaretDown size={14} /> : <CaretRight size={14} />}
               </button>
             </div>
           )}
-          <GSAPAccordion isOpen={!collapsedFolders.has('section-favorites')}>
+          <GSAPAccordion isOpen={expandedFolders.has('section-favorites')}>
             <div className="max-h-[320px] overflow-y-auto no-scrollbar">
               {favoriteDocIds.map(docId => (
                 <div
@@ -862,13 +869,13 @@ export const Sidebar = () => {
                   onClick={() => toggleFolderCollapse('section-folders')}
                   className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200"
                 >
-                  {!collapsedFolders.has('section-folders') ? <CaretDown size={14} /> : <CaretRight size={14} />}
+                  {expandedFolders.has('section-folders') ? <CaretDown size={14} /> : <CaretRight size={14} />}
                 </button>
               </div>
             </div>
           )}
 
-          <GSAPAccordion isOpen={!collapsedFolders.has('section-folders')}>
+          <GSAPAccordion isOpen={expandedFolders.has('section-folders')}>
             <div className="max-h-[320px] overflow-y-auto no-scrollbar">
               {folderOrder.map((folderId, index) => {
                 const folder = folders.find(f => f?.id === folderId);
@@ -940,13 +947,13 @@ export const Sidebar = () => {
                             }}
                             className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200 cursor-pointer"
                           >
-                            {!collapsedFolders.has(folder.id) ? <CaretDown size={14} /> : <CaretRight size={14} />}
+                            {expandedFolders.has(folder.id) ? <CaretDown size={14} /> : <CaretRight size={14} />}
                           </div>
                         </div>
                       }
                     />
                     {/* Render documents inside folder with smooth transition */}
-                    <GSAPAccordion isOpen={!collapsedFolders.has(folder.id)}>
+                    <GSAPAccordion isOpen={expandedFolders.has(folder.id)}>
                       <FolderDocumentsList
                         folderId={folder.id}
                         isOpen={isSidebarOpen}
@@ -968,7 +975,7 @@ export const Sidebar = () => {
           </GSAPAccordion>
         </div>
 
-        {/* Root Documents (Recents or not in a folder) */}
+        {/* Root Documents (not in a folder) */}
         <div
           className="space-y-[2px] pb-4 group/uncategorized"
           onDragOver={(e) => e.preventDefault()}
@@ -980,69 +987,57 @@ export const Sidebar = () => {
             setDraggedItem(null);
           }}
         >
-          {isSidebarOpen && (
-            <div className={cn("flex items-center justify-between px-2 py-1 mb-1 rounded-sm transition-colors", isDocActive('section-uncategorized') ? "bg-muted/40" : "group-hover/uncategorized:bg-transparent")}>
+          <div className="max-h-[320px] overflow-y-auto no-scrollbar">
+            {uncategorizedDocIds.map((docId) => (
               <div
-                onClick={() => handleDocClick('section-uncategorized')}
-                className={cn("text-xs font-semibold truncate uppercase tracking-wider cursor-pointer transition-colors flex-1", isDocActive('section-uncategorized') ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+                id={`sidebar-doc-${docId}`}
+                key={docId}
+                draggable
+                onDragStart={(e) => {
+                  e.stopPropagation();
+                  setDraggedItem({ id: docId, type: 'document' });
+                  e.dataTransfer.setData('text/plain', docId);
+                  e.dataTransfer.setData('templnote/document-id', docId);
+                  e.dataTransfer.effectAllowed = 'copyMove';
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (draggedItem?.type === 'document' && draggedItem.id !== docId) {
+                    const targetIndex = uncategorizedDocIds.indexOf(docId);
+                    moveDocument(draggedItem.id, null, targetIndex);
+                  }
+                  setDraggedItem(null);
+                }}
+                onContextMenu={(e) => {
+                  e.stopPropagation();
+                  handleContextMenu(e, docId, 'document');
+                }}
               >
-                Uncategorized
+                <SidebarDocumentItem
+                  docId={docId}
+                  isOpen={isSidebarOpen}
+                  isActive={isDocActive(docId)}
+                  isRenaming={renamingDocId === docId}
+                  onRenameComplete={(newTitle) => handleRenameComplete(docId, newTitle)}
+                  onRenameCancel={() => setRenamingDocId(null)}
+                  onClick={() => handleDocClick(docId)}
+                />
               </div>
-              <button
-                onClick={() => toggleFolderCollapse('section-uncategorized')}
-                className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200"
-              >
-                {!collapsedFolders.has('section-uncategorized') ? <CaretDown size={14} /> : <CaretRight size={14} />}
-              </button>
-            </div>
-          )}
-          <GSAPAccordion isOpen={!collapsedFolders.has('section-uncategorized')}>
-            <div className="max-h-[320px] overflow-y-auto no-scrollbar">
-              {uncategorizedDocIds.map((docId) => (
-                <div
-                  id={`sidebar-doc-${docId}`}
-                  key={docId}
-                  draggable
-                  onDragStart={(e) => {
-                    e.stopPropagation();
-                    setDraggedItem({ id: docId, type: 'document' });
-                    e.dataTransfer.setData('text/plain', docId);
-                    e.dataTransfer.setData('templnote/document-id', docId);
-                    e.dataTransfer.effectAllowed = 'copyMove';
-                  }}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (draggedItem?.type === 'document' && draggedItem.id !== docId) {
-                      const targetIndex = uncategorizedDocIds.indexOf(docId);
-                      moveDocument(draggedItem.id, null, targetIndex);
-                    }
-                    setDraggedItem(null);
-                  }}
-                  onContextMenu={(e) => {
-                    e.stopPropagation();
-                    handleContextMenu(e, docId, 'document');
-                  }}
-                >
-                  <SidebarDocumentItem
-                    docId={docId}
-                    isOpen={isSidebarOpen}
-                    isActive={isDocActive(docId)}
-                    isRenaming={renamingDocId === docId}
-                    onRenameComplete={(newTitle) => handleRenameComplete(docId, newTitle)}
-                    onRenameCancel={( ) => setRenamingDocId(null)}
-                    onClick={() => handleDocClick(docId)}
-                  />
-                </div>
-              ))}
-            </div>
-          </GSAPAccordion>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Bottom Actions */}
-      <div className="pt-4 mt-auto space-y-[2px] min-w-0 flex-shrink-0">
+      <div className={cn(
+        "pt-3 pb-2 mt-auto border-t border-white/[0.05] dark:border-white/[0.05] flex min-w-0 flex-shrink-0",
+        isSidebarOpen 
+          ? "flex-row items-center justify-between px-4" 
+          : "flex-col items-center gap-1.5 px-0"
+      )}>
+        {/* Trash */}
         <div
           draggable
           onDragStart={(e) => {
@@ -1051,28 +1046,38 @@ export const Sidebar = () => {
             e.dataTransfer.effectAllowed = 'copyMove';
           }}
         >
-          <SidebarItem
-            icon={<Trash size={16} className={isDocActive('section-trash') ? "text-current" : "text-red-500/70 dark:text-red-400/70"} />}
-            label="Trash"
-            isOpen={isSidebarOpen}
-            highlight={isDocActive('section-trash')}
+          <button
             onClick={() => handleDocClick('section-trash')}
-            activeBgClass="bg-red-500/20 dark:bg-red-500/15 border-red-500/40 dark:border-red-500/30 border"
-            activeTextClass="!text-red-600 dark:!text-red-400 font-semibold"
-          />
+            className={cn(
+              "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
+              isDocActive('section-trash')
+                ? "bg-red-500/25 text-red-400 shadow-sm-sm border border-red-500/30"
+                : "text-red-500/70 hover:bg-zinc-800/40 hover:text-red-400"
+            )}
+            title="Trash"
+          >
+            <Trash size={18} weight={isDocActive('section-trash') ? "fill" : "regular"} />
+          </button>
         </div>
-        <SidebarItem
+
+        {/* Tutorial */}
+        <button
           id="section-tutorial"
-          icon={<GraduationCap size={16} className={isDocActive('section-tutorial') ? "text-current" : "text-yellow-500/90 dark:text-yellow-400/90"} />}
-          label="Tutorial"
-          isOpen={isSidebarOpen}
-          highlight={isDocActive('section-tutorial')}
           onClick={() => {
             useUiStore.getState().startTutorial();
           }}
-          activeBgClass="bg-yellow-500/20 dark:bg-yellow-500/15 border-yellow-500/40 dark:border-yellow-500/30 border"
-          activeTextClass="!text-yellow-600 dark:!text-yellow-400 font-semibold"
-        />
+          className={cn(
+            "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
+            isDocActive('section-tutorial')
+              ? "bg-yellow-500/25 text-yellow-400 shadow-sm-sm border border-yellow-500/30"
+              : "text-yellow-500/70 hover:bg-zinc-800/40 hover:text-yellow-400"
+          )}
+          title="Tutorial"
+        >
+          <GraduationCap size={18} weight={isDocActive('section-tutorial') ? "fill" : "regular"} />
+        </button>
+
+        {/* Help */}
         <div
           draggable
           onDragStart={(e) => {
@@ -1081,26 +1086,34 @@ export const Sidebar = () => {
             e.dataTransfer.effectAllowed = 'copyMove';
           }}
         >
-          <SidebarItem
-            icon={<Question size={16} className={isDocActive('section-help') ? "text-current" : "text-teal-500/90 dark:text-teal-400/90"} />}
-            label="Help"
-            isOpen={isSidebarOpen}
-            highlight={isDocActive('section-help')}
+          <button
             onClick={() => handleDocClick('section-help')}
-            activeBgClass="bg-teal-500/20 dark:bg-teal-500/35 border-teal-500/70 dark:border-teal-500/50 border"
-            activeTextClass="!text-teal-600 dark:!text-teal-400 font-semibold"
-          />
+            className={cn(
+              "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
+              isDocActive('section-help')
+                ? "bg-teal-500/25 text-teal-400 shadow-sm-sm border border-teal-500/30"
+                : "text-teal-500/70 hover:bg-zinc-800/40 hover:text-teal-400"
+            )}
+            title="Help"
+          >
+            <Question size={18} weight={isDocActive('section-help') ? "fill" : "regular"} />
+          </button>
         </div>
-        <SidebarItem 
+
+        {/* Settings */}
+        <button
           id="onboarding-settings-tab"
-          icon={<Gear size={16} className={isDocActive('section-settings') ? "text-current" : "text-slate-500/70 dark:text-slate-400/70"} />} 
-          label="Settings" 
-          isOpen={isSidebarOpen} 
-          highlight={isDocActive('section-settings')}
-          onClick={() => openDocument('section-settings', activePaneId || undefined)} 
-          activeBgClass="bg-slate-500/20 dark:bg-slate-500/15 border-slate-500/45 dark:border-slate-500/30 border"
-          activeTextClass="!text-slate-600 dark:!text-slate-400 font-semibold"
-        />
+          onClick={() => openDocument('section-settings', activePaneId || undefined)}
+          className={cn(
+            "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
+            isDocActive('section-settings')
+              ? "bg-slate-500/25 text-slate-200 shadow-sm-sm border border-slate-500/30"
+              : "text-slate-500/70 hover:bg-zinc-800/40 hover:text-slate-200"
+          )}
+          title="Settings"
+        >
+          <Gear size={18} weight={isDocActive('section-settings') ? "fill" : "regular"} />
+        </button>
       </div>
 
       <DeleteFolderDialog

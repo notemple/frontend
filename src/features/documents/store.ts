@@ -168,8 +168,14 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
         await documentService.setMetadata("tagColors", newTagColors);
       }
     }
+
+    const hasCharacter = (doc.contentText && doc.contentText.trim().length > 0) || (doc.content && doc.content.trim().length > 0);
+    const hasTitle = doc.title && doc.title.trim().length > 0;
+    const isUnsaved = !doc.id.startsWith('daily-note-') && !hasCharacter && !hasTitle;
+
     const docWithMetadata = {
       ...doc,
+      isUnsaved,
       title: finalTitle,
       createdAt: doc.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -185,8 +191,10 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       documentOrder: newOrder
     });
 
-    await documentService.saveDocument(docWithMetadata);
-    await documentService.setMetadata("documentOrder", newOrder);
+    if (!isUnsaved) {
+      await documentService.saveDocument(docWithMetadata);
+      await documentService.setMetadata("documentOrder", newOrder);
+    }
   },
 
   updateDocument: async (id, updates) => {
@@ -279,6 +287,22 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       finalTitle = finalUpdates.title !== undefined ? finalUpdates.title : existing.title;
     }
 
+    const wasUnsaved = existing ? existing.isUnsaved : true;
+    let isUnsaved = updates.isUnsaved !== undefined ? updates.isUnsaved : wasUnsaved;
+
+    if (isUnsaved) {
+      const newTitleToCheck = finalTitle || "";
+      const contentText = finalUpdates.contentText !== undefined ? finalUpdates.contentText : (existing ? existing.contentText : "");
+      const content = finalUpdates.content !== undefined ? finalUpdates.content : (existing ? existing.content : "");
+      
+      const hasCharacter = (contentText && contentText.trim().length > 0) || (content && content.trim().length > 0);
+      const hasTitle = newTitleToCheck && newTitleToCheck.trim().length > 0;
+      
+      if (hasCharacter || hasTitle) {
+        isUnsaved = false;
+      }
+    }
+
     if (!existing) {
       newDoc = {
         id,
@@ -289,6 +313,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
         createdAt: finalUpdates.createdAt || new Date().toISOString(),
         author: finalUpdates.author || 'new user',
         updatedAt: new Date().toISOString(),
+        isUnsaved: !id.startsWith('daily-note-') ? isUnsaved : undefined,
         ...finalUpdates
       };
       newOrder = [...get().documentOrder, id];
@@ -297,6 +322,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
         ...existing,
         ...finalUpdates,
         title: finalTitle,
+        isUnsaved: !id.startsWith('daily-note-') ? isUnsaved : undefined,
         updatedAt: new Date().toISOString()
       };
       if (!get().documentOrder.includes(id)) {
@@ -309,9 +335,11 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       documentOrder: newOrder
     });
 
-    await documentService.saveDocument(newDoc);
-    if (!existing || newOrder !== get().documentOrder) {
-      await documentService.setMetadata("documentOrder", newOrder);
+    if (!newDoc.isUnsaved) {
+      await documentService.saveDocument(newDoc);
+      if (!existing || newOrder !== get().documentOrder) {
+        await documentService.setMetadata("documentOrder", newOrder);
+      }
     }
   },
 

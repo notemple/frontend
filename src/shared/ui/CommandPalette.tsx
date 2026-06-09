@@ -135,7 +135,7 @@ export const CommandPalette = () => {
       items.push({ type: 'header', title: 'Commands' });
       items.push({ 
         type: 'command', 
-        title: 'New Page', 
+        title: 'New Document', 
         icon: <PlusCircle size={16} style={{ color: '#10b981' }} />, 
         action: () => {
           const newId = `doc-${crypto.randomUUID()}`;
@@ -234,7 +234,7 @@ export const CommandPalette = () => {
         { type: 'header', title: 'Commands' },
         { 
           type: 'command', 
-          title: 'New Page', 
+          title: 'New Document', 
           icon: <PlusCircle size={16} style={{ color: '#10b981' }} />, 
           action: () => {
             const newId = `doc-${crypto.randomUUID()}`;

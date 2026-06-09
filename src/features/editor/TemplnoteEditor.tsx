@@ -145,6 +145,25 @@ export function TemplnoteEditor({
   }, [documentId])
 
   useEffect(() => {
+    return () => {
+      if (documentId) {
+        // Only clean up if the document is no longer the active tab of any pane
+        const activePanes = useUiStore.getState().panes;
+        const isActive = activePanes.some(pane => pane.activeTabId === documentId);
+        if (isActive) {
+          return;
+        }
+
+        const doc = useDocumentStore.getState().documents[documentId];
+        if (doc && doc.isUnsaved) {
+          useDocumentStore.getState().permanentlyDeleteDocument(documentId);
+          useUiStore.getState().closeDocument(documentId);
+        }
+      }
+    };
+  }, [documentId])
+
+  useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
         setIsEmojiPickerOpen(false)

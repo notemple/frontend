@@ -8,7 +8,7 @@ import EmojiPickerMenu from "../components/EmojiPickerMenu"
 export default function EmojiPickerPlugin(): ReactNode {
   const [editor] = useLexicalComposerContext()
   const [open, setOpen] = useState(false)
-  const [position, setPosition] = useState({ top: 0, left: 0 })
+  const [position, setPosition] = useState({ top: 0, bottom: 0, left: 0 })
 
   // Track the exact trigger position and offset so insertEmoji can delete precisely
   const triggerRef = useRef<{ nodeKey: string; offset: number; endOffset: number } | null>(null)
@@ -69,7 +69,8 @@ export default function EmojiPickerPlugin(): ReactNode {
         const editorRect = editorEl?.getBoundingClientRect()
 
         setPosition({
-          top: rect.bottom + 8,
+          top: rect.top,
+          bottom: rect.bottom,
           left: rect.width > 0 ? rect.left : (editorRect?.left ?? 100),
         })
 

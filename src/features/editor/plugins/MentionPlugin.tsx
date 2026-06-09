@@ -11,7 +11,7 @@ export default function MentionPlugin(): ReactNode {
   const [editor] = useLexicalComposerContext()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
-  const [position, setPosition] = useState({ top: 0, left: 0 })
+  const [position, setPosition] = useState({ top: 0, bottom: 0, left: 0 })
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [itemsCount, setItemsCount] = useState(0)
   const [triggerType, setTriggerType] = useState<"mention" | "doc-only">("mention")
@@ -88,7 +88,8 @@ export default function MentionPlugin(): ReactNode {
         const editorRect = editorEl?.getBoundingClientRect()
 
         setPosition({
-          top: rect.bottom + 8,
+          top: rect.top,
+          bottom: rect.bottom,
           left: rect.width > 0 ? rect.left : (editorRect?.left ?? 100),
         })
 

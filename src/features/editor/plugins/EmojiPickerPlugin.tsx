@@ -1,30 +1,19 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
-import { $getSelection, $isRangeSelection, $isTextNode } from "lexical"
+import { $getSelection, $isRangeSelection, $isTextNode, $getNodeByKey } from "lexical"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { createPortal } from "react-dom"
 import type { ReactNode } from "react"
-import { EMOJIS } from "@/shared/lib/emojis"
+import { createPortal } from "react-dom"
 import EmojiPickerMenu from "../components/EmojiPickerMenu"
 
 export default function EmojiPickerPlugin(): ReactNode {
   const [editor] = useLexicalComposerContext()
   const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState("")
   const [position, setPosition] = useState({ top: 0, left: 0 })
-  const [selectedIdx, setSelectedIdx] = useState(0)
 
-  // Track the exact : position so insertEmoji can delete precisely
-  const triggerRef = useRef<{ nodeKey: string; offset: number } | null>(null)
+  // Track the exact trigger position and offset so insertEmoji can delete precisely
+  const triggerRef = useRef<{ nodeKey: string; offset: number; endOffset: number } | null>(null)
 
-  // Filter emojis based on query
-  const filteredEmojis = query.trim()
-    ? EMOJIS.filter((e) =>
-        e.name.toLowerCase().includes(query.toLowerCase()) ||
-        e.keywords.some((k) => k.toLowerCase().includes(query.toLowerCase()))
-      ).slice(0, 10)
-    : EMOJIS.slice(0, 10)
-
-  // Open, position, and filter menu when ":" is typed
+  // Open and position menu when ":" is typed
   useEffect(() => {
     return editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
@@ -84,13 +73,13 @@ export default function EmojiPickerPlugin(): ReactNode {
           left: rect.width > 0 ? rect.left : (editorRect?.left ?? 100),
         })
 
-        // Track the trigger position
+        // Track the trigger position and current cursor position (endOffset)
         triggerRef.current = {
           nodeKey: anchor.key,
           offset: lastColonIdx,
+          endOffset: offset,
         }
 
-        setQuery(queryText)
         setOpen(true)
       })
     })
@@ -101,19 +90,18 @@ export default function EmojiPickerPlugin(): ReactNode {
       setOpen(false)
 
       editor.update(() => {
-        const sel = $getSelection()
-        if (!$isRangeSelection(sel)) return
-        const anchor = sel.anchor.getNode()
-        if (!$isTextNode(anchor)) return
+        const trigger = triggerRef.current
+        if (!trigger) return
 
-        const colonPos = triggerRef.current?.offset ?? anchor.getTextContent().lastIndexOf(":")
-        if (colonPos === -1) return
+        const node = $getNodeByKey(trigger.nodeKey)
+        if (!$isTextNode(node)) return
 
-        // Delete from ":" symbol to the current cursor position
-        anchor.spliceText(colonPos, sel.anchor.offset - colonPos, "")
+        // Delete from ":" symbol to the tracked endOffset and splice emojiChar
+        const deleteLen = trigger.endOffset - trigger.offset
+        node.spliceText(trigger.offset, deleteLen, emojiChar)
 
-        // Insert the emoji character
-        sel.insertText(emojiChar)
+        // Reset the selection inside the text node right after the inserted emoji
+        node.select(trigger.offset + emojiChar.length, trigger.offset + emojiChar.length)
       })
 
       triggerRef.current = null
@@ -121,7 +109,7 @@ export default function EmojiPickerPlugin(): ReactNode {
     [editor]
   )
 
-  // Handle keyboard navigation while open
+  // Handle keyboard Escape to close while open
   useEffect(() => {
     if (!open) return
 
@@ -132,29 +120,11 @@ export default function EmojiPickerPlugin(): ReactNode {
         setOpen(false)
         return
       }
-      if (e.key === "ArrowDown") {
-        e.preventDefault()
-        e.stopPropagation()
-        setSelectedIdx((i) => (i + 1) % Math.max(filteredEmojis.length, 1))
-        return
-      }
-      if (e.key === "ArrowUp") {
-        e.preventDefault()
-        e.stopPropagation()
-        setSelectedIdx((i) => (i - 1 + Math.max(filteredEmojis.length, 1)) % Math.max(filteredEmojis.length, 1))
-        return
-      }
-      if (e.key === "Enter" && filteredEmojis[selectedIdx]) {
-        e.preventDefault()
-        e.stopPropagation()
-        insertEmoji(filteredEmojis[selectedIdx].char)
-        return
-      }
     }
 
     window.addEventListener("keydown", handleKeyDown, true)
     return () => window.removeEventListener("keydown", handleKeyDown, true)
-  }, [open, filteredEmojis, selectedIdx, insertEmoji])
+  }, [open])
 
   // Close when clicking outside
   useEffect(() => {
@@ -168,11 +138,8 @@ export default function EmojiPickerPlugin(): ReactNode {
 
   return createPortal(
     <EmojiPickerMenu
-      selectedIdx={selectedIdx}
       position={position}
-      emojis={filteredEmojis}
       onSelect={insertEmoji}
-      onHover={setSelectedIdx}
     />,
     document.body
   )

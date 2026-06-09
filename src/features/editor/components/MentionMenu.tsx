@@ -71,28 +71,28 @@ export default function MentionMenu({
   const getRenderableItems = (): RenderableItem[] => {
     const q = currentQuery.trim().toLowerCase()
 
-    // 1. If we are on the main menu and there is a query, do a flat search!
-    if (menuState.type === "main" && q.length > 0) {
+    // 1. If there is a query, do a flat global search!
+    if (q.length > 0) {
       const results: RenderableItem[] = []
 
       if (triggerType !== "doc-only") {
         // Search tasks
         activeTasks
-          .filter((t) => t.title.toLowerCase().includes(q))
+          .filter((t) => (t.title || "").toLowerCase().includes(q))
           .slice(0, 5)
           .forEach((task) => results.push({ type: "task", task }))
       }
 
       // Search documents
       activeDocs
-        .filter((d) => d.title.toLowerCase().includes(q))
-        .slice(0, 5)
+        .filter((d) => (d.title || "").toLowerCase().includes(q))
+        .slice(0, 10)
         .forEach((doc) => results.push({ type: "doc", doc }))
 
       // Search folders
       folders
-        .filter((f) => !f.isDeleted && f.name.toLowerCase().includes(q))
-        .slice(0, 3)
+        .filter((f) => !f.isDeleted && (f.name || "").toLowerCase().includes(q))
+        .slice(0, 5)
         .forEach((folder) => results.push({ type: "folder", folder }))
 
       if (triggerType !== "doc-only") {

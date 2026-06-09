@@ -12,6 +12,7 @@ interface Props {
   onHover: (idx: number) => void
   onClose: () => void
   onItemsChange?: (itemsCount: number) => void
+  triggerType?: "mention" | "doc-only"
 }
 
 type MenuState =
@@ -37,6 +38,7 @@ export default function MentionMenu({
   onSelect,
   onHover,
   onItemsChange,
+  triggerType = "mention",
 }: Props) {
   const [menuState, setMenuState] = useState<MenuState>({ type: "main" })
   const selectedRef = useRef<HTMLButtonElement>(null)
@@ -65,6 +67,7 @@ export default function MentionMenu({
   }
 
   // Build the list of items based on state and query
+  // Build the list of items based on state and query
   const getRenderableItems = (): RenderableItem[] => {
     const q = currentQuery.trim().toLowerCase()
 
@@ -72,11 +75,13 @@ export default function MentionMenu({
     if (menuState.type === "main" && q.length > 0) {
       const results: RenderableItem[] = []
 
-      // Search tasks
-      activeTasks
-        .filter((t) => t.title.toLowerCase().includes(q))
-        .slice(0, 5)
-        .forEach((task) => results.push({ type: "task", task }))
+      if (triggerType !== "doc-only") {
+        // Search tasks
+        activeTasks
+          .filter((t) => t.title.toLowerCase().includes(q))
+          .slice(0, 5)
+          .forEach((task) => results.push({ type: "task", task }))
+      }
 
       // Search documents
       activeDocs
@@ -90,10 +95,12 @@ export default function MentionMenu({
         .slice(0, 3)
         .forEach((folder) => results.push({ type: "folder", folder }))
 
-      // Search dates
-      dateOptions
-        .filter((d) => d.label.toLowerCase().includes(q) || d.dateStr.includes(q))
-        .forEach((d) => results.push({ type: "date", dateStr: d.dateStr, label: d.label }))
+      if (triggerType !== "doc-only") {
+        // Search dates
+        dateOptions
+          .filter((d) => d.label.toLowerCase().includes(q) || d.dateStr.includes(q))
+          .forEach((d) => results.push({ type: "date", dateStr: d.dateStr, label: d.label }))
+      }
 
       return results
     }
@@ -101,6 +108,17 @@ export default function MentionMenu({
     // 2. Normal structured layout
     switch (menuState.type) {
       case "main":
+        if (triggerType === "doc-only") {
+          // Direct layout for documents: show folders and uncategorized documents
+          const items: RenderableItem[] = []
+          folders
+            .filter((f) => !f.isDeleted)
+            .forEach((folder) => items.push({ type: "folder", folder }))
+          activeDocs
+            .filter((d) => !d.folderId)
+            .forEach((doc) => items.push({ type: "doc", doc }))
+          return items
+        }
         return [
           { type: "category", id: "tasks", title: "Tasks", icon: "CheckSquare" },
           { type: "category", id: "date", title: "Date", icon: "CalendarBlank" },
@@ -134,7 +152,8 @@ export default function MentionMenu({
 
       case "folder-docs": {
         const folderId = menuState.folderId
-        const items: RenderableItem[] = [{ type: "back", target: "folders", label: `Back to Folders` }]
+        const target = triggerType === "doc-only" ? "main" : "folders"
+        const items: RenderableItem[] = [{ type: "back", target: target as any, label: `Back to Folders` }]
         const docsInFolder = activeDocs.filter((d) => d.folderId === folderId)
         const filtered = q ? docsInFolder.filter((d) => d.title.toLowerCase().includes(q)) : docsInFolder
         filtered.forEach((doc) => items.push({ type: "doc", doc }))
@@ -191,7 +210,7 @@ export default function MentionMenu({
       return true
     }
     if ((e.key === "ArrowLeft" || e.key === "Backspace") && menuState.type !== "main") {
-      const target = menuState.type === "folder-docs" ? "folders" : "main"
+      const target = menuState.type === "folder-docs" && triggerType !== "doc-only" ? "folders" : "main"
       setMenuState({ type: target as any })
       onHover(0)
       return true

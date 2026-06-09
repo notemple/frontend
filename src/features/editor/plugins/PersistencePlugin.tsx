@@ -68,6 +68,8 @@ export default function PersistencePlugin({ documentId, onWordCountChange }: Pro
       if (documentId.startsWith("daily-note-")) {
         const { timezone } = useSettingsStore.getState()
         const existingDoc = useDocumentStore.getState().documents[documentId]
+        if (existingDoc && existingDoc.isDeleted) return
+
         const currentTitle = existingDoc ? existingDoc.title : ""
         const defaultTitle = getDailyNoteTitle(documentId, timezone)
 
@@ -102,6 +104,8 @@ export default function PersistencePlugin({ documentId, onWordCountChange }: Pro
         if (editorState.isEmpty()) return
 
         const existingDoc = useDocumentStore.getState().documents[documentId]
+        if (!existingDoc || existingDoc.isDeleted) return
+
         if (existingDoc && existingDoc.isUnsaved) {
           await useDocumentStore.getState().updateDocument(documentId, {
             lexicalState: serialized,
@@ -109,10 +113,9 @@ export default function PersistencePlugin({ documentId, onWordCountChange }: Pro
             isUnsaved: false
           })
         } else {
-          await db.documents.update(documentId, {
+          await useDocumentStore.getState().updateDocument(documentId, {
             lexicalState: serialized,
             contentText: textContent,
-            updatedAt: String(Date.now()),
           })
         }
       }

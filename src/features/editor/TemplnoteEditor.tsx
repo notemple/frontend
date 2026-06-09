@@ -16,6 +16,7 @@ import { $getRoot, $isParagraphNode, $createParagraphNode } from "lexical"
 import { createEditorConfig } from "./editorConfig"
 import SlashCommandPlugin from "./plugins/SlashCommandPlugin"
 import MentionPlugin from "./plugins/MentionPlugin"
+import EmojiPickerPlugin from "./plugins/EmojiPickerPlugin"
 import PersistencePlugin from "./plugins/PersistencePlugin"
 import ScrollIntoViewPlugin from "./plugins/ScrollIntoViewPlugin"
 import BlockHandlePlugin from "./plugins/BlockHandlePlugin"
@@ -593,6 +594,7 @@ export function TemplnoteEditor({
         <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
         <SlashCommandPlugin />
         <MentionPlugin />
+        <EmojiPickerPlugin />
         <ScrollIntoViewPlugin />
         <BlockHandlePlugin />
         <BackspacePlugin />

@@ -28,7 +28,8 @@ import {
 	Sidebar as SidebarIcon,
 	Sun,
 	Target,
-	Sparkle
+	Sparkle,
+	Trash
 } from '@phosphor-icons/react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { gsap } from 'gsap';
@@ -199,7 +200,7 @@ const GSAPPageWrapper = ({ children, activeTabId }: { children: React.ReactNode;
 };
 
 export const MainWorkspace = () => {
-  const { panes, activePaneId, toggleRightSidebar, appearance, setAppearance, isRightSidebarOpen, toggleSidebar, isSidebarOpen, openDocument, setActivePane, isNavbarManuallyHidden, setNavbarManuallyHidden, updatePaneWidths } = useUiStore(
+  const { panes, activePaneId, toggleRightSidebar, appearance, setAppearance, isRightSidebarOpen, toggleSidebar, isSidebarOpen, openDocument, setActivePane, isNavbarManuallyHidden, setNavbarManuallyHidden, updatePaneWidths, closeDocument } = useUiStore(
     useShallow((state) => ({
       panes: state.panes,
       activePaneId: state.activePaneId,
@@ -214,8 +215,13 @@ export const MainWorkspace = () => {
       isNavbarManuallyHidden: state.isNavbarManuallyHidden,
       setNavbarManuallyHidden: state.setNavbarManuallyHidden,
       updatePaneWidths: state.updatePaneWidths,
+      closeDocument: state.closeDocument,
     }))
   );
+
+  const documents = useDocumentStore(state => state.documents);
+  const restoreDocument = useDocumentStore(state => state.restoreDocument);
+  const permanentlyDeleteDocument = useDocumentStore(state => state.permanentlyDeleteDocument);
 
   const autoHideNavbar = useSettingsStore(state => state.autoHideNavbar);
   const [isNavbarHovered, setIsNavbarHovered] = React.useState(false);
@@ -628,16 +634,44 @@ export const MainWorkspace = () => {
                 }}
               >
                 <TabBar paneId={pane.id} />
-                <div className="flex-1 overflow-hidden bg-transparent relative">
-                  <GSAPPageWrapper activeTabId={pane.activeTabId || 'empty'}>
-                    {pane.activeTabId?.startsWith('section-') ? (
-                      <SectionPage paneId={pane.id} sectionId={pane.activeTabId} />
-                    ) : pane.activeTabId ? (
-                      <TemplnoteEditor key={`${pane.id}-${pane.activeTabId}`} paneId={pane.id} documentId={pane.activeTabId} />
-                    ) : (
-                      <EmptyPaneState paneId={pane.id} />
-                    )}
-                  </GSAPPageWrapper>
+                <div className="flex-1 overflow-hidden bg-transparent relative flex flex-col">
+                  {pane.activeTabId && documents[pane.activeTabId]?.isDeleted && (
+                    <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 flex items-center justify-between text-xs text-amber-200 z-30 select-none">
+                      <div className="flex items-center gap-2">
+                        <Trash size={14} className="text-amber-400" />
+                        <span>This document is in the trash.</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => restoreDocument(pane.activeTabId!)}
+                          className="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 font-medium transition-colors cursor-pointer"
+                        >
+                          Restore
+                        </button>
+                        <button
+                           onClick={async () => {
+                            const docId = pane.activeTabId!;
+                            closeDocument(docId, pane.id);
+                            await permanentlyDeleteDocument(docId);
+                          }}
+                          className="px-2 py-1 rounded bg-red-500/20 hover:bg-red-500/30 text-red-200 font-medium transition-colors cursor-pointer"
+                        >
+                          Delete permanently
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex-1 overflow-hidden bg-transparent relative">
+                    <GSAPPageWrapper activeTabId={pane.activeTabId || 'empty'}>
+                      {pane.activeTabId?.startsWith('section-') ? (
+                        <SectionPage paneId={pane.id} sectionId={pane.activeTabId} />
+                      ) : pane.activeTabId ? (
+                        <TemplnoteEditor key={`${pane.id}-${pane.activeTabId}`} paneId={pane.id} documentId={pane.activeTabId} />
+                      ) : (
+                        <EmptyPaneState paneId={pane.id} />
+                      )}
+                    </GSAPPageWrapper>
+                  </div>
 
                   <AnimatePresence>
                     {dragOverPanes[pane.id] && (

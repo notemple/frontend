@@ -1,25 +1,30 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
-import { $getSelection, $isRangeSelection, $isTextNode, $createParagraphNode } from "lexical"
+import { $getSelection, $isRangeSelection, $isTextNode } from "lexical"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import type { ReactNode } from "react"
-import { $createPageLinkNode } from "../nodes/PageLinkNode"
-import { $createTaskNode } from "../nodes/TaskNode"
-import MentionMenu from "../components/MentionMenu"
+import { EMOJIS } from "@/shared/lib/emojis"
+import EmojiPickerMenu from "../components/EmojiPickerMenu"
 
-export default function MentionPlugin(): ReactNode {
+export default function EmojiPickerPlugin(): ReactNode {
   const [editor] = useLexicalComposerContext()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const [selectedIdx, setSelectedIdx] = useState(0)
-  const [itemsCount, setItemsCount] = useState(0)
-  const [triggerType, setTriggerType] = useState<"mention" | "doc-only">("mention")
 
-  // Track the exact position and trigger type so insertMention can delete precisely
-  const triggerRef = useRef<{ nodeKey: string; offset: number; type: "mention" | "doc-only" } | null>(null)
+  // Track the exact : position so insertEmoji can delete precisely
+  const triggerRef = useRef<{ nodeKey: string; offset: number } | null>(null)
 
-  // Open, position, and filter menu when "@" or "[[" is typed
+  // Filter emojis based on query
+  const filteredEmojis = query.trim()
+    ? EMOJIS.filter((e) =>
+        e.name.toLowerCase().includes(query.toLowerCase()) ||
+        e.keywords.some((k) => k.toLowerCase().includes(query.toLowerCase()))
+      ).slice(0, 10)
+    : EMOJIS.slice(0, 10)
+
+  // Open, position, and filter menu when ":" is typed
   useEffect(() => {
     return editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
@@ -41,39 +46,26 @@ export default function MentionPlugin(): ReactNode {
 
         // Only look at text before cursor
         const textBeforeCursor = textContent.slice(0, offset)
-        const lastAtIdx = textBeforeCursor.lastIndexOf("@")
-        const lastDoubleBracketIdx = textBeforeCursor.lastIndexOf("[[")
+        const lastColonIdx = textBeforeCursor.lastIndexOf(":")
 
-        let triggerIndex = -1
-        let type: "mention" | "doc-only" = "mention"
-
-        if (lastAtIdx !== -1 && lastAtIdx > lastDoubleBracketIdx) {
-          triggerIndex = lastAtIdx
-          type = "mention"
-        } else if (lastDoubleBracketIdx !== -1) {
-          triggerIndex = lastDoubleBracketIdx
-          type = "doc-only"
-        }
-
-        // Close if no trigger found before cursor
-        if (triggerIndex === -1) {
+        // Close if no ":" found before cursor
+        if (lastColonIdx === -1) {
           if (open) setOpen(false)
           return
         }
 
         // Trigger must be preceded by whitespace or at start of node
-        const charBefore = triggerIndex > 0 ? textBeforeCursor[triggerIndex - 1] : null
+        const charBefore = lastColonIdx > 0 ? textBeforeCursor[lastColonIdx - 1] : null
         const isValidTrigger = charBefore === null || /\s/.test(charBefore)
         if (!isValidTrigger) {
           if (open) setOpen(false)
           return
         }
 
-        const triggerLen = type === "mention" ? 1 : 2
-        const queryText = textBeforeCursor.slice(triggerIndex + triggerLen)
+        const queryText = textBeforeCursor.slice(lastColonIdx + 1)
 
-        // Close if query contains a newline, is too long, or has too many spaces
-        if (queryText.includes("\n") || queryText.length > 30 || queryText.split(" ").length > 4) {
+        // Close if query contains a space or newline or is too long (user typed normal text, not a shortcode)
+        if (queryText.includes(" ") || queryText.includes("\n") || queryText.length > 20) {
           if (open) setOpen(false)
           return
         }
@@ -95,19 +87,17 @@ export default function MentionPlugin(): ReactNode {
         // Track the trigger position
         triggerRef.current = {
           nodeKey: anchor.key,
-          offset: triggerIndex,
-          type,
+          offset: lastColonIdx,
         }
 
-        setTriggerType(type)
         setQuery(queryText)
         setOpen(true)
       })
     })
   }, [editor, open])
 
-  const insertMention = useCallback(
-    (payload: { type: "doc" | "task" | "date"; id: string; title: string }) => {
+  const insertEmoji = useCallback(
+    (emojiChar: string) => {
       setOpen(false)
 
       editor.update(() => {
@@ -116,28 +106,14 @@ export default function MentionPlugin(): ReactNode {
         const anchor = sel.anchor.getNode()
         if (!$isTextNode(anchor)) return
 
-        const currentType = triggerRef.current?.type ?? "mention"
-        const triggerStr = currentType === "mention" ? "@" : "[["
-        const atPos = triggerRef.current?.offset ?? anchor.getTextContent().lastIndexOf(triggerStr)
-        if (atPos === -1) return
+        const colonPos = triggerRef.current?.offset ?? anchor.getTextContent().lastIndexOf(":")
+        if (colonPos === -1) return
 
-        // Delete trigger symbol to the current cursor position
-        anchor.spliceText(atPos, sel.anchor.offset - atPos, "")
+        // Delete from ":" symbol to the current cursor position
+        anchor.spliceText(colonPos, sel.anchor.offset - colonPos, "")
 
-        if (payload.type === "task") {
-          const topLevelElement = anchor.getTopLevelElementOrThrow()
-          const taskNode = $createTaskNode(payload.id)
-
-          const paragraphNode = $createParagraphNode()
-          topLevelElement.insertAfter(paragraphNode)
-          paragraphNode.select()
-
-          topLevelElement.replace(taskNode)
-        } else {
-          // Create and insert PageLinkNode reference
-          const mentionNode = $createPageLinkNode(payload.id, payload.title)
-          sel.insertNodes([mentionNode])
-        }
+        // Insert the emoji character
+        sel.insertText(emojiChar)
       })
 
       triggerRef.current = null
@@ -159,20 +135,26 @@ export default function MentionPlugin(): ReactNode {
       if (e.key === "ArrowDown") {
         e.preventDefault()
         e.stopPropagation()
-        setSelectedIdx((i) => (i + 1) % Math.max(itemsCount, 1))
+        setSelectedIdx((i) => (i + 1) % Math.max(filteredEmojis.length, 1))
         return
       }
       if (e.key === "ArrowUp") {
         e.preventDefault()
         e.stopPropagation()
-        setSelectedIdx((i) => (i - 1 + Math.max(itemsCount, 1)) % Math.max(itemsCount, 1))
+        setSelectedIdx((i) => (i - 1 + Math.max(filteredEmojis.length, 1)) % Math.max(filteredEmojis.length, 1))
+        return
+      }
+      if (e.key === "Enter" && filteredEmojis[selectedIdx]) {
+        e.preventDefault()
+        e.stopPropagation()
+        insertEmoji(filteredEmojis[selectedIdx].char)
         return
       }
     }
 
     window.addEventListener("keydown", handleKeyDown, true)
     return () => window.removeEventListener("keydown", handleKeyDown, true)
-  }, [open, itemsCount, selectedIdx])
+  }, [open, filteredEmojis, selectedIdx, insertEmoji])
 
   // Close when clicking outside
   useEffect(() => {
@@ -185,15 +167,12 @@ export default function MentionPlugin(): ReactNode {
   if (!open) return null
 
   return createPortal(
-    <MentionMenu
+    <EmojiPickerMenu
       selectedIdx={selectedIdx}
       position={position}
-      currentQuery={query}
-      onSelect={insertMention}
+      emojis={filteredEmojis}
+      onSelect={insertEmoji}
       onHover={setSelectedIdx}
-      onClose={() => setOpen(false)}
-      onItemsChange={setItemsCount}
-      triggerType={triggerType}
     />,
     document.body
   )

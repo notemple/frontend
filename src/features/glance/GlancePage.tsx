@@ -1,3 +1,4 @@
+import { useUiStore } from "@/shared/store/uiStore";
 import { motion } from "motion/react";
 import React,{ useEffect,useRef,useState } from "react";
 import { DailyActivitySummary } from "./components/DailyActivitySummary";
@@ -10,7 +11,21 @@ import { RecentDocuments } from "./components/RecentDocuments";
 
 export const GlancePage = ({ paneId }: { paneId: string }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState<number>(1200);
+  const [containerWidth, setContainerWidth] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const state = useUiStore.getState();
+      const pane = state.panes?.find(p => p.id === paneId);
+      const sidebarWidth = state.isSidebarOpen ? 260 : 0;
+      const rightSidebarWidth = state.isRightSidebarOpen ? 320 : 0;
+      const availableWidth = window.innerWidth - sidebarWidth - rightSidebarWidth;
+      if (pane) {
+        const panePercent = pane.width ?? (100 / (state.panes.length || 1));
+        return (availableWidth * panePercent) / 100;
+      }
+      return availableWidth;
+    }
+    return 1200;
+  });
 
   const [captures, setCaptures] = useState<{
     id: string;
@@ -98,6 +113,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
     return (
       <motion.div
         className={`flex-shrink-0 flex flex-col gap-0 overflow-hidden ${overlayClass} ${borderClass}`}
+        initial={false}
         animate={{
           width: isLeftOpen ? 384 : 0,
           opacity: isLeftOpen ? 1 : 0
@@ -109,6 +125,8 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
           mass: 0.8
         }}
         style={{
+          width: isLeftOpen ? 384 : 0,
+          opacity: isLeftOpen ? 1 : 0,
           pointerEvents: isLeftOpen ? "auto" : "none"
         }}
       >
@@ -134,6 +152,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
     return (
       <motion.div
         className={`flex-shrink-0 flex flex-col overflow-hidden ${overlayClass} ${borderClass}`}
+        initial={false}
         animate={{
           width: isRightOpen ? 384 : 0,
           opacity: isRightOpen ? 1 : 0
@@ -145,6 +164,8 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
           mass: 0.8
         }}
         style={{
+          width: isRightOpen ? 384 : 0,
+          opacity: isRightOpen ? 1 : 0,
           pointerEvents: isRightOpen ? "auto" : "none"
         }}
       >

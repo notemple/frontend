@@ -38,6 +38,7 @@ const KEYBOARD_SHORTCUTS: { category: string; shortcuts: { key: string; desc: st
       { key: 'Ctrl + Alt + L', desc: 'Toggle left sidebar' },
       { key: 'Ctrl + Alt + R', desc: 'Toggle right sidebar' },
       { key: 'Ctrl + Alt + T', desc: 'Toggle top navbar' },
+      { key: 'Ctrl + Alt + B', desc: 'Toggle minimized AI chat' },
     ],
   },
   {

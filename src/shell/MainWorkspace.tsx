@@ -27,7 +27,8 @@ import {
 	ShareFat,
 	Sidebar as SidebarIcon,
 	Sun,
-	Target
+	Target,
+	Sparkle
 } from '@phosphor-icons/react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { gsap } from 'gsap';
@@ -559,7 +560,19 @@ export const MainWorkspace = () => {
             </button>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
-            <button className="hover:text-foreground transition-colors p-1.5 rounded-sm-sm hover:bg-muted"><Bell size={18} /></button>
+            <button
+              onClick={() => openDocument('section-ask-ai')}
+              className={cn(
+                "transition-all duration-200 p-1.5 rounded-sm-sm hover:bg-muted cursor-pointer",
+                activeTabId === 'section-ask-ai'
+                  ? "text-purple-600 dark:text-purple-400 font-semibold bg-purple-500/10"
+                  : "text-muted-foreground/80 hover:text-purple-600 dark:hover:text-purple-400"
+              )}
+              title="Ask AI"
+            >
+              <Sparkle size={18} weight={activeTabId === 'section-ask-ai' ? "fill" : "regular"} />
+            </button>
+            <button className="hover:text-foreground transition-colors p-1.5 rounded-sm-sm hover:bg-muted cursor-pointer"><Bell size={18} /></button>
             <button className="hover:text-foreground transition-colors p-1.5 rounded-sm-sm hover:bg-muted"><ClockCounterClockwise size={18} /></button>
             <button className={cn("right-sidebar-toggle transition-all duration-200 flex items-center gap-1.5 p-1.5 px-2.5 rounded-sm-sm border", isRightSidebarOpen ? "bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/20 shadow-sm-inner font-semibold" : "text-muted-foreground/80 border-transparent hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-500/5 hover:border-sky-500/10")} onClick={toggleRightSidebar}>
               <Layout size={18} />

@@ -8,6 +8,8 @@ import { useShallow } from 'zustand/react/shallow';
 import { MainWorkspace } from './MainWorkspace';
 import { RightSidebar } from './right-sidebar/RightSidebar';
 import { Sidebar } from './sidebar/Sidebar';
+import { MinimizedAiChat } from '@/features/ai/MinimizedAiChat';
+import { useAiStore } from '@/features/ai/aiStore';
 
 export const RootLayout = () => {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
@@ -95,6 +97,10 @@ export const RootLayout = () => {
           if (activePaneId && panes.length > 1) {
             removePane(activePaneId);
           }
+        } else if (key === 'b') {
+          e.preventDefault();
+          const { isMinimizedOpen, setIsMinimizedOpen } = useAiStore.getState();
+          setIsMinimizedOpen(!isMinimizedOpen);
         }
       }
     };
@@ -296,6 +302,7 @@ export const RootLayout = () => {
       <RightSidebar />
       <CommandPalette />
       <SpotlightTutorial />
+      <MinimizedAiChat />
       {editingTaskId && (
         <TaskEditorModal 
           taskId={editingTaskId} 

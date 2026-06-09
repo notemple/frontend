@@ -467,7 +467,6 @@ export const Sidebar = () => {
     const COLLAPSIBLE_SECTIONS = new Set([
       'section-favorites',
       'section-folders',
-      'section-uncategorized',
     ]);
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -549,10 +548,7 @@ export const Sidebar = () => {
         }
       }
 
-      ids.push('section-uncategorized');
-      if (expandedFolders.has('section-uncategorized')) {
-        ids.push(...uncategorizedDocIds);
-      }
+      ids.push(...uncategorizedDocIds);
 
       ids.push('section-trash', 'section-tutorial', 'section-help', 'section-settings');
 
@@ -743,16 +739,7 @@ export const Sidebar = () => {
         <div className="space-y-[2px]">
           <SidebarItem icon={<Plus size={16} className={isDocActive('new-note') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="New Document" isOpen={isSidebarOpen} highlight={isDocActive('new-note')} onClick={handleNewNoteClick} activeBgClass="bg-blush-pop/90 dark:bg-blush-pop/35 border-blush-pop/75 dark:border-blush-pop/50 border" activeTextClass="!text-black dark:!text-white font-semibold" />
           <SidebarItem icon={<MagnifyingGlass size={16} className="text-sky-500/80 dark:text-sky-400/80" />} label="Search" isOpen={isSidebarOpen} />
-          <SidebarItem 
-            id="onboarding-ask-ai" 
-            icon={<Sparkle size={16} className={isDocActive('section-ask-ai') ? "text-current" : "text-purple-500/90 dark:text-purple-400/90"} />} 
-            label="Ask AI" 
-            isOpen={isSidebarOpen}
-            highlight={isDocActive('section-ask-ai')}
-            onClick={() => handleDocClick('section-ask-ai')}
-            activeBgClass="bg-purple-500/20 dark:bg-purple-500/15 border-purple-500/40 dark:border-purple-500/30 border"
-            activeTextClass="!text-purple-600 dark:!text-purple-400 font-semibold"
-          />
+
           <div
             draggable
             onDragStart={(e) => {
@@ -988,7 +975,7 @@ export const Sidebar = () => {
           </GSAPAccordion>
         </div>
 
-        {/* Root Documents (Recents or not in a folder) */}
+        {/* Root Documents (not in a folder) */}
         <div
           className="space-y-[2px] pb-4 group/uncategorized"
           onDragOver={(e) => e.preventDefault()}
@@ -1000,64 +987,46 @@ export const Sidebar = () => {
             setDraggedItem(null);
           }}
         >
-          {isSidebarOpen && (
-            <div className={cn("flex items-center justify-between px-2 py-1 mb-1 rounded-sm transition-colors", isDocActive('section-uncategorized') ? "bg-muted/40" : "group-hover/uncategorized:bg-transparent")}>
+          <div className="max-h-[320px] overflow-y-auto no-scrollbar">
+            {uncategorizedDocIds.map((docId) => (
               <div
-                onClick={() => handleDocClick('section-uncategorized')}
-                className={cn("text-xs font-semibold truncate uppercase tracking-wider cursor-pointer transition-colors flex-1", isDocActive('section-uncategorized') ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+                id={`sidebar-doc-${docId}`}
+                key={docId}
+                draggable
+                onDragStart={(e) => {
+                  e.stopPropagation();
+                  setDraggedItem({ id: docId, type: 'document' });
+                  e.dataTransfer.setData('text/plain', docId);
+                  e.dataTransfer.setData('templnote/document-id', docId);
+                  e.dataTransfer.effectAllowed = 'copyMove';
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (draggedItem?.type === 'document' && draggedItem.id !== docId) {
+                    const targetIndex = uncategorizedDocIds.indexOf(docId);
+                    moveDocument(draggedItem.id, null, targetIndex);
+                  }
+                  setDraggedItem(null);
+                }}
+                onContextMenu={(e) => {
+                  e.stopPropagation();
+                  handleContextMenu(e, docId, 'document');
+                }}
               >
-                Uncategorized
+                <SidebarDocumentItem
+                  docId={docId}
+                  isOpen={isSidebarOpen}
+                  isActive={isDocActive(docId)}
+                  isRenaming={renamingDocId === docId}
+                  onRenameComplete={(newTitle) => handleRenameComplete(docId, newTitle)}
+                  onRenameCancel={() => setRenamingDocId(null)}
+                  onClick={() => handleDocClick(docId)}
+                />
               </div>
-              <button
-                onClick={() => toggleFolderCollapse('section-uncategorized')}
-                className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200"
-              >
-                {expandedFolders.has('section-uncategorized') ? <CaretDown size={14} /> : <CaretRight size={14} />}
-              </button>
-            </div>
-          )}
-          <GSAPAccordion isOpen={expandedFolders.has('section-uncategorized')}>
-            <div className="max-h-[320px] overflow-y-auto no-scrollbar">
-              {uncategorizedDocIds.map((docId) => (
-                <div
-                  id={`sidebar-doc-${docId}`}
-                  key={docId}
-                  draggable
-                  onDragStart={(e) => {
-                    e.stopPropagation();
-                    setDraggedItem({ id: docId, type: 'document' });
-                    e.dataTransfer.setData('text/plain', docId);
-                    e.dataTransfer.setData('templnote/document-id', docId);
-                    e.dataTransfer.effectAllowed = 'copyMove';
-                  }}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (draggedItem?.type === 'document' && draggedItem.id !== docId) {
-                      const targetIndex = uncategorizedDocIds.indexOf(docId);
-                      moveDocument(draggedItem.id, null, targetIndex);
-                    }
-                    setDraggedItem(null);
-                  }}
-                  onContextMenu={(e) => {
-                    e.stopPropagation();
-                    handleContextMenu(e, docId, 'document');
-                  }}
-                >
-                  <SidebarDocumentItem
-                    docId={docId}
-                    isOpen={isSidebarOpen}
-                    isActive={isDocActive(docId)}
-                    isRenaming={renamingDocId === docId}
-                    onRenameComplete={(newTitle) => handleRenameComplete(docId, newTitle)}
-                    onRenameCancel={( ) => setRenamingDocId(null)}
-                    onClick={() => handleDocClick(docId)}
-                  />
-                </div>
-              ))}
-            </div>
-          </GSAPAccordion>
+            ))}
+          </div>
         </div>
       </div>
 

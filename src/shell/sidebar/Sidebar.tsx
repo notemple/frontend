@@ -1031,7 +1031,13 @@ export const Sidebar = () => {
       </div>
 
       {/* Bottom Actions */}
-      <div className="pt-4 mt-auto space-y-[2px] min-w-0 flex-shrink-0">
+      <div className={cn(
+        "pt-3 pb-2 mt-auto border-t border-white/[0.05] dark:border-white/[0.05] flex min-w-0 flex-shrink-0",
+        isSidebarOpen 
+          ? "flex-row items-center justify-between px-4" 
+          : "flex-col items-center gap-1.5 px-0"
+      )}>
+        {/* Trash */}
         <div
           draggable
           onDragStart={(e) => {
@@ -1040,28 +1046,38 @@ export const Sidebar = () => {
             e.dataTransfer.effectAllowed = 'copyMove';
           }}
         >
-          <SidebarItem
-            icon={<Trash size={16} className={isDocActive('section-trash') ? "text-current" : "text-red-500/70 dark:text-red-400/70"} />}
-            label="Trash"
-            isOpen={isSidebarOpen}
-            highlight={isDocActive('section-trash')}
+          <button
             onClick={() => handleDocClick('section-trash')}
-            activeBgClass="bg-red-500/20 dark:bg-red-500/15 border-red-500/40 dark:border-red-500/30 border"
-            activeTextClass="!text-red-600 dark:!text-red-400 font-semibold"
-          />
+            className={cn(
+              "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
+              isDocActive('section-trash')
+                ? "bg-red-500/25 text-red-400 shadow-sm-sm border border-red-500/30"
+                : "text-red-500/70 hover:bg-zinc-800/40 hover:text-red-400"
+            )}
+            title="Trash"
+          >
+            <Trash size={18} weight={isDocActive('section-trash') ? "fill" : "regular"} />
+          </button>
         </div>
-        <SidebarItem
+
+        {/* Tutorial */}
+        <button
           id="section-tutorial"
-          icon={<GraduationCap size={16} className={isDocActive('section-tutorial') ? "text-current" : "text-yellow-500/90 dark:text-yellow-400/90"} />}
-          label="Tutorial"
-          isOpen={isSidebarOpen}
-          highlight={isDocActive('section-tutorial')}
           onClick={() => {
             useUiStore.getState().startTutorial();
           }}
-          activeBgClass="bg-yellow-500/20 dark:bg-yellow-500/15 border-yellow-500/40 dark:border-yellow-500/30 border"
-          activeTextClass="!text-yellow-600 dark:!text-yellow-400 font-semibold"
-        />
+          className={cn(
+            "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
+            isDocActive('section-tutorial')
+              ? "bg-yellow-500/25 text-yellow-400 shadow-sm-sm border border-yellow-500/30"
+              : "text-yellow-500/70 hover:bg-zinc-800/40 hover:text-yellow-400"
+          )}
+          title="Tutorial"
+        >
+          <GraduationCap size={18} weight={isDocActive('section-tutorial') ? "fill" : "regular"} />
+        </button>
+
+        {/* Help */}
         <div
           draggable
           onDragStart={(e) => {
@@ -1070,26 +1086,34 @@ export const Sidebar = () => {
             e.dataTransfer.effectAllowed = 'copyMove';
           }}
         >
-          <SidebarItem
-            icon={<Question size={16} className={isDocActive('section-help') ? "text-current" : "text-teal-500/90 dark:text-teal-400/90"} />}
-            label="Help"
-            isOpen={isSidebarOpen}
-            highlight={isDocActive('section-help')}
+          <button
             onClick={() => handleDocClick('section-help')}
-            activeBgClass="bg-teal-500/20 dark:bg-teal-500/35 border-teal-500/70 dark:border-teal-500/50 border"
-            activeTextClass="!text-teal-600 dark:!text-teal-400 font-semibold"
-          />
+            className={cn(
+              "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
+              isDocActive('section-help')
+                ? "bg-teal-500/25 text-teal-400 shadow-sm-sm border border-teal-500/30"
+                : "text-teal-500/70 hover:bg-zinc-800/40 hover:text-teal-400"
+            )}
+            title="Help"
+          >
+            <Question size={18} weight={isDocActive('section-help') ? "fill" : "regular"} />
+          </button>
         </div>
-        <SidebarItem 
+
+        {/* Settings */}
+        <button
           id="onboarding-settings-tab"
-          icon={<Gear size={16} className={isDocActive('section-settings') ? "text-current" : "text-slate-500/70 dark:text-slate-400/70"} />} 
-          label="Settings" 
-          isOpen={isSidebarOpen} 
-          highlight={isDocActive('section-settings')}
-          onClick={() => openDocument('section-settings', activePaneId || undefined)} 
-          activeBgClass="bg-slate-500/20 dark:bg-slate-500/15 border-slate-500/45 dark:border-slate-500/30 border"
-          activeTextClass="!text-slate-600 dark:!text-slate-400 font-semibold"
-        />
+          onClick={() => openDocument('section-settings', activePaneId || undefined)}
+          className={cn(
+            "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
+            isDocActive('section-settings')
+              ? "bg-slate-500/25 text-slate-200 shadow-sm-sm border border-slate-500/30"
+              : "text-slate-500/70 hover:bg-zinc-800/40 hover:text-slate-200"
+          )}
+          title="Settings"
+        >
+          <Gear size={18} weight={isDocActive('section-settings') ? "fill" : "regular"} />
+        </button>
       </div>
 
       <DeleteFolderDialog

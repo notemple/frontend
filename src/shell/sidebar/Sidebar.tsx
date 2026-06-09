@@ -305,14 +305,14 @@ let cachedUncategorizedDocIds: string[] = [];
 const GSAPAccordion = ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInitial = useRef(true);
+  const [initialStyle] = useState(() => ({
+    height: isOpen ? "auto" : 0,
+    opacity: isOpen ? 1 : 0
+  }));
 
   useEffect(() => {
     if (containerRef.current) {
       if (isInitial.current) {
-        gsap.set(containerRef.current, {
-          height: isOpen ? "auto" : 0,
-          opacity: isOpen ? 1 : 0
-        });
         isInitial.current = false;
       } else {
         gsap.killTweensOf(containerRef.current);
@@ -339,7 +339,7 @@ const GSAPAccordion = ({ isOpen, children }: { isOpen: boolean; children: React.
   }, [isOpen]);
 
   return (
-    <div ref={containerRef} className="overflow-hidden">
+    <div ref={containerRef} className="overflow-hidden" style={initialStyle}>
       {children}
     </div>
   );
@@ -406,7 +406,26 @@ export const Sidebar = () => {
   const [renamingDocId, setRenamingDocId] = useState<string | null>(null);
   const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
   const [draggedItem, setDraggedItem] = useState<{ id: string, type: 'document' | 'folder' } | null>(null);
-  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(() => new Set(['section-favorites', 'section-folders', 'section-uncategorized', ...folderOrder]));
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebar-expanded-folders');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            return new Set(parsed);
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+    return new Set<string>();
+  });
+
+  useEffect(() => {
+    localStorage.setItem('sidebar-expanded-folders', JSON.stringify(Array.from(expandedFolders)));
+  }, [expandedFolders]);
 
   const [deleteFolderDialogOpen, setDeleteFolderDialogOpen] = useState(false);
   const [deletingFolderId, setDeletingFolderId] = useState<string | null>(null);
@@ -432,7 +451,7 @@ export const Sidebar = () => {
   }, []);
 
   const toggleFolderCollapse = (folderId: string) => {
-    setCollapsedFolders(prev => {
+    setExpandedFolders(prev => {
       const next = new Set(prev);
       if (next.has(folderId)) {
         next.delete(folderId);
@@ -511,15 +530,15 @@ export const Sidebar = () => {
 
       // Always include section headers; only include children when expanded
       ids.push('section-favorites');
-      if (!collapsedFolders.has('section-favorites')) {
+      if (expandedFolders.has('section-favorites')) {
         ids.push(...favoriteDocIds);
       }
 
       ids.push('section-folders');
-      if (!collapsedFolders.has('section-folders')) {
+      if (expandedFolders.has('section-folders')) {
         for (const folderId of folderOrder) {
           ids.push(`section-folder-${folderId}`);
-          if (!collapsedFolders.has(folderId)) {
+          if (expandedFolders.has(folderId)) {
             const { documents: docs, documentOrder: order } = useDocumentStore.getState();
             const folderDocs = order.filter(id => {
               const doc = docs[id];
@@ -531,7 +550,7 @@ export const Sidebar = () => {
       }
 
       ids.push('section-uncategorized');
-      if (!collapsedFolders.has('section-uncategorized')) {
+      if (expandedFolders.has('section-uncategorized')) {
         ids.push(...uncategorizedDocIds);
       }
 
@@ -554,18 +573,18 @@ export const Sidebar = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSidebarOpen, collapsedFolders, favoriteDocIds, folderOrder, uncategorizedDocIds, openDocument, toggleFolderCollapse]);
+  }, [isSidebarOpen, expandedFolders, favoriteDocIds, folderOrder, uncategorizedDocIds, openDocument, toggleFolderCollapse]);
 
 
 
 
-  // Track folder creation to automatically uncollapse the parent Folders section
+  // Track folder creation to automatically expand the parent Folders section
   const prevFolderCountRef = useRef(folderOrder.length);
   useEffect(() => {
     if (folderOrder.length > prevFolderCountRef.current) {
-      setCollapsedFolders(prev => {
+      setExpandedFolders(prev => {
         const next = new Set(prev);
-        next.delete('section-folders');
+        next.add('section-folders');
         return next;
       });
     }
@@ -601,9 +620,9 @@ export const Sidebar = () => {
       folderId: folderId,
       updatedAt: new Date().toISOString()
     });
-    setCollapsedFolders(prev => {
+    setExpandedFolders(prev => {
       const next = new Set(prev);
-      next.delete(folderId);
+      next.add(folderId);
       return next;
     });
     openDocument(newId);
@@ -683,6 +702,7 @@ export const Sidebar = () => {
     <motion.div
       ref={sidebarRef}
       className="h-full flex flex-col border-r border-border bg-muted absolute left-0 top-0 bottom-0 z-30 overflow-y-auto no-scrollbar group/sidebar shadow-md"
+      initial={false}
       animate={{
         width: isSidebarOpen ? 260 : 0,
         padding: isSidebarOpen ? "24px" : "24px 0px",
@@ -799,11 +819,11 @@ export const Sidebar = () => {
                 onClick={() => toggleFolderCollapse('section-favorites')}
                 className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200"
               >
-                {!collapsedFolders.has('section-favorites') ? <CaretDown size={14} /> : <CaretRight size={14} />}
+                {expandedFolders.has('section-favorites') ? <CaretDown size={14} /> : <CaretRight size={14} />}
               </button>
             </div>
           )}
-          <GSAPAccordion isOpen={!collapsedFolders.has('section-favorites')}>
+          <GSAPAccordion isOpen={expandedFolders.has('section-favorites')}>
             <div className="max-h-[320px] overflow-y-auto no-scrollbar">
               {favoriteDocIds.map(docId => (
                 <div
@@ -862,13 +882,13 @@ export const Sidebar = () => {
                   onClick={() => toggleFolderCollapse('section-folders')}
                   className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200"
                 >
-                  {!collapsedFolders.has('section-folders') ? <CaretDown size={14} /> : <CaretRight size={14} />}
+                  {expandedFolders.has('section-folders') ? <CaretDown size={14} /> : <CaretRight size={14} />}
                 </button>
               </div>
             </div>
           )}
 
-          <GSAPAccordion isOpen={!collapsedFolders.has('section-folders')}>
+          <GSAPAccordion isOpen={expandedFolders.has('section-folders')}>
             <div className="max-h-[320px] overflow-y-auto no-scrollbar">
               {folderOrder.map((folderId, index) => {
                 const folder = folders.find(f => f?.id === folderId);
@@ -940,13 +960,13 @@ export const Sidebar = () => {
                             }}
                             className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200 cursor-pointer"
                           >
-                            {!collapsedFolders.has(folder.id) ? <CaretDown size={14} /> : <CaretRight size={14} />}
+                            {expandedFolders.has(folder.id) ? <CaretDown size={14} /> : <CaretRight size={14} />}
                           </div>
                         </div>
                       }
                     />
                     {/* Render documents inside folder with smooth transition */}
-                    <GSAPAccordion isOpen={!collapsedFolders.has(folder.id)}>
+                    <GSAPAccordion isOpen={expandedFolders.has(folder.id)}>
                       <FolderDocumentsList
                         folderId={folder.id}
                         isOpen={isSidebarOpen}
@@ -992,11 +1012,11 @@ export const Sidebar = () => {
                 onClick={() => toggleFolderCollapse('section-uncategorized')}
                 className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200"
               >
-                {!collapsedFolders.has('section-uncategorized') ? <CaretDown size={14} /> : <CaretRight size={14} />}
+                {expandedFolders.has('section-uncategorized') ? <CaretDown size={14} /> : <CaretRight size={14} />}
               </button>
             </div>
           )}
-          <GSAPAccordion isOpen={!collapsedFolders.has('section-uncategorized')}>
+          <GSAPAccordion isOpen={expandedFolders.has('section-uncategorized')}>
             <div className="max-h-[320px] overflow-y-auto no-scrollbar">
               {uncategorizedDocIds.map((docId) => (
                 <div

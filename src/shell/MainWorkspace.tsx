@@ -463,6 +463,7 @@ export const MainWorkspace = () => {
           isRightSidebarOpen ? "pr-[336px]" : "pr-6",
           autoHideNavbar && !showNavbar ? "overflow-hidden" : ""
         )}
+        initial={false}
         animate={{
           height: showNavbar ? 56 : 0,
           opacity: showNavbar ? 1 : 0,

@@ -14,7 +14,7 @@ import {
 import { INSERT_TABLE_COMMAND } from "@lexical/table"
 import { $createColumnsContainerNode } from "../nodes/ColumnsContainerNode"
 import { $createHorizontalRuleNode } from "../nodes/HorizontalRuleNode"
-import { $createCalloutNode } from "../nodes/CalloutNode"
+import { $createCalloutNode, type CalloutType } from "../nodes/CalloutNode"
 import { $createToggleNode } from "../nodes/ToggleNode"
 import { $createImageNode } from "../nodes/ImageNode"
 import { $createEquationNode } from "../nodes/EquationNode"
@@ -26,6 +26,7 @@ export interface SlashCommand {
   category: "Basic" | "Lists" | "Layout" | "Media" | "Advanced"
   icon: string // phosphor icon name, resolved in SlashCommandMenu
   onSelect: (editor: LexicalEditor) => void
+  submenu?: boolean
 }
 
 function insertColumns(editor: LexicalEditor, count: number) {
@@ -162,15 +163,8 @@ export const slashCommands: SlashCommand[] = [
     keywords: ["callout", "info", "highlight", "box", "note", "alert", "warning"],
     category: "Basic",
     icon: "Warning",
-    onSelect: (editor) =>
-      editor.update(() => {
-        const sel = $getSelection()
-        if ($isRangeSelection(sel)) {
-          const node = $createCalloutNode("info")
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
-          node.select()
-        }
-      }),
+    submenu: true,
+    onSelect: () => {},
   },
   {
     title: "Toggle",
@@ -349,5 +343,88 @@ export const slashCommands: SlashCommand[] = [
         newParagraph.select()
       })
     },
+  },
+]
+
+export const calloutSubmenuCommands: SlashCommand[] = [
+  {
+    title: "Note",
+    description: "Blue ℹ️ callout",
+    keywords: ["note", "blue", "info"],
+    category: "Basic",
+    icon: "Info",
+    onSelect: (editor) =>
+      editor.update(() => {
+        const sel = $getSelection()
+        if ($isRangeSelection(sel)) {
+          const node = $createCalloutNode("note")
+          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
+          node.select()
+        }
+      }),
+  },
+  {
+    title: "Tip",
+    description: "Green 💡 callout",
+    keywords: ["tip", "green", "idea", "success"],
+    category: "Basic",
+    icon: "Lightbulb",
+    onSelect: (editor) =>
+      editor.update(() => {
+        const sel = $getSelection()
+        if ($isRangeSelection(sel)) {
+          const node = $createCalloutNode("tip")
+          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
+          node.select()
+        }
+      }),
+  },
+  {
+    title: "Important",
+    description: "Violet 💜 callout",
+    keywords: ["important", "violet", "purple", "attention"],
+    category: "Basic",
+    icon: "Star",
+    onSelect: (editor) =>
+      editor.update(() => {
+        const sel = $getSelection()
+        if ($isRangeSelection(sel)) {
+          const node = $createCalloutNode("important")
+          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
+          node.select()
+        }
+      }),
+  },
+  {
+    title: "Warning",
+    description: "Yellow ⚠️ callout",
+    keywords: ["warning", "yellow", "alert"],
+    category: "Basic",
+    icon: "Warning",
+    onSelect: (editor) =>
+      editor.update(() => {
+        const sel = $getSelection()
+        if ($isRangeSelection(sel)) {
+          const node = $createCalloutNode("warning")
+          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
+          node.select()
+        }
+      }),
+  },
+  {
+    title: "Caution",
+    description: "Red 🚨 callout",
+    keywords: ["caution", "red", "danger", "error"],
+    category: "Basic",
+    icon: "XCircle",
+    onSelect: (editor) =>
+      editor.update(() => {
+        const sel = $getSelection()
+        if ($isRangeSelection(sel)) {
+          const node = $createCalloutNode("caution")
+          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
+          node.select()
+        }
+      }),
   },
 ]

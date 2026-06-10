@@ -722,7 +722,10 @@ export const Sidebar = () => {
 
               {/* Stacked Branding text logo */}
               <div className="flex flex-col select-none cursor-pointer" style={{ fontFamily: 'var(--font-sans), sans-serif' }}>
-                <span className="text-[22px] font-black leading-none tracking-tighter lowercase bg-gradient-to-br from-[#BDE0FE] via-[#FFC8DD] to-[#B5EAD7] bg-clip-text text-transparent">
+                <span 
+                  className="text-[22px] font-black leading-none tracking-tighter lowercase bg-gradient-to-br from-[#BDE0FE] via-[#FFC8DD] to-[#B5EAD7] bg-clip-text text-transparent"
+                  style={{ WebkitTextStroke: '0.3px rgba(18, 18, 18, 0.35)' }}
+                >
                   templ
                 </span>
               </div>

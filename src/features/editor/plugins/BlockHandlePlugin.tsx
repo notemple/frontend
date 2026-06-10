@@ -58,6 +58,7 @@ if (!('__patchedElementNode' in ElementNode.prototype)) {
 interface HandleState {
   top: number
   left: number
+  height: number
   nodeKey: string
 }
 
@@ -760,6 +761,7 @@ export default function BlockHandlePlugin({
 
         const newTop = rect.top
         const newLeft = leftPos
+        const newHeight = rect.height
         const newKey = key ?? ""
 
         setHandle((prev) => {
@@ -767,11 +769,12 @@ export default function BlockHandlePlugin({
             prev &&
             prev.top === newTop &&
             prev.left === newLeft &&
+            prev.height === newHeight &&
             prev.nodeKey === newKey
           ) {
             return prev
           }
-          return { top: newTop, left: newLeft, nodeKey: newKey }
+          return { top: newTop, left: newLeft, height: newHeight, nodeKey: newKey }
         })
         return
       }
@@ -995,7 +998,7 @@ export default function BlockHandlePlugin({
         style={{
           position: "fixed",
           // Adjust top/left to compensate for the padding so the buttons remain in the same position
-          top: handle.top - 6, // +4 offset - 10px padding
+          top: handle.top + (handle.height / 2) - 21, // centered relative to node height
           left: handle.left - 24, // left offset - 24px padding
           padding: "10px 24px",
           zIndex: 50,

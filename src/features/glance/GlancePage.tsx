@@ -9,6 +9,8 @@ import { QuickCaptureBox } from "./components/QuickCaptureBox";
 import { RecentCapturesList } from "./components/RecentCapturesList";
 import { RecentDocuments } from "./components/RecentDocuments";
 
+const COLUMN_WIDTH = 320;
+
 export const GlancePage = ({ paneId }: { paneId: string }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState<number>(() => {
@@ -81,7 +83,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
     if (!showLeftColumn) {
       if (x <= 40) {
         setIsLeftOverlaid(true);
-      } else if (x > 384) {
+      } else if (x > COLUMN_WIDTH) {
         setIsLeftOverlaid(false);
       }
     }
@@ -89,7 +91,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
     // Trigger hover overlay for right column
     if (!showRightColumn) {
       const rightBoundary = containerWidth - 40;
-      const rightCloseBoundary = containerWidth - 384;
+      const rightCloseBoundary = containerWidth - COLUMN_WIDTH;
       if (x >= rightBoundary) {
         setIsRightOverlaid(true);
       } else if (x < rightCloseBoundary) {
@@ -115,7 +117,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
         className={`flex-shrink-0 flex flex-col gap-0 overflow-hidden ${overlayClass} ${borderClass}`}
         initial={false}
         animate={{
-          width: isLeftOpen ? 384 : 0,
+          width: isLeftOpen ? COLUMN_WIDTH : 0,
           opacity: isLeftOpen ? 1 : 0
         }}
         transition={{
@@ -125,7 +127,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
           mass: 0.8
         }}
         style={{
-          width: isLeftOpen ? 384 : 0,
+          width: isLeftOpen ? COLUMN_WIDTH : 0,
           opacity: isLeftOpen ? 1 : 0,
           pointerEvents: isLeftOpen ? "auto" : "none"
         }}
@@ -154,7 +156,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
         className={`flex-shrink-0 flex flex-col overflow-hidden ${overlayClass} ${borderClass}`}
         initial={false}
         animate={{
-          width: isRightOpen ? 384 : 0,
+          width: isRightOpen ? COLUMN_WIDTH : 0,
           opacity: isRightOpen ? 1 : 0
         }}
         transition={{
@@ -164,7 +166,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
           mass: 0.8
         }}
         style={{
-          width: isRightOpen ? 384 : 0,
+          width: isRightOpen ? COLUMN_WIDTH : 0,
           opacity: isRightOpen ? 1 : 0,
           pointerEvents: isRightOpen ? "auto" : "none"
         }}

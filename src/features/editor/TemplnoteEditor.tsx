@@ -562,12 +562,13 @@ export function TemplnoteEditor({
                     />
                   </div>
                 }
-                placeholder={
+                 placeholder={
                   <div 
-                    className="absolute top-4 left-0.5 pointer-events-none select-none text-[var(--muted-foreground)] opacity-40 font-sans"
+                    className="absolute top-4 left-0.5 pointer-events-none select-none text-[var(--muted-foreground)] opacity-40 font-sans flex items-center"
                     style={{
+                      height: 'calc(var(--editor-base-size, 16px) * 1.1875 * var(--editor-line-height-paragraph, 1.95))',
                       fontSize: 'calc(var(--editor-base-size, 16px) * 1.1875)',
-                      lineHeight: 'var(--editor-line-height-paragraph, 1.95)',
+                      lineHeight: '1',
                       ...(resolvedFontFamily ? { fontFamily: resolvedFontFamily } : {})
                     }}
                   >

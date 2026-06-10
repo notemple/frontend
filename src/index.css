@@ -85,7 +85,7 @@
     
     --workspace-bg: #f7f5f2; /* Layer 3 — Workspace Canvas Background */
     --card-bg: #fcfbf9; /* Layer 4 — Cards / Elevated Surfaces Background */
-    --card-border: #e5dfd7; /* Layer 4 — Cards border */
+    --card-border: #d5cebf; /* Layer 4 — Cards border */
     
     --muted: #ebe8e4; /* Layer 2 — Sidebar Background (slightly darker than workspace) */
 
@@ -101,17 +101,17 @@
     --muted-foreground: #7c786f; /* Secondary text */
     --body-text: #3f3d39; /* Body text */
     
-    --border: rgba(0,0,0,0.035); /* Border-Based Depth System: subtle structural borders */
+    --border: rgba(0, 0, 0, 0.08); /* Border-Based Depth System: subtle structural borders */
     
     --accent: #1e1e1c; 
     --accent-foreground: #fcfbf9;
     
     --background-topbar: linear-gradient(to bottom, rgba(252, 251, 249, 0.72), rgba(252, 251, 249, 0.45));
     --background-calendar: rgba(0, 0, 0, 0.015);
-    --border-calendar: rgba(0, 0, 0, 0.035);
+    --border-calendar: rgba(0, 0, 0, 0.08);
     
     --task-row-bg: rgba(252, 251, 249, 0.55);
-    --task-row-border: rgba(0, 0, 0, 0.045);
+    --task-row-border: rgba(0, 0, 0, 0.09);
     --task-row-hover-bg: rgba(252, 251, 249, 0.85);
 
     /* Table Background Colors */

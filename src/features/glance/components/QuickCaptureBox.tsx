@@ -257,12 +257,12 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
                 type="button"
                 disabled={isDisabled}
                 onClick={() => setActiveType(type)}
-                style={isSelected ? { color: paneHighlightSolid, borderColor: 'transparent' } : undefined}
+                style={isSelected ? { borderColor: 'transparent' } : undefined}
                 className={cn(
-                  "relative px-3 py-1.5 rounded border flex items-center gap-2 text-sm font-medium transition-all cursor-pointer select-none overflow-hidden",
+                  "relative px-3 py-1.5 rounded border flex items-center gap-2 text-sm font-medium transition-all cursor-pointer select-none overflow-hidden group",
                   isSelected
-                    ? "shadow-sm-sm"
-                    : "border-border/50 hover:border-border/80 hover:bg-muted/20 text-foreground/70",
+                    ? "shadow-sm-sm text-foreground/85 dark:text-foreground/70"
+                    : "border-border hover:border-border/80 hover:bg-muted/20 text-foreground/85 dark:text-foreground/70 dark:border-border/50",
                   isDisabled && "opacity-40 cursor-not-allowed hover:bg-transparent hover:border-border/50",
                   type === "Note" && isFirstStep && captureText.trim() !== "" && effectiveActiveType !== "Note" && showNoteHighlight && "animate-pulse border-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
                 )}
@@ -273,11 +273,11 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
                 {isSelected && (
                   <div 
                     style={{ background: paneHighlightBg }} 
-                    className="absolute inset-0 opacity-[0.12] dark:opacity-[0.18] pointer-events-none" 
+                    className="absolute inset-0 opacity-[0.22] dark:opacity-[0.18] group-hover:opacity-[0.32] dark:group-hover:opacity-[0.28] pointer-events-none transition-opacity duration-200" 
                   />
                 )}
                 <span className="relative z-10 flex items-center gap-2">
-                  {getCaptureIcon(type, isSelected ? paneHighlightSolid : undefined)}
+                  {getCaptureIcon(type)}
                   <span>{type}</span>
                 </span>
               </button>
@@ -291,7 +291,7 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
             <button
               type="button"
               onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-border/50 bg-muted/10 hover:bg-muted/20 hover:border-border/80 text-xs font-semibold text-muted-foreground/80 hover:text-foreground transition-all cursor-pointer select-none"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded border border-border bg-muted/15 hover:bg-muted/25 hover:border-border/80 text-xs font-semibold text-muted-foreground hover:text-foreground dark:text-muted-foreground/80 dark:border-border/50 dark:bg-muted/10 transition-all cursor-pointer select-none"
               title="Select AI Model"
             >
               <span>{selectedModel}</span>
@@ -335,7 +335,7 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
           </div>
 
           {/* Mic Icon */}
-          <button type="button" className="p-2 rounded hover:bg-muted/20 text-muted-foreground/70 hover:text-foreground transition-colors cursor-pointer">
+          <button type="button" className="p-2 rounded hover:bg-muted/20 text-muted-foreground hover:text-foreground dark:text-muted-foreground/70 transition-colors cursor-pointer">
             <Microphone size={17} />
           </button>
 
@@ -350,13 +350,13 @@ export const QuickCaptureBox = ({ paneId, onCaptureAdded }: QuickCaptureBoxProps
               "relative p-2 rounded flex items-center justify-center transition-all cursor-pointer overflow-hidden",
               canSubmit
                 ? "shadow-sm hover:opacity-90 border border-transparent"
-                : "bg-muted text-muted-foreground/30 cursor-not-allowed border border-border/30"
+                : "bg-muted text-muted-foreground/35 cursor-not-allowed border border-border/40 dark:border-border/30"
             )}
           >
             {canSubmit && (
               <div 
                 style={{ background: paneHighlightBg }} 
-                className="absolute inset-0 opacity-[0.12] dark:opacity-[0.18] pointer-events-none" 
+                className="absolute inset-0 opacity-[0.22] dark:opacity-[0.18] pointer-events-none" 
               />
             )}
             <ArrowUp size={17} weight="bold" className="relative z-10" />

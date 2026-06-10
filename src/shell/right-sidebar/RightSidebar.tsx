@@ -5,18 +5,18 @@ import { cn } from '@/shared/lib/utils';
 import { useUiStore } from '@/shared/store/uiStore';
 import { formatInTimeZone } from 'date-fns-tz';
 import {
-	ArrowCounterClockwise,
-	Calendar,
-	CaretDown,
-	Check,
-	Clock,
-	PaintBrush,
-	TextT,
-	User,
-	X
+  ArrowCounterClockwise,
+  Calendar,
+  CaretDown,
+  Check,
+  Clock,
+  PaintBrush,
+  TextT,
+  User,
+  X
 } from '@phosphor-icons/react';
 import { motion } from 'motion/react';
-import { useCallback,useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export const RightSidebar = () => {
@@ -48,38 +48,38 @@ export const RightSidebar = () => {
         pointerEvents: isRightSidebarOpen ? "auto" : "none"
       }}
     >
-          {/* Header */}
-          <div className="h-12 border-b border-border flex items-center px-4 shrink-0 justify-between gap-1 bg-muted">
-            <div className="flex gap-1.5">
-              {tabs.map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={cn(
-                    "px-3 py-1 text-xs font-semibold rounded-sm-sm transition-all whitespace-nowrap",
-                    activeTab === tab
-                      ? "text-foreground bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10"
-                      : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:text-white dark:hover:bg-white/5 border border-transparent"
-                  )}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
+      {/* Header */}
+      <div className="h-12 border-b border-border flex items-center px-4 shrink-0 justify-between gap-1 bg-muted">
+        <div className="flex gap-1.5">
+          {tabs.map(tab => (
             <button
-              onClick={toggleRightSidebar}
-              className="p-1 px-1.5 rounded-sm-sm text-muted-foreground/80 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-500/10 hover:border-sky-500/20 border border-transparent transition-all duration-200 shrink-0 shadow-sm-sm"
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                "px-3 py-1 text-xs font-semibold rounded-sm-sm transition-all whitespace-nowrap",
+                activeTab === tab
+                  ? "text-foreground bg-black/5 dark:bg-zinc-900 border border-black/10 dark:border-white/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:text-white dark:hover:bg-white/5 border border-transparent"
+              )}
             >
-              <X size={16} />
+              {tab}
             </button>
-          </div>
+          ))}
+        </div>
+        <button
+          onClick={toggleRightSidebar}
+          className="p-1 px-1.5 rounded-sm-sm text-muted-foreground/80 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-500/10 hover:border-sky-500/20 border border-transparent transition-all duration-200 shrink-0 shadow-sm-sm"
+        >
+          <X size={16} />
+        </button>
+      </div>
 
-          {/* Body Content */}
-          <div className="flex-1 p-4 overflow-y-auto overflow-x-hidden no-scrollbar bg-background">
-            {activeTab === 'Formatting' && <FormattingTab />}
-            {activeTab === 'Style' && <StyleTab />}
-            {activeTab === 'Info' && <InfoTab />}
-          </div>
+      {/* Body Content */}
+      <div className="flex-1 p-4 overflow-y-auto overflow-x-hidden no-scrollbar bg-background">
+        {activeTab === 'Formatting' && <FormattingTab />}
+        {activeTab === 'Style' && <StyleTab />}
+        {activeTab === 'Info' && <InfoTab />}
+      </div>
     </motion.div>
   );
 };
@@ -445,7 +445,7 @@ const StyleTab = () => {
               className={cn(
                 "py-2 flex items-center justify-center rounded-sm-sm transition-all text-xs relative group-hover:bg-black/5 dark:group-hover:bg-white/5 cursor-pointer",
                 currentType === 'none'
-                  ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                  ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                   : "text-muted-foreground hover:text-foreground dark:hover:text-white"
               )}
               title="No Backdrop"
@@ -463,7 +463,7 @@ const StyleTab = () => {
               className={cn(
                 "py-2 flex items-center justify-center rounded-sm-sm transition-all text-xs cursor-pointer",
                 currentType === 'solid'
-                  ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                  ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                   : "text-muted-foreground hover:text-foreground dark:hover:text-white"
               )}
               title="Solid Backdrop"
@@ -477,7 +477,7 @@ const StyleTab = () => {
               className={cn(
                 "py-2 flex items-center justify-center rounded-sm-sm transition-all text-xs cursor-pointer",
                 currentType === 'gradient'
-                  ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                  ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                   : "text-muted-foreground hover:text-foreground dark:hover:text-white"
               )}
               title="Gradient Backdrop"
@@ -503,10 +503,10 @@ const StyleTab = () => {
                         "w-8 h-8 rounded-sm-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
                         isSelected ? "scale-105" : ""
                       )}
-                      style={{ 
+                      style={{
                         backgroundColor: color,
-                        boxShadow: isSelected 
-                          ? `0 0 0 2px var(--background), 0 0 0 4px ${color}` 
+                        boxShadow: isSelected
+                          ? `0 0 0 2px var(--background), 0 0 0 4px ${color}`
                           : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
                       }}
                     >
@@ -533,8 +533,8 @@ const StyleTab = () => {
                     showColorPickerInline ? "scale-105" : ""
                   )}
                   style={{
-                    boxShadow: showColorPickerInline 
-                      ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6' 
+                    boxShadow: showColorPickerInline
+                      ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6'
                       : '0 0 0 2px var(--background), 0 0 0 4px var(--foreground)'
                   }}
                 >
@@ -588,10 +588,10 @@ const StyleTab = () => {
                         "w-8 h-8 rounded-sm-full border transition-all duration-200 hover:scale-105 shrink-0 flex items-center justify-center cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
                         isSelected ? "scale-105" : ""
                       )}
-                      style={{ 
+                      style={{
                         background: preset.dir,
-                        boxShadow: isSelected 
-                          ? `0 0 0 2px var(--background), 0 0 0 4px ${preset.start}` 
+                        boxShadow: isSelected
+                          ? `0 0 0 2px var(--background), 0 0 0 4px ${preset.start}`
                           : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
                       }}
                       title={preset.name}
@@ -619,8 +619,8 @@ const StyleTab = () => {
                     showColorPickerInline ? "scale-105" : ""
                   )}
                   style={{
-                    boxShadow: showColorPickerInline 
-                      ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6' 
+                    boxShadow: showColorPickerInline
+                      ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6'
                       : '0 0 0 2px var(--background), 0 0 0 4px var(--foreground)'
                   }}
                 >
@@ -680,11 +680,11 @@ const StyleTab = () => {
                       onChange={(e) => handleGradientCustomUpdate({ dir: e.target.value })}
                       className="flex-1 max-w-[124px] bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 rounded-sm-sm text-foreground dark:text-white/95 px-2.5 py-1 text-[11px] outline-none hover:border-black/20 dark:hover:border-white/20 transition-all font-mono"
                     >
-                      <option className="bg-neutral-100 dark:bg-neutral-900" value="180deg">Top to Bottom</option>
-                      <option className="bg-neutral-100 dark:bg-neutral-900" value="90deg">Left to Right</option>
-                      <option className="bg-neutral-100 dark:bg-neutral-900" value="45deg">Diagonal Up</option>
-                      <option className="bg-neutral-100 dark:bg-neutral-900" value="135deg">Diagonal Down</option>
-                      <option className="bg-neutral-100 dark:bg-neutral-900" value="radial">Radial Circle</option>
+                      <option className="bg-white dark:bg-zinc-900 text-foreground dark:text-white" value="180deg">Top to Bottom</option>
+                      <option className="bg-white dark:bg-zinc-900 text-foreground dark:text-white" value="90deg">Left to Right</option>
+                      <option className="bg-white dark:bg-zinc-900 text-foreground dark:text-white" value="45deg">Diagonal Up</option>
+                      <option className="bg-white dark:bg-zinc-900 text-foreground dark:text-white" value="135deg">Diagonal Down</option>
+                      <option className="bg-white dark:bg-zinc-900 text-foreground dark:text-white" value="radial">Radial Circle</option>
                     </select>
                   </div>
                 </div>
@@ -708,8 +708,8 @@ const StyleTab = () => {
                     )}
                     style={{
                       backgroundColor: swatch.value || undefined,
-                      boxShadow: isSelected 
-                        ? `0 0 0 2px var(--background), 0 0 0 4px ${swatch.value || '#94a3b8'}` 
+                      boxShadow: isSelected
+                        ? `0 0 0 2px var(--background), 0 0 0 4px ${swatch.value || '#94a3b8'}`
                         : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
                     }}
                     title={swatch.name}
@@ -741,7 +741,7 @@ const StyleTab = () => {
       {/* Header Banner Color Module */}
       <div className="space-y-4 pt-1 border-t border-black/10 dark:border-white/5">
         <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Header Banner</span>
-        
+
         {/* Segmented Control Selector for Banner Color Type */}
         <div className="grid grid-cols-2 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
           {/* Solid */}
@@ -750,7 +750,7 @@ const StyleTab = () => {
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm-sm transition-all text-xs cursor-pointer font-mono",
               topSectionType === 'solid'
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
           >
@@ -763,7 +763,7 @@ const StyleTab = () => {
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm-sm transition-all text-xs cursor-pointer font-mono",
               topSectionType === 'gradient'
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
           >
@@ -774,7 +774,7 @@ const StyleTab = () => {
         <div className="space-y-3.5">
           <div className="space-y-1.5">
             <span className="text-[10px] text-muted-foreground font-mono">Banner Background Color</span>
-            
+
             {topSectionType === 'solid' && (
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-3.5 items-center pt-1">
@@ -795,8 +795,8 @@ const StyleTab = () => {
                         )}
                         style={{
                           backgroundColor: swatch.value || undefined,
-                          boxShadow: isSelected 
-                            ? `0 0 0 2px var(--background), 0 0 0 4px ${swatch.value || '#94a3b8'}` 
+                          boxShadow: isSelected
+                            ? `0 0 0 2px var(--background), 0 0 0 4px ${swatch.value || '#94a3b8'}`
                             : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
                         }}
                         title={swatch.name}
@@ -829,8 +829,8 @@ const StyleTab = () => {
                       showTopSectionColorPickerInline ? "scale-105" : ""
                     )}
                     style={{
-                      boxShadow: showTopSectionColorPickerInline 
-                        ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6' 
+                      boxShadow: showTopSectionColorPickerInline
+                        ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6'
                         : '0 0 0 2px var(--background), 0 0 0 4px var(--foreground)'
                     }}
                     title="Custom Header Color"
@@ -883,10 +883,10 @@ const StyleTab = () => {
                           "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
                           isSelected ? "scale-105" : ""
                         )}
-                        style={{ 
+                        style={{
                           background: swatch.dir,
-                          boxShadow: isSelected 
-                            ? `0 0 0 2px var(--background), 0 0 0 4px ${swatch.start}` 
+                          boxShadow: isSelected
+                            ? `0 0 0 2px var(--background), 0 0 0 4px ${swatch.start}`
                             : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
                         }}
                         title={swatch.name}
@@ -914,8 +914,8 @@ const StyleTab = () => {
                       showTopSectionGradientPickerInline ? "scale-105" : ""
                     )}
                     style={{
-                      boxShadow: showTopSectionGradientPickerInline 
-                        ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6' 
+                      boxShadow: showTopSectionGradientPickerInline
+                        ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6'
                         : '0 0 0 2px var(--background), 0 0 0 4px var(--foreground)'
                     }}
                     title="Custom Banner Gradient"
@@ -976,11 +976,11 @@ const StyleTab = () => {
                         onChange={(e) => handleTopSectionGradientCustomUpdate({ dir: e.target.value })}
                         className="flex-1 max-w-[124px] bg-white dark:bg-black/20 border border-black/10 dark:border-white/10 rounded-sm-sm text-foreground dark:text-white/95 px-2.5 py-1 text-[11px] outline-none hover:border-black/20 dark:hover:border-white/20 transition-all font-mono"
                       >
-                        <option value="180deg">Top to Bottom</option>
-                        <option value="90deg">Left to Right</option>
-                        <option value="45deg">Diagonal Up</option>
-                        <option value="135deg">Diagonal Down</option>
-                        <option value="radial">Radial Circle</option>
+                        <option className="bg-white dark:bg-zinc-900 text-foreground dark:text-white" value="180deg">Top to Bottom</option>
+                        <option className="bg-white dark:bg-zinc-900 text-foreground dark:text-white" value="90deg">Left to Right</option>
+                        <option className="bg-white dark:bg-zinc-900 text-foreground dark:text-white" value="45deg">Diagonal Up</option>
+                        <option className="bg-white dark:bg-zinc-900 text-foreground dark:text-white" value="135deg">Diagonal Down</option>
+                        <option className="bg-white dark:bg-zinc-900 text-foreground dark:text-white" value="radial">Radial Circle</option>
                       </select>
                     </div>
                   </div>
@@ -1010,8 +1010,8 @@ const StyleTab = () => {
                     )}
                     style={{
                       backgroundColor: swatch.value || undefined,
-                      boxShadow: isSelected 
-                        ? `0 0 0 2px var(--background), 0 0 0 4px ${swatch.value || '#94a3b8'}` 
+                      boxShadow: isSelected
+                        ? `0 0 0 2px var(--background), 0 0 0 4px ${swatch.value || '#94a3b8'}`
                         : `0 0 0 2px var(--background), 0 0 0 4px var(--foreground)`
                     }}
                     title={swatch.name}
@@ -1044,8 +1044,8 @@ const StyleTab = () => {
                   showTopSectionTextColorPickerInline ? "scale-105" : ""
                 )}
                 style={{
-                  boxShadow: showTopSectionTextColorPickerInline 
-                    ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6' 
+                  boxShadow: showTopSectionTextColorPickerInline
+                    ? '0 0 0 2px var(--background), 0 0 0 4px #3b82f6'
                     : '0 0 0 2px var(--background), 0 0 0 4px var(--foreground)'
                 }}
                 title="Custom Banner Text Color"
@@ -1143,7 +1143,7 @@ const FormattingTab = () => {
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
               (!document.fontFamily || document.fontFamily === 'sans')
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
             style={{ fontFamily: 'var(--font-sans)' }}
@@ -1155,7 +1155,7 @@ const FormattingTab = () => {
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
               (document.fontFamily === 'serif' || document.fontFamily === 'sans-serif')
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
             style={{ fontFamily: 'var(--font-serif)' }}
@@ -1167,7 +1167,7 @@ const FormattingTab = () => {
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
               document.fontFamily === 'monospace'
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
             style={{ fontFamily: 'var(--font-mono)' }}
@@ -1186,7 +1186,7 @@ const FormattingTab = () => {
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
               document.fontSize === 'small'
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
           >
@@ -1197,7 +1197,7 @@ const FormattingTab = () => {
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
               (!document.fontSize || document.fontSize === 'normal')
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
           >
@@ -1208,7 +1208,7 @@ const FormattingTab = () => {
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
               document.fontSize === 'large'
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
           >
@@ -1226,7 +1226,7 @@ const FormattingTab = () => {
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
               document.lineHeight === 'compact'
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
           >
@@ -1237,7 +1237,7 @@ const FormattingTab = () => {
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
               (!document.lineHeight || document.lineHeight === 'normal')
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
           >
@@ -1248,7 +1248,7 @@ const FormattingTab = () => {
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
               document.lineHeight === 'loose'
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
           >
@@ -1266,7 +1266,7 @@ const FormattingTab = () => {
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
               (!document.pageWidth || document.pageWidth === 'narrow')
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
           >
@@ -1277,7 +1277,7 @@ const FormattingTab = () => {
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
               document.pageWidth === 'wide'
-                ? "bg-white dark:bg-muted/40 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
           >
@@ -1344,7 +1344,7 @@ const InfoTab = () => {
   return (
     <div className="space-y-6">
       {/* Sub Tabs Toggle */}
-      <div className="flex bg-white/5 border border-white/10 p-1 rounded-sm-sm gap-1">
+      <div className="flex bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm gap-1">
         {['Page Info', 'Actions'].map(tab => (
           <button
             key={tab}
@@ -1352,8 +1352,8 @@ const InfoTab = () => {
             className={cn(
               "flex-1 py-1.5 text-xs font-semibold rounded-sm transition-all font-mono",
               subTab === tab
-                ? "bg-muted/40 text-white shadow-sm-sm border border-white/5"
-                : "text-muted-foreground hover:text-white"
+                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5"
+                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
           >
             {tab}
@@ -1363,12 +1363,12 @@ const InfoTab = () => {
 
       {subTab === 'Page Info' ? (
         <div className="space-y-6">
-          <h3 className="text-sm font-semibold text-white tracking-tight font-mono">Page Info</h3>
+          <h3 className="text-sm font-semibold text-foreground tracking-tight font-mono">Page Info</h3>
 
           <div className="space-y-4">
             <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest block">Properties</span>
 
-            <div className="space-y-3 bg-white/[0.02] border border-white/5 p-3 rounded-sm-sm">
+            <div className="space-y-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-3 rounded-sm-sm">
               {/* Created */}
               <div className="flex items-center gap-3">
                 <Calendar size={16} className="text-muted-foreground shrink-0" />
@@ -1406,7 +1406,7 @@ const InfoTab = () => {
         </div>
       ) : (
         <div className="space-y-4 font-mono">
-          <h3 className="text-sm font-semibold text-white tracking-tight">Actions</h3>
+          <h3 className="text-sm font-semibold text-foreground tracking-tight">Actions</h3>
           <div className="space-y-2">
             <button
               onClick={() => {
@@ -1418,7 +1418,7 @@ const InfoTab = () => {
                 downloadLink.click();
                 window.document.body.removeChild(downloadLink);
               }}
-              className="w-full py-2 hover:bg-white/5 border border-white/10 hover:border-white/20 text-xs text-white flex items-center justify-center gap-2 transition-all rounded-sm"
+              className="w-full py-2 bg-black/5 dark:bg-black/20 hover:bg-black/10 dark:hover:bg-white/5 border border-black/10 dark:border-white/5 text-xs text-foreground dark:text-white flex items-center justify-center gap-2 transition-all rounded-sm font-medium"
             >
               Export as HTML
             </button>

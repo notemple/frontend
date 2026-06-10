@@ -4,12 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import type { ReactNode } from "react"
 import Fuse from "fuse.js"
-import { slashCommands, type SlashCommand } from "./slashCommandList"
+import { slashCommands, calloutSubmenuCommands, type SlashCommand } from "./slashCommandList"
 import SlashCommandMenu, { CATEGORY_ORDER } from "../components/SlashCommandMenu"
 
 export default function SlashCommandPlugin(): ReactNode {
   const [editor] = useLexicalComposerContext()
   const [open, setOpen] = useState(false)
+  const [menuMode, setMenuMode] = useState<"main" | "callout">("main")
   const [query, setQuery] = useState("")
   const [position, setPosition] = useState({ top: 0, bottom: 0, left: 0 })
   const [selectedIdx, setSelectedIdx] = useState(0)
@@ -25,28 +26,45 @@ export default function SlashCommandPlugin(): ReactNode {
     })
   )
 
-  const unfiltered: SlashCommand[] = query.trim()
-    ? fuse.current.search(query).map((r: { item: SlashCommand }) => r.item)
-    : slashCommands
+  const activeCommands = menuMode === "callout" ? calloutSubmenuCommands : slashCommands
 
-  const filtered = CATEGORY_ORDER.reduce<SlashCommand[]>((acc, cat) => {
-    return acc.concat(unfiltered.filter((c) => c.category === cat))
-  }, [])
+  const unfiltered: SlashCommand[] = query.trim()
+    ? (menuMode === "callout"
+        ? calloutSubmenuCommands.filter((c) =>
+            c.title.toLowerCase().includes(query.toLowerCase()) ||
+            c.keywords.some((k) => k.includes(query.toLowerCase()))
+          )
+        : fuse.current.search(query).map((r: { item: SlashCommand }) => r.item)
+      )
+    : activeCommands
+
+  const filtered = menuMode === "callout"
+    ? unfiltered
+    : CATEGORY_ORDER.reduce<SlashCommand[]>((acc, cat) => {
+        return acc.concat(unfiltered.filter((c) => c.category === cat))
+      }, [])
 
   // Open, position, and filter menu when "/" is typed
   useEffect(() => {
     return editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
         const selection = $getSelection()
+        const handleClose = () => {
+          if (open) {
+            setOpen(false)
+            setMenuMode("main")
+          }
+        }
+
         if (!$isRangeSelection(selection) || !selection.isCollapsed()) {
-          if (open) setOpen(false)
+          handleClose()
           return
         }
 
         const anchor = selection.anchor
         const node = anchor.getNode()
         if (!$isTextNode(node)) {
-          if (open) setOpen(false)
+          handleClose()
           return
         }
 
@@ -59,7 +77,7 @@ export default function SlashCommandPlugin(): ReactNode {
 
         // Close if no "/" found before cursor
         if (lastSlashIdx === -1) {
-          if (open) setOpen(false)
+          handleClose()
           return
         }
 
@@ -67,7 +85,7 @@ export default function SlashCommandPlugin(): ReactNode {
         const charBefore = lastSlashIdx > 0 ? textBeforeCursor[lastSlashIdx - 1] : null
         const isValidTrigger = charBefore === null || /\s/.test(charBefore)
         if (!isValidTrigger) {
-          if (open) setOpen(false)
+          handleClose()
           return
         }
 
@@ -75,7 +93,7 @@ export default function SlashCommandPlugin(): ReactNode {
 
         // Close if query contains a space or newline (user typed prose, not a command)
         if (queryText.includes(" ") || queryText.includes("\n")) {
-          if (open) setOpen(false)
+          handleClose()
           return
         }
 
@@ -111,7 +129,15 @@ export default function SlashCommandPlugin(): ReactNode {
 
   const executeCommand = useCallback(
     (command: SlashCommand) => {
+      if (command.submenu && menuMode === "main") {
+        setMenuMode("callout")
+        setQuery("")
+        setSelectedIdx(0)
+        return
+      }
+
       setOpen(false)
+      setMenuMode("main")
 
       // FIX 3: delete from the tracked slash position to current cursor
       editor.update(() => {
@@ -131,7 +157,7 @@ export default function SlashCommandPlugin(): ReactNode {
       // Run command synchronously — no setTimeout needed
       command.onSelect(editor)
     },
-    [editor]
+    [editor, menuMode]
   )
 
   // Handle keyboard navigation while open
@@ -143,6 +169,14 @@ export default function SlashCommandPlugin(): ReactNode {
         e.preventDefault()
         e.stopPropagation()
         setOpen(false)
+        setMenuMode("main")
+        return
+      }
+      if (e.key === "Backspace" && menuMode === "callout" && query === "") {
+        e.preventDefault()
+        e.stopPropagation()
+        setMenuMode("main")
+        setSelectedIdx(0)
         return
       }
       if (e.key === "ArrowDown") {
@@ -167,12 +201,15 @@ export default function SlashCommandPlugin(): ReactNode {
 
     window.addEventListener("keydown", handleKeyDown, true)
     return () => window.removeEventListener("keydown", handleKeyDown, true)
-  }, [open, filtered, selectedIdx, executeCommand])
+  }, [open, filtered, selectedIdx, executeCommand, menuMode, query])
 
   // Close when clicking outside
   useEffect(() => {
     if (!open) return
-    const handleClick = () => setOpen(false)
+    const handleClick = () => {
+      setOpen(false)
+      setMenuMode("main")
+    }
     window.addEventListener("mousedown", handleClick)
     return () => window.removeEventListener("mousedown", handleClick)
   }, [open])
@@ -188,7 +225,10 @@ export default function SlashCommandPlugin(): ReactNode {
       currentQuery={query}
       onSelect={(cmd) => executeCommand(cmd)}
       onHover={(idx) => setSelectedIdx(idx)}
-      onClose={() => setOpen(false)}
+      onClose={() => {
+        setOpen(false)
+        setMenuMode("main")
+      }}
     />,
     document.body
   )

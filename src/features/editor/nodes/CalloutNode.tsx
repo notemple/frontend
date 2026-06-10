@@ -7,13 +7,15 @@ import type {
 } from "lexical"
 import { ElementNode, $applyNodeReplacement } from "lexical"
 
+export type CalloutType = "info" | "warning" | "success" | "error" | "note" | "tip" | "important" | "caution"
+
 export type SerializedCalloutNode = Spread<
-  { calloutType: "info" | "warning" | "success" | "error" },
+  { calloutType: CalloutType },
   SerializedElementNode
 >
 
 export class CalloutNode extends ElementNode {
-  __calloutType: "info" | "warning" | "success" | "error"
+  __calloutType: CalloutType
 
   static getType(): string { return "callout" }
 
@@ -22,7 +24,7 @@ export class CalloutNode extends ElementNode {
   }
 
   constructor(
-    calloutType: "info" | "warning" | "success" | "error" = "info",
+    calloutType: CalloutType = "note",
     key?: NodeKey
   ) {
     super(key)
@@ -59,7 +61,7 @@ export class CalloutNode extends ElementNode {
 }
 
 export function $createCalloutNode(
-  calloutType: "info" | "warning" | "success" | "error" = "info"
+  calloutType: CalloutType = "note"
 ): CalloutNode {
   return $applyNodeReplacement(new CalloutNode(calloutType))
 }

@@ -68,7 +68,6 @@ export default function PersistencePlugin({ documentId, onWordCountChange }: Pro
       if (documentId.startsWith("daily-note-")) {
         const { timezone } = useSettingsStore.getState()
         const existingDoc = useDocumentStore.getState().documents[documentId]
-        if (existingDoc && existingDoc.isDeleted) return
 
         const currentTitle = existingDoc ? existingDoc.title : ""
         const defaultTitle = getDailyNoteTitle(documentId, timezone)
@@ -78,7 +77,7 @@ export default function PersistencePlugin({ documentId, onWordCountChange }: Pro
 
         if (!hasCharacter && !hasTitle) {
           // Remove/delete empty daily note document
-          if (existingDoc) {
+          if (existingDoc && !existingDoc.isDeleted) {
             await useDocumentStore.getState().deleteDocument(documentId)
           }
           return
@@ -97,6 +96,8 @@ export default function PersistencePlugin({ documentId, onWordCountChange }: Pro
             lexicalState: serialized,
             contentText: textContent,
             folderId: null, // Keep in daily notes page only
+            isDeleted: false,
+            deletedAt: undefined,
           })
         }
       } else {

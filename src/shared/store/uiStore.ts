@@ -304,6 +304,25 @@ export const useUiStore = create<UiState>()(
       onRehydrateStorage: () => {
         return (state, error) => {
           if (!error && state) {
+            if (state.appearance) {
+              localStorage.setItem('appearance', state.appearance);
+              const root = window.document.documentElement;
+              let isDark = true;
+              if (state.appearance === 'light') {
+                isDark = false;
+              } else if (state.appearance === 'system') {
+                isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+              }
+              if (isDark) {
+                root.classList.remove('light');
+                root.classList.add('dark');
+                root.style.colorScheme = 'dark';
+              } else {
+                root.classList.add('light');
+                root.classList.remove('dark');
+                root.style.colorScheme = 'light';
+              }
+            }
             const allPanesEmpty = !state.panes || state.panes.every(pane => !pane.tabs || pane.tabs.length === 0);
             if (allPanesEmpty) {
               state.panes = [{

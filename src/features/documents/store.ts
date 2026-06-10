@@ -234,10 +234,13 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
       const hasTitle = newTitle && newTitle.trim().length > 0 && newTitle !== defaultTitle;
 
       if (!hasCharacter && !hasTitle) {
-        if (existing) {
+        if (existing && !existing.isDeleted) {
           await get().deleteDocument(id);
         }
         return;
+      } else {
+        finalUpdates.isDeleted = false;
+        finalUpdates.deletedAt = undefined;
       }
     }
 

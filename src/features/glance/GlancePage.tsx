@@ -108,7 +108,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
     const overlayClass = !showLeftColumn
       ? "absolute left-0 top-0 bottom-0 z-40 bg-background shadow-2xl"
       : "relative";
-    const borderClass = isLeftOpen ? "border-r border-border/50" : "border-r-0 border-transparent";
+    const borderClass = isLeftOpen ? "border-r border-border/80 dark:border-border/50" : "border-r-0 border-transparent";
 
     return (
       <motion.div
@@ -131,7 +131,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
         }}
       >
         <FocusTimeline />
-        <div className="h-px bg-border/25 shrink-0 mx-5" />
+        <div className="h-px bg-border/40 dark:bg-border/25 shrink-0 mx-5" />
         <RecentDocuments paneId={paneId} />
         <RecentCapturesList
           paneId={paneId}
@@ -147,7 +147,7 @@ export const GlancePage = ({ paneId }: { paneId: string }) => {
     const overlayClass = !showRightColumn
       ? "absolute right-0 top-0 bottom-0 z-40 bg-background shadow-2xl"
       : "relative";
-    const borderClass = isRightOpen ? "border-l border-border/50" : "border-l-0 border-transparent";
+    const borderClass = isRightOpen ? "border-l border-border/80 dark:border-border/50" : "border-l-0 border-transparent";
 
     return (
       <motion.div

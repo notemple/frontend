@@ -36,6 +36,18 @@ export const TnLogo: React.FC<TnLogoProps> = ({
             <stop offset="100%" stopColor="#B5EAD7" />
           </linearGradient>
         </defs>
+        {/* Thin dark outer border */}
+        <rect 
+          x="4.5" 
+          y="4.5" 
+          width="91" 
+          height="91" 
+          rx="17" 
+          fill="none" 
+          stroke="#000000" 
+          strokeWidth="1.5" 
+          opacity="0.8"
+        />
         {/* Outer rounded rect */}
         <rect 
           x="6" 

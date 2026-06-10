@@ -1,9 +1,9 @@
 
 import { useDocumentStore } from '@/features/documents/store';
 import { useSettingsStore } from '@/features/settings/store';
-import { formatDisplayDate,isSameDayInTimezone } from '@/shared/lib/time';
+import { formatDisplayDate, isSameDayInTimezone } from '@/shared/lib/time';
 import { getTagStyle } from '@/shared/lib/utils';
-import { ArrowsOutSimple,DotsThree,FileText,Tag } from '@phosphor-icons/react';
+import { ArrowsOutSimple, DotsThree, FileText, Tag } from '@phosphor-icons/react';
 import { useCallback } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -99,9 +99,6 @@ export const WeekViewItem = ({ date, formattedId, setView, setSelectedDate, onOp
           {doc.title && (
             <div className="flex items-center justify-between pt-1">
               <div className="flex items-center gap-3">
-                <div className="bg-rose-200/80 text-rose-900 dark:text-rose-400 p-1.5 rounded-sm-sm border border-rose-400 dark:border-rose-300">
-                  <FileText size={16} weight="fill" />
-                </div>
                 <span className="text-foreground font-bold flex items-center gap-1.5">
                   {doc.icon && <span className="select-none">{doc.icon}</span>}
                   {doc.title}

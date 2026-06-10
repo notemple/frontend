@@ -5,6 +5,43 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>frontend</title>
+    <script>
+      (function() {
+        try {
+          var appearance = localStorage.getItem('appearance');
+          if (!appearance) {
+            var uiStorage = localStorage.getItem('ui-storage');
+            if (uiStorage) {
+              var parsed = JSON.parse(uiStorage);
+              if (parsed && parsed.state && parsed.state.appearance) {
+                appearance = parsed.state.appearance;
+              }
+            }
+          }
+          if (!appearance) {
+            appearance = 'system';
+          }
+          var isDark = true;
+          if (appearance === 'light') {
+            isDark = false;
+          } else if (appearance === 'system') {
+            isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          }
+          var root = document.documentElement;
+          if (isDark) {
+            root.classList.add('dark');
+            root.classList.remove('light');
+            root.style.colorScheme = 'dark';
+          } else {
+            root.classList.add('light');
+            root.classList.remove('dark');
+            root.style.colorScheme = 'light';
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

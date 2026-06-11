@@ -358,8 +358,11 @@ export const calloutSubmenuCommands: SlashCommand[] = [
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
           const node = $createCalloutNode("note")
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
-          node.select()
+          const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
+          const newParagraph = $createParagraphNode()
+          topLevel.insertAfter(newParagraph)
+          topLevel.replace(node)
+          newParagraph.select()
         }
       }),
   },
@@ -374,8 +377,11 @@ export const calloutSubmenuCommands: SlashCommand[] = [
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
           const node = $createCalloutNode("tip")
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
-          node.select()
+          const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
+          const newParagraph = $createParagraphNode()
+          topLevel.insertAfter(newParagraph)
+          topLevel.replace(node)
+          newParagraph.select()
         }
       }),
   },
@@ -390,8 +396,11 @@ export const calloutSubmenuCommands: SlashCommand[] = [
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
           const node = $createCalloutNode("important")
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
-          node.select()
+          const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
+          const newParagraph = $createParagraphNode()
+          topLevel.insertAfter(newParagraph)
+          topLevel.replace(node)
+          newParagraph.select()
         }
       }),
   },
@@ -406,8 +415,11 @@ export const calloutSubmenuCommands: SlashCommand[] = [
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
           const node = $createCalloutNode("warning")
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
-          node.select()
+          const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
+          const newParagraph = $createParagraphNode()
+          topLevel.insertAfter(newParagraph)
+          topLevel.replace(node)
+          newParagraph.select()
         }
       }),
   },
@@ -422,8 +434,11 @@ export const calloutSubmenuCommands: SlashCommand[] = [
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
           const node = $createCalloutNode("caution")
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
-          node.select()
+          const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
+          const newParagraph = $createParagraphNode()
+          topLevel.insertAfter(newParagraph)
+          topLevel.replace(node)
+          newParagraph.select()
         }
       }),
   },

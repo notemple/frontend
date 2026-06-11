@@ -24,7 +24,6 @@ import BackspacePlugin from "./plugins/BackspacePlugin"
 import FloatingToolbarPlugin from "./plugins/FloatingToolbarPlugin"
 import PageLinkPreviewPlugin from "./plugins/PageLinkPreviewPlugin"
 import TableHoverActionsPlugin from "./plugins/TableHoverActionsPlugin"
-
 import EmojiPicker from "emoji-picker-react"
 import { useDocumentStore } from "../documents/store"
 import { ChatCircleText, Plus, Tag, X, Layout } from "@phosphor-icons/react"

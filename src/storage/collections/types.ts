@@ -41,6 +41,30 @@ export interface Collection {
   updatedAt: string;
   pinned?: boolean;
   order?: number;
+  backdropType?: 'none' | 'solid' | 'gradient';
+  backdropStyle?: 'immersive' | 'faded';
+  backdropColor?: string;
+  backdropGradientStart?: string;
+  backdropGradientEnd?: string;
+  backdropGradientDirection?: string;
+  documentColor?: string;
+  cardColor?: string;
+  documentColorType?: 'solid' | 'gradient';
+  documentGradientStart?: string;
+  documentGradientEnd?: string;
+  documentGradientDirection?: string;
+  textColor?: string;
+  topSectionColor?: string;
+  topSectionColorType?: 'solid' | 'gradient';
+  topSectionGradientStart?: string;
+  topSectionGradientEnd?: string;
+  topSectionGradientDirection?: string;
+  topSectionTextColor?: string;
+  fontFamily?: string;
+  fontSize?: 'small' | 'normal' | 'large';
+  lineHeight?: 'compact' | 'normal' | 'loose';
+  pageWidth?: 'narrow' | 'wide';
+  linkBackdropToCover?: boolean;
 }
 
 export interface CollectionItem {

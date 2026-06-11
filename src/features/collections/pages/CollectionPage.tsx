@@ -7,6 +7,7 @@ import {
   Table, List, Image, Calendar, Kanban 
 } from '@phosphor-icons/react';
 import { cn } from '@/shared/lib/utils';
+import { PopupMenu } from '@/shared/ui/PopupMenu';
 
 interface CollectionPageProps {
   paneId: string;
@@ -14,17 +15,6 @@ interface CollectionPageProps {
 }
 
 const EMOJI_PRESETS = ['📚', '🍳', '💼', '📈', '📝', '✈️', '🎵', '🍿', '💡', '🏷️', '🗺️', '🎯', '❤️', '🏡', '🚗', '🛍️'];
-
-const THEME_COLORS = [
-  { name: 'Blue', hex: '#3B82F6' },
-  { name: 'Yellow', hex: '#F59E0B' },
-  { name: 'Red', hex: '#EF4444' },
-  { name: 'Green', hex: '#10B981' },
-  { name: 'Purple', hex: '#8B5CF6' },
-  { name: 'Pink', hex: '#EC4899' },
-  { name: 'Teal', hex: '#14B8A6' },
-  { name: 'Indigo', hex: '#6366F1' }
-];
 
 export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collectionId }) => {
   const collections = useCollectionStore(state => state.collections);
@@ -35,21 +25,19 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
   const togglePinCollection = useCollectionStore(state => state.togglePinCollection);
   const setActiveView = useCollectionStore(state => state.setActiveView);
 
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [nameInput, setNameInput] = useState('');
-  const [isEditingDesc, setIsEditingDesc] = useState(false);
-  const [descInput, setDescInput] = useState('');
+  const [isRenameOpen, setIsRenameOpen] = useState(false);
+  const [renameName, setRenameName] = useState('');
+  const [renameDesc, setRenameDesc] = useState('');
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [showColorPicker, setShowColorPicker] = useState(false);
 
   const collection = collections[collectionId];
   const viewState = viewStates[collectionId];
 
   useEffect(() => {
     if (collection) {
-      setNameInput(collection.name);
-      setDescInput(collection.description || '');
+      setRenameName(collection.name);
+      setRenameDesc(collection.description || '');
     }
   }, [collectionId, collection]);
 
@@ -62,28 +50,25 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
     );
   }
 
-  const handleNameBlur = () => {
-    setIsEditingName(false);
-    if (nameInput.trim() && nameInput.trim() !== collection.name) {
-      updateCollection(collectionId, { name: nameInput.trim() });
-    }
+  const handleOpenRename = () => {
+    setRenameName(collection.name);
+    setRenameDesc(collection.description || '');
+    setIsRenameOpen(true);
   };
 
-  const handleDescBlur = () => {
-    setIsEditingDesc(false);
-    if (descInput !== (collection.description || '')) {
-      updateCollection(collectionId, { description: descInput.trim() || undefined });
+  const handleSaveRename = () => {
+    if (renameName.trim()) {
+      updateCollection(collectionId, {
+        name: renameName.trim(),
+        description: renameDesc.trim() || undefined
+      });
+      setIsRenameOpen(false);
     }
   };
 
   const handleEmojiSelect = (emoji: string) => {
     updateCollection(collectionId, { icon: emoji });
     setShowEmojiPicker(false);
-  };
-
-  const handleColorSelect = (hex: string) => {
-    updateCollection(collectionId, { color: hex });
-    setShowColorPicker(false);
   };
 
   const handleDuplicate = async () => {
@@ -106,18 +91,73 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
     { type: 'board', label: 'Board', icon: <Kanban size={13} /> }
   ];
 
+  // Resolve styling tokens from the right sidebar state
+  const wrapperStyle: React.CSSProperties = {};
+  if (collection.backdropType && collection.backdropType !== 'none' && collection.backdropColor) {
+    wrapperStyle.background = collection.backdropColor;
+  }
+
+  const bannerStyle: React.CSSProperties = {};
+  if (collection.topSectionColor) {
+    bannerStyle.background = collection.topSectionColor;
+  } else {
+    bannerStyle.background = `linear-gradient(to bottom, ${collection.color || '#3B82F6'}25, transparent)`;
+  }
+
+  const titleStyle: React.CSSProperties = {};
+  if (collection.topSectionTextColor) {
+    titleStyle.color = collection.topSectionTextColor;
+  } else {
+    titleStyle.color = 'var(--foreground)';
+  }
+
+  const resolvedFontFamily = collection.fontFamily === 'sans' ? 'var(--font-sans)' :
+                             collection.fontFamily === 'serif' ? 'var(--font-serif)' :
+                             collection.fontFamily === 'sans-serif' ? 'var(--font-sans)' :
+                             collection.fontFamily === 'monospace' ? 'var(--font-mono)' :
+                             undefined;
+
+  if (resolvedFontFamily) {
+    titleStyle.fontFamily = resolvedFontFamily;
+  }
+
+  const pageTextStyle: React.CSSProperties = {};
+  let resolvedTextColor = collection.linkBackdropToCover ? collection.topSectionTextColor : collection.textColor;
+  if (resolvedTextColor) {
+    pageTextStyle.color = resolvedTextColor;
+    (pageTextStyle as any)['--body-text'] = resolvedTextColor;
+    (pageTextStyle as any)['--foreground'] = resolvedTextColor;
+  }
+  if (resolvedFontFamily) {
+    pageTextStyle.fontFamily = resolvedFontFamily;
+  }
+
+  // Formatting styles mapping for collections
+  const resolvedBaseFontSize = collection.fontSize === 'small' ? '14px' :
+                               collection.fontSize === 'large' ? '18px' :
+                               '16px';
+  (pageTextStyle as any)['--editor-base-size'] = resolvedBaseFontSize;
+
+  const resolvedLineHeightParagraph = collection.lineHeight === 'compact' ? '1.5' :
+                                      collection.lineHeight === 'loose' ? '2.25' :
+                                      '1.95';
+  (pageTextStyle as any)['--editor-line-height-paragraph'] = resolvedLineHeightParagraph;
+
+  // Narrow vs Wide Page Width constraint (narrow maps to 720px max width, wide maps to 90%)
+  const maxWidthClass = collection.pageWidth === 'narrow' ? 'max-w-[720px]' : 'max-w-[90%]';
+
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-workspace font-sans">
-      
-      {/* Dynamic Cover Banner based on Collection color */}
+    <div 
+      className="flex-1 flex flex-col overflow-y-auto no-scrollbar transition-all duration-300 relative w-full"
+      style={wrapperStyle}
+    >
+      {/* Cover Banner */}
       <div 
-        className="h-[80px] w-full shrink-0 relative transition-colors duration-300"
-        style={{
-          background: `linear-gradient(to bottom, ${collection.color}25, transparent)`
-        }}
+        className="w-full min-h-[7rem] py-6 shrink-0 relative flex items-center justify-center transition-all duration-300 select-none"
+        style={bannerStyle}
       >
         {/* Actions panel */}
-        <div className="absolute top-4 right-6 flex items-center gap-2 select-none">
+        <div className="absolute top-4 right-6 flex items-center gap-2 select-none z-10">
           <button
             onClick={() => togglePinCollection(collectionId)}
             className={cn(
@@ -147,150 +187,169 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
         </div>
       </div>
 
-      {/* Title & Description Panel */}
-      <div className="px-8 pb-3 flex flex-col gap-2 shrink-0 select-none">
-        <div className="flex items-start gap-4">
-          
-          {/* Emoji button */}
-          <div className="relative mt-[-30px]">
-            <button
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className="w-16 h-16 rounded-xl border border-border bg-background shadow-sm-lg hover:scale-105 active:scale-95 flex items-center justify-center text-3xl cursor-pointer transition-transform duration-150"
-              title="Change icon"
-            >
-              {collection.icon || '📚'}
-            </button>
-
-            {showEmojiPicker && (
-              <div className="absolute top-18 left-0 z-[100] bg-background border border-border rounded shadow-sm-lg p-3 grid grid-cols-4 gap-2 w-48 animate-fadeIn">
-                {EMOJI_PRESETS.map(e => (
-                  <button
-                    key={e}
-                    onClick={() => handleEmojiSelect(e)}
-                    className="text-xl hover:bg-muted rounded p-1 transition-colors cursor-pointer text-center"
-                  >
-                    {e}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Color picker bubble */}
-          <div className="relative mt-[-20px]">
-            <button
-              onClick={() => setShowColorPicker(!showColorPicker)}
-              className="w-5 h-5 rounded-full border border-border/80 hover:scale-110 active:scale-95 cursor-pointer shadow-sm-sm transition-transform"
-              style={{ backgroundColor: collection.color }}
-              title="Change color theme"
-            />
-
-            {showColorPicker && (
-              <div className="absolute top-7 left-0 z-[100] bg-background border border-border rounded shadow-sm-lg p-2 grid grid-cols-4 gap-1.5 w-36 animate-fadeIn">
-                {THEME_COLORS.map(c => (
-                  <button
-                    key={c.hex}
-                    onClick={() => handleColorSelect(c.hex)}
-                    className="w-5 h-5 rounded-full border border-border/60 hover:scale-115 cursor-pointer transition-transform"
-                    style={{ backgroundColor: c.hex }}
-                    title={c.name}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Database Name */}
-          <div className="flex-1 min-w-0">
-            {isEditingName ? (
-              <input
-                type="text"
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                onBlur={handleNameBlur}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleNameBlur(); }}
-                className="text-2xl font-bold bg-transparent border-b border-purple-500/50 outline-none text-foreground/90 w-full"
-                autoFocus
-              />
-            ) : (
-              <h1 
-                onClick={() => setIsEditingName(true)}
-                className="text-2xl font-bold text-foreground/90 tracking-tight cursor-pointer hover:bg-muted/10 rounded px-1 -ml-1 transition-colors truncate max-w-md"
+      {/* Main Page Layout Container */}
+      <div className="flex-1 w-full flex flex-col items-center select-text">
+        <div 
+          className={cn("w-full flex flex-col gap-6 px-6 md:px-8 pb-12 pt-4 flex-1", maxWidthClass)}
+          style={pageTextStyle}
+        >
+          {/* Header Area with Emoji, Title and Description */}
+          <div className="flex flex-col items-start gap-3 w-full z-10 mt-[-40px]">
+            
+            {/* Emoji Button */}
+            <div className="relative z-50">
+              <button
+                type="button"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className="w-16 h-16 rounded-xl border border-border bg-background shadow-md hover:scale-105 active:scale-95 flex items-center justify-center text-4xl cursor-pointer transition-transform duration-150 select-none"
+                title="Change icon"
               >
-                {collection.name}
-              </h1>
+                {collection.icon || '📚'}
+              </button>
+
+              {showEmojiPicker && (
+                <div className="absolute top-18 left-0 z-50 bg-background border border-border rounded shadow-lg p-3 grid grid-cols-4 gap-2 w-48 animate-fadeIn select-none">
+                  {EMOJI_PRESETS.map(e => (
+                    <button
+                      key={e}
+                      type="button"
+                      onClick={() => handleEmojiSelect(e)}
+                      className="text-xl hover:bg-muted rounded p-1 transition-colors cursor-pointer text-center"
+                    >
+                      {e}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Title and Description */}
+            <div className="w-full flex flex-col gap-2 min-w-0">
+              <div className="w-full flex flex-col">
+                <h1 
+                  onClick={handleOpenRename}
+                  className="w-full bg-transparent border-none outline-none text-4xl font-bold font-sans tracking-tight drop-shadow-md cursor-pointer hover:bg-muted/10 rounded px-1 -ml-1 transition-colors truncate"
+                  style={titleStyle}
+                >
+                  {collection.name || "Untitled Database"}
+                </h1>
+              </div>
+
+              {/* Description */}
+              <div className="w-full">
+                <p 
+                  onClick={handleOpenRename}
+                  className={cn(
+                    "text-sm cursor-pointer hover:bg-muted/10 rounded px-1 -ml-1 transition-colors max-w-lg leading-relaxed opacity-85",
+                    collection.description ? "" : "text-muted-foreground/40 italic"
+                  )}
+                >
+                  {collection.description || "Add description..."}
+                </p>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Views Tabs Segment */}
+          <div className="border-b border-border/80 flex items-center gap-1.5 shrink-0 select-none pt-2">
+            {viewTabs.map(tab => {
+              const isTabActive = activeView === tab.type;
+              return (
+                <button
+                  key={tab.type}
+                  onClick={() => setActiveView(collectionId, tab.type)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-2 border-b-2 text-xs font-semibold transition-all cursor-pointer relative",
+                    isTabActive
+                      ? "border-purple-600 text-purple-600 dark:border-purple-400 dark:text-purple-400 font-bold"
+                      : "border-transparent text-muted-foreground/85 hover:text-foreground hover:border-border"
+                  )}
+                >
+                  {tab.icon}
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Active View Content Container */}
+          <div className="flex-1 w-full">
+            {activeView === 'table' ? (
+              <TableView collectionId={collectionId} />
+            ) : (
+              <div className="w-full flex flex-col items-center justify-center p-12 select-none border border-dashed border-border rounded-xl">
+                <div className="p-4 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 mb-3 animate-bounce">
+                  {viewTabs.find(t => t.type === activeView)?.icon}
+                </div>
+                <span className="text-xs font-semibold text-foreground/80">
+                  {viewTabs.find(t => t.type === activeView)?.label} View Architecture Prepared
+                </span>
+                <span className="text-[10px] text-muted-foreground/60 mt-1 max-w-xs text-center leading-relaxed font-mono">
+                  This layout configuration is registered in the database view state. The engine is ready to implement it.
+                </span>
+              </div>
             )}
           </div>
-        </div>
 
-        {/* Database Description */}
-        <div className="ml-20">
-          {isEditingDesc ? (
+        </div>
+      </div>
+
+      {/* Rename popup dialog */}
+      <PopupMenu
+        isOpen={isRenameOpen}
+        onClose={() => setIsRenameOpen(false)}
+        title="Rename Collection"
+        variant="center"
+        footer={
+          <>
+            <button
+              onClick={() => setIsRenameOpen(false)}
+              className="px-3.5 py-1.5 rounded bg-muted hover:bg-muted/80 text-xs font-semibold text-muted-foreground transition-all cursor-pointer border border-border"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSaveRename}
+              disabled={!renameName.trim()}
+              className="px-3.5 py-1.5 rounded bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold text-white transition-all cursor-pointer shadow-sm-sm"
+            >
+              Save Changes
+            </button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-4 font-sans text-left">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Name</label>
             <input
               type="text"
-              value={descInput}
-              onChange={(e) => setDescInput(e.target.value)}
-              onBlur={handleDescBlur}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleDescBlur(); }}
-              placeholder="Add description..."
-              className="text-xs text-muted-foreground bg-transparent border-b border-border/50 outline-none w-full max-w-lg"
+              value={renameName}
+              onChange={(e) => setRenameName(e.target.value)}
+              className="bg-muted/35 border border-border rounded px-3 py-2 text-sm w-full outline-none text-foreground focus:border-purple-500/50 transition-colors"
               autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSaveRename();
+              }}
             />
-          ) : (
-            <p 
-              onClick={() => setIsEditingDesc(true)}
-              className={cn(
-                "text-xs cursor-pointer hover:bg-muted/10 rounded px-1 -ml-1 transition-colors max-w-lg leading-relaxed",
-                collection.description ? "text-muted-foreground" : "text-muted-foreground/40 italic"
-              )}
-            >
-              {collection.description || "Add description..."}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Views Tabs segment */}
-      <div className="px-8 border-b border-border/80 bg-muted/10 flex items-center gap-1.5 shrink-0 select-none pt-2">
-        {viewTabs.map(tab => {
-          const isTabActive = activeView === tab.type;
-          return (
-            <button
-              key={tab.type}
-              onClick={() => setActiveView(collectionId, tab.type)}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 border-b-2 text-xs font-semibold transition-all cursor-pointer relative",
-                isTabActive
-                  ? "border-purple-600 text-purple-600 dark:border-purple-400 dark:text-purple-400 font-bold"
-                  : "border-transparent text-muted-foreground/85 hover:text-foreground hover:border-border"
-              )}
-            >
-              {tab.icon}
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* 3. ACTIVE VIEW RENDERER */}
-      <div className="flex-1 overflow-hidden">
-        {activeView === 'table' ? (
-          <TableView collectionId={collectionId} />
-        ) : (
-          <div className="flex-1 h-full flex flex-col items-center justify-center p-12 bg-workspace select-none">
-            <div className="p-4 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 mb-3 animate-bounce">
-              {viewTabs.find(t => t.type === activeView)?.icon}
-            </div>
-            <span className="text-xs font-semibold text-foreground/80">
-              {viewTabs.find(t => t.type === activeView)?.label} View Architecture Prepared
-            </span>
-            <span className="text-[10px] text-muted-foreground/60 mt-1 max-w-xs text-center leading-relaxed">
-              This layout configuration is registered in the database view state. The engine is ready to implement it.
-            </span>
           </div>
-        )}
-      </div>
-
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Description</label>
+            <textarea
+              value={renameDesc}
+              onChange={(e) => setRenameDesc(e.target.value)}
+              placeholder="Add description..."
+              className="bg-muted/35 border border-border rounded px-3 py-2 text-sm w-full outline-none text-foreground focus:border-purple-500/50 transition-colors resize-none h-20"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSaveRename();
+                }
+              }}
+            />
+          </div>
+        </div>
+      </PopupMenu>
     </div>
   );
 };

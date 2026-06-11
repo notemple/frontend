@@ -306,7 +306,7 @@
 
 .lexical-root table {
   border-collapse: collapse;
-  margin: 0;
+  margin: 0 auto;
   overflow: hidden;
   table-layout: fixed;
   width: 100%;
@@ -1305,7 +1305,7 @@ html.light .lexical-link:hover { color: #4338ca; }
   border-collapse: collapse;
   table-layout: fixed;
   width: 100%;
-  margin: 1.5rem 0;
+  margin: 1.5rem auto !important;
   border-spacing: 0;
 }
 .lexical-table-cell {

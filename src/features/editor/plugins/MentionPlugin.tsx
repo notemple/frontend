@@ -108,7 +108,7 @@ export default function MentionPlugin(): ReactNode {
   }, [editor, open])
 
   const insertMention = useCallback(
-    (payload: { type: "doc" | "task" | "date"; id: string; title: string }) => {
+    (payload: { type: "doc" | "task" | "date" | "collection-item"; id: string; title: string }) => {
       setOpen(false)
 
       editor.update(() => {

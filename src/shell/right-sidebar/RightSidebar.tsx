@@ -1,4 +1,5 @@
 import { useDocumentStore } from '@/features/documents/store';
+import { useCollectionStore } from '@/features/collections/store/collectionStore';
 import { useSettingsStore } from '@/features/settings/store';
 import { getRelativeTimeString } from '@/shared/lib/time';
 import { cn } from '@/shared/lib/utils';
@@ -106,6 +107,14 @@ const StyleTab = () => {
 
   const activePane = panes.find(p => p?.id === activePaneId) || panes[0];
   const activeDocId = activePane?.activeTabId;
+  const isCollection = activeDocId?.startsWith('section-collection-');
+  const collectionId = isCollection ? activeDocId.replace('section-collection-', '') : '';
+
+  // Retrieve active collection
+  const collection = useCollectionStore(useShallow(state =>
+    isCollection ? state.collections[collectionId] : null
+  ));
+  const updateCollection = useCollectionStore(state => state.updateCollection);
 
   // Retrieve ONLY the active document using a targeted selector to prevent re-renders when other documents are edited
   const documentSelector = useCallback(
@@ -123,6 +132,19 @@ const StyleTab = () => {
     [activeDocId, selectedDailyNoteDate, timezone]
   );
   const document = useDocumentStore(useShallow(documentSelector));
+
+  const target = isCollection ? collection : document;
+  const updateTarget = useCallback(
+    (updates: any) => {
+      if (isCollection) {
+        updateCollection(collectionId, updates);
+      } else if (document) {
+        updateDocument(document.id, updates);
+      }
+    },
+    [isCollection, collectionId, document, updateDocument, updateCollection]
+  );
+
   const topSectionPresets = [
     { name: 'None (Transparent)', value: undefined },
     { name: 'Ember Rose', value: '#f8eae6' },
@@ -130,12 +152,12 @@ const StyleTab = () => {
     { name: 'Plum Velvet', value: '#150e1c' },
     { name: 'Deep Forest', value: '#071713' },
   ];
-  if (!document) {
+  if (!target) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-center p-4">
         <PaintBrush size={32} className="text-muted-foreground mb-3 opacity-30" />
-        <p className="text-xs text-muted-foreground font-mono">No active document selected.</p>
-        <p className="text-[10px] text-muted-foreground/60 mt-1 max-w-[200px]">Open a document from the sidebar to customize its theme.</p>
+        <p className="text-xs text-muted-foreground font-mono">No active document or collection selected.</p>
+        <p className="text-[10px] text-muted-foreground/60 mt-1 max-w-[200px]">Open a document or collection from the sidebar to customize its theme.</p>
       </div>
     );
   }
@@ -189,44 +211,44 @@ const StyleTab = () => {
     { name: 'Black', value: '#000000' },
   ];
 
-  const currentType = document.backdropType || 'none';
-  const currentStart = document.backdropGradientStart || '#a3f4c5';
-  const currentEnd = document.backdropGradientEnd || '#ffbbbb';
-  const currentDir = document.backdropGradientDirection || '180deg';
+  const currentType = target.backdropType || 'none';
+  const currentStart = target.backdropGradientStart || '#a3f4c5';
+  const currentEnd = target.backdropGradientEnd || '#ffbbbb';
+  const currentDir = target.backdropGradientDirection || '180deg';
 
-  const paperType = document.documentColorType || 'solid';
-  const paperStart = document.documentGradientStart || '#ffffff';
-  const paperEnd = document.documentGradientEnd || '#f1f5f9';
-  const paperDir = document.documentGradientDirection || '135deg';
+  const paperType = target.documentColorType || 'solid';
+  const paperStart = target.documentGradientStart || '#ffffff';
+  const paperEnd = target.documentGradientEnd || '#f1f5f9';
+  const paperDir = target.documentGradientDirection || '135deg';
 
-  const topSectionType = document.topSectionColorType || 'solid';
-  const topSectionStart = document.topSectionGradientStart || '#ffffff';
-  const topSectionEnd = document.topSectionGradientEnd || '#f1f5f9';
-  const topSectionDir = document.topSectionGradientDirection || '135deg';
+  const topSectionType = target.topSectionColorType || 'solid';
+  const topSectionStart = target.topSectionGradientStart || '#ffffff';
+  const topSectionEnd = target.topSectionGradientEnd || '#f1f5f9';
+  const topSectionDir = target.topSectionGradientDirection || '135deg';
 
   // Master style update that ensures background, helper start/end, and type sync properly
   const setBackdropType = (type: 'none' | 'solid' | 'gradient') => {
     if (type === 'none') {
-      updateDocument(document.id, {
+      updateTarget({
         backdropType: 'none',
         backdropColor: undefined,
       });
     } else if (type === 'solid') {
       // Pick first solid of presets if not present
-      const initialSolid = document.backdropColor && !document.backdropColor.includes('gradient')
-        ? document.backdropColor
+      const initialSolid = target.backdropColor && !target.backdropColor.includes('gradient')
+        ? target.backdropColor
         : solidPresets[0];
-      updateDocument(document.id, {
+      updateTarget({
         backdropType: 'solid',
         backdropColor: initialSolid,
       });
     } else if (type === 'gradient') {
       // Assemble CSS linear gradient based on cached values or defaults
-      const start = document.backdropGradientStart || '#a3f4c5';
-      const end = document.backdropGradientEnd || '#ffbbbb';
-      const dir = document.backdropGradientDirection || '180deg';
+      const start = target.backdropGradientStart || '#a3f4c5';
+      const end = target.backdropGradientEnd || '#ffbbbb';
+      const dir = target.backdropGradientDirection || '180deg';
       const cssSpec = `linear-gradient(${dir}, ${start}, ${end})`;
-      updateDocument(document.id, {
+      updateTarget({
         backdropType: 'gradient',
         backdropGradientStart: start,
         backdropGradientEnd: end,
@@ -238,19 +260,19 @@ const StyleTab = () => {
 
   const setPaperType = (type: 'solid' | 'gradient') => {
     if (type === 'solid') {
-      const initialSolid = document.documentColor && !document.documentColor.includes('gradient')
-        ? document.documentColor
+      const initialSolid = target.documentColor && !target.documentColor.includes('gradient')
+        ? target.documentColor
         : '#ffffff';
-      updateDocument(document.id, {
+      updateTarget({
         documentColorType: 'solid',
         documentColor: initialSolid,
       });
     } else if (type === 'gradient') {
-      const start = document.documentGradientStart || '#ffffff';
-      const end = document.documentGradientEnd || '#f1f5f9';
-      const dir = document.documentGradientDirection || '135deg';
+      const start = target.documentGradientStart || '#ffffff';
+      const end = target.documentGradientEnd || '#f1f5f9';
+      const dir = target.documentGradientDirection || '135deg';
       const cssSpec = `linear-gradient(${dir}, ${start}, ${end})`;
-      updateDocument(document.id, {
+      updateTarget({
         documentColorType: 'gradient',
         documentGradientStart: start,
         documentGradientEnd: end,
@@ -261,14 +283,14 @@ const StyleTab = () => {
   };
 
   const handleSolidColorSelect = (color: string) => {
-    updateDocument(document.id, {
+    updateTarget({
       backdropType: 'solid',
       backdropColor: color,
     });
   };
 
   const handleGradientPresetSelect = (preset: typeof gradientPresets[0]) => {
-    updateDocument(document.id, {
+    updateTarget({
       backdropType: 'gradient',
       backdropGradientStart: preset.start,
       backdropGradientEnd: preset.end,
@@ -287,7 +309,7 @@ const StyleTab = () => {
       ? `radial-gradient(circle, ${nextStart}, ${nextEnd})`
       : `linear-gradient(${nextDir}, ${nextStart}, ${nextEnd})`;
 
-    updateDocument(document.id, {
+    updateTarget({
       backdropGradientStart: nextStart,
       backdropGradientEnd: nextEnd,
       backdropGradientDirection: nextDir,
@@ -297,7 +319,7 @@ const StyleTab = () => {
   };
 
   const handlePaperGradientPresetSelect = (preset: typeof paperGradientPresets[0]) => {
-    updateDocument(document.id, {
+    updateTarget({
       documentColorType: 'gradient',
       documentGradientStart: preset.start,
       documentGradientEnd: preset.end,
@@ -315,7 +337,7 @@ const StyleTab = () => {
       ? `radial-gradient(circle, ${nextStart}, ${nextEnd})`
       : `linear-gradient(${nextDir}, ${nextStart}, ${nextEnd})`;
 
-    updateDocument(document.id, {
+    updateTarget({
       documentGradientStart: nextStart,
       documentGradientEnd: nextEnd,
       documentGradientDirection: nextDir,
@@ -325,7 +347,7 @@ const StyleTab = () => {
   };
 
   const handleTopSectionGradientPresetSelect = (preset: typeof topSectionGradientPresets[0]) => {
-    updateDocument(document.id, {
+    updateTarget({
       topSectionColorType: 'gradient',
       topSectionGradientStart: preset.start,
       topSectionGradientEnd: preset.end,
@@ -343,7 +365,7 @@ const StyleTab = () => {
       ? `radial-gradient(circle, ${nextStart}, ${nextEnd})`
       : `linear-gradient(${nextDir}, ${nextStart}, ${nextEnd})`;
 
-    updateDocument(document.id, {
+    updateTarget({
       topSectionGradientStart: nextStart,
       topSectionGradientEnd: nextEnd,
       topSectionGradientDirection: nextDir,
@@ -353,7 +375,7 @@ const StyleTab = () => {
   };
 
   const handleResetAll = () => {
-    updateDocument(document.id, {
+    updateTarget({
       backdropType: 'none',
       backdropStyle: 'immersive',
       backdropColor: undefined,
@@ -409,13 +431,13 @@ const StyleTab = () => {
             <div className="relative w-3.5 h-3.5 rounded-sm border border-black/30 dark:border-white/20 bg-black/5 dark:bg-white/5 transition-all flex items-center justify-center shadow-sm-sm group-hover:border-sky-500/50">
               <input
                 type="checkbox"
-                checked={!!document.linkBackdropToCover}
-                onChange={(e) => updateDocument(document.id, { linkBackdropToCover: e.target.checked })}
+                checked={!!target.linkBackdropToCover}
+                onChange={(e) => updateTarget({ linkBackdropToCover: e.target.checked })}
                 className="absolute inset-0 opacity-0 cursor-pointer z-10"
               />
               <div className={cn(
                 "absolute inset-0 rounded-sm bg-sky-500 border border-sky-500 transition-opacity flex items-center justify-center",
-                document.linkBackdropToCover ? "opacity-100" : "opacity-0"
+                target.linkBackdropToCover ? "opacity-100" : "opacity-0"
               )}>
                 <Check
                   size={9}
@@ -430,14 +452,14 @@ const StyleTab = () => {
           </label>
         </div>
 
-        {document.linkBackdropToCover && (
+        {target.linkBackdropToCover && (
           <div className="text-[10px] text-sky-600 dark:text-sky-400 bg-sky-500/10 dark:bg-sky-500/5 border border-sky-500/20 p-2.5 rounded-sm-sm font-mono flex flex-col gap-0.5">
             <span className="font-semibold">Linked to Editor Cover Color</span>
             <span className="text-muted-foreground text-[9px] leading-tight">Theme changes to the banner/cover above will sync here automatically.</span>
           </div>
         )}
 
-        <div className={cn("space-y-4", document.linkBackdropToCover && "opacity-40 pointer-events-none")}>
+        <div className={cn("space-y-4", target.linkBackdropToCover && "opacity-40 pointer-events-none")}>
           {/* Segmented Control Selector for Types - Matches mockup precisely */}
           <div className="grid grid-cols-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
             {/* None/Disabled */}
@@ -492,7 +514,7 @@ const StyleTab = () => {
             <div className="space-y-3">
               <div className="grid grid-cols-6 gap-2 pt-1">
                 {solidPresets.map((color, idx) => {
-                  const isSelected = document.backdropColor === color;
+                  const isSelected = target.backdropColor === color;
                   return (
                     <button
                       key={idx}
@@ -555,13 +577,13 @@ const StyleTab = () => {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Select Custom Color:</span>
-                    <span className="text-accent text-[10px] uppercase font-bold">{document.backdropColor}</span>
+                    <span className="text-accent text-[10px] uppercase font-bold">{target.backdropColor}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: document.backdropColor || '#ffffff' }} />
+                    <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ backgroundColor: target.backdropColor || '#ffffff' }} />
                     <input
                       type="color"
-                      value={document.backdropColor || '#ffffff'}
+                      value={target.backdropColor || '#ffffff'}
                       onChange={(e) => handleSolidColorSelect(e.target.value)}
                       className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
                     />
@@ -698,11 +720,11 @@ const StyleTab = () => {
             <span className="text-[10px] text-muted-foreground font-mono">Text Color</span>
             <div className="flex flex-wrap gap-3.5">
               {textPresets.map((swatch, idx) => {
-                const isSelected = document.textColor === swatch.value;
+                const isSelected = target.textColor === swatch.value;
                 return (
                   <button
                     key={idx}
-                    onClick={() => updateDocument(document.id, { textColor: swatch.value })}
+                    onClick={() => updateTarget({ textColor: swatch.value })}
                     className={cn(
                       "w-7 h-7 rounded-sm-full border transition-all shrink-0 flex items-center justify-center relative overflow-hidden bg-white/5 cursor-pointer shadow-sm-sm border-black/80 dark:border-white/50",
                       isSelected ? "scale-105" : ""
@@ -747,7 +769,7 @@ const StyleTab = () => {
         <div className="grid grid-cols-2 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
           {/* Solid */}
           <button
-            onClick={() => updateDocument(document.id, { topSectionColorType: 'solid', topSectionColor: document.topSectionGradientStart || '#ffffff' })}
+            onClick={() => updateTarget({ topSectionColorType: 'solid', topSectionColor: target.topSectionGradientStart || '#ffffff' })}
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm-sm transition-all text-xs cursor-pointer font-mono",
               topSectionType === 'solid'
@@ -760,7 +782,7 @@ const StyleTab = () => {
 
           {/* Gradient */}
           <button
-            onClick={() => updateDocument(document.id, { topSectionColorType: 'gradient', topSectionColor: `linear-gradient(135deg, ${topSectionStart}, ${topSectionEnd})` })}
+            onClick={() => updateTarget({ topSectionColorType: 'gradient', topSectionColor: `linear-gradient(135deg, ${topSectionStart}, ${topSectionEnd})` })}
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm-sm transition-all text-xs cursor-pointer font-mono",
               topSectionType === 'gradient'
@@ -780,12 +802,12 @@ const StyleTab = () => {
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-3.5 items-center pt-1">
                   {topSectionPresets.map((swatch, idx) => {
-                    const isSelected = document.topSectionColor === swatch.value;
+                    const isSelected = target.topSectionColor === swatch.value;
                     return (
                       <button
                         key={idx}
                         onClick={() => {
-                          updateDocument(document.id, { topSectionColor: swatch.value, topSectionColorType: 'solid' });
+                          updateTarget({ topSectionColor: swatch.value, topSectionColorType: 'solid' });
                           if (swatch.value === undefined) {
                             setShowTopSectionColorPickerInline(false);
                           }
@@ -852,14 +874,14 @@ const StyleTab = () => {
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Custom Header Color:</span>
-                      <span className="text-accent text-[10px] uppercase font-bold">{document.topSectionColor || 'Default'}</span>
+                      <span className="text-accent text-[10px] uppercase font-bold">{target.topSectionColor || 'Default'}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ background: document.topSectionColor || 'var(--background)' }} />
+                      <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ background: target.topSectionColor || 'var(--background)' }} />
                       <input
                         type="color"
-                        value={document.topSectionColor || '#050505'}
-                        onChange={(e) => updateDocument(document.id, { topSectionColor: e.target.value, topSectionColorType: 'solid' })}
+                        value={target.topSectionColor || '#050505'}
+                        onChange={(e) => updateTarget({ topSectionColor: e.target.value, topSectionColorType: 'solid' })}
                         className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
                       />
                     </div>
@@ -995,12 +1017,12 @@ const StyleTab = () => {
             <span className="text-[10px] text-muted-foreground font-mono">Banner Text Color</span>
             <div className="flex flex-wrap gap-3.5 font-sans">
               {topSectionTextPresets.map((swatch, idx) => {
-                const isSelected = document.topSectionTextColor === swatch.value;
+                const isSelected = target.topSectionTextColor === swatch.value;
                 return (
                   <button
                     key={idx}
                     onClick={() => {
-                      updateDocument(document.id, { topSectionTextColor: swatch.value });
+                      updateTarget({ topSectionTextColor: swatch.value });
                       if (swatch.value === undefined) {
                         setShowTopSectionTextColorPickerInline(false);
                       }
@@ -1067,14 +1089,14 @@ const StyleTab = () => {
               >
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Custom Banner Text Color:</span>
-                  <span className="text-accent text-[10px] uppercase font-bold">{document.topSectionTextColor || '#ffffff'}</span>
+                  <span className="text-accent text-[10px] uppercase font-bold">{target.topSectionTextColor || '#ffffff'}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ background: document.topSectionTextColor || '#ffffff' }} />
+                  <div className="w-10 h-10 rounded-sm-sm border border-black dark:border-white relative overflow-hidden shrink-0" style={{ background: target.topSectionTextColor || '#ffffff' }} />
                   <input
                     type="color"
-                    value={document.topSectionTextColor || '#ffffff'}
-                    onChange={(e) => updateDocument(document.id, { topSectionTextColor: e.target.value })}
+                    value={target.topSectionTextColor || '#ffffff'}
+                    onChange={(e) => updateTarget({ topSectionTextColor: e.target.value })}
                     className="flex-1 h-9 bg-transparent border-none outline-none cursor-pointer rounded-sm overflow-hidden"
                   />
                 </div>
@@ -1106,6 +1128,14 @@ const FormattingTab = () => {
 
   const activePane = panes.find(p => p?.id === activePaneId) || panes[0];
   const activeDocId = activePane?.activeTabId;
+  const isCollection = activeDocId?.startsWith('section-collection-');
+  const collectionId = isCollection ? activeDocId.replace('section-collection-', '') : '';
+
+  // Retrieve active collection
+  const collection = useCollectionStore(useShallow(state =>
+    isCollection ? state.collections[collectionId] : null
+  ));
+  const updateCollection = useCollectionStore(state => state.updateCollection);
 
   const documentSelector = useCallback(
     state => {
@@ -1123,12 +1153,24 @@ const FormattingTab = () => {
   );
   const document = useDocumentStore(useShallow(documentSelector));
 
-  if (!document) {
+  const target = isCollection ? collection : document;
+  const updateTarget = useCallback(
+    (updates: any) => {
+      if (isCollection) {
+        updateCollection(collectionId, updates);
+      } else if (document) {
+        updateDocument(document.id, updates);
+      }
+    },
+    [isCollection, collectionId, document, updateDocument, updateCollection]
+  );
+
+  if (!target) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-center p-4">
         <TextT size={32} className="text-muted-foreground mb-3 opacity-30" />
-        <p className="text-xs text-muted-foreground font-mono">No active document selected.</p>
-        <p className="text-[10px] text-muted-foreground/60 mt-1 max-w-[200px]">Open a document from the sidebar to customize its formatting.</p>
+        <p className="text-xs text-muted-foreground font-mono">No active document or collection selected.</p>
+        <p className="text-[10px] text-muted-foreground/60 mt-1 max-w-[200px]">Open a document or collection from the sidebar to customize its formatting.</p>
       </div>
     );
   }
@@ -1140,10 +1182,10 @@ const FormattingTab = () => {
         <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Font Family</span>
         <div className="grid grid-cols-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
           <button
-            onClick={() => updateDocument(document.id, { fontFamily: 'sans' })}
+            onClick={() => updateTarget({ fontFamily: 'sans' })}
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              (!document.fontFamily || document.fontFamily === 'sans')
+              (!target.fontFamily || target.fontFamily === 'sans')
                 ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
@@ -1152,10 +1194,10 @@ const FormattingTab = () => {
             Sans
           </button>
           <button
-            onClick={() => updateDocument(document.id, { fontFamily: 'serif' })}
+            onClick={() => updateTarget({ fontFamily: 'serif' })}
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              (document.fontFamily === 'serif' || document.fontFamily === 'sans-serif')
+              (target.fontFamily === 'serif' || target.fontFamily === 'sans-serif')
                 ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
@@ -1164,10 +1206,10 @@ const FormattingTab = () => {
             Serif
           </button>
           <button
-            onClick={() => updateDocument(document.id, { fontFamily: 'monospace' })}
+            onClick={() => updateTarget({ fontFamily: 'monospace' })}
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              document.fontFamily === 'monospace'
+              target.fontFamily === 'monospace'
                 ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
@@ -1183,10 +1225,10 @@ const FormattingTab = () => {
         <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Font Size</span>
         <div className="grid grid-cols-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
           <button
-            onClick={() => updateDocument(document.id, { fontSize: 'small' })}
+            onClick={() => updateTarget({ fontSize: 'small' })}
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              document.fontSize === 'small'
+              target.fontSize === 'small'
                 ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
@@ -1194,10 +1236,10 @@ const FormattingTab = () => {
             Small
           </button>
           <button
-            onClick={() => updateDocument(document.id, { fontSize: 'normal' })}
+            onClick={() => updateTarget({ fontSize: 'normal' })}
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              (!document.fontSize || document.fontSize === 'normal')
+              (!target.fontSize || target.fontSize === 'normal')
                 ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
@@ -1205,10 +1247,10 @@ const FormattingTab = () => {
             Normal
           </button>
           <button
-            onClick={() => updateDocument(document.id, { fontSize: 'large' })}
+            onClick={() => updateTarget({ fontSize: 'large' })}
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              document.fontSize === 'large'
+              target.fontSize === 'large'
                 ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
@@ -1223,10 +1265,10 @@ const FormattingTab = () => {
         <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Line Spacing</span>
         <div className="grid grid-cols-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
           <button
-            onClick={() => updateDocument(document.id, { lineHeight: 'compact' })}
+            onClick={() => updateTarget({ lineHeight: 'compact' })}
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              document.lineHeight === 'compact'
+              target.lineHeight === 'compact'
                 ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
@@ -1234,10 +1276,10 @@ const FormattingTab = () => {
             Compact
           </button>
           <button
-            onClick={() => updateDocument(document.id, { lineHeight: 'normal' })}
+            onClick={() => updateTarget({ lineHeight: 'normal' })}
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              (!document.lineHeight || document.lineHeight === 'normal')
+              (!target.lineHeight || target.lineHeight === 'normal')
                 ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
@@ -1245,10 +1287,10 @@ const FormattingTab = () => {
             Normal
           </button>
           <button
-            onClick={() => updateDocument(document.id, { lineHeight: 'loose' })}
+            onClick={() => updateTarget({ lineHeight: 'loose' })}
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              document.lineHeight === 'loose'
+              target.lineHeight === 'loose'
                 ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
@@ -1263,10 +1305,10 @@ const FormattingTab = () => {
         <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Page Width</span>
         <div className="grid grid-cols-2 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
           <button
-            onClick={() => updateDocument(document.id, { pageWidth: 'narrow' })}
+            onClick={() => updateTarget({ pageWidth: 'narrow' })}
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              (!document.pageWidth || document.pageWidth === 'narrow')
+              (!target.pageWidth || target.pageWidth === 'narrow')
                 ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
@@ -1274,10 +1316,10 @@ const FormattingTab = () => {
             Readable (Narrow)
           </button>
           <button
-            onClick={() => updateDocument(document.id, { pageWidth: 'wide' })}
+            onClick={() => updateTarget({ pageWidth: 'wide' })}
             className={cn(
               "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              document.pageWidth === 'wide'
+              target.pageWidth === 'wide'
                 ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
                 : "text-muted-foreground hover:text-foreground dark:hover:text-white"
             )}
@@ -1289,7 +1331,7 @@ const FormattingTab = () => {
 
       <div className="p-3 bg-black/5 dark:bg-white/[0.02] border border-black/10 dark:border-white/5 rounded-sm-sm">
         <p className="text-[10px] text-muted-foreground leading-relaxed font-mono">
-          <strong>Tip:</strong> Formatting preferences apply per document. Toggle full width for tables or code blocks, and customize font sizing/spacing to fit your reading preferences.
+          <strong>Tip:</strong> Formatting preferences apply per document/collection. Toggle full width for tables or list layouts, and customize font family/spacing to fit your preferences.
         </p>
       </div>
     </div>

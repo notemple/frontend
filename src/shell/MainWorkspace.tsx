@@ -2,6 +2,7 @@ import { SectionPage } from "@/features/documents/SectionPage";
 import { EmptyPaneState } from "@/features/documents/components/EmptyPaneState";
 import { SectionGridItem } from "@/features/documents/components/SectionGridItem";
 import { useDocumentStore } from '@/features/documents/store';
+import { useCollectionStore } from '@/features/collections/store/collectionStore';
 import { TemplnoteEditor } from '@/features/editor/TemplnoteEditor';
 import { AccountDialog } from '@/features/settings/AccountDialog';
 import { useSettingsStore } from '@/features/settings/store';
@@ -439,10 +440,18 @@ export const MainWorkspace = () => {
   const activePane = panes.find(p => p?.id === activePaneId) || panes[0];
   const activeTabId = activePane?.activeTabId;
 
+  const isCollection = activeTabId?.startsWith('section-collection-');
+  const collectionId = isCollection ? activeTabId.replace('section-collection-', '') : '';
+  const colName = useCollectionStore(state => isCollection ? state.collections[collectionId]?.name : '');
+  const colIcon = useCollectionStore(state => isCollection ? state.collections[collectionId]?.icon : '');
+
   // Use a highly optimized Zustand selector with shallow comparison to prevent ANY keystroke re-renders!
   const headerTextSelector = useCallback(
     state => {
       if (!activeTabId) return 'Home';
+      if (activeTabId.startsWith('section-collection-')) {
+        return 'Collection';
+      }
       if (activeTabId.startsWith('section-folder-')) {
         const folderId = activeTabId.replace('section-folder-', '');
         const folder = state.folders.find(f => f?.id === folderId);
@@ -462,6 +471,7 @@ export const MainWorkspace = () => {
     [activeTabId]
   );
   const headerText = useDocumentStore(useShallow(headerTextSelector));
+  const resolvedHeaderText = isCollection ? `${colIcon || '📚'} ${colName || 'Collection'}` : headerText;
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-transparent relative pt-0 z-10 w-full border-l border-border">
@@ -503,7 +513,7 @@ export const MainWorkspace = () => {
         {/* Navbar Center Text & Search Trigger */}
         <div className="flex items-center gap-3 shrink-0 justify-center flex-1">
           <div className="text-[13px] font-medium text-muted-foreground font-sans tracking-wide">
-            {headerText}
+            {resolvedHeaderText}
           </div>
           <button
             onClick={() => window.dispatchEvent(new Event('command-palette:toggle'))}

@@ -2,6 +2,7 @@ import { useDocumentStore } from '@/features/documents/store';
 import { OnboardingScreen } from '@/features/onboarding/OnboardingScreen';
 import { useSettingsStore } from '@/features/settings/store';
 import { useTaskStore } from '@/features/tasks/store';
+import { useCollectionStore } from '@/features/collections/store/collectionStore';
 import { RootLayout } from '@/shell/RootLayout';
 import { QueryClient,QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
@@ -16,6 +17,7 @@ export default function App() {
     // Bootstrap local-first IndexedDB storage stores
     useDocumentStore.getState().initialize();
     useTaskStore.getState().initialize();
+    useCollectionStore.getState().initialize();
   }, []);
 
   useEffect(() => {

@@ -31,6 +31,10 @@ import {
 import { DeleteFolderDialog } from './DeleteFolderDialog';
 import { SidebarFolderItem } from "./SidebarFolderItem";
 import { SidebarItem } from "./SidebarItem";
+import { useCollectionStore } from '@/features/collections/store/collectionStore';
+import { CreateCollectionDialog } from '@/features/collections/components/CreateCollectionDialog';
+import { PushPin } from '@phosphor-icons/react';
+import { PopupMenu } from '@/shared/ui/PopupMenu';
 
 // Optimized item for individual documents inside the sidebar list.
 // By using a specific selector with useShallow, it ONLY re-renders if its own title or type changes.
@@ -379,6 +383,7 @@ export const Sidebar = () => {
   const favoriteDocIds = useDocumentStore(useShallow(favoriteDocIdsSelector));
   const uncategorizedDocIds = useDocumentStore(useShallow(uncategorizedDocIdsSelector));
   const folderColors = useDocumentStore(state => state.folderColors) || {};
+  const collections = useCollectionStore(state => state.collections);
 
   // Store static references to actions so they never trigger extra re-renders.
   const createFolder = useDocumentStore(state => state.createFolder);
@@ -406,6 +411,8 @@ export const Sidebar = () => {
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, id: string, type: 'document' | 'folder' } | null>(null);
   const [renamingDocId, setRenamingDocId] = useState<string | null>(null);
   const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
+  const [renamingCollectionId, setRenamingCollectionId] = useState<string | null>(null);
+  const [renamingCollectionName, setRenamingCollectionName] = useState('');
   const [draggedItem, setDraggedItem] = useState<{ id: string, type: 'document' | 'folder' } | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(() => {
     if (typeof window !== 'undefined') {
@@ -421,13 +428,14 @@ export const Sidebar = () => {
         }
       }
     }
-    return new Set<string>();
+    return new Set<string>(['section-collections']);
   });
 
   useEffect(() => {
     localStorage.setItem('sidebar-expanded-folders', JSON.stringify(Array.from(expandedFolders)));
   }, [expandedFolders]);
 
+  const [showCreateCollection, setShowCreateCollection] = useState(false);
   const [deleteFolderDialogOpen, setDeleteFolderDialogOpen] = useState(false);
   const [deletingFolderId, setDeletingFolderId] = useState<string | null>(null);
   const [deletingFolderName, setDeletingFolderName] = useState('');
@@ -979,6 +987,131 @@ export const Sidebar = () => {
           </GSAPAccordion>
         </div>
 
+        {/* Collections Section */}
+        <div className="space-y-[2px] group/collections">
+          {isSidebarOpen && (
+            <div className={cn("flex items-center justify-between px-2 py-1 mb-1 rounded-sm transition-colors", isDocActive('section-collections') ? "bg-muted/40" : "group-hover/collections:bg-transparent")}>
+              <div
+                onClick={() => {
+                  openDocument('section-collections');
+                }}
+                className={cn("text-xs font-semibold truncate uppercase tracking-wider cursor-pointer transition-colors flex-1 text-muted-foreground hover:text-foreground", isDocActive('section-collections') && "text-purple-600 dark:text-purple-400")}
+              >
+                Collections
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowCreateCollection(true);
+                  }}
+                  className="text-muted-foreground hover:text-foreground transition-opacity flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm cursor-pointer"
+                  title="New Collection"
+                >
+                  <Plus size={12} weight="bold" />
+                </button>
+                <button
+                  onClick={() => toggleFolderCollapse('section-collections')}
+                  className="text-muted-foreground flex items-center justify-center p-0.5 hover:bg-muted/80 rounded-sm transition-colors duration-200"
+                >
+                  {expandedFolders.has('section-collections') ? <CaretDown size={14} /> : <CaretRight size={14} />}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <GSAPAccordion isOpen={expandedFolders.has('section-collections')}>
+            <div className="max-h-[320px] overflow-y-auto no-scrollbar">
+              {Object.values(collections)
+                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                .map((col, index) => {
+                  const sectionId = `section-collection-${col.id}`;
+                  const isActive = isDocActive(sectionId);
+                  return (
+                    <div
+                      key={col.id}
+                      className="space-y-[2px]"
+                      draggable
+                      onDragStart={(e) => {
+                        e.stopPropagation();
+                        // @ts-ignore
+                        setDraggedItem({ id: col.id, type: 'collection' });
+                        e.dataTransfer.setData('text/plain', sectionId);
+                        e.dataTransfer.setData('templnote/document-id', sectionId);
+                        e.dataTransfer.effectAllowed = 'copyMove';
+                      }}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        // @ts-ignore
+                        if (draggedItem && draggedItem.type === 'collection' && draggedItem.id !== col.id) {
+                          const ordered = Object.values(collections)
+                            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                            .map(c => c.id);
+                          // @ts-ignore
+                          const sourceIndex = ordered.indexOf(draggedItem.id);
+                          const targetIndex = ordered.indexOf(col.id);
+                          if (sourceIndex > -1 && targetIndex > -1) {
+                            // @ts-ignore
+                            ordered.splice(sourceIndex, 1);
+                            // @ts-ignore
+                            ordered.splice(targetIndex, 0, draggedItem.id);
+                            useCollectionStore.getState().reorderCollections(ordered);
+                          }
+                        }
+                        setDraggedItem(null);
+                      }}
+                    >
+                      <SidebarItem
+                        id={`sidebar-col-${col.id}`}
+                        label={col.name}
+                        isOpen={isSidebarOpen}
+                        highlight={isActive}
+                        onClick={() => openDocument(sectionId)}
+                        icon={<span className="text-sm">{col.icon || '📚'}</span>}
+                        highlightColor={col.color}
+                        rightElement={
+                          <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                useCollectionStore.getState().togglePinCollection(col.id);
+                              }}
+                              className={cn(
+                                "p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer flex items-center justify-center",
+                                col.pinned ? "text-amber-500 hover:text-amber-600" : ""
+                              )}
+                              title={col.pinned ? "Unpin database" : "Pin database"}
+                            >
+                              <PushPin size={12} weight={col.pinned ? "fill" : "regular"} />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setRenamingCollectionId(col.id);
+                                setRenamingCollectionName(col.name);
+                              }}
+                              className="p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer flex items-center justify-center"
+                              title="Rename"
+                            >
+                              <PencilSimple size={12} />
+                            </button>
+                          </div>
+                        }
+                      />
+                    </div>
+                  );
+                })}
+
+              {Object.keys(collections).length === 0 && (
+                <div className="py-4 text-center text-[10px] text-muted-foreground/60 italic">
+                  No collections created yet
+                </div>
+              )}
+            </div>
+          </GSAPAccordion>
+        </div>
+
         {/* Root Documents (not in a folder) */}
         <div
           className="space-y-[2px] pb-4 group/uncategorized"
@@ -1120,6 +1253,11 @@ export const Sidebar = () => {
         </button>
       </div>
 
+      <CreateCollectionDialog
+        isOpen={showCreateCollection}
+        onClose={() => setShowCreateCollection(false)}
+      />
+
       <DeleteFolderDialog
         isOpen={deleteFolderDialogOpen}
         onClose={() => setDeleteFolderDialogOpen(false)}
@@ -1128,6 +1266,59 @@ export const Sidebar = () => {
         fileCount={deletingFolderFilesCount}
         onConfirm={handleConfirmDeleteFolder}
       />
+
+      {/* Rename Collection Dialog */}
+      <PopupMenu
+        isOpen={!!renamingCollectionId}
+        onClose={() => setRenamingCollectionId(null)}
+        title="Rename Collection"
+        variant="center"
+        footer={
+          <>
+            <button
+              onClick={() => setRenamingCollectionId(null)}
+              className="px-3.5 py-1.5 rounded bg-muted hover:bg-muted/80 text-xs font-semibold text-muted-foreground transition-all cursor-pointer border border-border"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                if (renamingCollectionId && renamingCollectionName.trim()) {
+                  useCollectionStore.getState().updateCollection(renamingCollectionId, {
+                    name: renamingCollectionName.trim()
+                  });
+                  setRenamingCollectionId(null);
+                }
+              }}
+              disabled={!renamingCollectionName.trim()}
+              className="px-3.5 py-1.5 rounded bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold text-white transition-all cursor-pointer shadow-sm-sm"
+            >
+              Save
+            </button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-1.5 font-sans text-left">
+          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Name</label>
+          <input
+            type="text"
+            value={renamingCollectionName}
+            onChange={(e) => setRenamingCollectionName(e.target.value)}
+            className="bg-muted/30 border border-border rounded px-3 py-2 text-sm w-full outline-none text-foreground focus:border-purple-500/50 transition-colors animate-fadeIn"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                if (renamingCollectionId && renamingCollectionName.trim()) {
+                  useCollectionStore.getState().updateCollection(renamingCollectionId, {
+                    name: renamingCollectionName.trim()
+                  });
+                  setRenamingCollectionId(null);
+                }
+              }
+            }}
+          />
+        </div>
+      </PopupMenu>
 
       {/* Context Menu */}
       {contextMenu && (

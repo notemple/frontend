@@ -1,5 +1,6 @@
 import Dexie,{ type Table } from "dexie";
 import type { Folder,NoteDocument,Task } from '../core/types';
+import type { Collection, CollectionItem } from '../collections/types';
 
 export interface MetadataEntry {
   key: string;
@@ -17,6 +18,8 @@ export class TemplnoteDexieDB extends Dexie {
   tasks!: Table<Task, string>;
   metadata!: Table<MetadataEntry, string>;
   images!: Table<ImageEntry, string>;
+  collections!: Table<Collection, string>;
+  collectionItems!: Table<CollectionItem, string>;
 
   constructor() {
     super("NotempleDatabase");
@@ -37,7 +40,18 @@ export class TemplnoteDexieDB extends Dexie {
       metadata: "key",
       images: "id"
     });
+    // Version 4: adds collections and collectionItems tables for custom databases
+    this.version(4).stores({
+      documents: "id, folderId, updatedAt, isFavorite",
+      folders: "id",
+      tasks: "id, completed, deadline, createdAt",
+      metadata: "key",
+      images: "id",
+      collections: "id, name",
+      collectionItems: "id, collectionId"
+    });
   }
 }
 
 export const db = new TemplnoteDexieDB();
+

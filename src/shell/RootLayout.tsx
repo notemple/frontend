@@ -10,9 +10,12 @@ import { RightSidebar } from './right-sidebar/RightSidebar';
 import { Sidebar } from './sidebar/Sidebar';
 import { MinimizedAiChat } from '@/features/ai/MinimizedAiChat';
 import { useAiStore } from '@/features/ai/aiStore';
+import { ItemDetailModal } from '@/features/collections/components/ItemDetailModal';
+import { useCollectionStore } from '@/features/collections/store/collectionStore';
 
 export const RootLayout = () => {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [activeItemDetail, setActiveItemDetail] = useState<{ itemId: string; collectionId: string } | null>(null);
   const autoHideSidebars = useSettingsStore(state => state.autoHideSidebars);
 
   const { openDocument, appearance } = useUiStore(
@@ -28,6 +31,22 @@ export const RootLayout = () => {
     };
     window.addEventListener('task-editor-open' as any, handleOpenTaskEditor as any);
     return () => window.removeEventListener('task-editor-open' as any, handleOpenTaskEditor as any);
+  }, []);
+
+  useEffect(() => {
+    const handleOpenItemDetail = (e: CustomEvent) => {
+      const itemId = e.detail.itemId;
+      const allItems = Object.entries(useCollectionStore.getState().items);
+      for (const [colId, itemsList] of allItems) {
+        const found = itemsList.find(i => i.id === itemId);
+        if (found) {
+          setActiveItemDetail({ itemId, collectionId: colId });
+          break;
+        }
+      }
+    };
+    window.addEventListener('collection-item-detail-open' as any, handleOpenItemDetail as any);
+    return () => window.removeEventListener('collection-item-detail-open' as any, handleOpenItemDetail as any);
   }, []);
 
   // Global keyboard shortcuts for toggling sidebars and cycling panes/tabs
@@ -307,6 +326,14 @@ export const RootLayout = () => {
         <TaskEditorModal 
           taskId={editingTaskId} 
           onClose={() => setEditingTaskId(null)} 
+        />
+      )}
+      {activeItemDetail && (
+        <ItemDetailModal
+          isOpen={true}
+          onClose={() => setActiveItemDetail(null)}
+          collectionId={activeItemDetail.collectionId}
+          itemId={activeItemDetail.itemId}
         />
       )}
     </div>

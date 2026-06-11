@@ -1,4 +1,5 @@
 import { useDocumentStore } from '@/features/documents/store';
+import { useCollectionStore } from '@/features/collections/store/collectionStore';
 import { useSettingsStore } from '@/features/settings/store';
 import { cn } from '@/shared/lib/utils';
 import { useUiStore } from '@/shared/store/uiStore';
@@ -104,6 +105,7 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
       if (tabId === 'section-daily-notes') return { title: 'Daily Notes', type: 'daily-notes', icon: undefined };
       if (tabId === 'section-tasks') return { title: 'Tasks', type: 'tasks', icon: undefined };
       if (tabId === 'section-tags') return { title: 'Tags', type: 'tags', icon: undefined };
+      if (tabId === 'section-collections') return { title: 'Collections', type: 'collections', icon: undefined };
       if (tabId === 'section-ask-ai') return { title: 'Ask AI', type: 'ask-ai', icon: undefined };
       if (tabId === 'section-glance') return { title: 'Glance', type: 'glance', icon: undefined };
       if (tabId === 'section-wall') return { title: 'Wall', type: 'wall', icon: undefined };
@@ -113,6 +115,9 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
       if (tabId === 'section-uncategorized') return { title: 'Uncategorized', type: 'folders', icon: undefined };
       if (tabId === 'section-trash') return { title: 'Trash', type: 'trash', icon: undefined };
       if (tabId === 'section-settings') return { title: 'Settings', type: 'settings', icon: undefined };
+      if (tabId.startsWith('section-collection-')) {
+        return { title: 'Collection', type: 'collection', icon: '📚' };
+      }
       if (tabId.startsWith('section-folder-')) {
         const folderId = tabId.replace('section-folder-', '');
         const folder = state.folders?.find((f: any) => f?.id === folderId);
@@ -145,6 +150,15 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
   );
   const doc = useDocumentStore(useShallow(docSelector));
 
+  const isCollection = tabId.startsWith('section-collection-');
+  const collectionId = isCollection ? tabId.replace('section-collection-', '') : '';
+  const colName = useCollectionStore(state => isCollection ? state.collections[collectionId]?.name : '');
+  const colIcon = useCollectionStore(state => isCollection ? state.collections[collectionId]?.icon : '');
+  const colColor = useCollectionStore(state => isCollection ? state.collections[collectionId]?.color : '');
+
+  const displayTitle = isCollection ? (colName || 'Collection') : (doc?.title || '');
+  const displayIcon = isCollection ? (colIcon || '📚') : doc?.icon;
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -152,35 +166,40 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
 
   const sectionColor = React.useMemo(() => {
     if (!doc) return undefined;
+    if (isCollection) return colColor;
     return getSectionColor(tabId, doc.type, (doc as any).folderColor);
-  }, [tabId, doc]);
+  }, [tabId, doc, isCollection, colColor]);
 
   // Decide the base color for the icon
   const resolvedIconColor = React.useMemo(() => {
     if (!doc) return undefined;
+    if (isCollection) return colColor;
     return (doc as any).cardColor || sectionColor || (doc as any).folderColor || (doc as any).color;
-  }, [doc, sectionColor]);
+  }, [doc, sectionColor, isCollection, colColor]);
 
   const iconStyle = React.useMemo(() => resolvedIconColor ? { color: resolvedIconColor } : undefined, [resolvedIconColor]);
 
   // Dynamic tab background and border styling
   const bgStyleValue = React.useMemo(() => {
     if (!doc) return undefined;
+    if (isCollection) return colColor;
     return (doc as any).cardColor || sectionColor || (doc as any).folderColor;
-  }, [doc, sectionColor]);
+  }, [doc, sectionColor, isCollection, colColor]);
   
   const hasBgColor = !!bgStyleValue;
 
   const bgOpacityClass = React.useMemo(() => {
     if (!doc) return "opacity-0";
     if (isActive) {
+      if (isCollection) return "opacity-20";
       if ((doc as any).cardColor || sectionColor || (doc as any).folderColor) return "opacity-20";
       return "opacity-0";
     } else {
+      if (isCollection) return "opacity-8 group-hover:opacity-18";
       if ((doc as any).cardColor || sectionColor || (doc as any).folderColor) return "opacity-8 group-hover:opacity-18";
       return "opacity-0";
     }
-  }, [isActive, doc, sectionColor]);
+  }, [isActive, doc, sectionColor, isCollection]);
 
   const topBorderColor = React.useMemo(() => {
     if (isActive) {
@@ -247,13 +266,13 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
         className="shrink-0 transition-colors flex items-center justify-center"
         style={iconStyle}
       >
-        {getIcon(doc.type, doc.icon)}
+        {getIcon(isCollection ? 'collection' : doc.type, displayIcon)}
       </span>
       
       {doc.isDeleted && (
         <Trash size={12} className="text-red-500 shrink-0" weight="fill" />
       )}
-      <span className="text-xs truncate flex-1 font-medium">{doc.title}</span>
+      <span className="text-xs truncate flex-1 font-medium">{displayTitle}</span>
       
       <button
         onPointerDown={(e) => {
@@ -420,6 +439,7 @@ function getIcon(type: string, emoji?: string) {
     case 'daily-notes': return <CalendarBlank size={14} />;
     case 'tasks': return <CheckSquare size={14} />;
     case 'tags': return <Tag size={14} />;
+    case 'collections': return <SquaresFour size={14} />;
     case 'glance': return <Eye size={14} />;
     case 'wall': return <SquaresFour size={14} />;
     case 'folders':

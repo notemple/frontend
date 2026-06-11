@@ -13,6 +13,8 @@ import { getFolderHexColor } from '@/shared/lib/utils';
 import { useUiStore } from '@/shared/store/uiStore';
 import { ColorPicker } from '@/shared/ui/ColorPicker';
 import { DeleteFolderDialog } from '@/shell/sidebar/DeleteFolderDialog';
+import { CollectionPage } from '@/features/collections/pages/CollectionPage';
+import { CollectionsDashboardPage } from '@/features/collections/pages/CollectionsDashboardPage';
 import { ArrowLeft,Check,FileText,Plus,PlusCircle,TextT,Trash,X } from '@phosphor-icons/react';
 import { AnimatePresence,motion } from 'motion/react';
 import React,{ useCallback } from 'react';
@@ -161,6 +163,13 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
     return EMPTY_ARRAY;
   }, [sectionId, documentOrder, documents, folders]);
 
+  if (sectionId === 'section-collections') {
+    return <CollectionsDashboardPage paneId={paneId} />;
+  }
+  if (sectionId.startsWith('section-collection-')) {
+    const collectionId = sectionId.replace('section-collection-', '');
+    return <CollectionPage paneId={paneId} collectionId={collectionId} />;
+  }
   if (sectionId === 'section-daily-notes') {
     return <DailyNotesPage paneId={paneId} />;
   }

@@ -169,7 +169,7 @@ export default function TableHoverActionsPlugin({ documentId }: { documentId?: s
   const [submenuLeft, setSubmenuLeft] = useState(0)
   
   const [activeResizeGuide, setActiveResizeGuide] = useState<{
-    type: 'table-left' | 'table-right' | 'column' | 'row';
+    type: 'table-right' | 'column' | 'row';
     top: number;
     left: number;
     width: number;
@@ -507,7 +507,7 @@ export default function TableHoverActionsPlugin({ documentId }: { documentId?: s
   useEffect(() => {
     let isDragging = false;
     let dragInfo: {
-      type: 'table-left' | 'table-right' | 'column' | 'row';
+      type: 'table-right' | 'column' | 'row';
       startX: number;
       startY: number;
       tableDOM: HTMLTableElement;
@@ -550,22 +550,17 @@ export default function TableHoverActionsPlugin({ documentId }: { documentId?: s
 
       const rect = cellDOM.getBoundingClientRect();
       const distanceToRight = Math.abs(rect.right - e.clientX);
-      const distanceToLeft = Math.abs(e.clientX - rect.left);
       const distanceToBottom = Math.abs(rect.bottom - e.clientY);
 
       const rowDOM = cellDOM.parentElement as HTMLTableRowElement;
       if (!rowDOM) return null;
 
-      const isFirstColumn = cellDOM.previousElementSibling === null;
       const isLastColumn = cellDOM.nextElementSibling === null;
       
       const threshold = 8; // detection zone width in pixels
 
-      const candidates: { type: 'table-left' | 'table-right' | 'column' | 'row', distance: number, index: number }[] = [];
+      const candidates: { type: 'table-right' | 'column' | 'row', distance: number, index: number }[] = [];
 
-      if (isFirstColumn && distanceToLeft < threshold) {
-        candidates.push({ type: 'table-left', distance: distanceToLeft, index: 0 });
-      }
       if (isLastColumn && distanceToRight < threshold) {
         candidates.push({ type: 'table-right', distance: distanceToRight, index: rowDOM.cells.length - 1 });
       }
@@ -639,15 +634,10 @@ export default function TableHoverActionsPlugin({ documentId }: { documentId?: s
             width: dragInfo.initialTableWidth,
             height: 3,
           });
-        } else if (dragInfo.type === 'table-right' || dragInfo.type === 'table-left') {
+        } else if (dragInfo.type === 'table-right') {
           const deltaX = e.clientX - dragInfo.startX;
-          let newTableWidth = dragInfo.initialTableWidth;
-          
-          if (dragInfo.type === 'table-right') {
-            newTableWidth += deltaX;
-          } else {
-            newTableWidth -= deltaX;
-          }
+          let newTableWidth = dragInfo.initialTableWidth + deltaX;
+
           // Table can't be resized smaller than the default width of the narrow page (720px)
           let minWidth = Math.min(720, dragInfo.parentWidth);
           const scrollArea = dragInfo.tableDOM.closest('.editor-scroll-area');
@@ -655,23 +645,18 @@ export default function TableHoverActionsPlugin({ documentId }: { documentId?: s
           let maxWidth = scrollAreaWidth * 0.90;
 
           if (isWidePage) {
-            // If the page is wide, the table is locked to the wide page's width (parentWidth)
             minWidth = dragInfo.parentWidth;
             maxWidth = dragInfo.parentWidth;
           }
 
           newTableWidth = Math.max(minWidth, Math.min(maxWidth, newTableWidth));
-          
-          const wChange = newTableWidth - dragInfo.initialTableWidth;
-          const translateX = dragInfo.type === 'table-right' ? wChange / 2 : -wChange / 2;
-          const scale = newTableWidth / dragInfo.initialTableWidth;
-          
-          dragInfo.tableDOM.style.width = `${newTableWidth}px`;
-          dragInfo.tableDOM.style.marginLeft = 'auto';
-          dragInfo.tableDOM.style.marginRight = 'auto';
-          dragInfo.tableDOM.style.transform = `translateX(${translateX}px)`;
 
-          // Update column widths (with 30px min width)
+          const wChange = newTableWidth - dragInfo.initialTableWidth;
+          const scale = newTableWidth / dragInfo.initialTableWidth;
+
+          dragInfo.tableDOM.style.width = `${newTableWidth}px`;
+
+          // Update column widths proportionally (with 30px min width)
           const rows = Array.from(dragInfo.tableDOM.rows);
           rows.forEach((row) => {
             Array.from(row.cells).forEach((cell, idx) => {
@@ -680,13 +665,11 @@ export default function TableHoverActionsPlugin({ documentId }: { documentId?: s
             });
           });
 
-          // Update guide position without triggering layout reflow
-          const guideLeft = dragInfo.type === 'table-right'
-            ? dragInfo.initialTableRightEdge + wChange - dragInfo.containerLeft + container.scrollLeft - 2
-            : dragInfo.initialTableLeftEdge - wChange - dragInfo.containerLeft + container.scrollLeft - 2;
+          // Update guide position at the new right edge
+          const guideLeft = dragInfo.initialTableRightEdge + wChange - dragInfo.containerLeft + container.scrollLeft - 2;
 
           setActiveResizeGuide({
-            type: dragInfo.type,
+            type: 'table-right',
             left: guideLeft,
             top: dragInfo.initialTableTop,
             width: 5,
@@ -700,7 +683,7 @@ export default function TableHoverActionsPlugin({ documentId }: { documentId?: s
       const containerRect = container.getBoundingClientRect();
       const info = getResizeInfo(e);
       if (info) {
-        if (info.type === 'table-left' || info.type === 'table-right') {
+        if (info.type === 'table-right') {
           document.body.style.cursor = 'ew-resize';
         } else if (info.type === 'column') {
           document.body.style.cursor = 'col-resize';
@@ -727,11 +710,6 @@ export default function TableHoverActionsPlugin({ documentId }: { documentId?: s
           top = cellRect.bottom - containerRect.top + container.scrollTop - 1;
           width = tableRect.width;
           height = 3;
-        } else if (info.type === 'table-left') {
-          left = tableRect.left - containerRect.left + container.scrollLeft - 2;
-          top = tableRect.top - containerRect.top + container.scrollTop;
-          width = 5;
-          height = tableRect.height;
         } else if (info.type === 'table-right') {
           left = tableRect.right - containerRect.left + container.scrollLeft - 2;
           top = tableRect.top - containerRect.top + container.scrollTop;
@@ -849,8 +827,14 @@ export default function TableHoverActionsPlugin({ documentId }: { documentId?: s
         defaultRowHeights,
       };
 
+      // For table-right resize, lock the left edge by setting explicit margin
+      if (info.type === 'table-right') {
+        info.tableDOM.style.marginLeft = `${initialTableLeftEdge - containerRect.left + container.scrollLeft}px`;
+        info.tableDOM.style.marginRight = '0';
+      }
+
       document.body.style.userSelect = 'none';
-      if (info.type === 'table-left' || info.type === 'table-right') {
+      if (info.type === 'table-right') {
         document.body.style.cursor = 'ew-resize';
       } else if (info.type === 'column') {
         document.body.style.cursor = 'col-resize';
@@ -929,10 +913,11 @@ export default function TableHoverActionsPlugin({ documentId }: { documentId?: s
               }
             });
           }
-        } else if (drag.type === 'table-right' || drag.type === 'table-left') {
+        } else if (drag.type === 'table-right') {
           drag.tableDOM.style.transform = '';
           const finalTableWidth = parseFloat(drag.tableDOM.style.width) || drag.initialTableWidth;
-          tableNode.setStyle(`width: ${finalTableWidth}px; margin-left: auto; margin-right: auto;`);
+          const finalMarginLeft = parseFloat(drag.tableDOM.style.marginLeft) || 0;
+          tableNode.setStyle(`width: ${finalTableWidth}px; margin-left: ${finalMarginLeft}px; margin-right: 0;`);
 
           const scale = finalTableWidth / drag.initialTableWidth;
           const colWidths: number[] = [];

@@ -589,7 +589,7 @@ export function TemplnoteEditor({
         <CheckListPlugin />
         <LinkPlugin />
         <TabIndentationPlugin />
-        <TablePlugin hasCellBackgroundColor={true} />
+        <TablePlugin hasCellBackgroundColor={true} hasHorizontalScroll={true} />
         <TableHoverActionsPlugin documentId={documentId} />
         <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
         <SlashCommandPlugin />

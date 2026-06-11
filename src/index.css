@@ -500,6 +500,7 @@ html.light .lexical-root hr {
 .lexical-root > .lexical-blockquote,
 .lexical-root > .lexical-code-block,
 .lexical-root > .lexical-table,
+.lexical-root > .lexical-table-scroll-wrapper,
 .lexical-root > .lexical-ul,
 .lexical-root > .lexical-ol,
 .lexical-root > .columns-outer-wrapper {
@@ -565,7 +566,8 @@ html.light .lexical-root hr {
   border-left: 20px solid transparent !important;
 }
 
-.columns-container .lexical-root > .lexical-table {
+.columns-container .lexical-root > .lexical-table,
+.columns-container .lexical-root > .lexical-table-scroll-wrapper {
   margin-left: 20px !important;
   width: calc(100% - 20px) !important;
 }
@@ -637,43 +639,6 @@ html.light .lexical-root hr {
   font-size: var(--editor-base-size, 16px);
   color: var(--body-text);
   caret-color: #a855f7;   /* purple caret matching app accent */
-}
-
-/* ── Per-block wide layout ───────────────────────────────────────────────── */
-/*
- * When a block has class "block-wide" (toggled via the gutter ⋮ menu),
- * it expands to fill all available space around the narrow reading column.
- *
- * The BlockHandlePlugin measures the real pixels available to the left and
- * right of the lexical-root inside the scroll container, then stores them
- * as --bw-left / --bw-right CSS custom properties on the root element.
- * Child blocks inherit these and use negative margins to expand in-flow.
- * This avoids overflow clipping and keeps the block perfectly centered in
- * the visible editor area regardless of sidebar width.
- */
-.lexical-root > .block-wide {
-  /* Expand symmetrically into the available space */
-  width: calc(100% + var(--bw-left, 0px) + var(--bw-right, 0px)) !important;
-  margin-left: calc(-1 * var(--bw-left, 0px)) !important;
-  margin-right: calc(-1 * var(--bw-right, 0px)) !important;
-  max-width: none !important;
-  box-sizing: border-box;
-  /* Subtle purple left-border so the block is clearly marked as "wide" */
-  border-left: 2px solid rgba(168, 85, 247, 0.5) !important;
-  padding-left: 16px !important;
-  background: rgba(168, 85, 247, 0.025);
-  border-radius: 2px;
-  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              margin 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              background 0.2s ease;
-}
-
-/* Tables and column containers manage their own width — skip expansion */
-.lexical-root > .block-wide.lexical-table,
-.lexical-root > .block-wide.columns-outer-wrapper {
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  width: 100% !important;
 }
 
 
@@ -1116,6 +1081,7 @@ html.light .block-context-menu-footer {
     border-left: 0px solid transparent !important;
   }
   .lexical-root > .lexical-table,
+  .lexical-root > .lexical-table-scroll-wrapper,
   .lexical-root > .columns-outer-wrapper {
     margin-left: 0px !important;
     width: 100% !important;
@@ -1345,6 +1311,21 @@ html.light .lexical-link:hover { color: #4338ca; }
   width: 100%;
   margin: 1.5rem auto !important;
   border-spacing: 0;
+}
+.lexical-table-scroll-wrapper {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.lexical-table-scroll-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+.lexical-table-scroll-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+.lexical-table-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
 }
 .lexical-table-cell {
   border: 1px solid var(--border);

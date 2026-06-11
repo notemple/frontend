@@ -64,6 +64,7 @@ export const editorTheme: EditorThemeClasses = {
     variable: "token-variable",
   },
   table: "lexical-table",
+  tableScrollableWrapper: "lexical-table-scroll-wrapper",
   tableCell: "lexical-table-cell",
   tableRow: "lexical-table-row",
   tableCellHeader: "lexical-table-cell--header",

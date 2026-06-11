@@ -638,16 +638,12 @@ export default function TableHoverActionsPlugin({ documentId }: { documentId?: s
           const deltaX = e.clientX - dragInfo.startX;
           let newTableWidth = dragInfo.initialTableWidth + deltaX;
 
-          // Table can't be resized smaller than the default width of the narrow page (720px)
-          let minWidth = Math.min(720, dragInfo.parentWidth);
-          const scrollArea = dragInfo.tableDOM.closest('.editor-scroll-area');
-          const scrollAreaWidth = scrollArea ? scrollArea.getBoundingClientRect().width : window.innerWidth;
-          let maxWidth = scrollAreaWidth * 0.90;
-
-          if (isWidePage) {
-            minWidth = dragInfo.parentWidth;
-            maxWidth = dragInfo.parentWidth;
-          }
+          const minWidth = Math.min(720, dragInfo.parentWidth);
+          // Use the same max-width as the editor content column (720px narrow / 90% wide)
+          const contentColumn = dragInfo.tableDOM.closest('.editor-content-column') as HTMLElement;
+          const maxWidth = contentColumn
+            ? parseFloat(getComputedStyle(contentColumn).maxWidth) || dragInfo.parentWidth
+            : dragInfo.parentWidth;
 
           newTableWidth = Math.max(minWidth, Math.min(maxWidth, newTableWidth));
 

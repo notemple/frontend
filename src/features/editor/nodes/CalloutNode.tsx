@@ -7,7 +7,7 @@ import type {
   SerializedLexicalNode,
   Spread,
 } from "lexical"
-import { DecoratorNode, $applyNodeReplacement, $getNodeByKey } from "lexical"
+import { DecoratorNode, $applyNodeReplacement, $getNodeByKey, $createParagraphNode } from "lexical"
 import EmojiPicker from "emoji-picker-react"
 import { createPortal } from "react-dom"
 
@@ -125,11 +125,11 @@ function CalloutComponent({
       if (node) {
         const prevSibling = node.getPreviousSibling()
         if (prevSibling && typeof (prevSibling as any).selectEnd === "function") {
-          ;(prevSibling as any).selectEnd()
+          ; (prevSibling as any).selectEnd()
         } else {
           const nextSibling = node.getNextSibling()
           if (nextSibling && typeof (nextSibling as any).selectStart === "function") {
-            ;(nextSibling as any).selectStart()
+            ; (nextSibling as any).selectStart()
           } else {
             const parent = node.getParent()
             if (parent) {
@@ -218,6 +218,16 @@ function CalloutComponent({
               e.preventDefault()
               handleDeleteCallout()
             }
+          } else if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault()
+            editor.update(() => {
+              const node = $getNodeByKey(nodeKey)
+              if (node) {
+                const newParagraph = $createParagraphNode()
+                node.insertAfter(newParagraph)
+                newParagraph.select()
+              }
+            })
           }
         }}
       >
@@ -276,10 +286,11 @@ export class CalloutNode extends DecoratorNode<ReactNode> {
       case "custom":
         return "⚙️"
       case "tip":
-      case "success":
         return "💡"
+      case "success":
+        return "🏁"
       case "important":
-        return "💜"
+        return "ℹ️"
       case "warning":
         return "⚠️"
       case "caution":
@@ -287,8 +298,9 @@ export class CalloutNode extends DecoratorNode<ReactNode> {
         return "🚨"
       case "note":
       case "info":
+        return "🗒️"
       default:
-        return "ℹ"
+        return ""
     }
   }
 

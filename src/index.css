@@ -1893,8 +1893,12 @@ html.dark .lexical-callout {
   pointer-events: none;
 }
 /* Style overrides for callouts to preserve colored left borders without backgrounds */
+.lexical-callout--note,
 .lexical-callout--info {
   border-left-color: #3b82f6 !important;
+}
+.lexical-callout--tip {
+  border-left-color: #10b981 !important;
 }
 .lexical-callout--important {
   border-left-color: #a855f7 !important;

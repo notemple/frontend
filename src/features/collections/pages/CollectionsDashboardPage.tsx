@@ -65,7 +65,7 @@ export const CollectionsDashboardPage: React.FC<CollectionsDashboardPageProps> =
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 pb-12">
             {collectionsList.map((col) => {
               const itemCount = (items[col.id] || []).length;
               const fieldCount = col.fields.length;
@@ -81,15 +81,15 @@ export const CollectionsDashboardPage: React.FC<CollectionsDashboardPageProps> =
                   key={col.id}
                   style={cardBgStyle}
                   onClick={() => openDocument(`section-collection-${col.id}`, paneId)}
-                  className="group relative flex flex-col justify-between p-6 rounded-xl border border-border/80 bg-background/50 hover:bg-background/90 hover:border-[var(--col-accent)]/50 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer overflow-hidden transform hover:-translate-y-1"
+                  className="group relative flex flex-col justify-between p-4 rounded-xl border border-border/80 bg-background/50 hover:bg-background/90 hover:border-[var(--col-accent)]/50 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer overflow-hidden transform hover:-translate-y-1"
                 >
                   {/* Decorative background glow matching color theme */}
-                  <div className="absolute top-0 right-0 w-24 h-24 -mr-6 -mt-6 rounded-full blur-2xl opacity-10 group-hover:opacity-25 transition-opacity duration-300 pointer-events-none" style={{ backgroundColor: accentColor }} />
+                  <div className="absolute top-0 right-0 w-16 h-16 -mr-4 -mt-4 rounded-full blur-2xl opacity-10 group-hover:opacity-25 transition-opacity duration-300 pointer-events-none" style={{ backgroundColor: accentColor }} />
                   
                   <div>
                     {/* Top row: Emoji & Item Count badge */}
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-3xl font-sans leading-none select-none filter drop-shadow-sm transform group-hover:scale-110 transition-transform duration-300">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-2xl font-sans leading-none select-none filter drop-shadow-sm transform group-hover:scale-110 transition-transform duration-300">
                         {col.icon || '📚'}
                       </span>
                       <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-muted border border-border/50 text-muted-foreground/90">
@@ -98,16 +98,16 @@ export const CollectionsDashboardPage: React.FC<CollectionsDashboardPageProps> =
                     </div>
 
                     {/* Collection Title & Description */}
-                    <h3 className="text-base font-semibold text-foreground font-sans group-hover:text-[var(--col-accent)] transition-colors duration-200 truncate">
+                    <h3 className="text-sm font-semibold text-foreground font-sans group-hover:text-[var(--col-accent)] transition-colors duration-200 truncate">
                       {col.name}
                     </h3>
-                    <p className="text-xs text-muted-foreground/80 line-clamp-2 mt-1.5 leading-relaxed min-h-[2.5rem]">
+                    <p className="text-xs text-muted-foreground/80 line-clamp-2 mt-1 leading-relaxed min-h-[2rem]">
                       {col.description || 'No description provided.'}
                     </p>
                   </div>
 
                   {/* Footer Stats / Properties */}
-                  <div className="flex items-center justify-between border-t border-border/40 pt-4 mt-6">
+                  <div className="flex items-center justify-between border-t border-border/40 pt-3 mt-4">
                     <span className="text-[10px] font-medium text-muted-foreground/85 flex items-center gap-1">
                       <Files size={12} className="opacity-70" />
                       <span>{fieldCount} {fieldCount === 1 ? 'property' : 'properties'}</span>

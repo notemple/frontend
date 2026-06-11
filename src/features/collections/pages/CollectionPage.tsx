@@ -4,7 +4,8 @@ import { TableView } from '../components/TableView';
 import type { ViewType } from '../types';
 import { 
   Database, Trash, Copy, PushPin, 
-  Table, List, Image, Calendar, Kanban 
+  Table, List, Image, Calendar, Kanban,
+  Warning 
 } from '@phosphor-icons/react';
 import { cn } from '@/shared/lib/utils';
 import { PopupMenu } from '@/shared/ui/PopupMenu';
@@ -28,6 +29,7 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [renameName, setRenameName] = useState('');
   const [renameDesc, setRenameDesc] = useState('');
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -75,10 +77,13 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
     await duplicateCollection(collectionId);
   };
 
-  const handleDelete = async () => {
-    if (confirm(`Are you sure you want to delete database "${collection.name}"? This deletes the entire schema and all row data.`)) {
-      await deleteCollection(collectionId);
-    }
+  const handleDelete = () => {
+    setIsDeleteOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsDeleteOpen(false);
+    await deleteCollection(collectionId);
   };
 
   const activeView = viewState.activeView || 'table';
@@ -347,6 +352,44 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
                 }
               }}
             />
+          </div>
+        </div>
+      </PopupMenu>
+
+      {/* Delete confirmation popup dialog */}
+      <PopupMenu
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        title="Delete Database"
+        variant="center"
+        footer={
+          <>
+            <button
+              onClick={() => setIsDeleteOpen(false)}
+              className="px-3.5 py-1.5 rounded bg-muted hover:bg-muted/80 text-xs font-semibold text-muted-foreground transition-all cursor-pointer border border-border"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmDelete}
+              className="px-3.5 py-1.5 rounded bg-red-600 hover:bg-red-700 text-xs font-semibold text-white transition-all cursor-pointer shadow-sm-sm"
+            >
+              Delete Database
+            </button>
+          </>
+        }
+      >
+        <div className="flex gap-4 font-sans text-left items-start p-1">
+          <div className="p-3 rounded-full bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 shrink-0">
+            <Warning size={24} weight="fill" />
+          </div>
+          <div className="flex flex-col gap-2">
+            <h3 className="text-sm font-semibold text-foreground">
+              Are you absolutely sure?
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              This will permanently delete the database <span className="font-semibold text-foreground">"{collection.name}"</span> and all of its fields and row data. This action cannot be undone.
+            </p>
           </div>
         </div>
       </PopupMenu>

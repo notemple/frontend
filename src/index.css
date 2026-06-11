@@ -639,6 +639,44 @@ html.light .lexical-root hr {
   caret-color: #a855f7;   /* purple caret matching app accent */
 }
 
+/* ── Per-block wide layout ───────────────────────────────────────────────── */
+/*
+ * When a block has class "block-wide" (toggled via the gutter ⋮ menu),
+ * it expands to fill all available space around the narrow reading column.
+ *
+ * The BlockHandlePlugin measures the real pixels available to the left and
+ * right of the lexical-root inside the scroll container, then stores them
+ * as --bw-left / --bw-right CSS custom properties on the root element.
+ * Child blocks inherit these and use negative margins to expand in-flow.
+ * This avoids overflow clipping and keeps the block perfectly centered in
+ * the visible editor area regardless of sidebar width.
+ */
+.lexical-root > .block-wide {
+  /* Expand symmetrically into the available space */
+  width: calc(100% + var(--bw-left, 0px) + var(--bw-right, 0px)) !important;
+  margin-left: calc(-1 * var(--bw-left, 0px)) !important;
+  margin-right: calc(-1 * var(--bw-right, 0px)) !important;
+  max-width: none !important;
+  box-sizing: border-box;
+  /* Subtle purple left-border so the block is clearly marked as "wide" */
+  border-left: 2px solid rgba(168, 85, 247, 0.5) !important;
+  padding-left: 16px !important;
+  background: rgba(168, 85, 247, 0.025);
+  border-radius: 2px;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              margin 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.2s ease;
+}
+
+/* Tables and column containers manage their own width — skip expansion */
+.lexical-root > .block-wide.lexical-table,
+.lexical-root > .block-wide.columns-outer-wrapper {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+}
+
+
 /* Click target below content */
 .editor-click-target {
   min-height: 10rem;

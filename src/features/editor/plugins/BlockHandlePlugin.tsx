@@ -2,6 +2,7 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { useEffect, useRef, useState, useCallback } from "react"
 import type { ReactNode } from "react"
 import { createPortal } from "react-dom"
+
 import {
   $getNodeByKey,
   $createParagraphNode,
@@ -196,6 +197,8 @@ interface MenuProps {
   lastEdited: Date
   selectedColor: string
   onColorSelect: (color: string) => void
+  isCurrentNodeWide?: boolean
+  onToggleBlockWide?: () => void
 }
 
 function BlockContextMenu({
@@ -211,6 +214,8 @@ function BlockContextMenu({
   lastEdited,
   selectedColor,
   onColorSelect,
+  isCurrentNodeWide,
+  onToggleBlockWide,
 }: MenuProps) {
   const [editor] = useLexicalComposerContext()
   const [search, setSearch] = useState("")
@@ -324,6 +329,13 @@ function BlockContextMenu({
       icon: <MoveBottomIcon />,
       keywords: ["move", "bottom", "last"],
       action: () => { onMoveToBottom(); onClose() },
+    },
+    {
+      id: "block-width",
+      label: isCurrentNodeWide ? "Make block narrow" : "Make block wider",
+      icon: <WidePageIcon active={!!isCurrentNodeWide} />,
+      keywords: ["page", "width", "wide", "narrow", "full", "block"],
+      action: () => { onToggleBlockWide?.(); onClose() },
     },
   ]
 
@@ -522,6 +534,23 @@ function MoveBottomIcon() {
     </svg>
   )
 }
+function WidePageIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="1" y="3" width="14" height="10" rx="1.5" opacity={active ? 1 : 0.5} />
+      <path d="M4 8h8" strokeWidth="1.5" />
+      {active ? (
+        <>
+          <path d="M1 8h2M13 8h2" strokeWidth="1" opacity="0.7" />
+        </>
+      ) : (
+        <>
+          <path d="M3 6h10M3 10h10" strokeWidth="1" opacity="0.4" />
+        </>
+      )}
+    </svg>
+  )
+}
 function ChevronRightIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -599,6 +628,7 @@ export default function BlockHandlePlugin({
 }): ReactNode {
   const [editor] = useLexicalComposerContext()
   const [handle, setHandle] = useState<HandleState | null>(null)
+  const [isCurrentNodeWide, setIsCurrentNodeWide] = useState(false)
   const handleRef = useRef<HandleState | null>(null)
   useEffect(() => {
     handleRef.current = handle
@@ -635,6 +665,7 @@ export default function BlockHandlePlugin({
             const el = editor.getElementByKey(node.getKey());
             if (el) {
               const style = node.getStyle();
+              // Apply background color
               const match = style.match(/background:\s*([^;]+)/i);
               const color = match ? match[1].trim() : "";
               if (color && color !== "transparent" && color !== "default") {
@@ -644,6 +675,12 @@ export default function BlockHandlePlugin({
               } else {
                 el.style.background = "";
                 el.style.borderRadius = "";
+              }
+              // Apply wide-block class
+              if (style.includes('--block-wide: 1')) {
+                el.classList.add('block-wide');
+              } else {
+                el.classList.remove('block-wide');
               }
             }
             node.getChildren().forEach(applyStyles);
@@ -665,6 +702,50 @@ export default function BlockHandlePlugin({
       document.body.classList.remove("has-active-block-handle")
     }
   }, [handle, menuOpen])
+
+  // Measure available space around the column and expose as CSS variables so that
+  // .block-wide children can use negative margins to expand without overflow clipping.
+  useEffect(() => {
+    const root = editor.getRootElement()
+    if (!root) return
+
+    const updateExpansionVars = () => {
+      const rootRect = root.getBoundingClientRect()
+
+      // Walk up to find the nearest scrollable ancestor (the editor scroll container)
+      let container: HTMLElement = root
+      while (container.parentElement && container.parentElement !== document.body) {
+        const cs = window.getComputedStyle(container.parentElement)
+        if (
+          ['auto', 'scroll'].includes(cs.overflowY) ||
+          ['auto', 'scroll'].includes(cs.overflowX)
+        ) {
+          container = container.parentElement
+          break
+        }
+        container = container.parentElement!
+      }
+
+      const containerRect = container.getBoundingClientRect()
+
+      // Available pixels on each side of the column within the scroll container
+      // Leave 8 px safety margin so the block never touches the edges
+      const left  = Math.max(0, Math.round(rootRect.left  - containerRect.left)  - 8)
+      const right = Math.max(0, Math.round(containerRect.right - rootRect.right) - 8)
+
+      // Set on the lexical-root so its children (.block-wide) can inherit the vars
+      root.style.setProperty('--bw-left',  `${left}px`)
+      root.style.setProperty('--bw-right', `${right}px`)
+    }
+
+    // Run once immediately, then re-run whenever the document or editor resizes
+    updateExpansionVars()
+    const ro = new ResizeObserver(updateExpansionVars)
+    ro.observe(document.documentElement)
+
+    return () => ro.disconnect()
+  }, [editor])
+
 
   // Mouse tracking for handle position
   useEffect(() => {
@@ -986,6 +1067,42 @@ export default function BlockHandlePlugin({
     setHandle(null)
   }, [])
 
+  // Sync isCurrentNodeWide when menu opens so the label reflects actual node state
+  useEffect(() => {
+    if (menuOpen && handle?.nodeKey) {
+      editor.getEditorState().read(() => {
+        const node = $getNodeByKey(handle.nodeKey)
+        if (node && $isElementNode(node)) {
+          setIsCurrentNodeWide(node.getStyle().includes('--block-wide: 1'))
+        } else {
+          setIsCurrentNodeWide(false)
+        }
+      })
+    }
+  }, [menuOpen, handle, editor])
+
+  const handleToggleBlockWide = useCallback(() => {
+    editor.update(() => {
+      if (!handle?.nodeKey) return
+      const node = $getNodeByKey(handle.nodeKey)
+      if (node && $isElementNode(node)) {
+        const currentStyle = node.getStyle()
+        if (currentStyle.includes('--block-wide: 1')) {
+          // Remove the wide marker
+          node.setStyle(
+            currentStyle
+              .replace(/;\s*--block-wide:\s*1/g, '')
+              .replace(/^--block-wide:\s*1;?\s*/g, '')
+              .trim()
+          )
+        } else {
+          // Add the wide marker
+          node.setStyle(currentStyle ? `${currentStyle}; --block-wide: 1` : '--block-wide: 1')
+        }
+      }
+    })
+  }, [editor, handle])
+
   // ── Render ───────────────────────────────────────────────────────────────────
 
   if (!handle) return null
@@ -1036,6 +1153,8 @@ export default function BlockHandlePlugin({
           lastEdited={lastEditedRef.current}
           selectedColor={selectedColor}
           onColorSelect={handleColorSelect}
+          isCurrentNodeWide={isCurrentNodeWide}
+          onToggleBlockWide={handleToggleBlockWide}
         />
       )}
 

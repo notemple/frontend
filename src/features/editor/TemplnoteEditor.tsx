@@ -590,7 +590,7 @@ export function TemplnoteEditor({
         <LinkPlugin />
         <TabIndentationPlugin />
         <TablePlugin hasCellBackgroundColor={true} />
-        <TableHoverActionsPlugin />
+        <TableHoverActionsPlugin documentId={documentId} />
         <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
         <SlashCommandPlugin />
         <MentionPlugin />

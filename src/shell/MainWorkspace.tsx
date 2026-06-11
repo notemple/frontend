@@ -34,7 +34,7 @@ import {
 import { formatInTimeZone } from 'date-fns-tz';
 import { gsap } from 'gsap';
 import { AnimatePresence,motion } from 'motion/react';
-import React,{ useCallback } from 'react';
+import React,{ useCallback, useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { FocusTimerPopup } from './FocusTimerPopup';
 import { TabBar } from './TabBar';
@@ -332,6 +332,10 @@ export const MainWorkspace = () => {
     ? (isCursorNearTop || isNavbarHovered)
     : !isNavbarManuallyHidden;
 
+  useEffect(() => {
+    useUiStore.getState().setNavbarVisible(showNavbar);
+  }, [showNavbar]);
+
   const timezone = useSettingsStore((state) => state.timezone);
 
   // Reset focus timer stopwatch each day at 00:00 in the top navbar
@@ -465,9 +469,7 @@ export const MainWorkspace = () => {
         onMouseEnter={() => setIsNavbarHovered(true)}
         onMouseLeave={() => setIsNavbarHovered(false)}
         className={cn(
-          "w-full flex items-center justify-between shrink-0 bg-[image:var(--background-topbar)] dark:bg-background border-b border-border z-20",
-          isSidebarOpen ? "pl-[276px]" : "pl-6",
-          isRightSidebarOpen ? "pr-[336px]" : "pr-6",
+          "w-full flex items-center justify-between shrink-0 bg-[image:var(--background-topbar)] dark:bg-background border-b border-border z-20 px-6",
           autoHideNavbar && !showNavbar ? "overflow-hidden" : ""
         )}
         initial={false}

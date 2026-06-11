@@ -359,7 +359,7 @@ const uncategorizedDocIdsSelector = (state: any) => {
 };
 
 export const Sidebar = () => {
-  const { isSidebarOpen, toggleSidebar, openDocument, panes, activePaneId, isTutorialActive } = useUiStore(
+  const { isSidebarOpen, toggleSidebar, openDocument, panes, activePaneId, isTutorialActive, isNavbarVisible } = useUiStore(
     useShallow((state) => ({
       isSidebarOpen: state.isSidebarOpen,
       toggleSidebar: state.toggleSidebar,
@@ -367,6 +367,7 @@ export const Sidebar = () => {
       panes: state.panes,
       activePaneId: state.activePaneId,
       isTutorialActive: state.isTutorialActive,
+      isNavbarVisible: state.isNavbarVisible,
     }))
   );
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -697,7 +698,7 @@ export const Sidebar = () => {
   return (
     <motion.div
       ref={sidebarRef}
-      className="h-full flex flex-col border-r border-border bg-muted absolute left-0 top-0 bottom-0 z-30 overflow-y-auto no-scrollbar group/sidebar shadow-md"
+      className={cn("h-full flex flex-col border-r border-border bg-muted absolute left-0 bottom-0 z-30 overflow-y-auto no-scrollbar group/sidebar shadow-md", isNavbarVisible ? "top-[56px]" : "top-0")}
       initial={false}
       animate={{
         width: isSidebarOpen ? 260 : 0,

@@ -43,6 +43,7 @@ function CalloutComponent({
   titleModified,
   content,
   editor,
+  autoFocus,
 }: {
   nodeKey: string
   calloutType: CalloutType
@@ -51,10 +52,26 @@ function CalloutComponent({
   titleModified: boolean
   content: string
   editor: LexicalEditor
+  autoFocus?: boolean
 }) {
   const [isPickerOpen, setIsPickerOpen] = useState(false)
   const emojiRef = useRef<HTMLSpanElement>(null)
   const pickerRef = useRef<HTMLDivElement>(null)
+  const bodyRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (autoFocus && bodyRef.current) {
+      bodyRef.current.focus()
+      const range = document.createRange()
+      range.selectNodeContents(bodyRef.current)
+      range.collapse(false)
+      const sel = window.getSelection()
+      if (sel) {
+        sel.removeAllRanges()
+        sel.addRange(range)
+      }
+    }
+  }, [autoFocus])
 
   useEffect(() => {
     if (!isPickerOpen) return
@@ -102,6 +119,41 @@ function CalloutComponent({
     setIsPickerOpen(false)
   }
 
+  const handleDeleteCallout = () => {
+    editor.update(() => {
+      const node = $getNodeByKey(nodeKey)
+      if (node) {
+        const prevSibling = node.getPreviousSibling()
+        if (prevSibling && typeof (prevSibling as any).selectEnd === "function") {
+          ;(prevSibling as any).selectEnd()
+        } else {
+          const nextSibling = node.getNextSibling()
+          if (nextSibling && typeof (nextSibling as any).selectStart === "function") {
+            ;(nextSibling as any).selectStart()
+          } else {
+            const parent = node.getParent()
+            if (parent) {
+              parent.selectEnd()
+            }
+          }
+        }
+        node.remove()
+      }
+    })
+  }
+
+  const handleTitleFocus = (e: React.FocusEvent<HTMLSpanElement>) => {
+    if (!titleModified) {
+      const range = document.createRange()
+      range.selectNodeContents(e.currentTarget)
+      const sel = window.getSelection()
+      if (sel) {
+        sel.removeAllRanges()
+        sel.addRange(range)
+      }
+    }
+  }
+
   const [pickerPos, setPickerPos] = useState({ top: 0, left: 0 })
   useEffect(() => {
     if (isPickerOpen && emojiRef.current) {
@@ -112,7 +164,8 @@ function CalloutComponent({
     }
   }, [isPickerOpen])
 
-  const displayTitle = titleModified ? title : CalloutNode.getDefaultTitle(calloutType)
+  const defaultTitle = CalloutNode.getDefaultTitle(calloutType)
+  const displayTitle = titleModified ? title : defaultTitle
 
   return (
     <div className={`lexical-callout lexical-callout--${calloutType}`}>
@@ -125,14 +178,22 @@ function CalloutComponent({
           {emoji}
         </span>
         <span
-          className="lexical-callout-title"
+          className={`lexical-callout-title ${!titleModified ? "lexical-callout-title--placeholder" : ""}`}
           contentEditable
           suppressContentEditableWarning
+          data-placeholder={defaultTitle}
           onBlur={handleTitleBlur}
+          onFocus={handleTitleFocus}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault()
               e.currentTarget.blur()
+            } else if (e.key === "Backspace") {
+              const text = e.currentTarget.innerText.trim()
+              if (text === "") {
+                e.preventDefault()
+                handleDeleteCallout()
+              }
             }
           }}
         >
@@ -140,10 +201,20 @@ function CalloutComponent({
         </span>
       </div>
       <div
+        ref={bodyRef}
         className="lexical-callout-body"
         contentEditable
         suppressContentEditableWarning
         onBlur={handleContentBlur}
+        onKeyDown={(e) => {
+          if (e.key === "Backspace") {
+            const text = e.currentTarget.innerText.trim()
+            if (text === "") {
+              e.preventDefault()
+              handleDeleteCallout()
+            }
+          }
+        }}
       >
         {content}
       </div>
@@ -179,6 +250,7 @@ export class CalloutNode extends DecoratorNode<ReactNode> {
   __title: string
   __titleModified: boolean
   __content: string
+  __autoFocus?: boolean
 
   static getType(): string { return "callout" }
 
@@ -189,7 +261,8 @@ export class CalloutNode extends DecoratorNode<ReactNode> {
       node.__title,
       node.__titleModified,
       node.__content,
-      node.__key
+      node.__key,
+      node.__autoFocus
     )
   }
 
@@ -237,7 +310,8 @@ export class CalloutNode extends DecoratorNode<ReactNode> {
     title?: string,
     titleModified?: boolean,
     content?: string,
-    key?: NodeKey
+    key?: NodeKey,
+    autoFocus?: boolean
   ) {
     super(key)
     this.__calloutType = calloutType
@@ -245,6 +319,7 @@ export class CalloutNode extends DecoratorNode<ReactNode> {
     this.__titleModified = titleModified ?? (title !== undefined && title !== CalloutNode.getDefaultTitle(calloutType))
     this.__title = title || CalloutNode.getDefaultTitle(calloutType)
     this.__content = content || ""
+    this.__autoFocus = autoFocus
   }
 
   getCalloutType(): CalloutType {
@@ -303,6 +378,7 @@ export class CalloutNode extends DecoratorNode<ReactNode> {
         titleModified={this.__titleModified}
         content={this.__content}
         editor={editor}
+        autoFocus={this.__autoFocus}
       />
     )
   }
@@ -333,9 +409,10 @@ export function $createCalloutNode(
   emoji?: string,
   title?: string,
   titleModified?: boolean,
-  content?: string
+  content?: string,
+  autoFocus?: boolean
 ): CalloutNode {
-  return $applyNodeReplacement(new CalloutNode(calloutType, emoji, title, titleModified, content))
+  return $applyNodeReplacement(new CalloutNode(calloutType, emoji, title, titleModified, content, undefined, autoFocus))
 }
 
 export function $isCalloutNode(node: unknown): node is CalloutNode {

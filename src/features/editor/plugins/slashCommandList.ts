@@ -357,12 +357,11 @@ export const calloutSubmenuCommands: SlashCommand[] = [
       editor.update(() => {
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
-          const node = $createCalloutNode("note")
+          const node = $createCalloutNode("note", undefined, undefined, undefined, undefined, true)
           const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
           const newParagraph = $createParagraphNode()
           topLevel.insertAfter(newParagraph)
           topLevel.replace(node)
-          newParagraph.select()
         }
       }),
   },
@@ -376,12 +375,11 @@ export const calloutSubmenuCommands: SlashCommand[] = [
       editor.update(() => {
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
-          const node = $createCalloutNode("tip")
+          const node = $createCalloutNode("tip", undefined, undefined, undefined, undefined, true)
           const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
           const newParagraph = $createParagraphNode()
           topLevel.insertAfter(newParagraph)
           topLevel.replace(node)
-          newParagraph.select()
         }
       }),
   },
@@ -395,12 +393,11 @@ export const calloutSubmenuCommands: SlashCommand[] = [
       editor.update(() => {
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
-          const node = $createCalloutNode("important")
+          const node = $createCalloutNode("important", undefined, undefined, undefined, undefined, true)
           const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
           const newParagraph = $createParagraphNode()
           topLevel.insertAfter(newParagraph)
           topLevel.replace(node)
-          newParagraph.select()
         }
       }),
   },
@@ -414,12 +411,11 @@ export const calloutSubmenuCommands: SlashCommand[] = [
       editor.update(() => {
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
-          const node = $createCalloutNode("warning")
+          const node = $createCalloutNode("warning", undefined, undefined, undefined, undefined, true)
           const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
           const newParagraph = $createParagraphNode()
           topLevel.insertAfter(newParagraph)
           topLevel.replace(node)
-          newParagraph.select()
         }
       }),
   },
@@ -433,12 +429,11 @@ export const calloutSubmenuCommands: SlashCommand[] = [
       editor.update(() => {
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
-          const node = $createCalloutNode("caution")
+          const node = $createCalloutNode("caution", undefined, undefined, undefined, undefined, true)
           const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
           const newParagraph = $createParagraphNode()
           topLevel.insertAfter(newParagraph)
           topLevel.replace(node)
-          newParagraph.select()
         }
       }),
   },

@@ -1846,13 +1846,19 @@ html.dark .lexical-callout {
   min-width: 60px;
   display: inline-block;
 }
+.lexical-callout-title--placeholder {
+  color: var(--muted-foreground) !important;
+  opacity: 0.5;
+  font-weight: 500;
+  font-style: italic;
+}
 .lexical-callout-title:focus {
   background-color: var(--muted);
   border-radius: 4px;
   padding: 1px 4px;
 }
 .lexical-callout-title:empty::before {
-  content: "Untitled Callout";
+  content: attr(data-placeholder);
   color: var(--muted-foreground);
   opacity: 0.5;
   font-style: italic;

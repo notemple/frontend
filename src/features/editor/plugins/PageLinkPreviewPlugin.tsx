@@ -10,6 +10,7 @@ import { createEditorConfig } from "../editorConfig"
 import PersistencePlugin from "./PersistencePlugin"
 import { useDocumentStore } from "../../documents/store"
 import { useUiStore } from "../../../shared/store/uiStore"
+import { useCollectionStore } from "@/features/collections/store/collectionStore"
 import { $isPageLinkNode } from "../nodes/PageLinkNode"
 
 interface Props {
@@ -124,7 +125,11 @@ export default function PageLinkPreviewPlugin({ paneId }: Props): React.ReactNod
         const uiStore = useUiStore.getState()
         const currentPaneId = paneId || uiStore.activePaneId || 'pane-main'
 
-        if (e.altKey) {
+        if (docId.startsWith('item-')) {
+          window.dispatchEvent(new CustomEvent('collection-item-detail-open', {
+            detail: { itemId: docId }
+          }));
+        } else if (e.altKey) {
           // Alt+click: Open in new pane
           const newPaneId = `pane-${crypto.randomUUID()}`
           uiStore.addPane(newPaneId, currentPaneId)
@@ -194,7 +199,78 @@ const PageLinkPreviewPopup = React.forwardRef<
   }
 >(({ docId }, ref) => {
   const doc = useDocumentStore((state) => state.documents[docId])
-  if (!doc) return null
+  const collections = useCollectionStore((state) => state.collections)
+  const itemsMap = useCollectionStore((state) => state.items)
+
+  const isCollectionItem = docId.startsWith('item-')
+  const colItem = React.useMemo(() => {
+    if (!isCollectionItem) return null
+    for (const [colId, list] of Object.entries(itemsMap)) {
+      const found = list.find(i => i.id === docId)
+      if (found) {
+        return { item: found, collection: collections[colId] }
+      }
+    }
+    return null
+  }, [docId, itemsMap, collections, isCollectionItem])
+
+  if (!doc && !colItem) return null
+
+  if (colItem) {
+    const { item, collection } = colItem
+    const nameField = collection.fields[0]
+    const itemName = nameField ? String(item.values[nameField.id] || '') : 'Unnamed Item'
+    const displayFields = collection.fields.slice(1, 4)
+
+    return (
+      <div
+        ref={ref}
+        className="w-[340px] bg-white dark:bg-[#1a1a1c] text-zinc-900 dark:text-zinc-100 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden flex flex-col pointer-events-auto transition-all duration-200 ease-out mt-2"
+      >
+        <div 
+          className="w-full h-14 shrink-0 relative flex items-center px-4" 
+          style={{
+            background: `linear-gradient(to right, ${collection.color}25, transparent)`
+          }}
+        >
+          <span className="text-2xl mr-2 select-none">{collection.icon}</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{collection.name} Database</span>
+        </div>
+
+        <div className="p-4 flex flex-col gap-3">
+          <h4 className="text-sm font-bold font-sans tracking-tight text-foreground/90">
+            {itemName || "Unnamed Item"}
+          </h4>
+
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border/50 pt-2 text-[11px]">
+            {displayFields.map(field => {
+              const val = item.values[field.id]
+              let displayVal = String(val || '')
+              if (val === undefined || val === null || val === '') {
+                displayVal = 'Empty'
+              } else if (field.type === 'checkbox') {
+                displayVal = val ? 'Yes' : 'No'
+              } else if (field.type === 'select') {
+                displayVal = field.options?.find(o => o.id === val)?.name || displayVal
+              } else if (field.type === 'multi-select') {
+                const sIds = Array.isArray(val) ? val : []
+                displayVal = sIds.map(sid => field.options?.find(o => o.id === sid)?.name || '').filter(Boolean).join(', ')
+              } else if (['document-relation', 'task-relation', 'tag-relation', 'collection-relation'].includes(field.type)) {
+                displayVal = `${(Array.isArray(val) ? val : []).length} items linked`
+              }
+              
+              return (
+                <div key={field.id} className="flex flex-col min-w-0">
+                  <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">{field.name}</span>
+                  <span className="text-foreground/85 font-medium truncate mt-0.5">{displayVal || 'Empty'}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const bannerStyle: React.CSSProperties = {};
   if (doc.topSectionColor) {

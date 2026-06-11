@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from "react"
 import * as Icons from "@phosphor-icons/react"
 import { useDocumentStore } from "@/features/documents/store"
 import { useTaskStore } from "@/features/tasks/store"
+import { useCollectionStore } from "@/features/collections/store/collectionStore"
 import { format, addDays, subDays } from "date-fns"
 
 interface Props {
   selectedIdx: number
   position: { top: number; bottom: number; left: number }
   currentQuery: string
-  onSelect: (payload: { type: "doc" | "task" | "date"; id: string; title: string }) => void
+  onSelect: (payload: { type: "doc" | "task" | "date" | "collection-item"; id: string; title: string }) => void
   onHover: (idx: number) => void
   onClose: () => void
   onItemsChange?: (itemsCount: number) => void
@@ -30,6 +31,7 @@ type RenderableItem =
   | { type: "doc"; doc: any }
   | { type: "folder"; folder: any }
   | { type: "date"; dateStr: string; label: string }
+  | { type: "collection-item"; item: any; collection: any }
 
 export default function MentionMenu({
   selectedIdx,
@@ -46,6 +48,9 @@ export default function MentionMenu({
   const documentsDict = useDocumentStore((state) => state.documents)
   const folders = useDocumentStore((state) => state.folders)
   const tasks = useTaskStore((state) => state.tasks)
+  
+  const collections = useCollectionStore((state) => state.collections)
+  const collectionItems = useCollectionStore((state) => state.items)
 
   const activeTasks = tasks.filter((t) => !t.isDeleted && t.status !== "done")
   const activeDocs = Object.values(documentsDict).filter((d) => !d.isDeleted && d.type !== "daily-note")
@@ -92,7 +97,6 @@ export default function MentionMenu({
   }
 
   // Build the list of items based on state and query
-  // Build the list of items based on state and query
   const getRenderableItems = (): RenderableItem[] => {
     const q = currentQuery.trim().toLowerCase()
 
@@ -119,6 +123,22 @@ export default function MentionMenu({
         .filter((f) => !f.isDeleted && (f.name || "").toLowerCase().includes(q))
         .slice(0, 5)
         .forEach((folder) => results.push({ type: "folder", folder }))
+
+      // Search custom collection items
+      Object.keys(collectionItems).forEach(colId => {
+        const col = collections[colId]
+        const itemsList = collectionItems[colId] || []
+        const nameField = col?.fields[0]
+        if (!nameField) return
+
+        itemsList
+          .filter(item => {
+            const displayVal = String(item.values[nameField.id] || '')
+            return displayVal.toLowerCase().includes(q)
+          })
+          .slice(0, 5)
+          .forEach(item => results.push({ type: "collection-item", item, collection: col }))
+      })
 
       if (triggerType !== "doc-only") {
         // Search dates
@@ -223,11 +243,14 @@ export default function MentionMenu({
       onSelect({ type: "task", id: item.task.id, title: item.task.title })
     } else if (item.type === "date") {
       onSelect({ type: "date", id: `daily-note-${item.dateStr}`, title: item.label })
+    } else if (item.type === "collection-item") {
+      const displayField = item.collection?.fields[0]
+      const title = displayField ? String(item.item.values[displayField.id] || '') : 'Unnamed Item'
+      onSelect({ type: "collection-item", id: item.item.id, title: title || 'Unnamed Item' })
     }
   }
 
   // Expose menu transition handle to parent so it can navigate back on ArrowLeft/Escape or select via keyboard
-  // We trigger this using standard props if they press key in the parent plugin
   const parentKeyHandlerRef = useRef<((e: KeyboardEvent) => boolean) | undefined>(undefined)
   parentKeyHandlerRef.current = (e: KeyboardEvent) => {
     if (e.key === "ArrowRight" && items[selectedIdx]?.type === "category") {
@@ -279,6 +302,8 @@ export default function MentionMenu({
         return <Icons.CheckSquare size={14} className="text-purple-400" />
       case "folder":
         return <Icons.Folder size={14} className="text-amber-400" />
+      case "collection-item":
+        return <span className="text-xs leading-none select-none font-sans">{item.collection?.icon || '📚'}</span>
       case "doc":
         if (item.doc.icon) {
           return <span className="text-sm leading-none select-none font-sans">{item.doc.icon}</span>
@@ -370,6 +395,10 @@ export default function MentionMenu({
             } else if (item.type === "date") {
               title = item.label
               desc = `Format: ${item.dateStr}`
+            } else if (item.type === "collection-item") {
+              const displayField = item.collection?.fields[0]
+              title = displayField ? String(item.item.values[displayField.id] || '') : 'Unnamed Item'
+              desc = `Database Item in ${item.collection?.name || 'Collection'}`
             }
 
             return (

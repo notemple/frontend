@@ -1082,21 +1082,18 @@ export default function TableHoverActionsPlugin({ documentId }: { documentId?: s
       cellNode.select();
       $insertTableColumnAtSelection(isRight);
 
-      // 2. Adjust widths if we had previous column widths
+      // 2. Adjust widths: keep existing widths, give new column the neighbor's width
       if (colCount > 0) {
-        const totalWidth = colWidths.reduce((sum, w) => sum + w, 0);
-        const newColWidth = totalWidth / (colCount + 1);
-        const scale = colCount / (colCount + 1);
-
         const rowNode = cellNode.getParent();
         if ($isTableRowNode(rowNode)) {
           const cells = rowNode.getChildren();
           const currentIdx = cells.indexOf(cellNode);
           const insertIdx = isRight ? currentIdx + 1 : currentIdx;
 
-          // Scale existing column widths and insert the new column width
-          const newColWidths = colWidths.map(w => w * scale);
-          newColWidths.splice(insertIdx, 0, newColWidth);
+          // Keep existing column widths, new column gets the neighbor's width
+          const neighborWidth = colWidths[currentIdx] || 150;
+          const newColWidths = [...colWidths];
+          newColWidths.splice(insertIdx, 0, neighborWidth);
 
           // Update TableNode's column widths
           tableNode.setColWidths(newColWidths);
@@ -1106,7 +1103,7 @@ export default function TableHoverActionsPlugin({ documentId }: { documentId?: s
             if ($isTableRowNode(row)) {
               row.getChildren().forEach((cell, idx) => {
                 if ($isTableCellNode(cell)) {
-                  const finalWidth = newColWidths[idx] || newColWidth;
+                  const finalWidth = newColWidths[idx] || neighborWidth;
                   cell.setWidth(finalWidth);
 
                   const currentStyle = cell.getStyle() || '';

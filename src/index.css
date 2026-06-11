@@ -1308,12 +1308,14 @@ html.light .lexical-link:hover { color: #4338ca; }
 .lexical-table {
   border-collapse: collapse;
   table-layout: fixed;
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   margin: 1.5rem auto !important;
   border-spacing: 0;
 }
 .lexical-table-scroll-wrapper {
   overflow-x: auto;
+  max-width: 100%;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }

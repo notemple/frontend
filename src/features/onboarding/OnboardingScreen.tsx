@@ -296,7 +296,7 @@ export const OnboardingScreen = () => {
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Top Navbar</td>
-      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">Ctrl + Alt + T</td>
+      <td style="padding: 8px 12px; color: #BDE0FE; font-family: monospace;">Ctrl + Alt + ;</td>
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Change Tab Item</td>
@@ -439,7 +439,7 @@ export const OnboardingScreen = () => {
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Top Navbar</td>
-      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">Ctrl + Alt + T</td>
+      <td style="padding: 8px 12px; color: #B5EAD7; font-family: monospace;">Ctrl + Alt + ;</td>
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Change Tab Item</td>
@@ -609,7 +609,7 @@ export const OnboardingScreen = () => {
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Top Navbar</td>
-      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">Ctrl + Alt + T</td>
+      <td style="padding: 8px 12px; color: #FFC8DD; font-family: monospace;">Ctrl + Alt + ;</td>
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Change Tab Item</td>
@@ -778,7 +778,7 @@ export const OnboardingScreen = () => {
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Top Navbar</td>
-      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">Ctrl + Alt + T</td>
+      <td style="padding: 8px 12px; color: #95E1D3; font-family: monospace;">Ctrl + Alt + ;</td>
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Change Tab Item</td>
@@ -947,7 +947,7 @@ export const OnboardingScreen = () => {
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Top Navbar</td>
-      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">Ctrl + Alt + T</td>
+      <td style="padding: 8px 12px; color: #FFDAC1; font-family: monospace;">Ctrl + Alt + ;</td>
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Change Tab Item</td>
@@ -1117,7 +1117,7 @@ export const OnboardingScreen = () => {
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Toggle Top Navbar</td>
-      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">Ctrl + Alt + T</td>
+      <td style="padding: 8px 12px; color: #FFF5C3; font-family: monospace;">Ctrl + Alt + ;</td>
     </tr>
     <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
       <td style="padding: 8px 12px; color: #e4e4e7;">Change Tab Item</td>
@@ -1537,7 +1537,7 @@ const AutohideConfigDialog = ({ onFinish }: { onFinish: (hideSidebars: boolean, 
               <p className="text-xs font-semibold text-zinc-200">Autohide Top Navbar</p>
               <p className="text-[10px] text-zinc-500">Hide navigation header unless mouse moves near the top edge.</p>
               {!hideNavbar && (
-                <p className="text-[10px] text-emerald-400/90 font-mono mt-1">Shortcut: Ctrl + Alt + T to toggle navbar manually</p>
+                <p className="text-[10px] text-emerald-400/90 font-mono mt-1">Shortcut: Ctrl + Alt + ; to toggle navbar manually</p>
               )}
             </div>
             <button

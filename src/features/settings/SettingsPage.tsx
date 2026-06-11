@@ -675,7 +675,7 @@ export const SettingsPage = ({ paneId }: { paneId: string }) => {
                 <div className="flex flex-col gap-0.5">
                   <label className="text-sm font-semibold text-foreground">Auto-Hide Top Navbar</label>
                   <span className="text-xs text-muted-foreground">Slides open when cursor is near the top edge</span>
-                  <span className="text-xs text-muted-foreground">while turned off, use ctrl + alt + t</span>
+                  <span className="text-xs text-muted-foreground">while turned off, use ctrl + alt + ;</span>
                 </div>
                 <button
                   onClick={() => setAutoHideNavbar(!autoHideNavbar)}

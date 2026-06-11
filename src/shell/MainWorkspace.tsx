@@ -305,11 +305,11 @@ export const MainWorkspace = () => {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [autoHideNavbar]);
 
-  // Handle Ctrl + Alt + T global keyboard shortcut to manually toggle navbar
+  // Handle Ctrl + Alt + ; global keyboard shortcut to manually toggle navbar
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isCtrlOrMeta = e.ctrlKey || e.metaKey;
-      if (isCtrlOrMeta && e.altKey && e.key.toLowerCase() === 't') {
+      if (isCtrlOrMeta && e.altKey && e.key === ';') {
         if (!autoHideNavbar) {
           e.preventDefault();
           const currentHidden = useUiStore.getState().isNavbarManuallyHidden;

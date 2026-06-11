@@ -497,6 +497,8 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
       parentLeft: number;
       initialMarginLeft: number;
       initialRowHeights: number[];
+      defaultRowHeight: number;
+      defaultRowHeights: number[];
     } | null = null;
 
     const rootElement = editor.getRootElement();
@@ -586,7 +588,7 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
             height: dragInfo.initialTableHeight,
           });
         } else if (dragInfo.type === 'row') {
-          const newRowHeight = Math.max(25, dragInfo.initialRowHeight + dy);
+          const newRowHeight = Math.max(dragInfo.defaultRowHeight, dragInfo.initialRowHeight + dy);
           const rowDOM = dragInfo.cellDOM.parentElement as HTMLTableRowElement;
           if (rowDOM) {
             rowDOM.style.height = `${newRowHeight}px`;
@@ -605,40 +607,17 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
             height: 3,
           });
         } else if (dragInfo.type === 'table-right' || dragInfo.type === 'table-left') {
-          // Calculate new table width depending on symmetrical or non-symmetrical resize
-          const defaultNodeWidth = dragInfo.parentWidth;
-          const dx = e.clientX - dragInfo.startX;
+          // Table can only be resized symmetrically
+          const distanceFromCenter = Math.abs(e.clientX - dragInfo.tableCenterX);
+          let newTableWidth = distanceFromCenter * 2;
           
-          let newTableWidth = dragInfo.initialTableWidth;
-          if (dragInfo.type === 'table-right') {
-            newTableWidth = dragInfo.initialTableWidth + dx;
-          } else {
-            newTableWidth = dragInfo.initialTableWidth - dx;
-          }
-
-          // If the width goes beyond default node width, resize symmetrically
-          if (newTableWidth > defaultNodeWidth) {
-            const distanceFromCenter = Math.abs(e.clientX - dragInfo.parentCenterX);
-            newTableWidth = distanceFromCenter * 2;
-          }
-
-          newTableWidth = Math.max(100, newTableWidth);
+          // Table can't be smaller than its default width (parentWidth)
+          newTableWidth = Math.max(dragInfo.parentWidth, newTableWidth);
           const scale = newTableWidth / dragInfo.initialTableWidth;
           
           dragInfo.tableDOM.style.width = `${newTableWidth}px`;
-          
-          if (newTableWidth > defaultNodeWidth) {
-            dragInfo.tableDOM.style.marginLeft = 'auto';
-            dragInfo.tableDOM.style.marginRight = 'auto';
-          } else {
-            if (dragInfo.type === 'table-left') {
-              const newMarginLeft = Math.max(0, e.clientX - dragInfo.parentLeft);
-              dragInfo.tableDOM.style.marginLeft = `${newMarginLeft}px`;
-            } else {
-              dragInfo.tableDOM.style.marginLeft = `${dragInfo.initialMarginLeft}px`;
-            }
-            dragInfo.tableDOM.style.marginRight = 'auto';
-          }
+          dragInfo.tableDOM.style.marginLeft = 'auto';
+          dragInfo.tableDOM.style.marginRight = 'auto';
 
           // Update column widths (with 30px min width)
           const rows = Array.from(dragInfo.tableDOM.rows);
@@ -649,9 +628,9 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
             });
           });
 
-          // Update row heights proportionally (with 25px min height)
+          // Update row heights proportionally (but not smaller than default heights)
           rows.forEach((row, idx) => {
-            const newRowHeight = Math.max(25, dragInfo.initialRowHeights[idx] * scale);
+            const newRowHeight = Math.max(dragInfo.defaultRowHeights[idx], dragInfo.initialRowHeights[idx] * scale);
             row.style.height = `${newRowHeight}px`;
             Array.from(row.cells).forEach((cell) => {
               cell.style.height = `${newRowHeight}px`;
@@ -659,17 +638,8 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
           });
 
           // Update guide position without triggering layout reflow
-          let guideLeft = 0;
-          if (newTableWidth > defaultNodeWidth) {
-            const edgeDelta = dragInfo.type === 'table-right' ? newTableWidth / 2 : -newTableWidth / 2;
-            guideLeft = dragInfo.parentCenterX + edgeDelta - dragInfo.containerLeft + container.scrollLeft - 2;
-          } else {
-            if (dragInfo.type === 'table-right') {
-              guideLeft = dragInfo.parentLeft + newTableWidth - dragInfo.containerLeft + container.scrollLeft - 2;
-            } else {
-              guideLeft = e.clientX - dragInfo.containerLeft + container.scrollLeft - 2;
-            }
-          }
+          const edgeDelta = dragInfo.type === 'table-right' ? newTableWidth / 2 : -newTableWidth / 2;
+          const guideLeft = dragInfo.tableCenterX + edgeDelta - dragInfo.containerLeft + container.scrollLeft - 2;
 
           setActiveResizeGuide({
             type: dragInfo.type,
@@ -789,6 +759,26 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
       const initialMarginLeft = parseFloat(window.getComputedStyle(info.tableDOM).marginLeft) || 0;
       const initialRowHeights = Array.from(info.tableDOM.rows).map(row => row.getBoundingClientRect().height);
 
+      // Measure natural (default) heights for all rows in the table
+      const defaultRowHeights = Array.from(info.tableDOM.rows).map((row) => {
+        const rowDOM = row as HTMLTableRowElement;
+        const originalRowStyleHeight = rowDOM.style.height;
+        const rowCells = Array.from(rowDOM.cells);
+        const originalCellHeights = rowCells.map(cell => cell.style.height);
+        
+        rowDOM.style.height = '';
+        rowCells.forEach(cell => cell.style.height = '');
+        
+        const naturalHeight = rowDOM.getBoundingClientRect().height;
+        
+        rowDOM.style.height = originalRowStyleHeight;
+        rowCells.forEach((cell, idx) => cell.style.height = originalCellHeights[idx]);
+        
+        return naturalHeight;
+      });
+
+      const defaultRowHeight = rowDOM ? defaultRowHeights[Array.from(info.tableDOM.rows).indexOf(rowDOM)] : 37;
+
       dragInfo = {
         type: info.type,
         startX: e.clientX,
@@ -814,6 +804,8 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
         parentLeft,
         initialMarginLeft,
         initialRowHeights,
+        defaultRowHeight,
+        defaultRowHeights,
       };
 
       document.body.style.userSelect = 'none';
@@ -884,7 +876,7 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
             }
           });
         } else if (drag.type === 'row') {
-          const finalRowHeight = Math.max(25, parseFloat(drag.cellDOM.parentElement?.style.height || '') || drag.initialRowHeight);
+          const finalRowHeight = Math.max(drag.defaultRowHeight, parseFloat(drag.cellDOM.parentElement?.style.height || '') || drag.initialRowHeight);
           const rows = tableNode.getChildren();
           const rowNode = rows[drag.index];
           if ($isTableRowNode(rowNode)) {
@@ -898,20 +890,13 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
           }
         } else if (drag.type === 'table-right' || drag.type === 'table-left') {
           const finalTableWidth = parseFloat(drag.tableDOM.style.width) || drag.initialTableWidth;
-          const defaultNodeWidth = drag.parentWidth;
-
-          if (finalTableWidth > defaultNodeWidth) {
-            tableNode.setStyle(`width: ${finalTableWidth}px; margin-left: auto; margin-right: auto;`);
-          } else {
-            const finalMarginLeft = parseFloat(drag.tableDOM.style.marginLeft) || 0;
-            tableNode.setStyle(`width: ${finalTableWidth}px; margin-left: ${finalMarginLeft}px; margin-right: auto;`);
-          }
+          tableNode.setStyle(`width: ${finalTableWidth}px; margin-left: auto; margin-right: auto;`);
 
           const scale = finalTableWidth / drag.initialTableWidth;
           const colWidths: number[] = [];
           tableNode.getChildren().forEach((row, rIdx) => {
             if ($isTableRowNode(row)) {
-              const finalRowHeight = Math.max(25, drag.initialRowHeights[rIdx] * scale);
+              const finalRowHeight = Math.max(drag.defaultRowHeights[rIdx], drag.initialRowHeights[rIdx] * scale);
               row.setStyle(`height: ${finalRowHeight}px`);
 
               row.getChildren().forEach((cell, idx) => {

@@ -1,5 +1,5 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 import { createPortal } from "react-dom"
 import { 
   $getNearestNodeFromDOMNode, 
@@ -19,9 +19,11 @@ import {
   $deleteTableColumnAtSelection,
   $isTableRowNode,
   $isTableCellNode,
-  $findTableNode
+  $findTableNode,
+  $isTableNode
 } from "@lexical/table"
 import { TAG_COLOR_PRESETS } from "@/shared/constants/colors"
+import { useDocumentStore } from "../../documents/store"
 
 interface HoveredCellInfo {
   cellDOM: HTMLElement
@@ -134,16 +136,24 @@ TableCellNode.prototype.setBackgroundColor = function (
   newBackgroundColor: null | string
 ): any {
   const self = originalSetBackgroundColor.call(this, newBackgroundColor);
+  const currentStyle = self.getStyle() || '';
+  const widthMatch = currentStyle.match(/width:\s*([^;]+)/);
+  const heightMatch = currentStyle.match(/height:\s*([^;]+)/);
+  const widthStr = widthMatch ? `width: ${widthMatch[1]}; ` : '';
+  const heightStr = heightMatch ? `height: ${heightMatch[1]}; ` : '';
+
   if (newBackgroundColor) {
-    self.setStyle(`background-color: ${newBackgroundColor}`);
+    self.setStyle(`${widthStr}${heightStr}background-color: ${newBackgroundColor}`);
   } else {
-    self.setStyle('');
+    self.setStyle(`${widthStr}${heightStr}`.trim());
   }
   return self;
 };
 
-export default function TableHoverActionsPlugin(): React.ReactPortal | null {
+export default function TableHoverActionsPlugin({ documentId }: { documentId?: string }): React.ReactPortal | null {
   const [editor] = useLexicalComposerContext()
+  const doc = useDocumentStore(state => documentId ? state.documents[documentId] : null)
+  const isWidePage = doc?.pageWidth === 'wide'
   const [hoveredCell, setHoveredCell] = useState<HoveredCellInfo | null>(null)
   const [coords, setCoords] = useState<CoordsInfo | null>(null)
   const [activeMenu, setActiveMenu] = useState<MenuState | null>(null)
@@ -158,6 +168,15 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
   const [submenuTop, setSubmenuTop] = useState(0)
   const [submenuLeft, setSubmenuLeft] = useState(0)
   
+  const [activeResizeGuide, setActiveResizeGuide] = useState<{
+    type: 'table-right' | 'column' | 'row';
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+  } | null>(null);
+  const [isResizing, setIsResizing] = useState(false);
+
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const containerRef = useRef<HTMLElement | null>(null)
 
@@ -324,6 +343,37 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
     }
   }, [editor])
 
+  // If page is set to wide, automatically reset the table to fit the parent column width
+  useEffect(() => {
+    if (isWidePage) {
+      editor.update(() => {
+        const root = editor.getRootElement();
+        if (!root) return;
+        const tables = root.querySelectorAll('table');
+        tables.forEach(tableDOM => {
+          const tableNode = $getNearestNodeFromDOMNode(tableDOM);
+          if (tableNode && $isTableNode(tableNode)) {
+            tableNode.setStyle('width: 100%; margin-left: auto; margin-right: auto;');
+            tableNode.setColWidths([]);
+            tableNode.getChildren().forEach(row => {
+              if ($isTableRowNode(row)) {
+                row.getChildren().forEach(cell => {
+                  if ($isTableCellNode(cell)) {
+                    cell.setWidth(undefined);
+                    const currentStyle = cell.getStyle() || '';
+                    const heightMatch = currentStyle.match(/height:\s*([^;]+)/);
+                    const heightStr = heightMatch ? `height: ${heightMatch[1]}; ` : '';
+                    cell.setStyle(`${heightStr}background-color: ${cell.getBackgroundColor() || ''}`);
+                  }
+                });
+              }
+            });
+          }
+        });
+      });
+    }
+  }, [isWidePage, editor]);
+
   // Track position changes and container sizing for hovered cell
   useEffect(() => {
     if (!hoveredCell) {
@@ -453,6 +503,460 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
     return () => document.removeEventListener('mousedown', handleOutsideClick)
   }, [activeMenu])
 
+  // Resizing logic for columns, rows, and table width (symmetrically)
+  useEffect(() => {
+    let isDragging = false;
+    let dragInfo: {
+      type: 'table-right' | 'column' | 'row';
+      startX: number;
+      startY: number;
+      tableDOM: HTMLTableElement;
+      cellDOM: HTMLElement;
+      index: number;
+      initialTableWidth: number;
+      initialColWidths: number[];
+      initialRowHeight: number;
+      initialCellRight: number;
+      initialCellBottom: number;
+      initialTableTop: number;
+      initialTableLeft: number;
+      initialTableHeight: number;
+      initialTableLeftEdge: number;
+      initialTableRightEdge: number;
+      tableCenterX: number;
+      containerLeft: number;
+      parentCenterX: number;
+      parentWidth: number;
+      parentLeft: number;
+      initialMarginLeft: number;
+      initialRowHeights: number[];
+      defaultRowHeight: number;
+      defaultRowHeights: number[];
+    } | null = null;
+
+    const rootElement = editor.getRootElement();
+    if (!rootElement) return;
+
+    const container = document.querySelector('.templnote-editor-wrapper') as HTMLElement;
+    if (!container) return;
+
+    // Detect resizing zone and return info
+    const getResizeInfo = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const cellDOM = target.closest('td, th') as HTMLElement;
+      if (!cellDOM) return null;
+      const tableDOM = cellDOM.closest('table') as HTMLTableElement;
+      if (!tableDOM || !rootElement.contains(tableDOM)) return null;
+
+      const rect = cellDOM.getBoundingClientRect();
+      const distanceToRight = Math.abs(rect.right - e.clientX);
+      const distanceToBottom = Math.abs(rect.bottom - e.clientY);
+
+      const rowDOM = cellDOM.parentElement as HTMLTableRowElement;
+      if (!rowDOM) return null;
+
+      const isLastColumn = cellDOM.nextElementSibling === null;
+      
+      const threshold = 8; // detection zone width in pixels
+
+      const candidates: { type: 'table-right' | 'column' | 'row', distance: number, index: number }[] = [];
+
+      if (isLastColumn && distanceToRight < threshold) {
+        candidates.push({ type: 'table-right', distance: distanceToRight, index: rowDOM.cells.length - 1 });
+      }
+      if (distanceToRight < threshold && !isLastColumn) {
+        const cells = Array.from(rowDOM.cells);
+        const colIndex = cells.indexOf(cellDOM as HTMLTableCellElement);
+        candidates.push({ type: 'column', distance: distanceToRight, index: colIndex });
+      }
+      if (distanceToBottom < threshold) {
+        const rows = Array.from(tableDOM.rows);
+        const rowIndex = rows.indexOf(rowDOM);
+        candidates.push({ type: 'row', distance: distanceToBottom, index: rowIndex });
+      }
+
+      if (candidates.length === 0) return null;
+
+      // Sort by proximity: closest edge wins!
+      candidates.sort((a, b) => a.distance - b.distance);
+      const closest = candidates[0];
+
+      return { type: closest.type, cellDOM, tableDOM, index: closest.index };
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging && dragInfo) {
+        const dx = e.clientX - dragInfo.startX;
+        const dy = e.clientY - dragInfo.startY;
+
+        if (dragInfo.type === 'column') {
+          // Calculate max delta based on adjacent column constraints
+          const maxDelta = dragInfo.initialColWidths[dragInfo.index + 1] - 30;
+          const minDelta = 30 - dragInfo.initialColWidths[dragInfo.index];
+          const delta = Math.max(minDelta, Math.min(maxDelta, dx));
+
+          const newColWidth = dragInfo.initialColWidths[dragInfo.index] + delta;
+          const newNextColWidth = dragInfo.initialColWidths[dragInfo.index + 1] - delta;
+
+          // Update DOM of all cells in the column and the next column
+          const rows = Array.from(dragInfo.tableDOM.rows);
+          rows.forEach((row) => {
+            const cell = row.cells[dragInfo.index];
+            const nextCell = row.cells[dragInfo.index + 1];
+            if (cell) cell.style.width = `${newColWidth}px`;
+            if (nextCell) nextCell.style.width = `${newNextColWidth}px`;
+          });
+
+          // Guide position remains relative to the initial table position (which is fixed)
+          setActiveResizeGuide({
+            type: 'column',
+            left: dragInfo.initialCellRight + delta - 1,
+            top: dragInfo.initialTableTop,
+            width: 3,
+            height: dragInfo.initialTableHeight,
+          });
+        } else if (dragInfo.type === 'row') {
+          const newRowHeight = Math.max(dragInfo.defaultRowHeight, dragInfo.initialRowHeight + dy);
+          const rowDOM = dragInfo.cellDOM.parentElement as HTMLTableRowElement;
+          if (rowDOM) {
+            rowDOM.style.height = `${newRowHeight}px`;
+            Array.from(rowDOM.cells).forEach((cell) => {
+              cell.style.height = `${newRowHeight}px`;
+            });
+          }
+
+          // Update guide position without triggering layout reflow
+          const actualRowDelta = newRowHeight - dragInfo.initialRowHeight;
+          setActiveResizeGuide({
+            type: 'row',
+            left: dragInfo.initialTableLeft,
+            top: dragInfo.initialCellBottom + actualRowDelta - 1,
+            width: dragInfo.initialTableWidth,
+            height: 3,
+          });
+        } else if (dragInfo.type === 'table-right') {
+          const deltaX = e.clientX - dragInfo.startX;
+          let newTableWidth = dragInfo.initialTableWidth + deltaX;
+
+          const minWidth = Math.min(720, dragInfo.parentWidth);
+          // Use the same max-width as the editor content column (720px narrow / 90% wide)
+          const contentColumn = dragInfo.tableDOM.closest('.editor-content-column') as HTMLElement;
+          const maxWidth = contentColumn
+            ? parseFloat(getComputedStyle(contentColumn).maxWidth) || dragInfo.parentWidth
+            : dragInfo.parentWidth;
+
+          newTableWidth = Math.max(minWidth, Math.min(maxWidth, newTableWidth));
+
+          const wChange = newTableWidth - dragInfo.initialTableWidth;
+          const scale = newTableWidth / dragInfo.initialTableWidth;
+
+          dragInfo.tableDOM.style.width = `${newTableWidth}px`;
+
+          // Update column widths proportionally (with 30px min width)
+          const rows = Array.from(dragInfo.tableDOM.rows);
+          rows.forEach((row) => {
+            Array.from(row.cells).forEach((cell, idx) => {
+              const newColWidth = Math.max(30, dragInfo.initialColWidths[idx] * scale);
+              cell.style.width = `${newColWidth}px`;
+            });
+          });
+
+          // Update guide position at the new right edge
+          const guideLeft = dragInfo.initialTableRightEdge + wChange - dragInfo.containerLeft + container.scrollLeft - 2;
+
+          setActiveResizeGuide({
+            type: 'table-right',
+            left: guideLeft,
+            top: dragInfo.initialTableTop,
+            width: 5,
+            height: dragInfo.initialTableHeight,
+          });
+        }
+        return;
+      }
+
+      // Cursor & Guide updates when hovering (only non-drag calls getBoundingClientRect)
+      const containerRect = container.getBoundingClientRect();
+      const info = getResizeInfo(e);
+      if (info) {
+        if (info.type === 'table-right') {
+          document.body.style.cursor = 'ew-resize';
+        } else if (info.type === 'column') {
+          document.body.style.cursor = 'col-resize';
+        } else if (info.type === 'row') {
+          document.body.style.cursor = 'row-resize';
+        }
+
+        // Compute guide dimensions
+        const tableRect = info.tableDOM.getBoundingClientRect();
+        const cellRect = info.cellDOM.getBoundingClientRect();
+
+        let top = 0;
+        let left = 0;
+        let width = 0;
+        let height = 0;
+
+        if (info.type === 'column') {
+          left = cellRect.right - containerRect.left + container.scrollLeft - 1;
+          top = tableRect.top - containerRect.top + container.scrollTop;
+          width = 3;
+          height = tableRect.height;
+        } else if (info.type === 'row') {
+          left = tableRect.left - containerRect.left + container.scrollLeft;
+          top = cellRect.bottom - containerRect.top + container.scrollTop - 1;
+          width = tableRect.width;
+          height = 3;
+        } else if (info.type === 'table-right') {
+          left = tableRect.right - containerRect.left + container.scrollLeft - 2;
+          top = tableRect.top - containerRect.top + container.scrollTop;
+          width = 5;
+          height = tableRect.height;
+        }
+
+        setActiveResizeGuide({
+          type: info.type,
+          top,
+          left,
+          width,
+          height,
+        });
+      } else {
+        const cur = document.body.style.cursor;
+        if (cur === 'ew-resize' || cur === 'col-resize' || cur === 'row-resize') {
+          document.body.style.cursor = '';
+        }
+        setActiveResizeGuide(null);
+      }
+    };
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (e.button !== 0) return; // Only left click
+      const info = getResizeInfo(e);
+      if (!info) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      isDragging = true;
+      setIsResizing(true);
+      
+      const containerRect = container.getBoundingClientRect();
+      const cellRect = info.cellDOM.getBoundingClientRect();
+      const tableRect = info.tableDOM.getBoundingClientRect();
+
+      const initialTableWidth = tableRect.width;
+      
+      // Get column widths from the first row DOM
+      const firstRow = info.tableDOM.rows[0];
+      const initialColWidths = firstRow 
+        ? Array.from(firstRow.cells).map(cell => cell.getBoundingClientRect().width)
+        : [];
+      
+      const rowDOM = info.cellDOM.parentElement as HTMLTableRowElement;
+      const initialRowHeight = rowDOM ? rowDOM.getBoundingClientRect().height : 0;
+
+      const initialCellRight = cellRect.right - containerRect.left + container.scrollLeft;
+      const initialCellBottom = cellRect.bottom - containerRect.top + container.scrollTop;
+      const initialTableTop = tableRect.top - containerRect.top + container.scrollTop;
+      const initialTableLeft = tableRect.left - containerRect.left + container.scrollLeft;
+      const initialTableHeight = tableRect.height;
+      const initialTableLeftEdge = tableRect.left - containerRect.left + container.scrollLeft;
+      const initialTableRightEdge = tableRect.right - containerRect.left + container.scrollLeft;
+
+      const parentDOM = info.tableDOM.parentElement || rootElement;
+      const parentRect = parentDOM.getBoundingClientRect();
+      const parentCenterX = parentRect.left + parentRect.width / 2;
+      const parentWidth = parentRect.width;
+      const parentLeft = parentRect.left;
+
+      const tableCenterX = tableRect.left + tableRect.width / 2;
+      const containerLeft = containerRect.left;
+
+      const initialMarginLeft = parseFloat(window.getComputedStyle(info.tableDOM).marginLeft) || 0;
+      const initialRowHeights = Array.from(info.tableDOM.rows).map(row => row.getBoundingClientRect().height);
+
+      // Measure natural (default) heights for all rows in the table
+      const defaultRowHeights = Array.from(info.tableDOM.rows).map((row) => {
+        const rowDOM = row as HTMLTableRowElement;
+        const originalRowStyleHeight = rowDOM.style.height;
+        const rowCells = Array.from(rowDOM.cells);
+        const originalCellHeights = rowCells.map(cell => cell.style.height);
+        
+        rowDOM.style.height = '';
+        rowCells.forEach(cell => cell.style.height = '');
+        
+        const naturalHeight = rowDOM.getBoundingClientRect().height;
+        
+        rowDOM.style.height = originalRowStyleHeight;
+        rowCells.forEach((cell, idx) => cell.style.height = originalCellHeights[idx]);
+        
+        return naturalHeight;
+      });
+
+      const defaultRowHeight = rowDOM ? defaultRowHeights[Array.from(info.tableDOM.rows).indexOf(rowDOM)] : 37;
+
+      dragInfo = {
+        type: info.type,
+        startX: e.clientX,
+        startY: e.clientY,
+        tableDOM: info.tableDOM,
+        cellDOM: info.cellDOM,
+        index: info.index,
+        initialTableWidth,
+        initialColWidths,
+        initialRowHeight,
+        initialCellRight,
+        initialCellBottom,
+        initialTableTop,
+        initialTableLeft,
+        initialTableHeight,
+        initialTableLeftEdge,
+        initialTableRightEdge,
+        tableCenterX,
+        containerLeft,
+        parentCenterX,
+        parentWidth,
+        parentLeft,
+        initialMarginLeft,
+        initialRowHeights,
+        defaultRowHeight,
+        defaultRowHeights,
+      };
+
+      // For table-right resize, lock the left edge by setting explicit margin
+      if (info.type === 'table-right') {
+        info.tableDOM.style.marginLeft = `${initialTableLeftEdge - containerRect.left + container.scrollLeft}px`;
+        info.tableDOM.style.marginRight = '0';
+      }
+
+      document.body.style.userSelect = 'none';
+      if (info.type === 'table-right') {
+        document.body.style.cursor = 'ew-resize';
+      } else if (info.type === 'column') {
+        document.body.style.cursor = 'col-resize';
+      } else if (info.type === 'row') {
+        document.body.style.cursor = 'row-resize';
+      }
+
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    };
+
+    const handleMouseUp = (e: MouseEvent) => {
+      if (!isDragging || !dragInfo) return;
+
+      isDragging = false;
+      setIsResizing(false);
+      setActiveResizeGuide(null);
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+
+      const drag = dragInfo;
+      dragInfo = null;
+
+      // Commit to Lexical State
+      editor.update(() => {
+        const tableNode = $getNearestNodeFromDOMNode(drag.tableDOM);
+        if (!tableNode || !$isTableNode(tableNode)) return;
+
+        if (drag.type === 'column') {
+          const finalColWidth = Math.max(30, parseFloat(drag.cellDOM.style.width) || drag.initialColWidths[drag.index]);
+          const finalNextColWidth = Math.max(30, (drag.initialColWidths[drag.index] + drag.initialColWidths[drag.index + 1]) - finalColWidth);
+
+          const colWidths = [...(tableNode.getColWidths() || [])];
+          if (colWidths.length === 0) {
+            drag.initialColWidths.forEach((w, i) => colWidths[i] = w);
+          }
+          colWidths[drag.index] = finalColWidth;
+          colWidths[drag.index + 1] = finalNextColWidth;
+          tableNode.setColWidths(colWidths);
+
+          // Update widths on cell nodes
+          tableNode.getChildren().forEach((row) => {
+            if ($isTableRowNode(row)) {
+              const cells = row.getChildren();
+              const cell = cells[drag.index];
+              const nextCell = cells[drag.index + 1];
+              if ($isTableCellNode(cell)) {
+                cell.setWidth(finalColWidth);
+                const currentStyle = cell.getStyle() || '';
+                const heightMatch = currentStyle.match(/height:\s*([^;]+)/);
+                const heightStr = heightMatch ? `height: ${heightMatch[1]}; ` : '';
+                cell.setStyle(`width: ${finalColWidth}px; ${heightStr}background-color: ${cell.getBackgroundColor() || ''}`);
+              }
+              if ($isTableCellNode(nextCell)) {
+                nextCell.setWidth(finalNextColWidth);
+                const currentStyle = nextCell.getStyle() || '';
+                const heightMatch = currentStyle.match(/height:\s*([^;]+)/);
+                const heightStr = heightMatch ? `height: ${heightMatch[1]}; ` : '';
+                nextCell.setStyle(`width: ${finalNextColWidth}px; ${heightStr}background-color: ${nextCell.getBackgroundColor() || ''}`);
+              }
+            }
+          });
+        } else if (drag.type === 'row') {
+          const finalRowHeight = Math.max(drag.defaultRowHeight, parseFloat(drag.cellDOM.parentElement?.style.height || '') || drag.initialRowHeight);
+          const rows = tableNode.getChildren();
+          const rowNode = rows[drag.index];
+          if ($isTableRowNode(rowNode)) {
+            rowNode.setStyle(`height: ${finalRowHeight}px`);
+            rowNode.getChildren().forEach((cell) => {
+              if ($isTableCellNode(cell)) {
+                const widthStr = cell.getWidth() ? `width: ${cell.getWidth()}px; ` : '';
+                cell.setStyle(`${widthStr}height: ${finalRowHeight}px; background-color: ${cell.getBackgroundColor() || ''}`);
+              }
+            });
+          }
+        } else if (drag.type === 'table-right') {
+          drag.tableDOM.style.transform = '';
+          const finalTableWidth = parseFloat(drag.tableDOM.style.width) || drag.initialTableWidth;
+          const finalMarginLeft = parseFloat(drag.tableDOM.style.marginLeft) || 0;
+          tableNode.setStyle(`width: ${finalTableWidth}px; margin-left: ${finalMarginLeft}px; margin-right: 0;`);
+
+          const scale = finalTableWidth / drag.initialTableWidth;
+          const colWidths: number[] = [];
+          tableNode.getChildren().forEach((row) => {
+            if ($isTableRowNode(row)) {
+              row.getChildren().forEach((cell, idx) => {
+                if ($isTableCellNode(cell)) {
+                  const finalCellWidth = Math.max(30, drag.initialColWidths[idx] * scale);
+                  cell.setWidth(finalCellWidth);
+
+                  const currentStyle = cell.getStyle() || '';
+                  const heightMatch = currentStyle.match(/height:\s*([^;]+)/);
+                  const heightStr = heightMatch ? `height: ${heightMatch[1]}; ` : '';
+                  const bgMatch = currentStyle.match(/background-color:\s*([^;]+)/);
+                  const bgStr = bgMatch ? `background-color: ${bgMatch[1]}; ` : '';
+                  cell.setStyle(`width: ${finalCellWidth}px; ${heightStr}${bgStr}`);
+
+                  if (idx >= colWidths.length) {
+                    colWidths.push(finalCellWidth);
+                  }
+                }
+              });
+            }
+          });
+          tableNode.setColWidths(colWidths);
+        }
+      });
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mousedown', handleMouseDown);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      if (document.body.style.cursor === 'ew-resize' || document.body.style.cursor === 'col-resize' || document.body.style.cursor === 'row-resize') {
+        document.body.style.cursor = '';
+      }
+    };
+  }, [editor]);
+
   if ((!coords && !cellCoords) || !containerRef.current) return null
 
   const container = containerRef.current
@@ -550,29 +1054,85 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
     setSubmenuOpen(false)
   }
 
+  const insertColumnAndAdjustWidths = (cellDOM: HTMLElement, isRight: boolean) => {
+    editor.update(() => {
+      const cellNode = $getNearestNodeFromDOMNode(cellDOM);
+      if (!(cellNode instanceof TableCellNode)) return;
+
+      const tableNode = $findTableNode(cellNode);
+      if (!tableNode || !$isTableNode(tableNode)) return;
+
+      // 1. Get current column widths
+      let colWidths = [...(tableNode.getColWidths() || [])];
+      
+      // If table has no colWidths, we can measure them from the DOM
+      if (colWidths.length === 0) {
+        const tableDOM = editor.getElementByKey(tableNode.getKey()) as HTMLTableElement;
+        if (tableDOM) {
+          const firstRow = tableDOM.rows[0];
+          if (firstRow) {
+            colWidths = Array.from(firstRow.cells).map(cell => cell.getBoundingClientRect().width);
+          }
+        }
+      }
+
+      const colCount = colWidths.length;
+      
+      // Select the cell and perform the standard insertion
+      cellNode.select();
+      $insertTableColumnAtSelection(isRight);
+
+      // 2. Adjust widths: keep existing widths, give new column the neighbor's width
+      if (colCount > 0) {
+        const rowNode = cellNode.getParent();
+        if ($isTableRowNode(rowNode)) {
+          const cells = rowNode.getChildren();
+          const currentIdx = cells.indexOf(cellNode);
+          const insertIdx = isRight ? currentIdx + 1 : currentIdx;
+
+          // Keep existing column widths, new column gets the neighbor's width
+          const neighborWidth = colWidths[currentIdx] || 150;
+          const newColWidths = [...colWidths];
+          newColWidths.splice(insertIdx, 0, neighborWidth);
+
+          // Update TableNode's column widths
+          tableNode.setColWidths(newColWidths);
+
+          // Update styles on all cell nodes to match the new widths
+          tableNode.getChildren().forEach((row) => {
+            if ($isTableRowNode(row)) {
+              row.getChildren().forEach((cell, idx) => {
+                if ($isTableCellNode(cell)) {
+                  const finalWidth = newColWidths[idx] || neighborWidth;
+                  cell.setWidth(finalWidth);
+
+                  const currentStyle = cell.getStyle() || '';
+                  const heightMatch = currentStyle.match(/height:\s*([^;]+)/);
+                  const heightStr = heightMatch ? `height: ${heightMatch[1]}; ` : '';
+                  const bgMatch = currentStyle.match(/background-color:\s*([^;]+)/);
+                  const bgStr = bgMatch ? `background-color: ${bgMatch[1]}; ` : '';
+                  
+                  cell.setStyle(`width: ${finalWidth}px; ${heightStr}${bgStr}`);
+                }
+              });
+            }
+          });
+        }
+      }
+    });
+  };
+
   // COLUMN ACTIONS
   const insertColumnRight = (index: number) => {
     if (!hoveredCell) return
-    editor.update(() => {
-      const cellNode = $getNearestNodeFromDOMNode(hoveredCell.cellDOM)
-      if (cellNode instanceof TableCellNode) {
-        cellNode.select()
-        $insertTableColumnAtSelection(true)
-      }
-    })
+    insertColumnAndAdjustWidths(hoveredCell.cellDOM, true)
     setHoveredCell(null)
     setActiveMenu(null)
   }
 
   const insertColumnLeft = (index: number) => {
     if (!hoveredCell) return
-    editor.update(() => {
-      const cellNode = $getNearestNodeFromDOMNode(hoveredCell.cellDOM)
-      if (cellNode instanceof TableCellNode) {
-        cellNode.select()
-        $insertTableColumnAtSelection(false)
-      }
-    })
+    insertColumnAndAdjustWidths(hoveredCell.cellDOM, false)
     setHoveredCell(null)
     setActiveMenu(null)
   }
@@ -699,13 +1259,7 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
   // Quick Appending Buttons
   const appendColumn = () => {
     if (!coords) return
-    editor.update(() => {
-      const lastCellNode = $getNearestNodeFromDOMNode(coords.lastCellDOM)
-      if (lastCellNode instanceof TableCellNode) {
-        lastCellNode.select()
-        $insertTableColumnAtSelection(true)
-      }
-    })
+    insertColumnAndAdjustWidths(coords.lastCellDOM, true)
     setHoveredCell(null)
   }
 
@@ -801,7 +1355,7 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
       <div className="absolute inset-0 pointer-events-none select-none z-40" contentEditable={false}>
         
         {/* ROW HOVER CONTROLLER (Left center pill handle) */}
-        {coords && (
+        {coords && !activeResizeGuide && !isResizing && (
           <div 
             className="table-row-handle table-control-overlay absolute pointer-events-auto"
             style={{
@@ -827,7 +1381,7 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
         )}
 
         {/* COLUMN HOVER CONTROLLER (Top center pill handle) */}
-        {coords && (
+        {coords && !activeResizeGuide && !isResizing && (
           <div
             className="table-column-handle table-control-overlay absolute pointer-events-auto"
             style={{
@@ -853,7 +1407,7 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
         )}
 
         {/* CELL SELECT/FOCUS CONTROLLER (Right center pill handle of selected cell) */}
-        {cellCoords && (
+        {cellCoords && !activeResizeGuide && !isResizing && (
           <div 
             className="table-column-handle table-control-overlay absolute pointer-events-auto"
             style={{
@@ -879,7 +1433,7 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
         )}
 
         {/* RIGHT COLUMN APPEND PILL */}
-        {coords && (
+        {coords && !activeResizeGuide && !isResizing && (
           <div
             className="table-append-column-bar table-control-overlay absolute pointer-events-auto"
             style={{
@@ -908,7 +1462,7 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
         )}
 
         {/* BOTTOM ROW APPEND PILL */}
-        {coords && (
+        {coords && !activeResizeGuide && !isResizing && (
           <div
             className="table-append-row-bar table-control-overlay absolute pointer-events-auto"
             style={{
@@ -1109,6 +1663,23 @@ export default function TableHoverActionsPlugin(): React.ReactPortal | null {
             </button>
           ))}
         </div>
+      )}
+
+      {/* RESIZE GUIDE VISUAL HIGHLIGHT */}
+      {activeResizeGuide && (
+        <div 
+          className="absolute pointer-events-none z-50"
+          style={{
+            top: activeResizeGuide.top,
+            left: activeResizeGuide.left,
+            width: activeResizeGuide.width,
+            height: activeResizeGuide.height,
+            backgroundColor: isResizing ? '#2383e2' : 'rgba(35, 131, 226, 0.45)',
+            boxShadow: isResizing ? '0 0 8px rgba(35, 131, 226, 0.7)' : '0 0 3px rgba(35, 131, 226, 0.3)',
+            borderRadius: '1.5px',
+            transition: isResizing ? 'none' : 'background-color 0.1s ease, box-shadow 0.1s ease',
+          }}
+        />
       )}
     </>,
     container

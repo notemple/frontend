@@ -2,6 +2,7 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { useEffect, useRef, useState, useCallback } from "react"
 import type { ReactNode } from "react"
 import { createPortal } from "react-dom"
+
 import {
   $getNodeByKey,
   $createParagraphNode,
@@ -196,6 +197,7 @@ interface MenuProps {
   lastEdited: Date
   selectedColor: string
   onColorSelect: (color: string) => void
+
 }
 
 function BlockContextMenu({
@@ -325,6 +327,7 @@ function BlockContextMenu({
       keywords: ["move", "bottom", "last"],
       action: () => { onMoveToBottom(); onClose() },
     },
+
   ]
 
   const filtered = search.trim()
@@ -522,6 +525,7 @@ function MoveBottomIcon() {
     </svg>
   )
 }
+
 function ChevronRightIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -635,6 +639,7 @@ export default function BlockHandlePlugin({
             const el = editor.getElementByKey(node.getKey());
             if (el) {
               const style = node.getStyle();
+              // Apply background color
               const match = style.match(/background:\s*([^;]+)/i);
               const color = match ? match[1].trim() : "";
               if (color && color !== "transparent" && color !== "default") {

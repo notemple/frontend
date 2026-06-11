@@ -90,16 +90,7 @@ export default function BackspacePlugin(): null {
         if (isCallout) {
           event.preventDefault()
           if (prevSibling !== null && $isElementNode(prevSibling)) {
-            const children = blockNode.getChildren()
-            const lastChild = prevSibling.getLastChild()
-            if (lastChild !== null) {
-              lastChild.selectEnd()
-            } else {
-              prevSibling.selectEnd()
-            }
-            children.forEach((child) => {
-              prevSibling.append(child)
-            })
+            prevSibling.selectEnd()
             blockNode.remove()
             return true
           }
@@ -107,10 +98,6 @@ export default function BackspacePlugin(): null {
           if (prevSibling === null) {
             // First node, convert callout to paragraph
             const p = $createParagraphNode()
-            const children = blockNode.getChildren()
-            children.forEach((child) => {
-              p.append(child)
-            })
             blockNode.replace(p)
             p.selectStart()
             return true

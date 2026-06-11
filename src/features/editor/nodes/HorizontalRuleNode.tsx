@@ -40,10 +40,9 @@ export class HorizontalRuleNode extends DecoratorNode<ReactNode> {
     return (
       <div
         contentEditable={false}
+        className="w-full border-t border-black/15 dark:border-white/15"
         style={{
-          borderTop: "1px solid rgba(255,255,255,0.15)",
           margin: "1.5rem 0",
-          width: "100%",
         }}
       />
     )

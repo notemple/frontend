@@ -357,9 +357,11 @@ export const calloutSubmenuCommands: SlashCommand[] = [
       editor.update(() => {
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
-          const node = $createCalloutNode("note")
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
-          node.select()
+          const node = $createCalloutNode("note", undefined, undefined, undefined, undefined, true)
+          const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
+          const newParagraph = $createParagraphNode()
+          topLevel.insertAfter(newParagraph)
+          topLevel.replace(node)
         }
       }),
   },
@@ -373,9 +375,11 @@ export const calloutSubmenuCommands: SlashCommand[] = [
       editor.update(() => {
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
-          const node = $createCalloutNode("tip")
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
-          node.select()
+          const node = $createCalloutNode("tip", undefined, undefined, undefined, undefined, true)
+          const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
+          const newParagraph = $createParagraphNode()
+          topLevel.insertAfter(newParagraph)
+          topLevel.replace(node)
         }
       }),
   },
@@ -389,9 +393,11 @@ export const calloutSubmenuCommands: SlashCommand[] = [
       editor.update(() => {
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
-          const node = $createCalloutNode("important")
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
-          node.select()
+          const node = $createCalloutNode("important", undefined, undefined, undefined, undefined, true)
+          const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
+          const newParagraph = $createParagraphNode()
+          topLevel.insertAfter(newParagraph)
+          topLevel.replace(node)
         }
       }),
   },
@@ -405,9 +411,11 @@ export const calloutSubmenuCommands: SlashCommand[] = [
       editor.update(() => {
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
-          const node = $createCalloutNode("warning")
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
-          node.select()
+          const node = $createCalloutNode("warning", undefined, undefined, undefined, undefined, true)
+          const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
+          const newParagraph = $createParagraphNode()
+          topLevel.insertAfter(newParagraph)
+          topLevel.replace(node)
         }
       }),
   },
@@ -421,9 +429,29 @@ export const calloutSubmenuCommands: SlashCommand[] = [
       editor.update(() => {
         const sel = $getSelection()
         if ($isRangeSelection(sel)) {
-          const node = $createCalloutNode("caution")
-          sel.anchor.getNode().getTopLevelElementOrThrow().replace(node)
-          node.select()
+          const node = $createCalloutNode("caution", undefined, undefined, undefined, undefined, true)
+          const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
+          const newParagraph = $createParagraphNode()
+          topLevel.insertAfter(newParagraph)
+          topLevel.replace(node)
+        }
+      }),
+  },
+  {
+    title: "Custom",
+    description: "Grey ⚙️ callout",
+    keywords: ["custom", "grey", "gray"],
+    category: "Basic",
+    icon: "Gear",
+    onSelect: (editor) =>
+      editor.update(() => {
+        const sel = $getSelection()
+        if ($isRangeSelection(sel)) {
+          const node = $createCalloutNode("custom", undefined, undefined, undefined, undefined, true)
+          const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
+          const newParagraph = $createParagraphNode()
+          topLevel.insertAfter(newParagraph)
+          topLevel.replace(node)
         }
       }),
   },

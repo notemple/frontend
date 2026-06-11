@@ -105,6 +105,7 @@ const SortableTab = ({ tabId, paneId, isActive }: { tabId: string, paneId: strin
       if (tabId === 'section-daily-notes') return { title: 'Daily Notes', type: 'daily-notes', icon: undefined };
       if (tabId === 'section-tasks') return { title: 'Tasks', type: 'tasks', icon: undefined };
       if (tabId === 'section-tags') return { title: 'Tags', type: 'tags', icon: undefined };
+      if (tabId === 'section-collections') return { title: 'Collections', type: 'collections', icon: undefined };
       if (tabId === 'section-ask-ai') return { title: 'Ask AI', type: 'ask-ai', icon: undefined };
       if (tabId === 'section-glance') return { title: 'Glance', type: 'glance', icon: undefined };
       if (tabId === 'section-wall') return { title: 'Wall', type: 'wall', icon: undefined };
@@ -438,6 +439,7 @@ function getIcon(type: string, emoji?: string) {
     case 'daily-notes': return <CalendarBlank size={14} />;
     case 'tasks': return <CheckSquare size={14} />;
     case 'tags': return <Tag size={14} />;
+    case 'collections': return <SquaresFour size={14} />;
     case 'glance': return <Eye size={14} />;
     case 'wall': return <SquaresFour size={14} />;
     case 'folders':

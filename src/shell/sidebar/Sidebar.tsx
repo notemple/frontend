@@ -993,9 +993,9 @@ export const Sidebar = () => {
             <div className={cn("flex items-center justify-between px-2 py-1 mb-1 rounded-sm transition-colors", isDocActive('section-collections') ? "bg-muted/40" : "group-hover/collections:bg-transparent")}>
               <div
                 onClick={() => {
-                  toggleFolderCollapse('section-collections');
+                  openDocument('section-collections');
                 }}
-                className={cn("text-xs font-semibold truncate uppercase tracking-wider cursor-pointer transition-colors flex-1 text-muted-foreground hover:text-foreground")}
+                className={cn("text-xs font-semibold truncate uppercase tracking-wider cursor-pointer transition-colors flex-1 text-muted-foreground hover:text-foreground", isDocActive('section-collections') && "text-purple-600 dark:text-purple-400")}
               >
                 Collections
               </div>

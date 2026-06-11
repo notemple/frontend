@@ -1312,7 +1312,7 @@ html.light .lexical-link:hover { color: #4338ca; }
   border: 1px solid var(--border);
   padding: 8px 10px;
   vertical-align: top;
-  min-width: 50px;
+  min-width: 30px;
   position: relative;
   font-size: 14px;
   line-height: 1.5;
@@ -2053,7 +2053,6 @@ html.dark .lexical-callout {
   z-index: -1;
 }
 
-.lexical-root > .lexical-table,
 .lexical-root > .columns-outer-wrapper {
   margin-left: 0px !important;
   width: 100% !important;

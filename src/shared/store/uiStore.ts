@@ -38,6 +38,9 @@ interface UiState {
   isNavbarManuallyHidden: boolean;
   setNavbarManuallyHidden: (hidden: boolean) => void;
 
+  isNavbarVisible: boolean;
+  setNavbarVisible: (visible: boolean) => void;
+
   currentStepId: string | null;
   setCurrentStepId: (stepId: string | null) => void;
 
@@ -136,6 +139,9 @@ export const useUiStore = create<UiState>()(
 
       isNavbarManuallyHidden: getInitialNavbarManuallyHidden(),
       setNavbarManuallyHidden: (isNavbarManuallyHidden) => set({ isNavbarManuallyHidden }),
+
+      isNavbarVisible: true,
+      setNavbarVisible: (isNavbarVisible) => set({ isNavbarVisible }),
 
       currentStepId: null,
       setCurrentStepId: (currentStepId) => set({ currentStepId }),

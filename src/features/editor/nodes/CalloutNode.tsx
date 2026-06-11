@@ -11,7 +11,7 @@ import { DecoratorNode, $applyNodeReplacement, $getNodeByKey } from "lexical"
 import EmojiPicker from "emoji-picker-react"
 import { createPortal } from "react-dom"
 
-export type CalloutType = "info" | "warning" | "success" | "error" | "note" | "tip" | "important" | "caution"
+export type CalloutType = "info" | "warning" | "success" | "error" | "note" | "tip" | "important" | "caution" | "custom"
 
 export type SerializedCalloutNode = Spread<
   {
@@ -166,20 +166,25 @@ function CalloutComponent({
 
   const defaultTitle = CalloutNode.getDefaultTitle(calloutType)
   const displayTitle = titleModified ? title : defaultTitle
+  const isDefaultCallout = calloutType === "note"
 
   return (
     <div className={`lexical-callout lexical-callout--${calloutType}`}>
       <div className="lexical-callout-header">
         <span
           ref={emojiRef}
-          className="lexical-callout-emoji"
-          onClick={() => setIsPickerOpen(!isPickerOpen)}
+          className={`lexical-callout-emoji ${isDefaultCallout ? "lexical-callout-emoji--disabled" : ""}`}
+          onClick={() => {
+            if (!isDefaultCallout) {
+              setIsPickerOpen(!isPickerOpen)
+            }
+          }}
         >
           {emoji}
         </span>
         <span
-          className={`lexical-callout-title ${!titleModified ? "lexical-callout-title--placeholder" : ""}`}
-          contentEditable
+          className={`lexical-callout-title ${!titleModified ? "lexical-callout-title--placeholder" : ""} ${isDefaultCallout ? "lexical-callout-title--readonly" : ""}`}
+          contentEditable={!isDefaultCallout}
           suppressContentEditableWarning
           data-placeholder={defaultTitle}
           onBlur={handleTitleBlur}
@@ -268,6 +273,8 @@ export class CalloutNode extends DecoratorNode<ReactNode> {
 
   static getDefaultEmoji(type: CalloutType): string {
     switch (type) {
+      case "custom":
+        return "⚙️"
       case "tip":
       case "success":
         return "💡"
@@ -287,6 +294,8 @@ export class CalloutNode extends DecoratorNode<ReactNode> {
 
   static getDefaultTitle(type: CalloutType): string {
     switch (type) {
+      case "custom":
+        return "Callout"
       case "tip":
       case "success":
         return "Tip"

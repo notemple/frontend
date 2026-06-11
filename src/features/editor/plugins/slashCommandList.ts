@@ -437,4 +437,22 @@ export const calloutSubmenuCommands: SlashCommand[] = [
         }
       }),
   },
+  {
+    title: "Custom",
+    description: "Grey ⚙️ callout",
+    keywords: ["custom", "grey", "gray"],
+    category: "Basic",
+    icon: "Gear",
+    onSelect: (editor) =>
+      editor.update(() => {
+        const sel = $getSelection()
+        if ($isRangeSelection(sel)) {
+          const node = $createCalloutNode("custom", undefined, undefined, undefined, undefined, true)
+          const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
+          const newParagraph = $createParagraphNode()
+          topLevel.insertAfter(newParagraph)
+          topLevel.replace(node)
+        }
+      }),
+  },
 ]

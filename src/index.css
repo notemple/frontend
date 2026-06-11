@@ -1837,6 +1837,22 @@ html.dark .lexical-callout {
 .lexical-callout-emoji:active {
   transform: scale(0.95);
 }
+.lexical-callout-emoji--disabled {
+  cursor: default !important;
+  pointer-events: none !important;
+}
+.lexical-callout-emoji--disabled:hover {
+  background-color: transparent !important;
+  transform: none !important;
+}
+.lexical-callout-emoji--disabled:active {
+  transform: none !important;
+}
+.lexical-callout-title--readonly {
+  user-select: none;
+  cursor: default;
+  outline: none !important;
+}
 .lexical-callout-title {
   font-weight: 700;
   font-size: 1.05rem;
@@ -1847,10 +1863,9 @@ html.dark .lexical-callout {
   display: inline-block;
 }
 .lexical-callout-title--placeholder {
-  color: var(--muted-foreground) !important;
-  opacity: 0.5;
-  font-weight: 500;
-  font-style: italic;
+  color: var(--foreground) !important;
+  opacity: 0.8;
+  font-weight: 700;
 }
 .lexical-callout-title:focus {
   background-color: var(--muted);
@@ -1859,9 +1874,9 @@ html.dark .lexical-callout {
 }
 .lexical-callout-title:empty::before {
   content: attr(data-placeholder);
-  color: var(--muted-foreground);
-  opacity: 0.5;
-  font-style: italic;
+  color: var(--foreground);
+  opacity: 0.8;
+  font-weight: 700;
 }
 .lexical-callout-body {
   outline: none;
@@ -1890,6 +1905,9 @@ html.dark .lexical-callout {
 .lexical-callout--error,
 .lexical-callout--caution {
   border-left-color: #ef4444 !important;
+}
+.lexical-callout--custom {
+  border-left-color: var(--muted-foreground) !important;
 }
 
 /* ── Toggle ───────────────────────────────────────────────────────────────── */

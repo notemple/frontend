@@ -1,32 +1,32 @@
 import { useDocumentStore } from '@/features/documents/store';
-import { cn,getFolderActiveHexColor,getFolderHexColor } from '@/shared/lib/utils';
+import { cn, getFolderActiveHexColor, getFolderHexColor } from '@/shared/lib/utils';
 import { useUiStore } from '@/shared/store/uiStore';
 import { gsap } from 'gsap';
 import { motion } from 'motion/react';
-import React,{ useEffect,useRef,useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { ColorPicker } from '@/shared/ui/ColorPicker';
 import { TnLogo } from '@/shared/ui/TnLogo';
 import {
-	Book,
-	CalendarBlank,
-	CaretDown,
-	CaretRight,
-	CheckSquare,
-	Eye,
-	FileText,
-	Gear,
-	GraduationCap,
-	MagnifyingGlass,
-	PencilSimple,
-	Plus,
-	Question,
-	Sparkle,
-	SquaresFour,
-	Star,
-	Tag,
-	Trash,
-	User
+  Book,
+  CalendarBlank,
+  CaretDown,
+  CaretRight,
+  CheckSquare,
+  Eye,
+  FileText,
+  Gear,
+  GraduationCap,
+  MagnifyingGlass,
+  PencilSimple,
+  Plus,
+  Question,
+  Sparkle,
+  SquaresFour,
+  Star,
+  Tag,
+  Trash,
+  User
 } from '@phosphor-icons/react';
 import { DeleteFolderDialog } from './DeleteFolderDialog';
 import { SidebarFolderItem } from "./SidebarFolderItem";
@@ -323,10 +323,10 @@ const GSAPAccordion = ({ isOpen, children }: { isOpen: boolean; children: React.
         if (isOpen) {
           gsap.fromTo(containerRef.current,
             { height: 0, opacity: 0 },
-            { 
-              height: "auto", 
-              opacity: 1, 
-              duration: 0.22, 
+            {
+              height: "auto",
+              opacity: 1,
+              duration: 0.22,
               ease: "power2.out"
             }
           );
@@ -706,7 +706,7 @@ export const Sidebar = () => {
   return (
     <motion.div
       ref={sidebarRef}
-      className={cn("h-full flex flex-col border-r border-border bg-muted absolute left-0 bottom-0 z-30 overflow-y-auto no-scrollbar group/sidebar shadow-md", isNavbarVisible ? "top-[56px]" : "top-0")}
+      className={cn("h-[calc(100%-3rem)] flex flex-col border-r border-border bg-muted absolute left-0 bottom-8 z-30 group/sidebar shadow-md", isNavbarVisible ? "top-[56px]" : "top-0")}
       initial={false}
       animate={{
         width: isSidebarOpen ? 260 : 0,
@@ -724,28 +724,28 @@ export const Sidebar = () => {
       }}
     >
       <div className={cn("flex items-center mb-8 shrink-0 relative z-10 w-full", isSidebarOpen ? "justify-start px-1.5 h-11" : "justify-center px-0 h-8")}>
-          {isSidebarOpen ? (
-            <div className="flex items-center gap-3 transition-all whitespace-nowrap overflow-hidden">
-              {/* Small periodic table logo */}
-              <TnLogo className="w-8 h-8 shrink-0" glow={false} />
+        {isSidebarOpen ? (
+          <div className="flex items-center gap-3 transition-all whitespace-nowrap overflow-hidden">
+            {/* Small periodic table logo */}
+            <TnLogo className="w-8 h-8 shrink-0" glow={false} />
 
-              {/* Stacked Branding text logo */}
-              <div className="flex flex-col select-none cursor-pointer" style={{ fontFamily: 'var(--font-sans), sans-serif' }}>
-                <span 
-                  className="text-[22px] font-black leading-none tracking-tighter lowercase bg-gradient-to-br from-[#4A90D9] via-[#D96A9E] to-[#45B88E] bg-clip-text text-transparent"
-                >
-                  templ
-                </span>
-              </div>
+            {/* Stacked Branding text logo */}
+            <div className="flex flex-col select-none cursor-pointer" style={{ fontFamily: 'var(--font-sans), sans-serif' }}>
+              <span
+                className="text-[22px] font-black leading-none tracking-tighter lowercase bg-gradient-to-br from-[#4A90D9] via-[#D96A9E] to-[#45B88E] bg-clip-text text-transparent"
+              >
+                templ
+              </span>
             </div>
-          ) : (
-            <div className="w-full flex justify-center py-1.5">
-              <TnLogo className="w-7 h-7" glow={false} />
-            </div>
-          )}
+          </div>
+        ) : (
+          <div className="w-full flex justify-center py-1.5">
+            <TnLogo className="w-7 h-7" glow={false} />
+          </div>
+        )}
       </div>
 
-      <div className="flex-1 space-y-6 min-w-0">
+      <div className="flex-1 overflow-y-auto no-scrollbar space-y-6 min-w-0">
         {/* Core Actions */}
         <div className="space-y-[2px]">
           <SidebarItem icon={<Plus size={16} className={isDocActive('new-note') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="New Document" isOpen={isSidebarOpen} highlight={isDocActive('new-note')} onClick={handleNewNoteClick} activeBgClass="bg-blush-pop/90 dark:bg-blush-pop/35 border-blush-pop/75 dark:border-blush-pop/50 border" activeTextClass="!text-black dark:!text-white font-semibold" />
@@ -1168,9 +1168,9 @@ export const Sidebar = () => {
 
       {/* Bottom Actions */}
       <div className={cn(
-        "pt-3 pb-2 mt-auto border-t border-white/[0.05] dark:border-white/[0.05] flex min-w-0 flex-shrink-0",
-        isSidebarOpen 
-          ? "flex-row items-center justify-between px-4" 
+        "pt-2 pb-0 mt-auto border-t border-white/[0.05] dark:border-white/[0.05] flex min-w-0 flex-shrink-0",
+        isSidebarOpen
+          ? "flex-row items-center justify-between px-4"
           : "flex-col items-center gap-1.5 px-0"
       )}>
         {/* Trash */}

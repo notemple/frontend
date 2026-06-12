@@ -34,7 +34,7 @@ export const RightSidebar = () => {
 
   return (
     <motion.div
-      className={cn("templnote-sidebar-right h-full border-l border-border bg-background absolute right-0 bottom-0 flex flex-col overflow-hidden z-30 shadow-md", isNavbarVisible ? "top-[56px]" : "top-0")}
+      className={cn("templnote-sidebar-right h-full border-l border-border bg-background absolute right-0 bottom-2 flex flex-col overflow-hidden z-30 shadow-md", isNavbarVisible ? "top-[56px]" : "top-0")}
       initial={false}
       animate={{
         width: isRightSidebarOpen ? 320 : 0,

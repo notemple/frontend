@@ -67,15 +67,6 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
     []
   );
 
-  if (!collection || !viewState) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-workspace">
-        <Database size={32} className="text-muted-foreground/30 animate-spin" />
-        <span className="text-xs text-muted-foreground mt-2">Loading database...</span>
-      </div>
-    );
-  }
-
   const handleOpenRename = () => {
     setRenameName(collection.name);
     setRenameDesc(collection.description || '');
@@ -110,6 +101,8 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
     await deleteCollection(collectionId);
     openDocument('section-collections', paneId);
   };
+
+  if (!collection || !viewState) return null;
 
   const activeView = viewState.activeView || 'table';
 

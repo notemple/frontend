@@ -31,9 +31,9 @@ export const TnLogo: React.FC<TnLogoProps> = ({
       >
         <defs>
           <linearGradient id="templ-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#BDE0FE" />
-            <stop offset="50%" stopColor="#FFC8DD" />
-            <stop offset="100%" stopColor="#B5EAD7" />
+            <stop offset="0%" stopColor="#4A90D9" />
+            <stop offset="50%" stopColor="#D96A9E" />
+            <stop offset="100%" stopColor="#45B88E" />
           </linearGradient>
         </defs>
         {/* Thin dark outer border */}

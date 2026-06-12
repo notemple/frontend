@@ -1,8 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { CollectionField, FieldType, CollectionFieldOption } from '../types';
 import { useCollectionStore } from '../store/collectionStore';
-import { Plus, Trash, DotsSixVertical, Check } from '@phosphor-icons/react';
+import { 
+  Plus, Trash, DotsSixVertical, Check, CaretDown,
+  TextAa, NumberNine, CalendarBlank, CheckSquare,
+  List, Checks, Link, Envelope, Phone, FileText,
+  Tag, Database, Image, Article
+} from '@phosphor-icons/react';
 import { PopupMenu } from '@/shared/ui/PopupMenu';
+import { AnimatePresence, motion } from 'motion/react';
+import { cn } from '@/shared/lib/utils';
 
 interface FieldSettingsModalProps {
   isOpen: boolean;
@@ -11,22 +18,22 @@ interface FieldSettingsModalProps {
   field: CollectionField | null; // null if creating a new field
 }
 
-const FIELD_TYPES: { type: FieldType; label: string; description: string }[] = [
-  { type: 'text', label: 'Text', description: 'Plain text field' },
-  { type: 'number', label: 'Number', description: 'Numeric values' },
-  { type: 'date', label: 'Date', description: 'Calendar date picker' },
-  { type: 'checkbox', label: 'Checkbox', description: 'Yes/No checkbox' },
-  { type: 'select', label: 'Select', description: 'Single option selection list' },
-  { type: 'multi-select', label: 'Multi-select', description: 'Select multiple tag options' },
-  { type: 'url', label: 'URL', description: 'Web addresses / links' },
-  { type: 'email', label: 'Email', description: 'Email address validation' },
-  { type: 'phone', label: 'Phone', description: 'Telephone numbers' },
-  { type: 'document-relation', label: 'Document Relation', description: 'Link system Documents' },
-  { type: 'task-relation', label: 'Task Relation', description: 'Link system Tasks' },
-  { type: 'tag-relation', label: 'Tag Relation', description: 'Link system Tags' },
-  { type: 'collection-relation', label: 'Collection Relation', description: 'Link rows from another database' },
-  { type: 'media', label: 'Media', description: 'Images and files' },
-  { type: 'rich-text', label: 'Rich Text', description: 'Formatted long-form text' }
+const FIELD_TYPES: { type: FieldType; label: string; description: string; icon: React.ReactNode; color: string }[] = [
+  { type: 'text', label: 'Text', description: 'Plain text field', icon: <TextAa size={16} />, color: '#A2D2FF' },
+  { type: 'number', label: 'Number', description: 'Numeric values', icon: <NumberNine size={16} />, color: '#BDE0FE' },
+  { type: 'date', label: 'Date', description: 'Calendar date picker', icon: <CalendarBlank size={16} />, color: '#FFAFCC' },
+  { type: 'checkbox', label: 'Checkbox', description: 'Yes/No checkbox', icon: <CheckSquare size={16} />, color: '#CDB4DB' },
+  { type: 'select', label: 'Select', description: 'Single option selection list', icon: <List size={16} />, color: '#FFC8DD' },
+  { type: 'multi-select', label: 'Multi-select', description: 'Select multiple tag options', icon: <Checks size={16} />, color: '#D8F3DC' },
+  { type: 'url', label: 'URL', description: 'Web addresses / links', icon: <Link size={16} />, color: '#FCF6BD' },
+  { type: 'email', label: 'Email', description: 'Email address validation', icon: <Envelope size={16} />, color: '#FFDAC1' },
+  { type: 'phone', label: 'Phone', description: 'Telephone numbers', icon: <Phone size={16} />, color: '#A2D2FF' },
+  { type: 'document-relation', label: 'Document Relation', description: 'Link system Documents', icon: <FileText size={16} />, color: '#CDB4DB' },
+  { type: 'task-relation', label: 'Task Relation', description: 'Link system Tasks', icon: <CheckSquare size={16} />, color: '#BDE0FE' },
+  { type: 'tag-relation', label: 'Tag Relation', description: 'Link system Tags', icon: <Tag size={16} />, color: '#FFAFCC' },
+  { type: 'collection-relation', label: 'Collection Relation', description: 'Link rows from another database', icon: <Database size={16} />, color: '#FFC8DD' },
+  { type: 'media', label: 'Media', description: 'Images and files', icon: <Image size={16} />, color: '#D8F3DC' },
+  { type: 'rich-text', label: 'Rich Text', description: 'Formatted long-form text', icon: <Article size={16} />, color: '#FCF6BD' }
 ];
 
 const PASTEL_COLORS = [
@@ -56,6 +63,8 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
   const [options, setOptions] = useState<CollectionFieldOption[]>([]);
   const [relationCollectionId, setRelationCollectionId] = useState<string>('');
   const [showColorPickerForId, setShowColorPickerForId] = useState<string | null>(null);
+  const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
+  const typeDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -73,8 +82,24 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
         setRelationCollectionId('');
       }
       setShowColorPickerForId(null);
+      setIsTypeDropdownOpen(false);
     }
   }, [isOpen, field]);
+
+  useEffect(() => {
+    if (!isTypeDropdownOpen) return;
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target as Node)) {
+        setIsTypeDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isTypeDropdownOpen]);
 
   if (!isOpen) return null;
 
@@ -163,17 +188,75 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
           {/* Field Type */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Field Type</label>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value as FieldType)}
-              className="bg-muted/30 border border-border rounded px-3 py-2 text-sm w-full outline-none text-foreground focus:border-purple-500/50 transition-colors cursor-pointer"
-            >
-              {FIELD_TYPES.map(ft => (
-                <option key={ft.type} value={ft.type} className="bg-background text-foreground">
-                  {ft.label}
-                </option>
-              ))}
-            </select>
+            <div className="relative" ref={typeDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
+                className={cn(
+                  "flex items-center justify-between w-full bg-muted/30 border rounded px-3 py-2 text-sm outline-none transition-colors cursor-pointer",
+                  isTypeDropdownOpen ? "border-purple-500/50" : "border-border hover:border-border/80"
+                )}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-foreground/80">{FIELD_TYPES.find(ft => ft.type === type)?.icon}</span>
+                  <span className="text-foreground">{FIELD_TYPES.find(ft => ft.type === type)?.label}</span>
+                </div>
+                <CaretDown size={14} className={cn("text-muted-foreground transition-transform", isTypeDropdownOpen && "rotate-180")} />
+              </button>
+
+              <AnimatePresence>
+                {isTypeDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    className="absolute top-full left-0 mt-1 w-full bg-background border border-border rounded-sm-sm shadow-sm-sm z-50 flex flex-col max-h-[280px] overflow-y-auto no-scrollbar origin-top"
+                  >
+                    <div className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground/50 px-3 py-1.5 font-mono border-b border-border sticky top-0 bg-background">
+                      Select Field Type
+                    </div>
+                    {FIELD_TYPES.map((ft) => {
+                      const isSelected = ft.type === type;
+                      return (
+                        <button
+                          key={ft.type}
+                          type="button"
+                          className={cn(
+                            "flex items-center gap-3 w-full text-left px-3 py-2.5 transition-colors cursor-pointer",
+                            isSelected
+                              ? "bg-purple-500/10"
+                              : "hover:bg-muted/60"
+                          )}
+                          onClick={() => {
+                            setType(ft.type);
+                            setIsTypeDropdownOpen(false);
+                          }}
+                        >
+                          <div 
+                            className="w-7 h-7 rounded flex items-center justify-center shrink-0"
+                            style={{ 
+                              backgroundColor: ft.color + '20',
+                              color: ft.color
+                            }}
+                          >
+                            {ft.icon}
+                          </div>
+                          <div className="flex flex-col flex-1 min-w-0">
+                            <span className={cn("text-xs font-semibold truncate", isSelected ? "text-purple-600 dark:text-purple-400" : "text-foreground")}>
+                              {ft.label}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground/70 truncate">
+                              {ft.description}
+                            </span>
+                          </div>
+                          {isSelected && <Check size={14} className="text-purple-500 shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
           {/* Required constraint toggle */}

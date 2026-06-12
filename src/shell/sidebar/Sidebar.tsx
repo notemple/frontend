@@ -1,32 +1,32 @@
 import { useDocumentStore } from '@/features/documents/store';
-import { cn,getFolderActiveHexColor,getFolderHexColor } from '@/shared/lib/utils';
+import { cn, getFolderActiveHexColor, getFolderHexColor } from '@/shared/lib/utils';
 import { useUiStore } from '@/shared/store/uiStore';
 import { gsap } from 'gsap';
 import { motion } from 'motion/react';
-import React,{ useEffect,useRef,useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { ColorPicker } from '@/shared/ui/ColorPicker';
 import { TnLogo } from '@/shared/ui/TnLogo';
 import {
-	Book,
-	CalendarBlank,
-	CaretDown,
-	CaretRight,
-	CheckSquare,
-	Eye,
-	FileText,
-	Gear,
-	GraduationCap,
-	MagnifyingGlass,
-	PencilSimple,
-	Plus,
-	Question,
-	Sparkle,
-	SquaresFour,
-	Star,
-	Tag,
-	Trash,
-	User
+  Book,
+  CalendarBlank,
+  CaretDown,
+  CaretRight,
+  CheckSquare,
+  Eye,
+  FileText,
+  Gear,
+  GraduationCap,
+  MagnifyingGlass,
+  PencilSimple,
+  Plus,
+  Question,
+  Sparkle,
+  SquaresFour,
+  Star,
+  Tag,
+  Trash,
+  User
 } from '@phosphor-icons/react';
 import { DeleteFolderDialog } from './DeleteFolderDialog';
 import { SidebarFolderItem } from "./SidebarFolderItem";
@@ -323,10 +323,10 @@ const GSAPAccordion = ({ isOpen, children }: { isOpen: boolean; children: React.
         if (isOpen) {
           gsap.fromTo(containerRef.current,
             { height: 0, opacity: 0 },
-            { 
-              height: "auto", 
-              opacity: 1, 
-              duration: 0.22, 
+            {
+              height: "auto",
+              opacity: 1,
+              duration: 0.22,
               ease: "power2.out"
             }
           );
@@ -704,9 +704,10 @@ export const Sidebar = () => {
   };
 
   return (
+    <>
     <motion.div
       ref={sidebarRef}
-      className={cn("h-full flex flex-col border-r border-border bg-muted absolute left-0 bottom-0 z-30 overflow-y-auto no-scrollbar group/sidebar shadow-md", isNavbarVisible ? "top-[56px]" : "top-0")}
+      className={cn("h-[calc(100%-3rem)] flex flex-col border-r border-border bg-muted absolute left-0 bottom-8 z-30 group/sidebar shadow-md", isNavbarVisible ? "top-[56px]" : "top-0")}
       initial={false}
       animate={{
         width: isSidebarOpen ? 260 : 0,
@@ -724,29 +725,28 @@ export const Sidebar = () => {
       }}
     >
       <div className={cn("flex items-center mb-8 shrink-0 relative z-10 w-full", isSidebarOpen ? "justify-start px-1.5 h-11" : "justify-center px-0 h-8")}>
-          {isSidebarOpen ? (
-            <div className="flex items-center gap-3 transition-all whitespace-nowrap overflow-hidden">
-              {/* Small periodic table logo */}
-              <TnLogo className="w-8 h-8 shrink-0" glow={false} />
+        {isSidebarOpen ? (
+          <div className="flex items-center gap-3 transition-all whitespace-nowrap overflow-hidden">
+            {/* Small periodic table logo */}
+            <TnLogo className="w-8 h-8 shrink-0" glow={false} />
 
-              {/* Stacked Branding text logo */}
-              <div className="flex flex-col select-none cursor-pointer" style={{ fontFamily: 'var(--font-sans), sans-serif' }}>
-                <span 
-                  className="text-[22px] font-black leading-none tracking-tighter lowercase bg-gradient-to-br from-[#BDE0FE] via-[#FFC8DD] to-[#B5EAD7] bg-clip-text text-transparent"
-                  style={{ WebkitTextStroke: '0.3px rgba(18, 18, 18, 0.35)' }}
-                >
-                  templ
-                </span>
-              </div>
+            {/* Stacked Branding text logo */}
+            <div className="flex flex-col select-none cursor-pointer" style={{ fontFamily: 'var(--font-sans), sans-serif' }}>
+              <span
+                className="text-[22px] font-black leading-none tracking-tighter lowercase bg-gradient-to-br from-[#4A90D9] via-[#D96A9E] to-[#45B88E] bg-clip-text text-transparent"
+              >
+                templ
+              </span>
             </div>
-          ) : (
-            <div className="w-full flex justify-center py-1.5">
-              <TnLogo className="w-7 h-7" glow={false} />
-            </div>
-          )}
+          </div>
+        ) : (
+          <div className="w-full flex justify-center py-1.5">
+            <TnLogo className="w-7 h-7" glow={false} />
+          </div>
+        )}
       </div>
 
-      <div className="flex-1 space-y-6 min-w-0">
+      <div className="flex-1 overflow-y-auto no-scrollbar space-y-6 min-w-0">
         {/* Core Actions */}
         <div className="space-y-[2px]">
           <SidebarItem icon={<Plus size={16} className={isDocActive('new-note') ? "text-current" : "text-rose-500/90 dark:text-rose-400/90"} />} label="New Document" isOpen={isSidebarOpen} highlight={isDocActive('new-note')} onClick={handleNewNoteClick} activeBgClass="bg-blush-pop/90 dark:bg-blush-pop/35 border-blush-pop/75 dark:border-blush-pop/50 border" activeTextClass="!text-black dark:!text-white font-semibold" />
@@ -810,7 +810,7 @@ export const Sidebar = () => {
             <div className={cn("flex items-center justify-between px-2 py-1 mb-1 rounded-sm transition-colors", isDocActive('section-favorites') ? "bg-muted/40" : "group-hover/favorites:bg-transparent")}>
               <div
                 onClick={() => handleDocClick('section-favorites')}
-                className={cn("text-xs font-semibold truncate uppercase tracking-wider cursor-pointer transition-colors flex-1", isDocActive('section-favorites') ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+                className={cn("text-xs font-semibold truncate uppercase tracking-wider cursor-pointer transition-colors flex-1", isDocActive('section-favorites') ? "text-rose-500 dark:text-rose-400" : "text-muted-foreground hover:text-foreground")}
               >
                 Favorites
               </div>
@@ -861,7 +861,7 @@ export const Sidebar = () => {
             <div className={cn("flex items-center justify-between px-2 py-1 mb-1 rounded-sm transition-colors", isDocActive('section-folders') ? "bg-muted/40" : "group-hover/folders:bg-transparent")}>
               <div
                 onClick={() => handleDocClick('section-folders')}
-                className={cn("text-xs font-semibold truncate uppercase tracking-wider cursor-pointer transition-colors flex-1", isDocActive('section-folders') ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+                className={cn("text-xs font-semibold truncate uppercase tracking-wider cursor-pointer transition-colors flex-1", isDocActive('section-folders') ? "text-sky-500 dark:text-sky-400" : "text-muted-foreground hover:text-foreground")}
               >
                 Folders
               </div>
@@ -1167,92 +1167,6 @@ export const Sidebar = () => {
         </div>
       </div>
 
-      {/* Bottom Actions */}
-      <div className={cn(
-        "pt-3 pb-2 mt-auto border-t border-white/[0.05] dark:border-white/[0.05] flex min-w-0 flex-shrink-0",
-        isSidebarOpen 
-          ? "flex-row items-center justify-between px-4" 
-          : "flex-col items-center gap-1.5 px-0"
-      )}>
-        {/* Trash */}
-        <div
-          draggable
-          onDragStart={(e) => {
-            e.dataTransfer.setData('text/plain', 'section-trash');
-            e.dataTransfer.setData('templnote/document-id', 'section-trash');
-            e.dataTransfer.effectAllowed = 'copyMove';
-          }}
-        >
-          <button
-            onClick={() => handleDocClick('section-trash')}
-            className={cn(
-              "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
-              isDocActive('section-trash')
-                ? "bg-red-500/25 text-red-400 shadow-sm-sm border border-red-500/30"
-                : "text-red-500/70 hover:bg-zinc-800/40 hover:text-red-400"
-            )}
-            title="Trash"
-          >
-            <Trash size={18} weight={isDocActive('section-trash') ? "fill" : "regular"} />
-          </button>
-        </div>
-
-        {/* Tutorial */}
-        <button
-          id="section-tutorial"
-          onClick={() => {
-            useUiStore.getState().startTutorial();
-          }}
-          className={cn(
-            "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
-            isDocActive('section-tutorial')
-              ? "bg-yellow-500/25 text-yellow-400 shadow-sm-sm border border-yellow-500/30"
-              : "text-yellow-500/70 hover:bg-zinc-800/40 hover:text-yellow-400"
-          )}
-          title="Tutorial"
-        >
-          <GraduationCap size={18} weight={isDocActive('section-tutorial') ? "fill" : "regular"} />
-        </button>
-
-        {/* Help */}
-        <div
-          draggable
-          onDragStart={(e) => {
-            e.dataTransfer.setData('text/plain', 'section-help');
-            e.dataTransfer.setData('templnote/document-id', 'section-help');
-            e.dataTransfer.effectAllowed = 'copyMove';
-          }}
-        >
-          <button
-            onClick={() => handleDocClick('section-help')}
-            className={cn(
-              "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
-              isDocActive('section-help')
-                ? "bg-teal-500/25 text-teal-400 shadow-sm-sm border border-teal-500/30"
-                : "text-teal-500/70 hover:bg-zinc-800/40 hover:text-teal-400"
-            )}
-            title="Help"
-          >
-            <Question size={18} weight={isDocActive('section-help') ? "fill" : "regular"} />
-          </button>
-        </div>
-
-        {/* Settings */}
-        <button
-          id="onboarding-settings-tab"
-          onClick={() => openDocument('section-settings', activePaneId || undefined)}
-          className={cn(
-            "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
-            isDocActive('section-settings')
-              ? "bg-slate-500/25 text-slate-200 shadow-sm-sm border border-slate-500/30"
-              : "text-slate-500/70 hover:bg-zinc-800/40 hover:text-slate-200"
-          )}
-          title="Settings"
-        >
-          <Gear size={18} weight={isDocActive('section-settings') ? "fill" : "regular"} />
-        </button>
-      </div>
-
       <CreateCollectionDialog
         isOpen={showCreateCollection}
         onClose={() => setShowCreateCollection(false)}
@@ -1330,6 +1244,106 @@ export const Sidebar = () => {
         />
       )}
     </motion.div>
+
+      {/* Bottom Actions - Fixed outside animated sidebar */}
+      <motion.div
+        className={cn(
+          "absolute z-40 flex flex-shrink-0 overflow-hidden",
+          isSidebarOpen
+            ? "flex-row items-center justify-evenly left-0 bottom-8 pt-3 border-t border-black/[0.08] dark:border-white/[0.08]"
+            : "flex-col items-center gap-1.5 p-1.5 left-0 bottom-8"
+        )}
+        initial={false}
+        animate={{
+          width: isSidebarOpen ? 260 : 44,
+          opacity: 1
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 220,
+          damping: 26,
+          mass: 0.8
+        }}
+      >
+        {/* Trash */}
+        <div
+          draggable
+          onDragStart={(e) => {
+            e.dataTransfer.setData('text/plain', 'section-trash');
+            e.dataTransfer.setData('templnote/document-id', 'section-trash');
+            e.dataTransfer.effectAllowed = 'copyMove';
+          }}
+        >
+          <button
+            onClick={() => handleDocClick('section-trash')}
+            className={cn(
+              "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
+              isDocActive('section-trash')
+                ? "bg-red-500/25 text-red-400 shadow-sm-sm border border-red-500/30"
+                : "text-red-500/70 hover:bg-zinc-800/40 hover:text-red-400"
+            )}
+            title="Trash"
+          >
+            <Trash size={18} weight={isDocActive('section-trash') ? "fill" : "regular"} />
+          </button>
+        </div>
+
+        {/* Tutorial */}
+        <button
+          id="section-tutorial"
+          onClick={() => {
+            useUiStore.getState().startTutorial();
+          }}
+          className={cn(
+            "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
+            isDocActive('section-tutorial')
+              ? "bg-yellow-500/25 text-yellow-400 shadow-sm-sm border border-yellow-500/30"
+              : "text-yellow-500/70 hover:bg-zinc-800/40 hover:text-yellow-400"
+          )}
+          title="Tutorial"
+        >
+          <GraduationCap size={18} weight={isDocActive('section-tutorial') ? "fill" : "regular"} />
+        </button>
+
+        {/* Help */}
+        <div
+          draggable
+          onDragStart={(e) => {
+            e.dataTransfer.setData('text/plain', 'section-help');
+            e.dataTransfer.setData('templnote/document-id', 'section-help');
+            e.dataTransfer.effectAllowed = 'copyMove';
+          }}
+        >
+          <button
+            onClick={() => handleDocClick('section-help')}
+            className={cn(
+              "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
+              isDocActive('section-help')
+                ? "bg-teal-500/25 text-teal-400 shadow-sm-sm border border-teal-500/30"
+                : "text-teal-500/70 hover:bg-zinc-800/40 hover:text-teal-400"
+            )}
+            title="Help"
+          >
+            <Question size={18} weight={isDocActive('section-help') ? "fill" : "regular"} />
+          </button>
+        </div>
+
+        {/* Settings */}
+        <button
+          id="onboarding-settings-tab"
+          onClick={() => openDocument('section-settings', activePaneId || undefined)}
+          className={cn(
+            "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
+            isDocActive('section-settings')
+              ? "bg-slate-500/25 text-slate-200 shadow-sm-sm border border-slate-500/30"
+              : "text-slate-500/70 hover:bg-zinc-800/40 hover:text-slate-200"
+          )}
+          title="Settings"
+        >
+          <Gear size={18} weight={isDocActive('section-settings') ? "fill" : "regular"} />
+        </button>
+      </motion.div>
+    </>
   );
 };
 

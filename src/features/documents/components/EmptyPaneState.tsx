@@ -3,6 +3,7 @@ import { useUiStore } from '@/shared/store/uiStore';
 import {
 	CalendarBlank,CheckSquare,
 	Columns,
+	FileText,
 	Eye,Folder,Gear,
 	PlusCircle,
 	Tag,
@@ -65,6 +66,10 @@ export const EmptyPaneState = ({ paneId }: { paneId: string }) => {
     openDocument('section-folders', paneId);
   };
 
+  const handleOpenCollections = () => {
+    openDocument('section-collections', paneId);
+  };
+
   interface OptionItem {
     label: string;
     icon: React.ReactNode;
@@ -116,6 +121,12 @@ export const EmptyPaneState = ({ paneId }: { paneId: string }) => {
       visible: true,
     },
     {
+      label: 'Collections',
+      icon: <FileText size={16} className="text-violet-500 shrink-0" />,
+      action: handleOpenCollections,
+      visible: true,
+    },
+    {
       label: 'Settings',
       icon: <Gear size={16} className="text-slate-500 shrink-0" />,
       action: () => openDocument('section-settings', paneId),
@@ -131,7 +142,7 @@ export const EmptyPaneState = ({ paneId }: { paneId: string }) => {
         {/* Full-width "templ" text with Outfit font */}
         <div className="w-full flex flex-col items-center justify-center select-none">
           <TnLogo className="w-16 h-16 sm:w-20 sm:h-20 mb-6" />
-          <h1 className="w-full text-center font-sans text-[15vw] sm:text-[16vw] font-black tracking-tighter lowercase leading-none select-none bg-gradient-to-br from-[#BDE0FE] via-[#FFC8DD] to-[#B5EAD7] bg-clip-text text-transparent">
+          <h1 className="w-full text-center font-sans text-[15vw] sm:text-[16vw] font-black tracking-tighter lowercase leading-none select-none bg-gradient-to-br from-[#4A90D9] via-[#D96A9E] to-[#45B88E] bg-clip-text text-transparent">
             templ
           </h1>
           <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground/40 mt-2 font-semibold select-none">

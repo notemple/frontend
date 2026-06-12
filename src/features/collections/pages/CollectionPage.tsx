@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useCollectionStore } from '../store/collectionStore';
 import { TableView } from '../components/TableView';
 import type { ViewType } from '../types';
@@ -9,6 +9,7 @@ import {
 } from '@phosphor-icons/react';
 import { cn } from '@/shared/lib/utils';
 import { PopupMenu } from '@/shared/ui/PopupMenu';
+import { useUiStore } from '@/shared/store/uiStore';
 
 interface CollectionPageProps {
   paneId: string;
@@ -25,6 +26,8 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
   const duplicateCollection = useCollectionStore(state => state.duplicateCollection);
   const togglePinCollection = useCollectionStore(state => state.togglePinCollection);
   const setActiveView = useCollectionStore(state => state.setActiveView);
+
+  const openDocument = useUiStore(state => state.openDocument);
 
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [renameName, setRenameName] = useState('');
@@ -43,14 +46,26 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
     }
   }, [collectionId, collection]);
 
-  if (!collection || !viewState) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-workspace">
-        <Database size={32} className="text-muted-foreground/30 animate-spin" />
-        <span className="text-xs text-muted-foreground mt-2">Loading database...</span>
-      </div>
-    );
-  }
+  const viewTabs: { type: ViewType; label: string; icon: React.ReactNode }[] = [
+    { type: 'table', label: 'Table', icon: <Table size={13} /> },
+    { type: 'list', label: 'List', icon: <List size={13} /> },
+    { type: 'gallery', label: 'Gallery', icon: <Image size={13} /> },
+    { type: 'calendar', label: 'Calendar', icon: <Calendar size={13} /> },
+    { type: 'board', label: 'Board', icon: <Kanban size={13} /> }
+  ];
+
+  const TAB_COLOR_SCHEMES = [
+    { active: "bg-blush-pop/70 dark:bg-blush-pop/20 text-foreground dark:text-blush-pop border-blush-pop/50 dark:border-blush-pop/30 font-bold", indicator: "bg-blush-pop dark:bg-blush-pop" },
+    { active: "bg-sky-blue/70 dark:bg-sky-blue/20 text-foreground dark:text-sky-blue border-sky-blue/50 dark:border-sky-blue/30 font-bold", indicator: "bg-sky-blue dark:bg-sky-blue" },
+    { active: "bg-pink-orchid/70 dark:bg-pink-orchid/20 text-foreground dark:text-pink-orchid border-pink-orchid/50 dark:border-pink-orchid/30 font-bold", indicator: "bg-pink-orchid dark:bg-pink-orchid" },
+    { active: "bg-rose-100/80 dark:bg-rose-500/20 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-500/30 font-bold", indicator: "bg-rose-400 dark:bg-rose-400" },
+    { active: "bg-emerald-100/80 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/30 font-bold", indicator: "bg-emerald-400 dark:bg-emerald-400" },
+  ];
+
+  const tabSchemes = useMemo(
+    () => viewTabs.map((_, i) => TAB_COLOR_SCHEMES[i]),
+    []
+  );
 
   const handleOpenRename = () => {
     setRenameName(collection.name);
@@ -84,17 +99,12 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
   const handleConfirmDelete = async () => {
     setIsDeleteOpen(false);
     await deleteCollection(collectionId);
+    openDocument('section-collections', paneId);
   };
 
-  const activeView = viewState.activeView || 'table';
+  if (!collection || !viewState) return null;
 
-  const viewTabs: { type: ViewType; label: string; icon: React.ReactNode }[] = [
-    { type: 'table', label: 'Table', icon: <Table size={13} /> },
-    { type: 'list', label: 'List', icon: <List size={13} /> },
-    { type: 'gallery', label: 'Gallery', icon: <Image size={13} /> },
-    { type: 'calendar', label: 'Calendar', icon: <Calendar size={13} /> },
-    { type: 'board', label: 'Board', icon: <Kanban size={13} /> }
-  ];
+  const activeView = viewState.activeView || 'table';
 
   // Resolve styling tokens from the right sidebar state
   const wrapperStyle: React.CSSProperties = {};
@@ -169,7 +179,7 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
               "p-1.5 rounded-sm border transition-all cursor-pointer flex items-center justify-center shadow-sm-sm",
               collection.pinned
                 ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
-                : "bg-muted/40 hover:bg-muted text-muted-foreground border-border hover:text-foreground"
+                : "bg-blush-pop/70 dark:bg-blush-pop/20 text-foreground dark:text-blush-pop border-blush-pop/50 dark:border-blush-pop/30 hover:bg-blush-pop/80 dark:hover:bg-blush-pop/35"
             )}
             title={collection.pinned ? "Unpin database" : "Pin database to sidebar"}
           >
@@ -177,14 +187,14 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
           </button>
           <button
             onClick={handleDuplicate}
-            className="p-1.5 bg-muted/40 hover:bg-muted border border-border rounded-sm text-muted-foreground hover:text-foreground transition-all cursor-pointer flex items-center justify-center shadow-sm-sm"
+            className="p-1.5 bg-sky-blue/70 dark:bg-sky-blue/20 text-foreground dark:text-sky-blue border-sky-blue/50 dark:border-sky-blue/30 hover:bg-sky-blue/80 dark:hover:bg-sky-blue/35 rounded-sm border transition-all cursor-pointer flex items-center justify-center shadow-sm-sm"
             title="Duplicate database"
           >
             <Copy size={13} />
           </button>
           <button
             onClick={handleDelete}
-            className="p-1.5 bg-muted/40 hover:bg-red-500/10 border border-border hover:border-red-500/20 rounded-sm text-muted-foreground hover:text-red-500 transition-all cursor-pointer flex items-center justify-center shadow-sm-sm"
+            className="p-1.5 bg-rose-100/80 dark:bg-rose-500/20 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-500/30 hover:bg-rose-200/80 dark:hover:bg-rose-500/30 rounded-sm border transition-all cursor-pointer flex items-center justify-center shadow-sm-sm"
             title="Delete database"
           >
             <Trash size={13} />
@@ -257,22 +267,25 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
           </div>
 
           {/* Views Tabs Segment */}
-          <div className="border-b border-border/80 flex items-center gap-1.5 shrink-0 select-none pt-2">
-            {viewTabs.map(tab => {
+          <div className="flex items-center gap-1.5 shrink-0 select-none pt-2 pb-2">
+            {viewTabs.map((tab, i) => {
               const isTabActive = activeView === tab.type;
               return (
                 <button
                   key={tab.type}
                   onClick={() => setActiveView(collectionId, tab.type)}
                   className={cn(
-                    "flex items-center gap-1.5 px-3 py-2 border-b-2 text-xs font-semibold transition-all cursor-pointer relative",
+                    "flex items-center gap-1.5 px-3 py-2 rounded-sm-sm border text-xs font-semibold transition-all duration-250 ease-out outline-none relative hover:border-muted-foreground/30 cursor-pointer",
                     isTabActive
-                      ? "border-purple-600 text-purple-600 dark:border-purple-400 dark:text-purple-400 font-bold"
-                      : "border-transparent text-muted-foreground/85 hover:text-foreground hover:border-border"
+                      ? tabSchemes[i].active
+                      : "bg-transparent text-muted-foreground border-border hover:bg-muted hover:text-foreground"
                   )}
                 >
                   {tab.icon}
                   <span>{tab.label}</span>
+                  {isTabActive && (
+                    <div className={cn("absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-sm-full shadow-sm-sm", tabSchemes[i].indicator)} />
+                  )}
                 </button>
               );
             })}

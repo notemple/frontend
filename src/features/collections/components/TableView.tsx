@@ -409,6 +409,43 @@ export const TableView: React.FC<TableViewProps> = ({ collectionId }) => {
   // Hiding Columns properties panel state
   const [showPropertiesPanel, setShowPropertiesPanel] = useState(false);
 
+  const collection = collections[collectionId];
+  const viewState = viewStates[collectionId];
+  const { fieldOrder, visibleFields, fieldWidths, filters, sorts } = viewState || {};
+
+  // Random color scheme for filter button
+  const FILTER_COLOR_SCHEMES = [
+    {
+      active: "bg-blush-pop/70 dark:bg-blush-pop/20 text-foreground dark:text-blush-pop border-blush-pop dark:border-blush-pop hover:bg-blush-pop/80 dark:hover:bg-blush-pop/35",
+      indicator: "bg-blush-pop dark:bg-blush-pop",
+      badge: "bg-blush-pop",
+    },
+    {
+      active: "bg-sky-blue/70 dark:bg-sky-blue/20 text-foreground dark:text-sky-blue border-sky-blue dark:border-sky-blue hover:bg-sky-blue/80 dark:hover:bg-sky-blue/35",
+      indicator: "bg-sky-blue dark:bg-sky-blue",
+      badge: "bg-sky-blue",
+    },
+    {
+      active: "bg-pink-orchid/70 dark:bg-pink-orchid/20 text-foreground dark:text-pink-orchid border-pink-orchid dark:border-pink-orchid hover:bg-pink-orchid/80 dark:hover:bg-pink-orchid/35",
+      indicator: "bg-pink-orchid dark:bg-pink-orchid",
+      badge: "bg-pink-orchid",
+    },
+    {
+      active: "bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-500 dark:border-rose-500 hover:bg-rose-500/15 dark:hover:bg-rose-500/30",
+      indicator: "bg-rose-500 dark:bg-rose-400",
+      badge: "bg-rose-500",
+    },
+  ];
+
+  const filterScheme = useMemo(() => {
+    let hash = 0;
+    for (let i = 0; i < collectionId.length; i++) {
+      hash = collectionId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % FILTER_COLOR_SCHEMES.length;
+    return FILTER_COLOR_SCHEMES[index];
+  }, [collectionId]);
+
   // Picker states
   const [relationPickerConfig, setRelationPickerConfig] = useState<{
     itemId: string;
@@ -416,9 +453,6 @@ export const TableView: React.FC<TableViewProps> = ({ collectionId }) => {
     type: 'document-relation' | 'task-relation' | 'tag-relation' | 'collection-relation';
     relationCollectionId?: string;
   } | null>(null);
-
-  const collection = collections[collectionId];
-  const viewState = viewStates[collectionId];
 
   // Drag-and-drop state for reordering columns
   const [draggedHeaderId, setDraggedHeaderId] = useState<string | null>(null);
@@ -432,7 +466,6 @@ export const TableView: React.FC<TableViewProps> = ({ collectionId }) => {
   }
 
   const { fields } = collection;
-  const { fieldOrder, visibleFields, fieldWidths, filters, sorts } = viewState;
 
   // 1. Filter, Search, and Sort items
   const processedItems = useMemo(() => {
@@ -643,18 +676,21 @@ export const TableView: React.FC<TableViewProps> = ({ collectionId }) => {
             <button
               onClick={() => setShowFiltersPanel(!showFiltersPanel)}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1 rounded border text-xs font-semibold shadow-sm-sm cursor-pointer transition-colors duration-150",
+                "flex items-center gap-1.5 px-3 py-1 rounded-sm-sm border text-xs font-semibold shadow-sm-sm cursor-pointer transition-all duration-250 ease-out outline-none relative hover:border-muted-foreground/30 select-none",
                 filters?.length > 0 
-                  ? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/25"
-                  : "bg-muted/40 text-muted-foreground border-border hover:text-foreground"
+                  ? filterScheme.active
+                  : "bg-muted/60 text-muted-foreground border-border hover:text-foreground hover:bg-muted/95"
               )}
             >
               <Funnel size={13} />
               <span>Filter</span>
               {filters?.length > 0 && (
-                <span className="w-4 h-4 bg-purple-500 text-white rounded-full flex items-center justify-center text-[9px] font-bold">
+                <span className={cn("w-4 h-4 text-white rounded-full flex items-center justify-center text-[9px] font-bold", filterScheme.badge)}>
                   {filters.length}
                 </span>
+              )}
+              {filters?.length > 0 && (
+                <div className={cn("absolute -bottom-[9px] left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-sm-full shadow-sm-sm", filterScheme.indicator)} />
               )}
             </button>
 
@@ -665,7 +701,7 @@ export const TableView: React.FC<TableViewProps> = ({ collectionId }) => {
                   <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Filter Rules</span>
                   <button
                     onClick={handleAddFilter}
-                    className="text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:underline cursor-pointer"
+                    className="text-[10px] font-bold bg-pink-orchid/70 dark:bg-pink-orchid/20 text-foreground dark:text-pink-orchid border-pink-orchid/50 dark:border-pink-orchid/30 hover:bg-pink-orchid/80 dark:hover:bg-pink-orchid/35 px-2 py-0.5 rounded-sm border cursor-pointer transition-all"
                   >
                     + Add Filter
                   </button>
@@ -744,7 +780,7 @@ export const TableView: React.FC<TableViewProps> = ({ collectionId }) => {
           <div className="relative">
             <button
               onClick={() => setShowPropertiesPanel(!showPropertiesPanel)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded border border-border bg-muted/40 text-xs font-semibold text-muted-foreground hover:text-foreground shadow-sm-sm cursor-pointer transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-sm-sm border text-xs font-semibold shadow-sm-sm cursor-pointer transition-all duration-200 select-none bg-blush-pop/70 dark:bg-blush-pop/20 text-foreground dark:text-blush-pop border-blush-pop/50 dark:border-blush-pop/30 hover:bg-blush-pop/80 dark:hover:bg-blush-pop/35"
             >
               <Columns size={13} />
               <span>Columns</span>
@@ -789,7 +825,7 @@ export const TableView: React.FC<TableViewProps> = ({ collectionId }) => {
               setSelectedField(null);
               setFieldSettingsOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-1 bg-muted/50 border border-border rounded text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer transition-colors shadow-sm-sm"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-sm-sm border text-xs font-semibold shadow-sm-sm cursor-pointer transition-all duration-200 select-none bg-sky-blue/70 dark:bg-sky-blue/20 text-foreground dark:text-sky-blue border-sky-blue/50 dark:border-sky-blue/30 hover:bg-sky-blue/80 dark:hover:bg-sky-blue/35"
           >
             <Plus size={13} weight="bold" />
             Add Field
@@ -797,18 +833,13 @@ export const TableView: React.FC<TableViewProps> = ({ collectionId }) => {
 
           <button
             onClick={async () => {
-              const rowTitle = {
-                'col-books': 'New Book',
-                'col-recipes': 'New Recipe',
-                'col-projects': 'New Project',
-                'col-investments': 'New Asset'
-              }[collectionId] || 'New Item';
+              const rowTitle = 'New Item';
               const nameField = fields[0];
               const initVals = nameField ? { [nameField.id]: rowTitle } : {};
               const newItem = await addItem(collectionId, initVals);
               setSelectedRowId(newItem.id);
             }}
-            className="flex items-center gap-1.5 px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-xs font-semibold text-white cursor-pointer transition-all shadow-sm-sm"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-sm-sm border text-xs font-semibold shadow-sm-sm cursor-pointer transition-all duration-200 select-none bg-pink-orchid/70 dark:bg-pink-orchid/20 text-foreground dark:text-pink-orchid border-pink-orchid/50 dark:border-pink-orchid/30 hover:bg-pink-orchid/80 dark:hover:bg-pink-orchid/35"
           >
             <Plus size={13} weight="bold" />
             Add Row

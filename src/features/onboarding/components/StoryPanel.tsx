@@ -239,7 +239,7 @@ export const StoryPanel: React.FC<StoryPanelProps> = ({ step }) => {
               >
                 <h3 className="text-xl md:text-2xl font-bold tracking-tight text-[#FFDAC1]">Workspace Seeding</h3>
                 <p className="text-sm md:text-base leading-relaxed text-zinc-400 font-sans max-w-[280px] md:max-w-xs select-none">
-                  We are seeding your database with folders and daily note templates tailored to your profile. This will take only a second.
+                  We are seeding your workspace with folders and daily note templates tailored to your profile. This will take only a second.
                 </p>
               </motion.div>
             )}

@@ -234,7 +234,7 @@ const PageLinkPreviewPopup = React.forwardRef<
           }}
         >
           <span className="text-2xl mr-2 select-none">{collection.icon}</span>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{collection.name} Database</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{collection.name} Collection</span>
         </div>
 
         <div className="p-4 flex flex-col gap-3">

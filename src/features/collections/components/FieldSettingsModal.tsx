@@ -10,6 +10,7 @@ import {
 import { PopupMenu } from '@/shared/ui/PopupMenu';
 import { AnimatePresence, motion } from 'motion/react';
 import { cn } from '@/shared/lib/utils';
+import { getFieldColors } from '../colorUtils';
 
 interface FieldSettingsModalProps {
   isOpen: boolean;
@@ -31,7 +32,7 @@ const FIELD_TYPES: { type: FieldType; label: string; description: string; icon: 
   { type: 'document-relation', label: 'Document Relation', description: 'Link system Documents', icon: <FileText size={16} />, color: '#CDB4DB' },
   { type: 'task-relation', label: 'Task Relation', description: 'Link system Tasks', icon: <CheckSquare size={16} />, color: '#BDE0FE' },
   { type: 'tag-relation', label: 'Tag Relation', description: 'Link system Tags', icon: <Tag size={16} />, color: '#FFAFCC' },
-  { type: 'collection-relation', label: 'Collection Relation', description: 'Link rows from another database', icon: <Database size={16} />, color: '#FFC8DD' },
+  { type: 'collection-relation', label: 'Collection Relation', description: 'Link rows from another collection', icon: <Database size={16} />, color: '#FFC8DD' },
   { type: 'media', label: 'Media', description: 'Images and files', icon: <Image size={16} />, color: '#D8F3DC' },
   { type: 'rich-text', label: 'Rich Text', description: 'Formatted long-form text', icon: <Article size={16} />, color: '#FCF6BD' }
 ];
@@ -65,6 +66,8 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
   const [showColorPickerForId, setShowColorPickerForId] = useState<string | null>(null);
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
   const typeDropdownRef = useRef<HTMLDivElement>(null);
+  const dropdownListRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(-1);
 
   useEffect(() => {
     if (isOpen) {
@@ -85,6 +88,51 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
       setIsTypeDropdownOpen(false);
     }
   }, [isOpen, field]);
+
+  useEffect(() => {
+    if (isTypeDropdownOpen) {
+      const idx = FIELD_TYPES.findIndex(ft => ft.type === type);
+      setActiveIndex(idx >= 0 ? idx : 0);
+    } else {
+      setActiveIndex(-1);
+    }
+  }, [isTypeDropdownOpen, type]);
+
+  useEffect(() => {
+    if (isTypeDropdownOpen && activeIndex >= 0 && dropdownListRef.current) {
+      const activeEl = dropdownListRef.current.querySelector('[data-active="true"]');
+      if (activeEl) {
+        activeEl.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [activeIndex, isTypeDropdownOpen]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isTypeDropdownOpen) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        setIsTypeDropdownOpen(true);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev + 1) % FIELD_TYPES.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev - 1 + FIELD_TYPES.length) % FIELD_TYPES.length);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (activeIndex >= 0 && activeIndex < FIELD_TYPES.length) {
+        setType(FIELD_TYPES[activeIndex].type);
+        setIsTypeDropdownOpen(false);
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setIsTypeDropdownOpen(false);
+    }
+  };
 
   useEffect(() => {
     if (!isTypeDropdownOpen) return;
@@ -154,6 +202,8 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
       onClose={onClose}
       title={field ? `Edit Field: ${field.name}` : 'Create New Field'}
       variant="center"
+      className="!overflow-visible collection-pastel-popup"
+      bodyClassName="!overflow-visible"
       footer={
         <>
           <button
@@ -188,7 +238,7 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
           {/* Field Type */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Field Type</label>
-            <div className="relative" ref={typeDropdownRef}>
+            <div className="relative" ref={typeDropdownRef} onKeyDown={handleKeyDown}>
               <button
                 type="button"
                 onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
@@ -207,6 +257,7 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
               <AnimatePresence>
                 {isTypeDropdownOpen && (
                   <motion.div
+                    ref={dropdownListRef}
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 5 }}
@@ -215,17 +266,22 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
                     <div className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground/50 px-3 py-1.5 font-mono border-b border-border sticky top-0 bg-background">
                       Select Field Type
                     </div>
-                    {FIELD_TYPES.map((ft) => {
+                    {FIELD_TYPES.map((ft, index) => {
                       const isSelected = ft.type === type;
+                      const isActive = index === activeIndex;
                       return (
                         <button
                           key={ft.type}
                           type="button"
+                          data-active={isActive ? "true" : undefined}
                           className={cn(
                             "flex items-center gap-3 w-full text-left px-3 py-2.5 transition-colors cursor-pointer",
                             isSelected
                               ? "bg-purple-500/10"
-                              : "hover:bg-muted/60"
+                              : "",
+                            isActive
+                              ? "bg-muted font-medium"
+                              : ""
                           )}
                           onClick={() => {
                             setType(ft.type);
@@ -233,10 +289,13 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
                           }}
                         >
                           <div 
-                            className="w-7 h-7 rounded flex items-center justify-center shrink-0"
+                            className="w-7 h-7 rounded flex items-center justify-center shrink-0 bg-[var(--field-bg)] text-[var(--field-text)] dark:bg-[var(--field-bg-dark)] dark:text-[var(--field-text-dark)]"
                             style={{ 
-                              backgroundColor: ft.color + '20',
-                              color: ft.color
+                              // @ts-ignore
+                              '--field-bg': getFieldColors(ft.color).bgLight,
+                              '--field-text': getFieldColors(ft.color).textLight,
+                              '--field-bg-dark': getFieldColors(ft.color).bgDark,
+                              '--field-text-dark': getFieldColors(ft.color).textDark,
                             }}
                           >
                             {ft.icon}
@@ -276,7 +335,7 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
           {/* Relation settings */}
           {isRelationType && (
             <div className="flex flex-col gap-1.5 p-3 rounded bg-purple-500/5 border border-purple-500/10">
-              <label className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Target Database</label>
+              <label className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Target Collection</label>
               <select
                 value={relationCollectionId}
                 onChange={(e) => setRelationCollectionId(e.target.value)}
@@ -311,49 +370,51 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
 
               <div className="space-y-1.5 max-h-[200px] overflow-y-auto no-scrollbar border border-border/60 rounded p-2 bg-muted/10">
                 {options.map((opt) => (
-                  <div key={opt.id} className="flex items-center gap-2 bg-background border border-border/80 rounded px-2.5 py-1.5 relative">
-                    <DotsSixVertical size={14} className="text-muted-foreground/45 cursor-grab shrink-0" />
-                    
-                    {/* Color bubble */}
-                    <button
-                      type="button"
-                      onClick={() => setShowColorPickerForId(showColorPickerForId === opt.id ? null : opt.id)}
-                      className="w-4 h-4 rounded-sm-full border border-border/80 cursor-pointer shrink-0 transition-transform hover:scale-110"
-                      style={{ backgroundColor: opt.color }}
-                      title="Change color"
-                    />
+                  <div key={opt.id} className="flex flex-col gap-1.5 bg-background border border-border/80 rounded p-1.5 relative">
+                    <div className="flex items-center gap-2">
+                      <DotsSixVertical size={14} className="text-muted-foreground/45 cursor-grab shrink-0" />
+                      
+                      {/* Color bubble */}
+                      <button
+                        type="button"
+                        onClick={() => setShowColorPickerForId(showColorPickerForId === opt.id ? null : opt.id)}
+                        className="w-4 h-4 rounded-sm-full border border-border/80 cursor-pointer shrink-0 transition-transform hover:scale-110"
+                        style={{ backgroundColor: opt.color }}
+                        title="Change color"
+                      />
 
-                    {/* Option Text */}
-                    <input
-                      type="text"
-                      value={opt.name}
-                      onChange={(e) => handleUpdateOptionName(opt.id, e.target.value)}
-                      className="bg-transparent border-none outline-none text-xs w-full text-foreground/90 font-medium"
-                    />
+                      {/* Option Text */}
+                      <input
+                        type="text"
+                        value={opt.name}
+                        onChange={(e) => handleUpdateOptionName(opt.id, e.target.value)}
+                        className="bg-transparent border-none outline-none text-xs w-full text-foreground/90 font-medium"
+                      />
 
-                    {/* Delete option */}
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteOption(opt.id)}
-                      className="text-muted-foreground hover:text-red-500 p-0.5 rounded transition-colors cursor-pointer"
-                    >
-                      <Trash size={14} />
-                    </button>
+                      {/* Delete option */}
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteOption(opt.id)}
+                        className="text-muted-foreground hover:text-red-500 p-0.5 rounded transition-colors cursor-pointer"
+                      >
+                        <Trash size={14} />
+                      </button>
+                    </div>
 
                     {/* Simple Color dropdown overlay */}
                     {showColorPickerForId === opt.id && (
-                      <div className="absolute top-8 left-6 z-50 bg-background border border-border rounded shadow-sm-md p-1.5 grid grid-cols-4 gap-1 w-[120px] animate-fadeIn">
+                      <div className="flex items-center gap-1.5 pl-6 py-1 border-t border-border/40 animate-fadeIn overflow-x-auto no-scrollbar">
                         {PASTEL_COLORS.map(c => (
                           <button
                             key={c.hex}
                             type="button"
                             onClick={() => handleUpdateOptionColor(opt.id, c.hex)}
-                            className="w-5 h-5 rounded-sm-full border border-border/80 hover:scale-110 transition-transform cursor-pointer relative"
+                            className="w-4 h-4 rounded-sm-full border border-border/80 hover:scale-110 transition-transform cursor-pointer relative shrink-0"
                             style={{ backgroundColor: c.hex }}
                             title={c.name}
                           >
                             {opt.color === c.hex && (
-                              <Check size={10} className="absolute inset-0 m-auto text-zinc-950 font-bold" />
+                              <Check size={8} className="absolute inset-0 m-auto text-zinc-950 font-bold" />
                             )}
                           </button>
                         ))}

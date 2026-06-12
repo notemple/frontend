@@ -11,6 +11,7 @@ import {
   Envelope, Phone, Plus, Trash, Database, Article, Image, X
 } from '@phosphor-icons/react';
 import { cn } from '@/shared/lib/utils';
+import { getPastelTextColor } from '../colorUtils';
 
 interface ItemDetailModalProps {
   isOpen: boolean;
@@ -210,11 +211,13 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                 return (
                   <div
                     key={optId}
-                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] font-semibold border"
+                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] font-semibold border text-[var(--tag-color)] dark:text-[var(--tag-color-dark)]"
                     style={{
+                      // @ts-ignore
+                      '--tag-color': getPastelTextColor(opt.color).light,
+                      '--tag-color-dark': getPastelTextColor(opt.color).dark,
                       backgroundColor: `${opt.color}25`,
-                      borderColor: `${opt.color}50`,
-                      color: opt.color
+                      borderColor: `${opt.color}50`
                     }}
                   >
                     <span>{opt.name}</span>
@@ -315,6 +318,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
         isOpen={isOpen}
         onClose={onClose}
         variant="slideout"
+        className="collection-pastel-popup"
         header={
           <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0 bg-muted/10">
             <div className="flex items-center gap-2">
@@ -331,10 +335,10 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                   onClose();
                 }}
                 className="px-2 py-1 rounded bg-purple-500/10 hover:bg-purple-500/20 text-[10px] font-bold text-purple-600 dark:text-purple-400 transition-colors flex items-center gap-1 cursor-pointer border border-purple-500/15 mr-2 shadow-sm-sm"
-                title="Navigate to full database page"
+                title="Navigate to full collection page"
               >
                 <Database size={11} />
-                Open Database
+                Open Collection
               </button>
               <button
                 onClick={handleDelete}

@@ -731,12 +731,32 @@ export const Sidebar = () => {
             <TnLogo className="w-8 h-8 shrink-0" glow={false} />
 
             {/* Stacked Branding text logo */}
-            <div className="flex flex-col select-none cursor-pointer" style={{ fontFamily: 'var(--font-sans), sans-serif' }}>
+            <div className="flex flex-col select-none cursor-pointer relative" style={{ fontFamily: 'var(--font-sans), sans-serif' }}>
               <span
                 className="text-[22px] font-black leading-none tracking-tighter lowercase bg-gradient-to-br from-[#4A90D9] via-[#D96A9E] to-[#45B88E] bg-clip-text text-transparent"
               >
                 templ
               </span>
+              <svg
+                className="absolute -bottom-1 left-0 w-[110%] h-[4px] overflow-visible"
+                viewBox="0 0 100 6"
+                preserveAspectRatio="none"
+                fill="none"
+              >
+                <defs>
+                  <linearGradient id="ribbon-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#4A90D9" />
+                    <stop offset="50%" stopColor="#D96A9E" />
+                    <stop offset="100%" stopColor="#45B88E" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M0 3 Q25 0, 50 3 T100 3"
+                  stroke="url(#ribbon-grad)"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
             </div>
           </div>
         ) : (
@@ -1081,7 +1101,7 @@ export const Sidebar = () => {
                                 "p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer flex items-center justify-center",
                                 col.pinned ? "text-amber-500 hover:text-amber-600" : ""
                               )}
-                              title={col.pinned ? "Unpin database" : "Pin database"}
+                              title={col.pinned ? "Unpin collection" : "Pin collection"}
                             >
                               <PushPin size={12} weight={col.pinned ? "fill" : "regular"} />
                             </button>

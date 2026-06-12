@@ -2085,3 +2085,203 @@ html.dark .lexical-callout {
   padding-right: 0 !important;
   max-width: none !important;
 }
+
+/* Collection Pastel Popup Window Color Adapters */
+.collection-pastel-popup {
+  /* Background remains standard white/dark depending on theme */
+  background-color: var(--card-bg) !important;
+  color: var(--foreground) !important;
+  border-color: var(--border) !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Buttons - Pastel colors with high contrast */
+/* -------------------------------------------------------------------------- */
+
+/* Primary Action Buttons (e.g. Create, Save, Select) */
+.collection-pastel-popup button.bg-purple-600 {
+  background-color: #f3e8ff !important; /* Soft pastel violet bg */
+  color: #6d28d9 !important;            /* High contrast dark violet text */
+  border: 1px solid #d8b4fe !important;
+  font-weight: 600 !important;
+}
+.collection-pastel-popup button.bg-purple-600:hover:not(:disabled) {
+  background-color: #e9d5ff !important;
+  border-color: #c084fc !important;
+}
+.collection-pastel-popup button.bg-purple-600:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+html.dark .collection-pastel-popup button.bg-purple-600 {
+  background-color: #2e1a47 !important; /* Darker pastel violet bg */
+  color: #f3e8ff !important;            /* High contrast light violet text */
+  border: 1px solid #582594 !important;
+}
+html.dark .collection-pastel-popup button.bg-purple-600:hover:not(:disabled) {
+  background-color: #3b225c !important;
+  border-color: #7c3aed !important;
+}
+
+/* Secondary Cancel/Action Buttons (e.g. Cancel) */
+.collection-pastel-popup button.bg-muted {
+  background-color: #f1f5f9 !important; /* Light pastel gray bg */
+  color: #475569 !important;            /* Dark gray text */
+  border: 1px solid #cbd5e1 !important;
+}
+.collection-pastel-popup button.bg-muted:hover {
+  background-color: #e2e8f0 !important;
+}
+
+html.dark .collection-pastel-popup button.bg-muted {
+  background-color: #1e293b !important; /* Dark pastel slate bg */
+  color: #cbd5e1 !important;            /* Light gray text */
+  border: 1px solid #334155 !important;
+}
+html.dark .collection-pastel-popup button.bg-muted:hover {
+  background-color: #334155 !important;
+}
+
+/* Text Action Buttons (e.g. Link Items, Add Option) */
+.collection-pastel-popup button.text-purple-600,
+.collection-pastel-popup button.bg-purple-500\/10 {
+  background-color: #f5f3ff !important;
+  color: #6d28d9 !important;
+  border: 1px solid #ddd6fe !important;
+}
+.collection-pastel-popup button.text-purple-600:hover,
+.collection-pastel-popup button.bg-purple-500\/10:hover {
+  background-color: #ede9fe !important;
+}
+
+html.dark .collection-pastel-popup button.text-purple-600,
+html.dark .collection-pastel-popup button.bg-purple-500\/10 {
+  background-color: #1e1b4b !important;
+  color: #c7d2fe !important;
+  border: 1px solid #312e81 !important;
+}
+html.dark .collection-pastel-popup button.text-purple-600:hover,
+html.dark .collection-pastel-popup button.bg-purple-500\/10:hover {
+  background-color: #312e81 !important;
+}
+
+/* Delete item/trash icon button */
+.collection-pastel-popup button.text-muted-foreground.hover\:text-red-500 {
+  background-color: #fee2e2 !important;
+  color: #b91c1c !important;
+  border: 1px solid #fca5a5 !important;
+}
+html.dark .collection-pastel-popup button.text-muted-foreground.hover\:text-red-500 {
+  background-color: #450a0a !important;
+  color: #fca5a5 !important;
+  border: 1px solid #7f1d1d !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Items - Pastel colors with high contrast */
+/* -------------------------------------------------------------------------- */
+
+/* Emoji Selection Buttons */
+.collection-pastel-popup button.hover\:bg-muted {
+  background-color: transparent;
+}
+.collection-pastel-popup button.hover\:bg-muted:hover {
+  background-color: #f3e8ff !important;
+  border-color: #d8b4fe !important;
+}
+.collection-pastel-popup button.bg-purple-500\/15 {
+  background-color: #f3e8ff !important;
+  border-color: #c084fc !important;
+}
+
+html.dark .collection-pastel-popup button.hover\:bg-muted:hover {
+  background-color: #2e1a47 !important;
+  border-color: #582594 !important;
+}
+html.dark .collection-pastel-popup button.bg-purple-500\/15 {
+  background-color: #3b225c !important;
+  border-color: #7c3aed !important;
+}
+
+/* Relation pills / Badges (in Item Detail Modal) */
+.collection-pastel-popup .bg-muted\/65 {
+  background-color: #f1f5f9 !important; /* Default pastel gray */
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+/* Document relation */
+.collection-pastel-popup .bg-muted\/65:has(.text-blue-500) {
+  background-color: #e0f2fe !important; /* Pastel Blue */
+  border-color: #bae6fd !important;
+  color: #0369a1 !important;
+}
+/* Task relation */
+.collection-pastel-popup .bg-muted\/65:has(.text-rose-500) {
+  background-color: #ffe4e6 !important; /* Pastel Red */
+  border-color: #fecdd3 !important;
+  color: #be123c !important;
+}
+/* Tag relation */
+.collection-pastel-popup .bg-muted\/65:has(.text-emerald-500) {
+  background-color: #d1fae5 !important; /* Pastel Green */
+  border-color: #a7f3d0 !important;
+  color: #047857 !important;
+}
+/* Collection relation */
+.collection-pastel-popup .bg-muted\/65:has(.text-purple-500) {
+  background-color: #f3e8ff !important; /* Pastel Purple */
+  border-color: #e9d5ff !important;
+  color: #6d28d9 !important;
+}
+
+/* Dark mode badges */
+html.dark .collection-pastel-popup .bg-muted\/65 {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+html.dark .collection-pastel-popup .bg-muted\/65:has(.text-blue-500) {
+  background-color: #082f49 !important;
+  border-color: #0c4a6e !important;
+  color: #bae6fd !important;
+}
+html.dark .collection-pastel-popup .bg-muted\/65:has(.text-rose-500) {
+  background-color: #4c0519 !important;
+  border-color: #881337 !important;
+  color: #fecdd3 !important;
+}
+html.dark .collection-pastel-popup .bg-muted\/65:has(.text-emerald-500) {
+  background-color: #022c22 !important;
+  border-color: #064e3b !important;
+  color: #a7f3d0 !important;
+}
+html.dark .collection-pastel-popup .bg-muted\/65:has(.text-purple-500) {
+  background-color: #2e1065 !important;
+  border-color: #3b0764 !important;
+  color: #e9d5ff !important;
+}
+
+/* List Items / Relation Picker list rows */
+.collection-pastel-popup div.rounded-sm-sm.cursor-pointer:not(.bg-purple-500\/10):hover {
+  background-color: #f1f5f9 !important;
+}
+
+html.dark .collection-pastel-popup div.rounded-sm-sm.cursor-pointer:not(.bg-purple-500\/10):hover {
+  background-color: #1e293b !important;
+}
+
+.collection-pastel-popup .rounded-sm-sm.bg-purple-500\/10 {
+  background-color: #f3e8ff !important;
+  border-color: #e9d5ff !important;
+  color: #6d28d9 !important;
+}
+
+html.dark .collection-pastel-popup .rounded-sm-sm.bg-purple-500\/10 {
+  background-color: #2e1a47 !important;
+  border-color: #582594 !important;
+  color: #e9d5ff !important;
+}
+
+

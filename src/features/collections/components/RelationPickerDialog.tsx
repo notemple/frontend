@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDocumentStore } from '@/features/documents/store';
 import { useTaskStore } from '@/features/tasks/store';
 import { useCollectionStore } from '../store/collectionStore';
@@ -37,6 +37,8 @@ export const RelationPickerDialog: React.FC<RelationPickerDialogProps> = ({
   const collectionItems = useCollectionStore(state => state.items);
 
   const [tempSelected, setTempSelected] = useState<string[]>([]);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -98,6 +100,36 @@ export const RelationPickerDialog: React.FC<RelationPickerDialogProps> = ({
     item.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  useEffect(() => {
+    setActiveIndex(filteredItems.length > 0 ? 0 : -1);
+  }, [search, filteredItems.length]);
+
+  useEffect(() => {
+    if (activeIndex >= 0 && listRef.current) {
+      const activeEl = listRef.current.querySelector('[data-active="true"]');
+      if (activeEl) {
+        activeEl.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [activeIndex]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (filteredItems.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev + 1) % filteredItems.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev - 1 + filteredItems.length) % filteredItems.length);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (activeIndex >= 0 && activeIndex < filteredItems.length) {
+        handleToggleSelect(filteredItems[activeIndex].id);
+      }
+    }
+  };
+
   const handleToggleSelect = (id: string) => {
     if (isMultiSelect) {
       if (tempSelected.includes(id)) {
@@ -128,7 +160,7 @@ export const RelationPickerDialog: React.FC<RelationPickerDialogProps> = ({
       onClose={onClose}
       title={title || defaultTitle}
       variant="center"
-      className="max-w-md max-h-[80vh]"
+      className="max-w-md max-h-[80vh] collection-pastel-popup"
       bodyClassName="p-0"
       footer={
         <>
@@ -155,24 +187,28 @@ export const RelationPickerDialog: React.FC<RelationPickerDialogProps> = ({
           placeholder="Search items..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={handleKeyDown}
           className="bg-transparent border-none outline-none text-sm w-full text-foreground placeholder-muted-foreground/60"
           autoFocus
         />
       </div>
 
       {/* List */}
-      <div className="overflow-y-auto p-2 min-h-[200px] max-h-[400px] no-scrollbar">
-        {filteredItems.map(item => {
+      <div ref={listRef} className="overflow-y-auto p-2 min-h-[200px] max-h-[400px] no-scrollbar">
+        {filteredItems.map((item, index) => {
           const isSelected = tempSelected.includes(item.id);
+          const isActive = index === activeIndex;
           return (
             <div
               key={item.id}
               onClick={() => handleToggleSelect(item.id)}
+              data-active={isActive ? "true" : undefined}
               className={cn(
                 "flex items-center justify-between px-3 py-2.5 rounded-sm-sm cursor-pointer select-none transition-all duration-150 mb-0.5",
                 isSelected
                   ? "bg-purple-500/10 border border-purple-500/20 text-foreground"
-                  : "hover:bg-muted/50 border border-transparent text-muted-foreground hover:text-foreground"
+                  : "hover:bg-muted/50 border border-transparent text-muted-foreground hover:text-foreground",
+                isActive && "bg-muted border border-border"
               )}
             >
               <div className="flex items-center gap-3 min-w-0">

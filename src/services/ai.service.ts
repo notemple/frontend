@@ -73,7 +73,7 @@ class AiService {
     if (prompt) {
       text = `\n\n*Drafting on "${prompt}":*\n\nTo successfully achieve this, we should map out the project phases, list technical requirements, assign owners to tasks, and schedule a weekly review to ensure team alignment.`;
     } else {
-      text = ` Based on the existing context, the next logical step is to structure the database schema, write unit tests for the core logic, and design a responsive interface that keeps loading speeds well under 100ms.`;
+      text = ` Based on the existing context, the next logical step is to structure the collection schema, write unit tests for the core logic, and design a responsive interface that keeps loading speeds well under 100ms.`;
     }
     
     return { success: true, text };
@@ -90,7 +90,7 @@ class AiService {
       "Review and verify draft specifications",
       "Setup the project workspace and repository",
       "Schedule kick-off sync with the engineering team",
-      "Draft API endpoints and database models",
+      "Draft API endpoints and collection models",
       "Implement user authentication and permissions flow"
     ];
 

@@ -7,12 +7,15 @@ import { useUiStore } from '@/shared/store/uiStore';
 import { ItemDetailModal } from './ItemDetailModal';
 import { FieldSettingsModal } from './FieldSettingsModal';
 import { RelationPickerDialog } from './RelationPickerDialog';
+import { PopupMenu } from '@/shared/ui/PopupMenu';
 import { 
   Plus, ArrowUp, ArrowDown, Funnel, Columns, MagnifyingGlass, 
   Trash, Copy, ArrowsOutSimple, Check, X, DotsThreeOutlineVertical, 
-  Database, Calendar, CheckSquare, FileText, Tag, Image, TextT
+  Database, Calendar, CheckSquare, FileText, Tag, Image, TextT,
+  Warning
 } from '@phosphor-icons/react';
 import { cn } from '@/shared/lib/utils';
+import { getPastelTextColor } from '../colorUtils';
 
 interface TableViewProps {
   collectionId: string;
@@ -142,8 +145,14 @@ const TableCell: React.FC<TableCellProps> = memo(({
       if (!opt) return <span className="text-muted-foreground/30 italic text-[11px]">Empty</span>;
       return (
         <span 
-          className="px-2 py-0.5 rounded-sm text-[10px] font-semibold border truncate max-w-full"
-          style={{ backgroundColor: `${opt.color}15`, borderColor: `${opt.color}35`, color: opt.color }}
+          className="px-2 py-0.5 rounded-sm text-[10px] font-semibold border truncate max-w-full text-[var(--tag-color)] dark:text-[var(--tag-color-dark)]"
+          style={{ 
+            // @ts-ignore
+            '--tag-color': getPastelTextColor(opt.color).light,
+            '--tag-color-dark': getPastelTextColor(opt.color).dark,
+            backgroundColor: `${opt.color}15`, 
+            borderColor: `${opt.color}35`
+          }}
         >
           {opt.name}
         </span>
@@ -161,8 +170,14 @@ const TableCell: React.FC<TableCellProps> = memo(({
             return (
               <span
                 key={optId}
-                className="px-1.5 py-0.5 rounded-sm text-[9px] font-bold border"
-                style={{ backgroundColor: `${opt.color}12`, borderColor: `${opt.color}25`, color: opt.color }}
+                className="px-1.5 py-0.5 rounded-sm text-[9px] font-bold border text-[var(--tag-color)] dark:text-[var(--tag-color-dark)]"
+                style={{ 
+                  // @ts-ignore
+                  '--tag-color': getPastelTextColor(opt.color).light,
+                  '--tag-color-dark': getPastelTextColor(opt.color).dark,
+                  backgroundColor: `${opt.color}12`, 
+                  borderColor: `${opt.color}25`
+                }}
               >
                 {opt.name}
               </span>
@@ -402,6 +417,8 @@ export const TableView: React.FC<TableViewProps> = ({ collectionId }) => {
   const [selectedRowId, setSelectedRowId] = useState<string | null>(null);
   const [selectedField, setSelectedField] = useState<CollectionField | null>(null);
   const [fieldSettingsOpen, setFieldSettingsOpen] = useState(false);
+  const [deleteFieldOpen, setDeleteFieldOpen] = useState(false);
+  const [fieldToDelete, setFieldToDelete] = useState<CollectionField | null>(null);
   
   // Filtering states
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
@@ -910,10 +927,9 @@ export const TableView: React.FC<TableViewProps> = ({ collectionId }) => {
                       {/* Column delete button (except if it is the first/name field) */}
                       {field.id !== fields[0]?.id && (
                         <button
-                          onClick={async () => {
-                            if (confirm(`Are you sure you want to delete column "${field.name}"? This deletes all row data for this field.`)) {
-                              await deleteField(collectionId, field.id);
-                            }
+                          onClick={() => {
+                            setFieldToDelete(field);
+                            setDeleteFieldOpen(true);
                           }}
                           className="p-0.5 hover:bg-red-500/10 rounded text-muted-foreground/60 hover:text-red-500 cursor-pointer flex items-center justify-center shrink-0"
                           title="Delete column"
@@ -1011,6 +1027,56 @@ export const TableView: React.FC<TableViewProps> = ({ collectionId }) => {
           }}
         />
       )}
+
+      {/* 6. DELETE COLUMN CONFIRMATION DIALOG */}
+      <PopupMenu
+        isOpen={deleteFieldOpen}
+        onClose={() => {
+          setDeleteFieldOpen(false);
+          setFieldToDelete(null);
+        }}
+        title="Delete Column"
+        variant="center"
+        footer={
+          <>
+            <button
+              onClick={() => {
+                setDeleteFieldOpen(false);
+                setFieldToDelete(null);
+              }}
+              className="px-3.5 py-1.5 rounded bg-muted hover:bg-muted/80 text-xs font-semibold text-muted-foreground transition-all cursor-pointer border border-border"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                if (fieldToDelete) {
+                  await deleteField(collectionId, fieldToDelete.id);
+                }
+                setDeleteFieldOpen(false);
+                setFieldToDelete(null);
+              }}
+              className="px-3.5 py-1.5 rounded bg-red-600 hover:bg-red-700 text-xs font-semibold text-white transition-all cursor-pointer shadow-sm-sm"
+            >
+              Delete Column
+            </button>
+          </>
+        }
+      >
+        <div className="flex gap-4 font-sans text-left items-start p-1">
+          <div className="p-3 rounded-full bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 shrink-0">
+            <Warning size={24} weight="fill" />
+          </div>
+          <div className="flex flex-col gap-2">
+            <h3 className="text-sm font-semibold text-foreground">
+              Are you absolutely sure?
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              This will permanently delete the column <span className="font-semibold text-foreground">"{fieldToDelete?.name}"</span> and all of its row data. This action cannot be undone.
+            </p>
+          </div>
+        </div>
+      </PopupMenu>
 
     </div>
   );

@@ -155,7 +155,7 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
       onClose={onClose}
       title={field ? `Edit Field: ${field.name}` : 'Create New Field'}
       variant="center"
-      className="!overflow-visible"
+      className="!overflow-visible collection-pastel-popup"
       bodyClassName="!overflow-visible"
       footer={
         <>
@@ -228,7 +228,7 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
                             "flex items-center gap-3 w-full text-left px-3 py-2.5 transition-colors cursor-pointer",
                             isSelected
                               ? "bg-purple-500/10"
-                              : "hover:bg-muted/60"
+                              : ""
                           )}
                           onClick={() => {
                             setType(ft.type);

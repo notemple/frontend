@@ -318,6 +318,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
         isOpen={isOpen}
         onClose={onClose}
         variant="slideout"
+        className="collection-pastel-popup"
         header={
           <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0 bg-muted/10">
             <div className="flex items-center gap-2">

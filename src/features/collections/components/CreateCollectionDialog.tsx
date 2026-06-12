@@ -48,7 +48,7 @@ export const CreateCollectionDialog: React.FC<CreateCollectionDialogProps> = ({
       onClose={onClose}
       title="Create New Collection"
       variant="center"
-      className="!overflow-visible"
+      className="!overflow-visible collection-pastel-popup"
       bodyClassName="!overflow-visible"
       footer={
         <>

@@ -128,7 +128,7 @@ export const RelationPickerDialog: React.FC<RelationPickerDialogProps> = ({
       onClose={onClose}
       title={title || defaultTitle}
       variant="center"
-      className="max-w-md max-h-[80vh]"
+      className="max-w-md max-h-[80vh] collection-pastel-popup"
       bodyClassName="p-0"
       footer={
         <>

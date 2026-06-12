@@ -331,10 +331,10 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                   onClose();
                 }}
                 className="px-2 py-1 rounded bg-purple-500/10 hover:bg-purple-500/20 text-[10px] font-bold text-purple-600 dark:text-purple-400 transition-colors flex items-center gap-1 cursor-pointer border border-purple-500/15 mr-2 shadow-sm-sm"
-                title="Navigate to full database page"
+                title="Navigate to full collection page"
               >
                 <Database size={11} />
-                Open Database
+                Open Collection
               </button>
               <button
                 onClick={handleDelete}

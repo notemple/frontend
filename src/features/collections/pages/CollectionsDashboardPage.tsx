@@ -41,7 +41,7 @@ export const CollectionsDashboardPage: React.FC<CollectionsDashboardPageProps> =
               Collections
             </h1>
             <p className="text-sm text-muted-foreground/80 font-medium">
-              Organize your documents, data tables, and structured databases.
+              Organize your documents, data tables, and structured collections.
             </p>
           </div>
         </div>
@@ -54,7 +54,7 @@ export const CollectionsDashboardPage: React.FC<CollectionsDashboardPageProps> =
             </div>
             <h3 className="text-base font-semibold text-foreground/90">No collections yet</h3>
             <p className="text-xs text-muted-foreground mt-1 max-w-xs text-center leading-relaxed">
-              Create a custom structured database with custom fields to start organizing your books, recipes, projects, or tasks.
+              Create a custom structured collection with custom fields to start organizing your books, recipes, projects, or tasks.
             </p>
             <button
               onClick={() => setShowCreateModal(true)}

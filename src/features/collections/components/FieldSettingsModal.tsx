@@ -31,7 +31,7 @@ const FIELD_TYPES: { type: FieldType; label: string; description: string; icon: 
   { type: 'document-relation', label: 'Document Relation', description: 'Link system Documents', icon: <FileText size={16} />, color: '#CDB4DB' },
   { type: 'task-relation', label: 'Task Relation', description: 'Link system Tasks', icon: <CheckSquare size={16} />, color: '#BDE0FE' },
   { type: 'tag-relation', label: 'Tag Relation', description: 'Link system Tags', icon: <Tag size={16} />, color: '#FFAFCC' },
-  { type: 'collection-relation', label: 'Collection Relation', description: 'Link rows from another database', icon: <Database size={16} />, color: '#FFC8DD' },
+  { type: 'collection-relation', label: 'Collection Relation', description: 'Link rows from another collection', icon: <Database size={16} />, color: '#FFC8DD' },
   { type: 'media', label: 'Media', description: 'Images and files', icon: <Image size={16} />, color: '#D8F3DC' },
   { type: 'rich-text', label: 'Rich Text', description: 'Formatted long-form text', icon: <Article size={16} />, color: '#FCF6BD' }
 ];
@@ -276,7 +276,7 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
           {/* Relation settings */}
           {isRelationType && (
             <div className="flex flex-col gap-1.5 p-3 rounded bg-purple-500/5 border border-purple-500/10">
-              <label className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Target Database</label>
+              <label className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Target Collection</label>
               <select
                 value={relationCollectionId}
                 onChange={(e) => setRelationCollectionId(e.target.value)}

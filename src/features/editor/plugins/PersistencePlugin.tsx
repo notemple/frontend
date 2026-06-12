@@ -76,9 +76,9 @@ export default function PersistencePlugin({ documentId, onWordCountChange }: Pro
         const hasTitle = currentTitle && currentTitle.trim().length > 0 && currentTitle !== defaultTitle
 
         if (!hasCharacter && !hasTitle) {
-          // Remove/delete empty daily note document
-          if (existingDoc && !existingDoc.isDeleted) {
-            await useDocumentStore.getState().deleteDocument(documentId)
+          // Permanently remove empty daily note document from IndexedDB
+          if (existingDoc) {
+            await useDocumentStore.getState().permanentlyDeleteDocument(documentId)
           }
           return
         }

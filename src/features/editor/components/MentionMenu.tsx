@@ -398,7 +398,7 @@ export default function MentionMenu({
             } else if (item.type === "collection-item") {
               const displayField = item.collection?.fields[0]
               title = displayField ? String(item.item.values[displayField.id] || '') : 'Unnamed Item'
-              desc = `Database Item in ${item.collection?.name || 'Collection'}`
+              desc = `Collection Item in ${item.collection?.name || 'Collection'}`
             }
 
             return (

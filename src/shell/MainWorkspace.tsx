@@ -674,15 +674,18 @@ export const MainWorkspace = () => {
                     </div>
                   )}
                   <div className="flex-1 overflow-hidden bg-transparent relative">
-                    <GSAPPageWrapper activeTabId={pane.activeTabId || 'empty'}>
-                      {pane.activeTabId?.startsWith('section-') ? (
-                        <SectionPage paneId={pane.id} sectionId={pane.activeTabId} />
-                      ) : pane.activeTabId ? (
-                        <TemplnoteEditor key={`${pane.id}-${pane.activeTabId}`} paneId={pane.id} documentId={pane.activeTabId} />
-                      ) : (
-                        <EmptyPaneState paneId={pane.id} />
-                      )}
-                    </GSAPPageWrapper>
+                    {(!pane.tabs || pane.tabs.length === 0) ? (
+                      <EmptyPaneState paneId={pane.id} />
+                    ) : (
+                      <GSAPPageWrapper activeTabId={pane.activeTabId || 'empty'}>
+                        {pane.activeTabId?.startsWith('section-') && (
+                          <SectionPage paneId={pane.id} sectionId={pane.activeTabId} />
+                        )}
+                        {pane.activeTabId && !pane.activeTabId?.startsWith('section-') && (
+                          <TemplnoteEditor key={`${pane.id}-${pane.activeTabId}`} paneId={pane.id} documentId={pane.activeTabId} />
+                        )}
+                      </GSAPPageWrapper>
+                    )}
                   </div>
 
                   <AnimatePresence>

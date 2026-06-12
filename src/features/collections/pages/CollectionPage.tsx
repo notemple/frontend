@@ -181,21 +181,21 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
                 ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
                 : "bg-blush-pop/70 dark:bg-blush-pop/20 text-foreground dark:text-blush-pop border-blush-pop/50 dark:border-blush-pop/30 hover:bg-blush-pop/80 dark:hover:bg-blush-pop/35"
             )}
-            title={collection.pinned ? "Unpin database" : "Pin database to sidebar"}
+            title={collection.pinned ? "Unpin collection" : "Pin collection to sidebar"}
           >
             <PushPin size={13} weight={collection.pinned ? "fill" : "regular"} />
           </button>
           <button
             onClick={handleDuplicate}
             className="p-1.5 bg-sky-blue/70 dark:bg-sky-blue/20 text-foreground dark:text-sky-blue border-sky-blue/50 dark:border-sky-blue/30 hover:bg-sky-blue/80 dark:hover:bg-sky-blue/35 rounded-sm border transition-all cursor-pointer flex items-center justify-center shadow-sm-sm"
-            title="Duplicate database"
+            title="Duplicate collection"
           >
             <Copy size={13} />
           </button>
           <button
             onClick={handleDelete}
             className="p-1.5 bg-rose-100/80 dark:bg-rose-500/20 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-500/30 hover:bg-rose-200/80 dark:hover:bg-rose-500/30 rounded-sm border transition-all cursor-pointer flex items-center justify-center shadow-sm-sm"
-            title="Delete database"
+            title="Delete collection"
           >
             <Trash size={13} />
           </button>
@@ -246,7 +246,7 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
                   className="w-full bg-transparent border-none outline-none text-4xl font-bold font-sans tracking-tight drop-shadow-md cursor-pointer hover:bg-muted/10 rounded px-1 -ml-1 transition-colors truncate"
                   style={titleStyle}
                 >
-                  {collection.name || "Untitled Database"}
+                  {collection.name || "Untitled Collection"}
                 </h1>
               </div>
 
@@ -304,7 +304,7 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
                   {viewTabs.find(t => t.type === activeView)?.label} View Architecture Prepared
                 </span>
                 <span className="text-[10px] text-muted-foreground/60 mt-1 max-w-xs text-center leading-relaxed font-mono">
-                  This layout configuration is registered in the database view state. The engine is ready to implement it.
+                  This layout configuration is registered in the collection view state. The engine is ready to implement it.
                 </span>
               </div>
             )}
@@ -373,7 +373,7 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
       <PopupMenu
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
-        title="Delete Database"
+        title="Delete Collection"
         variant="center"
         footer={
           <>
@@ -387,7 +387,7 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
               onClick={handleConfirmDelete}
               className="px-3.5 py-1.5 rounded bg-red-600 hover:bg-red-700 text-xs font-semibold text-white transition-all cursor-pointer shadow-sm-sm"
             >
-              Delete Database
+              Delete Collection
             </button>
           </>
         }
@@ -401,7 +401,7 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
               Are you absolutely sure?
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              This will permanently delete the database <span className="font-semibold text-foreground">"{collection.name}"</span> and all of its fields and row data. This action cannot be undone.
+              This will permanently delete the collection <span className="font-semibold text-foreground">"{collection.name}"</span> and all of its fields and row data. This action cannot be undone.
             </p>
           </div>
         </div>

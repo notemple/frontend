@@ -1250,7 +1250,7 @@ export const Sidebar = () => {
         className={cn(
           "absolute z-40 flex flex-shrink-0 overflow-hidden",
           isSidebarOpen
-            ? "flex-row items-center justify-evenly left-0 bottom-8 pt-3 border-t border-white/[0.08] dark:border-white/[0.08]"
+            ? "flex-row items-center justify-evenly left-0 bottom-8 pt-3 border-t border-black/[0.08] dark:border-white/[0.08]"
             : "flex-col items-center gap-1.5 p-1.5 left-0 bottom-8"
         )}
         initial={false}

@@ -331,12 +331,6 @@ export const HelpPage: React.FC = () => {
             );
           })}
         </nav>
-
-        {/* Version badge */}
-        <div className="px-3 pt-4 border-t border-border/25 mt-4">
-          <p className="text-[11px] text-muted-foreground">templ</p>
-          <p className="text-xs font-semibold text-foreground/60 mt-0.5">v{APP_VERSION}</p>
-        </div>
       </div>
 
       {/* ── CENTER CONTENT ────────────────────────────────────────── */}

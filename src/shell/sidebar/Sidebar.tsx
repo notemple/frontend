@@ -704,6 +704,7 @@ export const Sidebar = () => {
   };
 
   return (
+    <>
     <motion.div
       ref={sidebarRef}
       className={cn("h-[calc(100%-3rem)] flex flex-col border-r border-border bg-muted absolute left-0 bottom-8 z-30 group/sidebar shadow-md", isNavbarVisible ? "top-[56px]" : "top-0")}
@@ -1166,92 +1167,6 @@ export const Sidebar = () => {
         </div>
       </div>
 
-      {/* Bottom Actions */}
-      <div className={cn(
-        "pt-2 pb-0 mt-auto border-t border-white/[0.05] dark:border-white/[0.05] flex min-w-0 flex-shrink-0",
-        isSidebarOpen
-          ? "flex-row items-center justify-between px-4"
-          : "flex-col items-center gap-1.5 px-0"
-      )}>
-        {/* Trash */}
-        <div
-          draggable
-          onDragStart={(e) => {
-            e.dataTransfer.setData('text/plain', 'section-trash');
-            e.dataTransfer.setData('templnote/document-id', 'section-trash');
-            e.dataTransfer.effectAllowed = 'copyMove';
-          }}
-        >
-          <button
-            onClick={() => handleDocClick('section-trash')}
-            className={cn(
-              "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
-              isDocActive('section-trash')
-                ? "bg-red-500/25 text-red-400 shadow-sm-sm border border-red-500/30"
-                : "text-red-500/70 hover:bg-zinc-800/40 hover:text-red-400"
-            )}
-            title="Trash"
-          >
-            <Trash size={18} weight={isDocActive('section-trash') ? "fill" : "regular"} />
-          </button>
-        </div>
-
-        {/* Tutorial */}
-        <button
-          id="section-tutorial"
-          onClick={() => {
-            useUiStore.getState().startTutorial();
-          }}
-          className={cn(
-            "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
-            isDocActive('section-tutorial')
-              ? "bg-yellow-500/25 text-yellow-400 shadow-sm-sm border border-yellow-500/30"
-              : "text-yellow-500/70 hover:bg-zinc-800/40 hover:text-yellow-400"
-          )}
-          title="Tutorial"
-        >
-          <GraduationCap size={18} weight={isDocActive('section-tutorial') ? "fill" : "regular"} />
-        </button>
-
-        {/* Help */}
-        <div
-          draggable
-          onDragStart={(e) => {
-            e.dataTransfer.setData('text/plain', 'section-help');
-            e.dataTransfer.setData('templnote/document-id', 'section-help');
-            e.dataTransfer.effectAllowed = 'copyMove';
-          }}
-        >
-          <button
-            onClick={() => handleDocClick('section-help')}
-            className={cn(
-              "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
-              isDocActive('section-help')
-                ? "bg-teal-500/25 text-teal-400 shadow-sm-sm border border-teal-500/30"
-                : "text-teal-500/70 hover:bg-zinc-800/40 hover:text-teal-400"
-            )}
-            title="Help"
-          >
-            <Question size={18} weight={isDocActive('section-help') ? "fill" : "regular"} />
-          </button>
-        </div>
-
-        {/* Settings */}
-        <button
-          id="onboarding-settings-tab"
-          onClick={() => openDocument('section-settings', activePaneId || undefined)}
-          className={cn(
-            "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
-            isDocActive('section-settings')
-              ? "bg-slate-500/25 text-slate-200 shadow-sm-sm border border-slate-500/30"
-              : "text-slate-500/70 hover:bg-zinc-800/40 hover:text-slate-200"
-          )}
-          title="Settings"
-        >
-          <Gear size={18} weight={isDocActive('section-settings') ? "fill" : "regular"} />
-        </button>
-      </div>
-
       <CreateCollectionDialog
         isOpen={showCreateCollection}
         onClose={() => setShowCreateCollection(false)}
@@ -1329,6 +1244,106 @@ export const Sidebar = () => {
         />
       )}
     </motion.div>
+
+      {/* Bottom Actions - Fixed outside animated sidebar */}
+      <motion.div
+        className={cn(
+          "absolute z-40 flex flex-shrink-0 overflow-hidden",
+          isSidebarOpen
+            ? "flex-row items-center justify-evenly left-0 bottom-8 pt-3 border-t border-white/[0.08] dark:border-white/[0.08]"
+            : "flex-col items-center gap-1.5 p-1.5 left-0 bottom-8"
+        )}
+        initial={false}
+        animate={{
+          width: isSidebarOpen ? 260 : 44,
+          opacity: 1
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 220,
+          damping: 26,
+          mass: 0.8
+        }}
+      >
+        {/* Trash */}
+        <div
+          draggable
+          onDragStart={(e) => {
+            e.dataTransfer.setData('text/plain', 'section-trash');
+            e.dataTransfer.setData('templnote/document-id', 'section-trash');
+            e.dataTransfer.effectAllowed = 'copyMove';
+          }}
+        >
+          <button
+            onClick={() => handleDocClick('section-trash')}
+            className={cn(
+              "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
+              isDocActive('section-trash')
+                ? "bg-red-500/25 text-red-400 shadow-sm-sm border border-red-500/30"
+                : "text-red-500/70 hover:bg-zinc-800/40 hover:text-red-400"
+            )}
+            title="Trash"
+          >
+            <Trash size={18} weight={isDocActive('section-trash') ? "fill" : "regular"} />
+          </button>
+        </div>
+
+        {/* Tutorial */}
+        <button
+          id="section-tutorial"
+          onClick={() => {
+            useUiStore.getState().startTutorial();
+          }}
+          className={cn(
+            "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
+            isDocActive('section-tutorial')
+              ? "bg-yellow-500/25 text-yellow-400 shadow-sm-sm border border-yellow-500/30"
+              : "text-yellow-500/70 hover:bg-zinc-800/40 hover:text-yellow-400"
+          )}
+          title="Tutorial"
+        >
+          <GraduationCap size={18} weight={isDocActive('section-tutorial') ? "fill" : "regular"} />
+        </button>
+
+        {/* Help */}
+        <div
+          draggable
+          onDragStart={(e) => {
+            e.dataTransfer.setData('text/plain', 'section-help');
+            e.dataTransfer.setData('templnote/document-id', 'section-help');
+            e.dataTransfer.effectAllowed = 'copyMove';
+          }}
+        >
+          <button
+            onClick={() => handleDocClick('section-help')}
+            className={cn(
+              "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
+              isDocActive('section-help')
+                ? "bg-teal-500/25 text-teal-400 shadow-sm-sm border border-teal-500/30"
+                : "text-teal-500/70 hover:bg-zinc-800/40 hover:text-teal-400"
+            )}
+            title="Help"
+          >
+            <Question size={18} weight={isDocActive('section-help') ? "fill" : "regular"} />
+          </button>
+        </div>
+
+        {/* Settings */}
+        <button
+          id="onboarding-settings-tab"
+          onClick={() => openDocument('section-settings', activePaneId || undefined)}
+          className={cn(
+            "p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95]",
+            isDocActive('section-settings')
+              ? "bg-slate-500/25 text-slate-200 shadow-sm-sm border border-slate-500/30"
+              : "text-slate-500/70 hover:bg-zinc-800/40 hover:text-slate-200"
+          )}
+          title="Settings"
+        >
+          <Gear size={18} weight={isDocActive('section-settings') ? "fill" : "regular"} />
+        </button>
+      </motion.div>
+    </>
   );
 };
 

@@ -3,7 +3,7 @@ import { useCollectionStore } from '../store/collectionStore';
 import { useUiStore } from '@/shared/store/uiStore';
 import { CreateCollectionDialog } from '../components/CreateCollectionDialog';
 import { 
-  Database, Plus, Folder, Calendar, Book, 
+  FileText, Plus, Folder, Calendar, Book, 
   ArrowRight, Sparkle, SquaresFour, Files, PlusCircle
 } from '@phosphor-icons/react';
 import { cn } from '@/shared/lib/utils';
@@ -31,7 +31,7 @@ export const CollectionsDashboardPage: React.FC<CollectionsDashboardPageProps> =
         <div className="flex items-center gap-4 border-b border-border/60 pb-6">
           <button
             onClick={() => setShowCreateModal(true)}
-            className="w-10 h-10 rounded-sm-sm border border-purple-600 dark:border-purple-900/40 bg-purple-600 dark:bg-purple-950/25 text-white dark:text-purple-400 flex items-center justify-center hover:bg-purple-700 dark:hover:bg-purple-950/40 hover:border-purple-700 dark:hover:text-purple-300 transition-all shadow-sm-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10 shrink-0"
+            className="w-10 h-10 rounded-sm-sm border border-purple-200 dark:border-purple-800/40 bg-purple-100 dark:bg-purple-950/40 text-purple-600 dark:text-purple-300 flex items-center justify-center hover:bg-purple-200 dark:hover:bg-purple-900/50 hover:border-purple-300 dark:hover:border-purple-700/50 transition-all shadow-sm-sm hover:scale-105 active:scale-95 cursor-pointer relative z-10 shrink-0"
             title="Create Collection"
           >
             <PlusCircle size={20} weight="fill" />
@@ -50,7 +50,7 @@ export const CollectionsDashboardPage: React.FC<CollectionsDashboardPageProps> =
         {collectionsList.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-12 border border-dashed border-border/80 rounded-2xl bg-muted/10">
             <div className="p-4 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 mb-4 animate-pulse">
-              <Database size={32} />
+              <FileText size={32} />
             </div>
             <h3 className="text-base font-semibold text-foreground/90">No collections yet</h3>
             <p className="text-xs text-muted-foreground mt-1 max-w-xs text-center leading-relaxed">
@@ -58,7 +58,7 @@ export const CollectionsDashboardPage: React.FC<CollectionsDashboardPageProps> =
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="mt-5 flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 transition-all rounded-sm-md cursor-pointer shadow-sm-md"
+              className="mt-5 flex items-center gap-2 px-4 py-2 text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/40 hover:bg-purple-200 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800/40 transition-all rounded-sm-md cursor-pointer shadow-sm-md"
             >
               <Plus size={14} weight="bold" />
               <span>Get Started</span>

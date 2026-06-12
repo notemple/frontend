@@ -99,6 +99,7 @@ export const CommandPalette = () => {
         { title: 'Tags', icon: <Tag size={16} style={{ color: '#a855f7' }} />, action: () => { openDocument('section-tags', activePaneId || undefined); setIsOpen(false); } },
         { title: 'Glance', icon: <Eye size={16} style={{ color: '#f59e0b' }} />, action: () => { openDocument('section-glance', activePaneId || undefined); setIsOpen(false); } },
         { title: 'Folders', icon: <Folder size={16} style={{ color: '#ec4899' }} />, action: () => { setMenuState({ type: 'folders' }); } },
+        { title: 'Collections', icon: <FileText size={16} style={{ color: '#8b5cf6' }} />, action: () => { openDocument('section-collections', activePaneId || undefined); setIsOpen(false); } },
         { title: 'Settings', icon: <Gear size={16} style={{ color: '#64748b' }} />, action: () => { openDocument('section-settings', activePaneId || undefined); setIsOpen(false); } }
       ];
 
@@ -302,6 +303,7 @@ export const CommandPalette = () => {
       items.push({ type: 'navigation', title: 'Tags', icon: <Tag size={16} style={{ color: '#a855f7' }} />, action: () => { openDocument('section-tags', activePaneId || undefined); setIsOpen(false); } });
       items.push({ type: 'navigation', title: 'Glance', icon: <Eye size={16} style={{ color: '#f59e0b' }} />, action: () => { openDocument('section-glance', activePaneId || undefined); setIsOpen(false); } });
       items.push({ type: 'navigation', title: 'Folders', icon: <Folder size={16} style={{ color: '#ec4899' }} />, action: () => { setMenuState({ type: 'folders' }); } });
+      items.push({ type: 'navigation', title: 'Collections', icon: <FileText size={16} style={{ color: '#8b5cf6' }} />, action: () => { openDocument('section-collections', activePaneId || undefined); setIsOpen(false); } });
       items.push({ type: 'navigation', title: 'Settings', icon: <Gear size={16} style={{ color: '#64748b' }} />, action: () => { openDocument('section-settings', activePaneId || undefined); setIsOpen(false); } });
 
       return items;

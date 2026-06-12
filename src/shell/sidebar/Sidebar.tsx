@@ -732,8 +732,7 @@ export const Sidebar = () => {
               {/* Stacked Branding text logo */}
               <div className="flex flex-col select-none cursor-pointer" style={{ fontFamily: 'var(--font-sans), sans-serif' }}>
                 <span 
-                  className="text-[22px] font-black leading-none tracking-tighter lowercase bg-gradient-to-br from-[#BDE0FE] via-[#FFC8DD] to-[#B5EAD7] bg-clip-text text-transparent"
-                  style={{ WebkitTextStroke: '0.3px rgba(18, 18, 18, 0.35)' }}
+                  className="text-[22px] font-black leading-none tracking-tighter lowercase bg-gradient-to-br from-[#4A90D9] via-[#D96A9E] to-[#45B88E] bg-clip-text text-transparent"
                 >
                   templ
                 </span>
@@ -810,7 +809,7 @@ export const Sidebar = () => {
             <div className={cn("flex items-center justify-between px-2 py-1 mb-1 rounded-sm transition-colors", isDocActive('section-favorites') ? "bg-muted/40" : "group-hover/favorites:bg-transparent")}>
               <div
                 onClick={() => handleDocClick('section-favorites')}
-                className={cn("text-xs font-semibold truncate uppercase tracking-wider cursor-pointer transition-colors flex-1", isDocActive('section-favorites') ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+                className={cn("text-xs font-semibold truncate uppercase tracking-wider cursor-pointer transition-colors flex-1", isDocActive('section-favorites') ? "text-rose-500 dark:text-rose-400" : "text-muted-foreground hover:text-foreground")}
               >
                 Favorites
               </div>
@@ -861,7 +860,7 @@ export const Sidebar = () => {
             <div className={cn("flex items-center justify-between px-2 py-1 mb-1 rounded-sm transition-colors", isDocActive('section-folders') ? "bg-muted/40" : "group-hover/folders:bg-transparent")}>
               <div
                 onClick={() => handleDocClick('section-folders')}
-                className={cn("text-xs font-semibold truncate uppercase tracking-wider cursor-pointer transition-colors flex-1", isDocActive('section-folders') ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+                className={cn("text-xs font-semibold truncate uppercase tracking-wider cursor-pointer transition-colors flex-1", isDocActive('section-folders') ? "text-sky-500 dark:text-sky-400" : "text-muted-foreground hover:text-foreground")}
               >
                 Folders
               </div>

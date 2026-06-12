@@ -1261,73 +1261,77 @@ const FormattingTab = () => {
       </div>
 
       {/* Line Height Selection */}
-      <div className="space-y-3 pt-4 border-t border-black/10 dark:border-white/5">
-        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Line Spacing</span>
-        <div className="grid grid-cols-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
-          <button
-            onClick={() => updateTarget({ lineHeight: 'compact' })}
-            className={cn(
-              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              target.lineHeight === 'compact'
-                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
-                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
-            )}
-          >
-            Compact
-          </button>
-          <button
-            onClick={() => updateTarget({ lineHeight: 'normal' })}
-            className={cn(
-              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              (!target.lineHeight || target.lineHeight === 'normal')
-                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
-                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
-            )}
-          >
-            Normal
-          </button>
-          <button
-            onClick={() => updateTarget({ lineHeight: 'loose' })}
-            className={cn(
-              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              target.lineHeight === 'loose'
-                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
-                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
-            )}
-          >
-            Loose
-          </button>
+      {!isCollection && (
+        <div className="space-y-3 pt-4 border-t border-black/10 dark:border-white/5">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Line Spacing</span>
+          <div className="grid grid-cols-3 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
+            <button
+              onClick={() => updateTarget({ lineHeight: 'compact' })}
+              className={cn(
+                "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+                target.lineHeight === 'compact'
+                  ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                  : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+              )}
+            >
+              Compact
+            </button>
+            <button
+              onClick={() => updateTarget({ lineHeight: 'normal' })}
+              className={cn(
+                "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+                (!target.lineHeight || target.lineHeight === 'normal')
+                  ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                  : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+              )}
+            >
+              Normal
+            </button>
+            <button
+              onClick={() => updateTarget({ lineHeight: 'loose' })}
+              className={cn(
+                "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+                target.lineHeight === 'loose'
+                  ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                  : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+              )}
+            >
+              Loose
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Page Width Selection */}
-      <div className="space-y-3 pt-4 border-t border-black/10 dark:border-white/5">
-        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Page Width</span>
-        <div className="grid grid-cols-2 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
-          <button
-            onClick={() => updateTarget({ pageWidth: 'narrow' })}
-            className={cn(
-              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              (!target.pageWidth || target.pageWidth === 'narrow')
-                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
-                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
-            )}
-          >
-            Readable (Narrow)
-          </button>
-          <button
-            onClick={() => updateTarget({ pageWidth: 'wide' })}
-            className={cn(
-              "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
-              target.pageWidth === 'wide'
-                ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
-                : "text-muted-foreground hover:text-foreground dark:hover:text-white"
-            )}
-          >
-            Full Width (Wide)
-          </button>
+      {!isCollection && (
+        <div className="space-y-3 pt-4 border-t border-black/10 dark:border-white/5">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground block">Page Width</span>
+          <div className="grid grid-cols-2 bg-black/5 dark:bg-black/20 border border-black/10 dark:border-white/5 p-1 rounded-sm-sm">
+            <button
+              onClick={() => updateTarget({ pageWidth: 'narrow' })}
+              className={cn(
+                "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+                (!target.pageWidth || target.pageWidth === 'narrow')
+                  ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                  : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+              )}
+            >
+              Readable (Narrow)
+            </button>
+            <button
+              onClick={() => updateTarget({ pageWidth: 'wide' })}
+              className={cn(
+                "py-1.5 flex items-center justify-center rounded-sm transition-all text-xs cursor-pointer",
+                target.pageWidth === 'wide'
+                  ? "bg-white dark:bg-zinc-900 text-foreground dark:text-white shadow-sm-sm border border-black/10 dark:border-white/5 font-semibold"
+                  : "text-muted-foreground hover:text-foreground dark:hover:text-white"
+              )}
+            >
+              Full Width (Wide)
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="p-3 bg-black/5 dark:bg-white/[0.02] border border-black/10 dark:border-white/5 rounded-sm-sm">
         <p className="text-[10px] text-muted-foreground leading-relaxed font-mono">

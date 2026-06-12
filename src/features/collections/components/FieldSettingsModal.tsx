@@ -10,6 +10,7 @@ import {
 import { PopupMenu } from '@/shared/ui/PopupMenu';
 import { AnimatePresence, motion } from 'motion/react';
 import { cn } from '@/shared/lib/utils';
+import { getFieldColors } from '../colorUtils';
 
 interface FieldSettingsModalProps {
   isOpen: boolean;
@@ -154,6 +155,8 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
       onClose={onClose}
       title={field ? `Edit Field: ${field.name}` : 'Create New Field'}
       variant="center"
+      className="!overflow-visible"
+      bodyClassName="!overflow-visible"
       footer={
         <>
           <button
@@ -233,10 +236,13 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
                           }}
                         >
                           <div 
-                            className="w-7 h-7 rounded flex items-center justify-center shrink-0"
+                            className="w-7 h-7 rounded flex items-center justify-center shrink-0 bg-[var(--field-bg)] text-[var(--field-text)] dark:bg-[var(--field-bg-dark)] dark:text-[var(--field-text-dark)]"
                             style={{ 
-                              backgroundColor: ft.color + '20',
-                              color: ft.color
+                              // @ts-ignore
+                              '--field-bg': getFieldColors(ft.color).bgLight,
+                              '--field-text': getFieldColors(ft.color).textLight,
+                              '--field-bg-dark': getFieldColors(ft.color).bgDark,
+                              '--field-text-dark': getFieldColors(ft.color).textDark,
                             }}
                           >
                             {ft.icon}
@@ -311,49 +317,51 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
 
               <div className="space-y-1.5 max-h-[200px] overflow-y-auto no-scrollbar border border-border/60 rounded p-2 bg-muted/10">
                 {options.map((opt) => (
-                  <div key={opt.id} className="flex items-center gap-2 bg-background border border-border/80 rounded px-2.5 py-1.5 relative">
-                    <DotsSixVertical size={14} className="text-muted-foreground/45 cursor-grab shrink-0" />
-                    
-                    {/* Color bubble */}
-                    <button
-                      type="button"
-                      onClick={() => setShowColorPickerForId(showColorPickerForId === opt.id ? null : opt.id)}
-                      className="w-4 h-4 rounded-sm-full border border-border/80 cursor-pointer shrink-0 transition-transform hover:scale-110"
-                      style={{ backgroundColor: opt.color }}
-                      title="Change color"
-                    />
+                  <div key={opt.id} className="flex flex-col gap-1.5 bg-background border border-border/80 rounded p-1.5 relative">
+                    <div className="flex items-center gap-2">
+                      <DotsSixVertical size={14} className="text-muted-foreground/45 cursor-grab shrink-0" />
+                      
+                      {/* Color bubble */}
+                      <button
+                        type="button"
+                        onClick={() => setShowColorPickerForId(showColorPickerForId === opt.id ? null : opt.id)}
+                        className="w-4 h-4 rounded-sm-full border border-border/80 cursor-pointer shrink-0 transition-transform hover:scale-110"
+                        style={{ backgroundColor: opt.color }}
+                        title="Change color"
+                      />
 
-                    {/* Option Text */}
-                    <input
-                      type="text"
-                      value={opt.name}
-                      onChange={(e) => handleUpdateOptionName(opt.id, e.target.value)}
-                      className="bg-transparent border-none outline-none text-xs w-full text-foreground/90 font-medium"
-                    />
+                      {/* Option Text */}
+                      <input
+                        type="text"
+                        value={opt.name}
+                        onChange={(e) => handleUpdateOptionName(opt.id, e.target.value)}
+                        className="bg-transparent border-none outline-none text-xs w-full text-foreground/90 font-medium"
+                      />
 
-                    {/* Delete option */}
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteOption(opt.id)}
-                      className="text-muted-foreground hover:text-red-500 p-0.5 rounded transition-colors cursor-pointer"
-                    >
-                      <Trash size={14} />
-                    </button>
+                      {/* Delete option */}
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteOption(opt.id)}
+                        className="text-muted-foreground hover:text-red-500 p-0.5 rounded transition-colors cursor-pointer"
+                      >
+                        <Trash size={14} />
+                      </button>
+                    </div>
 
                     {/* Simple Color dropdown overlay */}
                     {showColorPickerForId === opt.id && (
-                      <div className="absolute top-8 left-6 z-50 bg-background border border-border rounded shadow-sm-md p-1.5 grid grid-cols-4 gap-1 w-[120px] animate-fadeIn">
+                      <div className="flex items-center gap-1.5 pl-6 py-1 border-t border-border/40 animate-fadeIn overflow-x-auto no-scrollbar">
                         {PASTEL_COLORS.map(c => (
                           <button
                             key={c.hex}
                             type="button"
                             onClick={() => handleUpdateOptionColor(opt.id, c.hex)}
-                            className="w-5 h-5 rounded-sm-full border border-border/80 hover:scale-110 transition-transform cursor-pointer relative"
+                            className="w-4 h-4 rounded-sm-full border border-border/80 hover:scale-110 transition-transform cursor-pointer relative shrink-0"
                             style={{ backgroundColor: c.hex }}
                             title={c.name}
                           >
                             {opt.color === c.hex && (
-                              <Check size={10} className="absolute inset-0 m-auto text-zinc-950 font-bold" />
+                              <Check size={8} className="absolute inset-0 m-auto text-zinc-950 font-bold" />
                             )}
                           </button>
                         ))}

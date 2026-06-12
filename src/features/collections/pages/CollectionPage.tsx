@@ -319,6 +319,8 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
         onClose={() => setIsRenameOpen(false)}
         title="Rename Collection"
         variant="center"
+        className="!overflow-visible"
+        bodyClassName="!overflow-visible"
         footer={
           <>
             <button
@@ -375,6 +377,8 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
         onClose={() => setIsDeleteOpen(false)}
         title="Delete Collection"
         variant="center"
+        className="!overflow-visible"
+        bodyClassName="!overflow-visible"
         footer={
           <>
             <button

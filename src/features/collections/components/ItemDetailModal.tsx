@@ -11,6 +11,7 @@ import {
   Envelope, Phone, Plus, Trash, Database, Article, Image, X
 } from '@phosphor-icons/react';
 import { cn } from '@/shared/lib/utils';
+import { getPastelTextColor } from '../colorUtils';
 
 interface ItemDetailModalProps {
   isOpen: boolean;
@@ -210,11 +211,13 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                 return (
                   <div
                     key={optId}
-                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] font-semibold border"
+                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] font-semibold border text-[var(--tag-color)] dark:text-[var(--tag-color-dark)]"
                     style={{
+                      // @ts-ignore
+                      '--tag-color': getPastelTextColor(opt.color).light,
+                      '--tag-color-dark': getPastelTextColor(opt.color).dark,
                       backgroundColor: `${opt.color}25`,
-                      borderColor: `${opt.color}50`,
-                      color: opt.color
+                      borderColor: `${opt.color}50`
                     }}
                   >
                     <span>{opt.name}</span>

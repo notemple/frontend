@@ -66,6 +66,8 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
   const [showColorPickerForId, setShowColorPickerForId] = useState<string | null>(null);
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
   const typeDropdownRef = useRef<HTMLDivElement>(null);
+  const dropdownListRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(-1);
 
   useEffect(() => {
     if (isOpen) {
@@ -86,6 +88,51 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
       setIsTypeDropdownOpen(false);
     }
   }, [isOpen, field]);
+
+  useEffect(() => {
+    if (isTypeDropdownOpen) {
+      const idx = FIELD_TYPES.findIndex(ft => ft.type === type);
+      setActiveIndex(idx >= 0 ? idx : 0);
+    } else {
+      setActiveIndex(-1);
+    }
+  }, [isTypeDropdownOpen, type]);
+
+  useEffect(() => {
+    if (isTypeDropdownOpen && activeIndex >= 0 && dropdownListRef.current) {
+      const activeEl = dropdownListRef.current.querySelector('[data-active="true"]');
+      if (activeEl) {
+        activeEl.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [activeIndex, isTypeDropdownOpen]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isTypeDropdownOpen) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        setIsTypeDropdownOpen(true);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev + 1) % FIELD_TYPES.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev - 1 + FIELD_TYPES.length) % FIELD_TYPES.length);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (activeIndex >= 0 && activeIndex < FIELD_TYPES.length) {
+        setType(FIELD_TYPES[activeIndex].type);
+        setIsTypeDropdownOpen(false);
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setIsTypeDropdownOpen(false);
+    }
+  };
 
   useEffect(() => {
     if (!isTypeDropdownOpen) return;
@@ -191,7 +238,7 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
           {/* Field Type */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Field Type</label>
-            <div className="relative" ref={typeDropdownRef}>
+            <div className="relative" ref={typeDropdownRef} onKeyDown={handleKeyDown}>
               <button
                 type="button"
                 onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
@@ -210,6 +257,7 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
               <AnimatePresence>
                 {isTypeDropdownOpen && (
                   <motion.div
+                    ref={dropdownListRef}
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 5 }}
@@ -218,16 +266,21 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
                     <div className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground/50 px-3 py-1.5 font-mono border-b border-border sticky top-0 bg-background">
                       Select Field Type
                     </div>
-                    {FIELD_TYPES.map((ft) => {
+                    {FIELD_TYPES.map((ft, index) => {
                       const isSelected = ft.type === type;
+                      const isActive = index === activeIndex;
                       return (
                         <button
                           key={ft.type}
                           type="button"
+                          data-active={isActive ? "true" : undefined}
                           className={cn(
                             "flex items-center gap-3 w-full text-left px-3 py-2.5 transition-colors cursor-pointer",
                             isSelected
                               ? "bg-purple-500/10"
+                              : "",
+                            isActive
+                              ? "bg-muted font-medium"
                               : ""
                           )}
                           onClick={() => {

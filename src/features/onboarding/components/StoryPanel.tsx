@@ -172,7 +172,7 @@ export const StoryPanel: React.FC<StoryPanelProps> = ({ step }) => {
       <div className="relative z-10 flex flex-col h-full justify-between text-left font-sans pointer-events-none">
         {/* Brand title: templ at the top taking full width */}
         <div className="w-full pt-4 pointer-events-auto">
-          <h1 className="text-[16vw] md:text-[6.5vw] font-black leading-[0.8] tracking-tighter bg-gradient-to-br from-[#4A90D9] via-[#D96A9E] to-[#45B88E] bg-clip-text text-transparent font-serif lowercase select-none">
+          <h1 className="text-[16vw] md:text-[6.5vw] font-black leading-[0.8] tracking-tighter bg-gradient-to-br from-[#4A90D9] via-[#D96A9E] to-[#45B88E] bg-clip-text text-transparent font-sans lowercase select-none">
             templ
           </h1>
           <h2 className="text-[10px] font-semibold tracking-[0.25em] text-zinc-500 uppercase font-mono mt-4">

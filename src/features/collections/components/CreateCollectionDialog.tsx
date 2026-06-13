@@ -3,6 +3,7 @@ import { PopupMenu } from '@/shared/ui/PopupMenu';
 import { cn } from '@/shared/lib/utils';
 import { useCollectionStore } from '../store/collectionStore';
 import { useUiStore } from '@/shared/store/uiStore';
+import EmojiPicker from 'emoji-picker-react';
 
 interface CreateCollectionDialogProps {
   isOpen: boolean;
@@ -34,6 +35,7 @@ export const CreateCollectionDialog: React.FC<CreateCollectionDialogProps> = ({
   const [icon, setIcon] = useState('📚');
   const [color, setColor] = useState('#3B82F6');
   const [description, setDescription] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const handleCreate = async () => {
     if (!name.trim()) return;
@@ -50,6 +52,7 @@ export const CreateCollectionDialog: React.FC<CreateCollectionDialogProps> = ({
       variant="center"
       className="!overflow-visible collection-pastel-popup"
       bodyClassName="!overflow-visible"
+      backdropClassName="backdrop-blur-[2px]"
       footer={
         <>
           <button
@@ -96,27 +99,31 @@ export const CreateCollectionDialog: React.FC<CreateCollectionDialogProps> = ({
       {/* Icon */}
       <div className="flex flex-col gap-1.5">
         <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Icon</label>
-        <div className="flex items-center gap-3">
-          <span className="text-3xl w-12 h-12 flex items-center justify-center rounded-lg border border-border bg-muted/20 shadow-sm-sm">
+        <div className="flex items-center gap-3 relative">
+          <button
+            type="button"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            className="text-3xl w-12 h-12 flex items-center justify-center rounded-lg border border-border bg-muted/20 hover:bg-muted/40 shadow-sm-sm cursor-pointer transition-colors"
+          >
             {icon}
-          </span>
-          <div className="grid grid-cols-8 gap-1.5 flex-1">
-            {EMOJI_PRESETS.map(e => (
-              <button
-                key={e}
-                type="button"
-                onClick={() => setIcon(e)}
-                className={cn(
-                  "text-lg p-1.5 rounded transition-all cursor-pointer",
-                  icon === e
-                    ? "bg-purple-500/15 border border-purple-500/30 scale-110"
-                    : "hover:bg-muted border border-transparent"
-                )}
-              >
-                {e}
-              </button>
-            ))}
-          </div>
+          </button>
+          <span className="text-xs text-muted-foreground font-sans">Click the icon to choose any emoji</span>
+
+          {showEmojiPicker && (
+            <div className="absolute top-14 left-0 z-50 animate-fadeIn select-none shadow-lg border border-border rounded overflow-hidden bg-background">
+              <EmojiPicker
+                onEmojiClick={(emojiData) => {
+                  setIcon(emojiData.emoji);
+                  setShowEmojiPicker(false);
+                }}
+                theme={
+                  document.documentElement.classList.contains("dark")
+                    ? "dark" as any
+                    : "light" as any
+                }
+              />
+            </div>
+          )}
         </div>
       </div>
 

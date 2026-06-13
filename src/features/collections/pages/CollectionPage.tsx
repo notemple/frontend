@@ -114,9 +114,11 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
 
   const bannerStyle: React.CSSProperties = {};
   if (collection.topSectionColor) {
-    bannerStyle.background = collection.topSectionColor;
+    bannerStyle.background = collection.topSectionColorType === 'gradient'
+      ? collection.topSectionColor
+      : `linear-gradient(to bottom, ${collection.topSectionColor}50, transparent)`;
   } else {
-    bannerStyle.background = `linear-gradient(to bottom, ${collection.color || '#3B82F6'}25, transparent)`;
+    bannerStyle.background = 'var(--background)';
   }
 
   const titleStyle: React.CSSProperties = {};
@@ -200,6 +202,61 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
             <Trash size={13} />
           </button>
         </div>
+
+        <div className={cn("flex flex-col items-start justify-center gap-3 w-full pl-4 pr-4 md:pl-0 md:pr-6 z-10", maxWidthClass)}>
+          {/* Emoji Button */}
+          <div className="relative z-50">
+            <button
+              type="button"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className="w-16 h-16 rounded-xl border border-border bg-background shadow-md hover:scale-105 active:scale-95 flex items-center justify-center text-4xl cursor-pointer transition-transform duration-150 select-none"
+              title="Change icon"
+            >
+              {collection.icon || '📚'}
+            </button>
+
+            {showEmojiPicker && (
+              <div className="absolute top-18 left-0 z-50 bg-background border border-border rounded shadow-lg p-3 grid grid-cols-4 gap-2 w-48 animate-fadeIn select-none">
+                {EMOJI_PRESETS.map(e => (
+                  <button
+                    key={e}
+                    type="button"
+                    onClick={() => handleEmojiSelect(e)}
+                    className="text-xl hover:bg-muted rounded p-1 transition-colors cursor-pointer text-center"
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Title and Description */}
+          <div className="w-full flex flex-col gap-2 min-w-0">
+            <div className="w-full flex flex-col">
+              <h1 
+                onClick={handleOpenRename}
+                className="w-full bg-transparent border-none outline-none text-4xl font-bold font-sans tracking-tight drop-shadow-md cursor-pointer hover:bg-muted/10 rounded px-1 -ml-1 transition-colors truncate"
+                style={titleStyle}
+              >
+                {collection.name || "Untitled Collection"}
+              </h1>
+            </div>
+
+            {/* Description */}
+            <div className="w-full">
+              <p 
+                onClick={handleOpenRename}
+                className={cn(
+                  "text-sm cursor-pointer hover:bg-muted/10 rounded px-1 -ml-1 transition-colors max-w-lg leading-relaxed opacity-85",
+                  collection.description ? "" : "text-muted-foreground/40 italic"
+                )}
+              >
+                {collection.description || "Add description..."}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Main Page Layout Container */}
@@ -208,63 +265,6 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
           className={cn("w-full flex flex-col gap-6 px-6 md:px-8 pb-12 pt-4 flex-1", maxWidthClass)}
           style={pageTextStyle}
         >
-          {/* Header Area with Emoji, Title and Description */}
-          <div className="flex flex-col items-start gap-3 w-full z-10 mt-[-40px]">
-            
-            {/* Emoji Button */}
-            <div className="relative z-50">
-              <button
-                type="button"
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className="w-16 h-16 rounded-xl border border-border bg-background shadow-md hover:scale-105 active:scale-95 flex items-center justify-center text-4xl cursor-pointer transition-transform duration-150 select-none"
-                title="Change icon"
-              >
-                {collection.icon || '📚'}
-              </button>
-
-              {showEmojiPicker && (
-                <div className="absolute top-18 left-0 z-50 bg-background border border-border rounded shadow-lg p-3 grid grid-cols-4 gap-2 w-48 animate-fadeIn select-none">
-                  {EMOJI_PRESETS.map(e => (
-                    <button
-                      key={e}
-                      type="button"
-                      onClick={() => handleEmojiSelect(e)}
-                      className="text-xl hover:bg-muted rounded p-1 transition-colors cursor-pointer text-center"
-                    >
-                      {e}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Title and Description */}
-            <div className="w-full flex flex-col gap-2 min-w-0">
-              <div className="w-full flex flex-col">
-                <h1 
-                  onClick={handleOpenRename}
-                  className="w-full bg-transparent border-none outline-none text-4xl font-bold font-sans tracking-tight drop-shadow-md cursor-pointer hover:bg-muted/10 rounded px-1 -ml-1 transition-colors truncate"
-                  style={titleStyle}
-                >
-                  {collection.name || "Untitled Collection"}
-                </h1>
-              </div>
-
-              {/* Description */}
-              <div className="w-full">
-                <p 
-                  onClick={handleOpenRename}
-                  className={cn(
-                    "text-sm cursor-pointer hover:bg-muted/10 rounded px-1 -ml-1 transition-colors max-w-lg leading-relaxed opacity-85",
-                    collection.description ? "" : "text-muted-foreground/40 italic"
-                  )}
-                >
-                  {collection.description || "Add description..."}
-                </p>
-              </div>
-            </div>
-
-          </div>
 
           {/* Views Tabs Segment */}
           <div className="flex items-center gap-1.5 shrink-0 select-none pt-2 pb-2">

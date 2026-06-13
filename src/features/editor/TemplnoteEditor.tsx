@@ -208,7 +208,9 @@ export function TemplnoteEditor({
 
   const bannerStyle: React.CSSProperties = {};
   if (doc?.topSectionColor) {
-    bannerStyle.background = doc.topSectionColor;
+    bannerStyle.background = doc.topSectionColorType === 'gradient'
+      ? doc.topSectionColor
+      : `linear-gradient(to bottom, ${doc.topSectionColor}50, transparent)`;
   } else {
     bannerStyle.background = 'var(--background)';
   }

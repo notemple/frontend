@@ -15,6 +15,7 @@ interface PopupMenuProps {
   bodyClassName?: string;
   showCloseButton?: boolean;
   showBackdrop?: boolean;
+  backdropClassName?: string;
 }
 
 export const PopupMenu: React.FC<PopupMenuProps> = ({
@@ -28,7 +29,8 @@ export const PopupMenu: React.FC<PopupMenuProps> = ({
   className,
   bodyClassName,
   showCloseButton = true,
-  showBackdrop = true
+  showBackdrop = true,
+  backdropClassName
 }) => {
   React.useEffect(() => {
     if (!isOpen) return;
@@ -59,7 +61,7 @@ export const PopupMenu: React.FC<PopupMenuProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.12 }}
-              className="absolute inset-0 bg-black/35 z-0 cursor-default"
+              className={cn("absolute inset-0 bg-black/35 z-0 cursor-default", backdropClassName)}
               onClick={onClose}
             />
           )}

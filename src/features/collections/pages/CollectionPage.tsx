@@ -10,6 +10,7 @@ import {
 import { cn } from '@/shared/lib/utils';
 import { PopupMenu } from '@/shared/ui/PopupMenu';
 import { useUiStore } from '@/shared/store/uiStore';
+import EmojiPicker from 'emoji-picker-react';
 
 interface CollectionPageProps {
   paneId: string;
@@ -216,17 +217,17 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
             </button>
 
             {showEmojiPicker && (
-              <div className="absolute top-18 left-0 z-50 bg-background border border-border rounded shadow-lg p-3 grid grid-cols-4 gap-2 w-48 animate-fadeIn select-none">
-                {EMOJI_PRESETS.map(e => (
-                  <button
-                    key={e}
-                    type="button"
-                    onClick={() => handleEmojiSelect(e)}
-                    className="text-xl hover:bg-muted rounded p-1 transition-colors cursor-pointer text-center"
-                  >
-                    {e}
-                  </button>
-                ))}
+              <div className="absolute top-18 left-0 z-50 animate-fadeIn select-none shadow-lg border border-border rounded overflow-hidden bg-background">
+                <EmojiPicker
+                  onEmojiClick={(emojiData) => {
+                    handleEmojiSelect(emojiData.emoji);
+                  }}
+                  theme={
+                    document.documentElement.classList.contains("dark")
+                      ? "dark" as any
+                      : "light" as any
+                  }
+                />
               </div>
             )}
           </div>
@@ -262,7 +263,7 @@ export const CollectionPage: React.FC<CollectionPageProps> = ({ paneId, collecti
       {/* Main Page Layout Container */}
       <div className="flex-1 w-full flex flex-col items-center select-text">
         <div 
-          className={cn("w-full flex flex-col gap-6 px-6 md:px-8 pb-12 pt-4 flex-1", maxWidthClass)}
+          className={cn("w-full flex flex-col gap-6 pr-6 md:pr-8 pl-0 pb-12 pt-4 flex-1", maxWidthClass)}
           style={pageTextStyle}
         >
 

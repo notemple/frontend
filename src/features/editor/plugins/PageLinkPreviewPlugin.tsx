@@ -12,6 +12,7 @@ import { useDocumentStore } from "../../documents/store"
 import { useUiStore } from "../../../shared/store/uiStore"
 import { useCollectionStore } from "@/features/collections/store/collectionStore"
 import { $isPageLinkNode } from "../nodes/PageLinkNode"
+import * as Icons from "@phosphor-icons/react"
 
 interface Props {
   paneId?: string
@@ -298,9 +299,13 @@ const PageLinkPreviewPopup = React.forwardRef<
     >
       {/* Banner */}
       <div className="w-full h-20 shrink-0 relative flex items-center justify-center" style={bannerStyle}>
-        {doc.icon && (
+        {doc.icon ? (
           <span className="absolute -bottom-5 left-6 text-4xl select-none filter drop-shadow">
             {doc.icon}
+          </span>
+        ) : (
+          <span className="absolute -bottom-4 left-6 text-teal-400 filter drop-shadow">
+            <Icons.FileText size={28} weight="duotone" />
           </span>
         )}
       </div>

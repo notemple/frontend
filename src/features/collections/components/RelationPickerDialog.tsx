@@ -162,6 +162,7 @@ export const RelationPickerDialog: React.FC<RelationPickerDialogProps> = ({
       variant="center"
       className="max-w-md max-h-[80vh] collection-pastel-popup"
       bodyClassName="p-0"
+      backdropClassName="backdrop-blur-[2px]"
       footer={
         <>
           <button

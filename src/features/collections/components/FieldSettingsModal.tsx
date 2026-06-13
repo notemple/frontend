@@ -204,6 +204,7 @@ export const FieldSettingsModal: React.FC<FieldSettingsModalProps> = ({
       variant="center"
       className="!overflow-visible collection-pastel-popup"
       bodyClassName="!overflow-visible"
+      backdropClassName="backdrop-blur-[2px]"
       footer={
         <>
           <button

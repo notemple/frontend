@@ -276,10 +276,9 @@ export function TemplnoteEditor({
     <LexicalComposer initialConfig={{ ...config, editable: !readOnly }}>
       <div 
         className={cn(
-          "templnote-editor-wrapper relative flex flex-col w-full h-full overflow-y-auto",
+          "templnote-editor-wrapper relative flex flex-col w-full h-full",
           isMinimized && "is-minimized-editor"
         )}
-        style={wrapperStyle}
       >
         {onClosePopup && (
           <button
@@ -539,13 +538,14 @@ export function TemplnoteEditor({
             </div>
           )}
 
-          <div 
-            className={cn(
-              "editor-content-column w-full relative flex flex-col pb-12 pt-4",
-              isMinimized ? "px-0 max-w-none" : cn("px-6 md:px-8", maxWidthClass)
-            )}
-            style={editorTextStyle}
-          >
+          <div className="flex-1 w-full overflow-y-auto" style={wrapperStyle}>
+            <div 
+              className={cn(
+                "editor-content-column w-full relative flex flex-col pb-12 pt-4",
+                isMinimized ? "px-0 max-w-none" : cn("px-6 md:px-8", maxWidthClass)
+              )}
+              style={editorTextStyle}
+            >
             {/* The actual Lexical editable area */}
             <div className="editor-container relative flex flex-col flex-1">
               <RichTextPlugin
@@ -582,6 +582,7 @@ export function TemplnoteEditor({
 
             {/* Spacer so user can always click below last block */}
             <div className={cn("editor-click-target cursor-text", isMinimized ? "h-10" : "h-40")} />
+          </div>
           </div>
         </EditorScrollContainer>
 

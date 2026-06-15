@@ -138,7 +138,7 @@ export default function FloatingToolbar({
       const selection = $getSelection()
       if ($isRangeSelection(selection)) {
         const text = selection.getTextContent()
-        const mathNode = $createEquationNode(text || "f(x) =", true)
+        const mathNode = $createEquationNode(text || "f(x) =", true, true)
         selection.insertNodes([mathNode])
       }
     })

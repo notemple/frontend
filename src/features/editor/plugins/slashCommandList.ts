@@ -327,20 +327,48 @@ export const slashCommands: SlashCommand[] = [
   // ── Advanced ─────────────────────────────────────────────────────────────────
   {
     title: "Math Equation",
-    description: "LaTeX block equation",
-    keywords: ["math", "equation", "latex", "formula", "katex"],
+    description: "LaTeX equation with live preview",
+    keywords: ["math", "equation", "latex", "formula", "katex", "inline", "block"],
     category: "Advanced",
     icon: "MathOperations",
+    submenu: true,
+    onSelect: () => {},
+  },
+]
+
+export const equationSubmenuCommands: SlashCommand[] = [
+  {
+    title: "Block Equation",
+    description: "Centered display equation",
+    keywords: ["block", "display", "centered", "math", "equation"],
+    category: "Advanced",
+    icon: "ArrowsOut",
     onSelect: (editor) => {
       editor.update(() => {
         const sel = $getSelection()
         if (!$isRangeSelection(sel)) return
-        const node = $createEquationNode("E = mc^2", false)
+        const node = $createEquationNode("E = mc^2", false, true)
         const topLevel = sel.anchor.getNode().getTopLevelElementOrThrow()
         const newParagraph = $createParagraphNode()
         topLevel.insertAfter(newParagraph)
         topLevel.replace(node)
         newParagraph.select()
+      })
+    },
+  },
+  {
+    title: "Inline Equation",
+    description: "Equation within text",
+    keywords: ["inline", "text", "math", "equation"],
+    category: "Advanced",
+    icon: "ArrowsIn",
+    onSelect: (editor) => {
+      editor.update(() => {
+        const sel = $getSelection()
+        if (!$isRangeSelection(sel)) return
+        const text = sel.getTextContent()
+        const node = $createEquationNode(text || "f(x) =", true, true)
+        sel.insertNodes([node])
       })
     },
   },

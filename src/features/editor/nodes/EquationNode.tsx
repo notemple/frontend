@@ -5,28 +5,290 @@ import type {
   SerializedLexicalNode,
   Spread,
 } from "lexical"
-import { DecoratorNode, $applyNodeReplacement } from "lexical"
+import { DecoratorNode, $applyNodeReplacement, $getNodeByKey } from "lexical"
 import type { ReactNode } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
+import { createPortal } from "react-dom"
+import * as Icons from "@phosphor-icons/react"
+import katex from "katex"
 
 export type SerializedEquationNode = Spread<
   { equation: string; inline: boolean },
   SerializedLexicalNode
 >
 
+function renderLatex(latex: string, displayMode: boolean): string {
+  if (!latex.trim()) return ""
+  try {
+    return katex.renderToString(latex, {
+      displayMode,
+      throwOnError: false,
+      strict: false,
+      trust: true,
+    })
+  } catch {
+    try {
+      return katex.renderToString(latex, {
+        displayMode,
+        throwOnError: false,
+        strict: "ignore",
+      })
+    } catch {
+      return `<span class="katex-error">${latex}</span>`
+    }
+  }
+}
+
+function EquationPopoverEditor({
+  nodeKey,
+  equation,
+  inline,
+  editor,
+  onClose,
+}: {
+  nodeKey: string
+  equation: string
+  inline: boolean
+  editor: LexicalEditor
+  onClose: () => void
+}) {
+  const [editValue, setEditValue] = useState(equation)
+  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 })
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const popoverRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const node = document.querySelector(`[data-equation-key="${nodeKey}"]`)
+    if (node) {
+      const rect = node.getBoundingClientRect()
+      const popoverWidth = 420
+      const left = Math.max(
+        8,
+        Math.min(
+          rect.left + window.scrollX - (popoverWidth - rect.width) / 2,
+          window.innerWidth - popoverWidth - 8
+        )
+      )
+      const top = rect.bottom + window.scrollY + 8
+      setPopoverPos({ top, left })
+    }
+  }, [nodeKey])
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus()
+      textareaRef.current.setSelectionRange(
+        textareaRef.current.value.length,
+        textareaRef.current.value.length
+      )
+    }
+  }, [])
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        handleConfirm()
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [editValue])
+
+  const handleConfirm = useCallback(() => {
+    const trimmed = editValue.trim()
+    if (trimmed !== equation) {
+      editor.update(() => {
+        const node = $getNodeByKey(nodeKey)
+        if (node && "setEquation" in node) {
+          ;(node as any).setEquation(trimmed)
+        }
+      })
+    }
+    onClose()
+  }, [editValue, equation, editor, nodeKey, onClose])
+
+  const handleDelete = useCallback(() => {
+    editor.update(() => {
+      const node = $getNodeByKey(nodeKey)
+      if (node) {
+        const prev = node.getPreviousSibling()
+        if (prev && typeof (prev as any).selectEnd === "function") {
+          ;(prev as any).selectEnd()
+        } else {
+          const next = node.getNextSibling()
+          if (next && typeof (next as any).selectStart === "function") {
+            ;(next as any).selectStart()
+          } else {
+            const parent = node.getParent()
+            if (parent) parent.selectEnd()
+          }
+        }
+        node.remove()
+      }
+    })
+    onClose()
+  }, [editor, nodeKey, onClose])
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      e.preventDefault()
+      handleConfirm()
+    }
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault()
+      handleConfirm()
+    }
+  }
+
+  const previewHtml = editValue.trim()
+    ? renderLatex(editValue, !inline)
+    : `<span style="color: var(--muted-foreground); font-style: italic; font-size: 0.8125rem;">Type LaTeX...</span>`
+
+  return createPortal(
+    <div
+      ref={popoverRef}
+      className="equation-popover"
+      style={{ top: popoverPos.top, left: popoverPos.left }}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
+      <div className="equation-popover-header">
+        <span>{inline ? "Inline Equation" : "Block Equation"}</span>
+        <span style={{ fontSize: "0.6875rem", fontWeight: 400, opacity: 0.6 }}>
+          Esc to confirm · Cmd+Enter to save
+        </span>
+      </div>
+      <div className="equation-popover-body">
+        <textarea
+          ref={textareaRef}
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Enter LaTeX expression..."
+          spellCheck={false}
+          rows={3}
+        />
+        <div
+          className="equation-popover-preview"
+          dangerouslySetInnerHTML={{ __html: previewHtml }}
+        />
+      </div>
+      <div className="equation-popover-footer">
+        <button
+          type="button"
+          onClick={handleDelete}
+          className="equation-popover-btn equation-popover-btn--danger"
+        >
+          <Icons.Trash size={13} weight="bold" />
+          Delete
+        </button>
+        <button
+          type="button"
+          onClick={handleConfirm}
+          className="equation-popover-btn equation-popover-btn--primary"
+        >
+          <Icons.Check size={13} weight="bold" />
+          Confirm
+        </button>
+      </div>
+    </div>,
+    document.body
+  )
+}
+
+function EquationComponent({
+  nodeKey,
+  equation,
+  inline,
+  editor,
+  autoFocus,
+}: {
+  nodeKey: string
+  equation: string
+  inline: boolean
+  editor: LexicalEditor
+  autoFocus?: boolean
+}) {
+  const [isEditing, setIsEditing] = useState(autoFocus ?? false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (autoFocus) {
+      setIsEditing(true)
+    }
+  }, [autoFocus])
+
+  const handleClick = () => {
+    setIsEditing(true)
+  }
+
+  const handleClose = useCallback(() => {
+    setIsEditing(false)
+  }, [])
+
+  const displayHtml = equation.trim()
+    ? renderLatex(equation, !inline)
+    : `<span style="color: var(--muted-foreground); font-style: italic; font-size: 0.8125rem;">Click to add equation...</span>`
+
+  return (
+    <>
+      <div
+        ref={containerRef}
+        data-equation-key={nodeKey}
+        className={inline ? "lexical-equation--inline" : "lexical-equation--block"}
+        onClick={handleClick}
+        dangerouslySetInnerHTML={{ __html: displayHtml }}
+      />
+      {isEditing && (
+        <EquationPopoverEditor
+          nodeKey={nodeKey}
+          equation={equation}
+          inline={inline}
+          editor={editor}
+          onClose={handleClose}
+        />
+      )}
+    </>
+  )
+}
+
 export class EquationNode extends DecoratorNode<ReactNode> {
   __equation: string
   __inline: boolean
+  __autoFocus?: boolean
 
   static getType(): string { return "equation" }
 
   static clone(node: EquationNode): EquationNode {
-    return new EquationNode(node.__equation, node.__inline, node.__key)
+    return new EquationNode(node.__equation, node.__inline, node.__key, node.__autoFocus)
   }
 
-  constructor(equation = "", inline = false, key?: NodeKey) {
+  constructor(equation = "", inline = false, key?: NodeKey, autoFocus?: boolean) {
     super(key)
     this.__equation = equation
     this.__inline = inline
+    this.__autoFocus = autoFocus
+  }
+
+  getEquation(): string {
+    return this.__equation
+  }
+
+  setEquation(equation: string): void {
+    const writable = this.getWritable()
+    writable.__equation = equation
+  }
+
+  getInline(): boolean {
+    return this.__inline
+  }
+
+  setInline(inline: boolean): void {
+    const writable = this.getWritable()
+    writable.__inline = inline
+  }
+
+  getAutoFocus(): boolean {
+    return this.__autoFocus ?? false
   }
 
   createDOM(): HTMLElement {
@@ -52,11 +314,15 @@ export class EquationNode extends DecoratorNode<ReactNode> {
     }
   }
 
-  decorate(_editor: LexicalEditor, _config: EditorConfig): ReactNode {
+  decorate(editor: LexicalEditor, _config: EditorConfig): ReactNode {
     return (
-      <span className={this.__inline ? "lexical-equation--inline" : "lexical-equation--block"}>
-        <code>{this.__equation}</code>
-      </span>
+      <EquationComponent
+        nodeKey={this.__key}
+        equation={this.__equation}
+        inline={this.__inline}
+        editor={editor}
+        autoFocus={this.__autoFocus}
+      />
     )
   }
 
@@ -64,8 +330,8 @@ export class EquationNode extends DecoratorNode<ReactNode> {
   isKeyboardSelectable(): boolean { return true }
 }
 
-export function $createEquationNode(equation = "", inline = false): EquationNode {
-  return $applyNodeReplacement(new EquationNode(equation, inline))
+export function $createEquationNode(equation = "", inline = false, autoFocus?: boolean): EquationNode {
+  return $applyNodeReplacement(new EquationNode(equation, inline, undefined, autoFocus))
 }
 
 export function $isEquationNode(node: unknown): node is EquationNode {

@@ -13,6 +13,7 @@ import { useUiStore } from "../../../shared/store/uiStore"
 import { useCollectionStore } from "@/features/collections/store/collectionStore"
 import { $isPageLinkNode } from "../nodes/PageLinkNode"
 import * as Icons from "@phosphor-icons/react"
+import { getPopupPosition } from "@/shared/hooks/usePortalPosition"
 
 interface Props {
   paneId?: string
@@ -77,21 +78,15 @@ export default function PageLinkPreviewPlugin({ paneId }: Props): React.ReactNod
           const rect = target.getBoundingClientRect()
           const width = 340
           const height = 350 // estimated default height
-          
-          let left = rect.left + window.scrollX
-          if (left + width > window.innerWidth) {
-            left = window.innerWidth - width - 16
-          }
-          left = Math.max(16, left)
 
-          let top = rect.bottom + window.scrollY + 8
-          if (rect.bottom + height > window.innerHeight) {
-            top = rect.top + window.scrollY - height - 8
-          }
+          const result = getPopupPosition(
+            { top: rect.top, bottom: rect.bottom, left: rect.left, width: rect.width },
+            { menuWidth: width, menuHeight: height, offset: 8, centerHorizontally: false }
+          )
 
           setPreviewData({
             docId,
-            position: { top, left }
+            position: { top: result.top, left: result.left }
           })
         }
       }, 250) // 250ms hover delay
@@ -151,10 +146,25 @@ export default function PageLinkPreviewPlugin({ paneId }: Props): React.ReactNod
     rootElement.addEventListener("mouseout", handleMouseLeave)
     rootElement.addEventListener("click", handleClick)
 
+    // Close preview on scroll since the hover target moves
+    const scrollContainer = document.querySelector('.editor-scroll-area') as HTMLElement | null
+    const handleScroll = () => {
+      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
+      setPreviewData(null)
+      hoveredElementRef.current = null
+    }
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll, { passive: true })
+    }
+
     return () => {
       rootElement.removeEventListener("mouseover", handleMouseEnter)
       rootElement.removeEventListener("mouseout", handleMouseLeave)
       rootElement.removeEventListener("click", handleClick)
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('scroll', handleScroll)
+      }
       if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
       if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
     }
@@ -181,7 +191,7 @@ export default function PageLinkPreviewPlugin({ paneId }: Props): React.ReactNod
       ref={popupRef}
       onMouseEnter={handlePopupMouseEnter}
       onMouseLeave={handlePopupMouseLeave}
-      className="absolute z-[9999] p-2"
+      className="fixed z-[9999] p-2"
       style={{
         top: previewData.position.top - 8, // Offset the padding gap for smooth cursor movements
         left: previewData.position.left,

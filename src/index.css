@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Fira+Code:wght@400;500;600&family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap');
+@import "katex/dist/katex.min.css";
 
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
@@ -602,6 +603,11 @@ html.light .lexical-root hr {
   scrollbar-color: var(--border) transparent;
 }
 
+body:has(.slash-command-menu, .mention-menu, .emoji-menu, .block-context-menu, .block-options-menu, .equation-popover, .page-link-preview, .editor-popover-menu) .editor-scroll-area,
+body:has(.slash-command-menu, .mention-menu, .emoji-menu, .block-context-menu, .block-options-menu, .equation-popover, .page-link-preview, .editor-popover-menu) .editor-scroll-area [class*="overflow-y-auto"] {
+  overflow-y: hidden !important;
+}
+
 .editor-scroll-area::-webkit-scrollbar {
   width: 6px;
 }
@@ -766,10 +772,7 @@ body.has-active-block-handle .block-handle-group {
 
 /* ── Block handle tooltip ─────────────────────────── */
 .block-handle-tooltip {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
+  position: fixed;
   background: rgba(15, 15, 15, 0.92);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -785,8 +788,11 @@ body.has-active-block-handle .block-handle-group {
   font-size: 11px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.9);
-  animation: tooltip-in 100ms ease-out forwards;
+  animation: tooltip-in-bottom 100ms ease-out forwards;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+.block-handle-tooltip--top {
+  animation-name: tooltip-in-top;
 }
 
 html.light .block-handle-tooltip {
@@ -801,9 +807,13 @@ html.light .block-handle-tooltip {
   font-weight: 400;
 }
 
-@keyframes tooltip-in {
-  from { opacity: 0; transform: translateX(-50%) translateY(-3px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+@keyframes tooltip-in-bottom {
+  from { opacity: 0; transform: translateY(-3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes tooltip-in-top {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ── Context menu ─────────────────────────────────── */
@@ -1953,14 +1963,154 @@ html.dark .lexical-callout {
 /* ── Horizontal rule ──────────────────────────────────────────────────────── */
 .lexical-hr-wrapper { margin: 1.5rem 0; }
 
-/* ── Equation ─────────────────────────────────────────────────────────────── */
+/* ── Equation (KaTeX themed) ─────────────────────────────────────────────────── */
 .lexical-equation--block {
-  display: block;
-  text-align: center;
-  padding: 0.5rem;
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+  margin: 0.25rem 0;
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  transition: background-color 0.15s;
+  cursor: pointer;
+}
+.lexical-equation--block:hover {
+  background-color: var(--muted);
+}
+.lexical-equation--inline {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.15em;
+  border-radius: 0.25rem;
+  transition: background-color 0.15s;
+  cursor: pointer;
+  vertical-align: baseline;
+}
+.lexical-equation--inline:hover {
+  background-color: var(--muted);
+}
+.lexical-equation--block .katex,
+.lexical-equation--inline .katex {
+  font-size: 1.1em;
+}
+.lexical-equation--block .katex-display {
+  margin: 0;
+}
+.lexical-equation--block .katex-error,
+.lexical-equation--inline .katex-error {
+  color: #ef4444;
+  font-size: 0.875rem;
+  font-family: var(--font-mono);
+}
+
+/* Equation popover editor */
+.equation-popover {
+  position: fixed;
+  z-index: 99999;
+  min-width: 380px;
+  max-width: 520px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(12px);
+  padding: 0;
+  overflow: hidden;
+}
+.equation-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+.equation-popover-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 0.875rem;
+}
+.equation-popover-preview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.75rem 0.5rem;
+  background: var(--muted);
+  border-radius: 0.5rem;
   overflow-x: auto;
 }
-.lexical-equation--inline { display: inline; padding: 0 0.1em; }
+.equation-popover-preview .katex-error {
+  color: #ef4444;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+}
+.equation-popover-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border-top: 1px solid var(--border);
+}
+.equation-popover textarea {
+  width: 100%;
+  min-height: 3rem;
+  max-height: 8rem;
+  resize: vertical;
+  background: var(--muted);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.equation-popover textarea:focus {
+  border-color: rgba(168, 85, 247, 0.5);
+}
+.equation-popover textarea::placeholder {
+  color: var(--muted-foreground);
+  opacity: 0.5;
+}
+.equation-popover-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s;
+  background: transparent;
+  color: var(--foreground);
+}
+.equation-popover-btn:hover {
+  background: var(--muted);
+}
+.equation-popover-btn--primary {
+  background: rgba(168, 85, 247, 0.15);
+  border-color: rgba(168, 85, 247, 0.3);
+  color: #d8b4fe;
+}
+.equation-popover-btn--primary:hover {
+  background: rgba(168, 85, 247, 0.25);
+}
+.equation-popover-btn--danger {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.2);
+}
+.equation-popover-btn--danger:hover {
+  background: rgba(248, 113, 113, 0.1);
+}
 
 /* ── File block ───────────────────────────────────────────────────────────── */
 .lexical-file-block {

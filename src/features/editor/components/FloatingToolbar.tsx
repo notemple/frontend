@@ -13,10 +13,12 @@ import {
 import { TOGGLE_LINK_COMMAND } from "@lexical/link"
 import { $createEquationNode } from "../nodes/EquationNode"
 import { useState, useRef, useEffect } from "react"
+import type { RefCallback, CSSProperties } from "react"
 
 interface Props {
   editor: LexicalEditor
-  position: { top: number; left: number }
+  menuRef: RefCallback<HTMLDivElement>
+  menuStyle: CSSProperties
   isBold: boolean
   isItalic: boolean
   isUnderline: boolean
@@ -42,7 +44,8 @@ const BLOCK_TYPES = [
 
 export default function FloatingToolbar({
   editor,
-  position,
+  menuRef,
+  menuStyle,
   isBold,
   isItalic,
   isUnderline,
@@ -138,7 +141,7 @@ export default function FloatingToolbar({
       const selection = $getSelection()
       if ($isRangeSelection(selection)) {
         const text = selection.getTextContent()
-        const mathNode = $createEquationNode(text || "f(x) =", true)
+        const mathNode = $createEquationNode(text || "f(x) =", true, true)
         selection.insertNodes([mathNode])
       }
     })
@@ -161,11 +164,9 @@ export default function FloatingToolbar({
 
   return (
     <div
+      ref={menuRef}
       className="fixed z-[9999] flex flex-col rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)]/95 shadow-[0_8px_32px_rgba(0,0,0,0.55)] backdrop-blur-md transition-all duration-200 select-none p-2.5 gap-2 w-[220px]"
-      style={{
-        top: position.top,
-        left: position.left,
-      }}
+      style={menuStyle}
       onMouseDown={(e) => {
         // Prevent loss of focus in Lexical editor
         e.preventDefault()

@@ -6,12 +6,13 @@ import type { ReactNode } from "react"
 import { $createPageLinkNode } from "../nodes/PageLinkNode"
 import { $createTaskNode } from "../nodes/TaskNode"
 import MentionMenu from "../components/MentionMenu"
+import { useEditorMenuPosition } from "@/shared/hooks/usePortalPosition"
 
 export default function MentionPlugin(): ReactNode {
   const [editor] = useLexicalComposerContext()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
-  const [position, setPosition] = useState({ top: 0, bottom: 0, left: 0 })
+  const [triggerRect, setTriggerRect] = useState<{ top: number; bottom: number; left: number } | null>(null)
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [itemsCount, setItemsCount] = useState(0)
   const [triggerType, setTriggerType] = useState<"mention" | "doc-only">("mention")
@@ -87,7 +88,7 @@ export default function MentionPlugin(): ReactNode {
         const editorEl = editor.getRootElement()
         const editorRect = editorEl?.getBoundingClientRect()
 
-        setPosition({
+        setTriggerRect({
           top: rect.top,
           bottom: rect.bottom,
           left: rect.width > 0 ? rect.left : (editorRect?.left ?? 100),
@@ -183,13 +184,22 @@ export default function MentionPlugin(): ReactNode {
     return () => window.removeEventListener("mousedown", handleClick)
   }, [open])
 
+  const { menuRef, style: menuStyle } = useEditorMenuPosition({
+    triggerRect: open ? triggerRect : null,
+    open,
+    offset: 8,
+    maxHeight: 350,
+    maxWidth: 280,
+  })
+
   if (!open) return null
 
   return createPortal(
     <MentionMenu
       selectedIdx={selectedIdx}
-      position={position}
       currentQuery={query}
+      menuRef={menuRef}
+      menuStyle={menuStyle}
       onSelect={insertMention}
       onHover={setSelectedIdx}
       onClose={() => setOpen(false)}

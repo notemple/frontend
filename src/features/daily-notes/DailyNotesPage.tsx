@@ -143,7 +143,7 @@ const DailyNoteTags = ({ documentId }: DailyNoteTagsProps) => {
 
         {isTagPopoverOpen && (
           <div 
-            className="absolute top-7 left-0 z-50 w-64 rounded-lg shadow-xl bg-white dark:bg-[#1f1f22] border border-zinc-200 dark:border-zinc-800 p-2 flex flex-col gap-2"
+            className="editor-popover-menu absolute top-7 left-0 z-50 w-64 rounded-lg shadow-xl bg-white dark:bg-[#1f1f22] border border-zinc-200 dark:border-zinc-800 p-2 flex flex-col gap-2"
             onClick={(e) => e.stopPropagation()}
           >
             <input

@@ -12,8 +12,10 @@ import { MinimizedAiChat } from '@/features/ai/MinimizedAiChat';
 import { useAiStore } from '@/features/ai/aiStore';
 import { ItemDetailModal } from '@/features/collections/components/ItemDetailModal';
 import { useCollectionStore } from '@/features/collections/store/collectionStore';
+import { useDocumentTitle } from './useDocumentTitle';
 
 export const RootLayout = () => {
+  useDocumentTitle();
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [activeItemDetail, setActiveItemDetail] = useState<{ itemId: string; collectionId: string } | null>(null);
   const autoHideSidebars = useSettingsStore(state => state.autoHideSidebars);

@@ -4,11 +4,12 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import type { ReactNode } from "react"
 import { createPortal } from "react-dom"
 import EmojiPickerMenu from "../components/EmojiPickerMenu"
+import { useEditorMenuPosition } from "@/shared/hooks/usePortalPosition"
 
 export default function EmojiPickerPlugin(): ReactNode {
   const [editor] = useLexicalComposerContext()
   const [open, setOpen] = useState(false)
-  const [position, setPosition] = useState({ top: 0, bottom: 0, left: 0 })
+  const [triggerRect, setTriggerRect] = useState<{ top: number; bottom: number; left: number } | null>(null)
 
   // Track the exact trigger position and offset so insertEmoji can delete precisely
   const triggerRef = useRef<{ nodeKey: string; offset: number; endOffset: number } | null>(null)
@@ -68,7 +69,7 @@ export default function EmojiPickerPlugin(): ReactNode {
         const editorEl = editor.getRootElement()
         const editorRect = editorEl?.getBoundingClientRect()
 
-        setPosition({
+        setTriggerRect({
           top: rect.top,
           bottom: rect.bottom,
           left: rect.width > 0 ? rect.left : (editorRect?.left ?? 100),
@@ -135,11 +136,20 @@ export default function EmojiPickerPlugin(): ReactNode {
     return () => window.removeEventListener("mousedown", handleClick)
   }, [open])
 
+  const { menuRef, style: menuStyle } = useEditorMenuPosition({
+    triggerRect: open ? triggerRect : null,
+    open,
+    offset: 8,
+    maxHeight: 450,
+    maxWidth: 350,
+  })
+
   if (!open) return null
 
   return createPortal(
     <EmojiPickerMenu
-      position={position}
+      menuRef={menuRef}
+      menuStyle={menuStyle}
       onSelect={insertEmoji}
     />,
     document.body

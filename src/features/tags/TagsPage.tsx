@@ -3,6 +3,7 @@ import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
 import { formatDisplayDate } from '@/shared/lib/time';
 import { cn,getItemColor,getTagHexColor,getTagStyle,} from '@/shared/lib/utils';
 import { useUiStore } from '@/shared/store/uiStore';
+import { useContextMenuPosition } from '@/shared/hooks/useContextMenuPosition';
 import {
 	ArrowLeft,
 	Check,
@@ -38,6 +39,14 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
   const [isCreatingTag, setIsCreatingTag] = useState(false);
   const [newTagName, setNewTagName] = useState('');
   const [deletingTag, setDeletingTag] = useState<string | null>(null);
+
+  const { menuRef: tagMenuRef, style: tagMenuStyle } = useContextMenuPosition({
+    x: contextMenu?.x ?? 0,
+    y: contextMenu?.y ?? 0,
+    open: !!contextMenu,
+    estimatedWidth: 200,
+    estimatedHeight: 250,
+  });
 
   // Automatically close context menu on window click
   useEffect(() => {
@@ -384,8 +393,9 @@ export const TagsPage = ({ paneId }: { paneId: string }) => {
       {/* Tags Page Context Menu */}
       {contextMenu && (
         <div
+          ref={tagMenuRef}
           className="fixed z-50 bg-background rounded-sm-sm py-1 min-w-[160px] shadow-sm-sm border border-border neu-panel"
-          style={{ top: contextMenu.y, left: contextMenu.x }}
+          style={tagMenuStyle}
           onClick={(e) => e.stopPropagation()}
         >
           <button

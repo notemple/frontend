@@ -4,15 +4,16 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import type { ReactNode } from "react"
 import Fuse from "fuse.js"
-import { slashCommands, calloutSubmenuCommands, type SlashCommand } from "./slashCommandList"
+import { slashCommands, calloutSubmenuCommands, equationSubmenuCommands, type SlashCommand } from "./slashCommandList"
 import SlashCommandMenu, { CATEGORY_ORDER } from "../components/SlashCommandMenu"
+import { useEditorMenuPosition } from "@/shared/hooks/usePortalPosition"
 
 export default function SlashCommandPlugin(): ReactNode {
   const [editor] = useLexicalComposerContext()
   const [open, setOpen] = useState(false)
-  const [menuMode, setMenuMode] = useState<"main" | "callout">("main")
+  const [menuMode, setMenuMode] = useState<"main" | "callout" | "equation">("main")
   const [query, setQuery] = useState("")
-  const [position, setPosition] = useState({ top: 0, bottom: 0, left: 0 })
+  const [triggerRect, setTriggerRect] = useState<{ top: number; bottom: number; left: number } | null>(null)
   const [selectedIdx, setSelectedIdx] = useState(0)
 
   // Track the exact slash position so executeCommand can delete precisely
@@ -26,7 +27,11 @@ export default function SlashCommandPlugin(): ReactNode {
     })
   )
 
-  const activeCommands = menuMode === "callout" ? calloutSubmenuCommands : slashCommands
+  const activeCommands = menuMode === "callout"
+    ? calloutSubmenuCommands
+    : menuMode === "equation"
+      ? equationSubmenuCommands
+      : slashCommands
 
   const unfiltered: SlashCommand[] = query.trim()
     ? (menuMode === "callout"
@@ -34,11 +39,16 @@ export default function SlashCommandPlugin(): ReactNode {
             c.title.toLowerCase().includes(query.toLowerCase()) ||
             c.keywords.some((k) => k.includes(query.toLowerCase()))
           )
-        : fuse.current.search(query).map((r: { item: SlashCommand }) => r.item)
+        : menuMode === "equation"
+          ? equationSubmenuCommands.filter((c) =>
+              c.title.toLowerCase().includes(query.toLowerCase()) ||
+              c.keywords.some((k) => k.includes(query.toLowerCase()))
+            )
+          : fuse.current.search(query).map((r: { item: SlashCommand }) => r.item)
       )
     : activeCommands
 
-  const filtered = menuMode === "callout"
+  const filtered = menuMode === "callout" || menuMode === "equation"
     ? unfiltered
     : CATEGORY_ORDER.reduce<SlashCommand[]>((acc, cat) => {
         return acc.concat(unfiltered.filter((c) => c.category === cat))
@@ -106,7 +116,7 @@ export default function SlashCommandPlugin(): ReactNode {
         const editorEl = editor.getRootElement()
         const editorRect = editorEl?.getBoundingClientRect()
 
-        setPosition({
+        setTriggerRect({
           top: rect.top,
           bottom: rect.bottom,
           left: rect.width > 0
@@ -130,7 +140,11 @@ export default function SlashCommandPlugin(): ReactNode {
   const executeCommand = useCallback(
     (command: SlashCommand) => {
       if (command.submenu && menuMode === "main") {
-        setMenuMode("callout")
+        if (command.title === "Callout") {
+          setMenuMode("callout")
+        } else if (command.title === "Math Equation") {
+          setMenuMode("equation")
+        }
         setQuery("")
         setSelectedIdx(0)
         return
@@ -172,7 +186,7 @@ export default function SlashCommandPlugin(): ReactNode {
         setMenuMode("main")
         return
       }
-      if (e.key === "Backspace" && menuMode === "callout" && query === "") {
+      if (e.key === "Backspace" && (menuMode === "callout" || menuMode === "equation") && query === "") {
         e.preventDefault()
         e.stopPropagation()
         setMenuMode("main")
@@ -214,6 +228,14 @@ export default function SlashCommandPlugin(): ReactNode {
     return () => window.removeEventListener("mousedown", handleClick)
   }, [open])
 
+  const { menuRef, style: menuStyle } = useEditorMenuPosition({
+    triggerRect: open ? triggerRect : null,
+    open,
+    offset: 8,
+    maxHeight: 350,
+    maxWidth: 260,
+  })
+
   // FIX 6: keep menu open even with 0 results (shows empty state)
   if (!open) return null
 
@@ -221,8 +243,9 @@ export default function SlashCommandPlugin(): ReactNode {
     <SlashCommandMenu
       commands={filtered}
       selectedIdx={selectedIdx}
-      position={position}
       currentQuery={query}
+      menuRef={menuRef}
+      menuStyle={menuStyle}
       onSelect={(cmd) => executeCommand(cmd)}
       onHover={(idx) => setSelectedIdx(idx)}
       onClose={() => {

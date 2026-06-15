@@ -1,7 +1,8 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState, useCallback, useLayoutEffect } from "react"
 import type { ReactNode } from "react"
 import { createPortal } from "react-dom"
+import { getPopupPosition } from "../../../shared/hooks/usePortalPosition"
 
 import {
   $getNodeByKey,
@@ -23,6 +24,7 @@ import {
   INSERT_UNORDERED_LIST_COMMAND,
 } from "@lexical/list"
 import { ColorPicker } from '../../../shared/ui/ColorPicker';
+import { useContextMenuPosition } from '@/shared/hooks/useContextMenuPosition';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 // --- MONKEY PATCH FOR ELEMENT NODE STYLES ---
@@ -83,11 +85,52 @@ function formatTimeAgo(date: Date): string {
 
 // ─── Tooltip ──────────────────────────────────────────────────────────────────
 
-function Tooltip({ children }: { children: React.ReactNode }) {
+function Tooltip({
+  children,
+  triggerRef,
+}: {
+  children: React.ReactNode
+  triggerRef: React.RefObject<HTMLDivElement | null>
+}) {
+  const tooltipRef = useRef<HTMLDivElement>(null)
+  const [style, setStyle] = useState<React.CSSProperties>({
+    position: "fixed",
+    top: -9999,
+    left: -9999,
+  })
+  const [placement, setPlacement] = useState<"bottom" | "top">("bottom")
+
+  useLayoutEffect(() => {
+    const trigger = triggerRef.current
+    const tooltip = tooltipRef.current
+    if (!trigger || !tooltip) return
+
+    const triggerRect = trigger.getBoundingClientRect()
+    const tooltipRect = tooltip.getBoundingClientRect()
+
+    const result = getPopupPosition(triggerRect, {
+      preferredPlacement: "bottom",
+      offset: 6,
+      menuWidth: tooltipRect.width,
+      menuHeight: tooltipRect.height,
+      centerHorizontally: true,
+    })
+
+    setPlacement(result.placement)
+    setStyle({
+      position: "fixed",
+      top: result.top,
+      left: result.left,
+      zIndex: 9999,
+    })
+  }, [triggerRef])
+
   return (
     <div
-      className="block-handle-tooltip"
+      ref={tooltipRef}
+      className={`block-handle-tooltip ${placement === "top" ? "block-handle-tooltip--top" : ""}`}
       role="tooltip"
+      style={style}
     >
       {children}
     </div>
@@ -98,9 +141,10 @@ function Tooltip({ children }: { children: React.ReactNode }) {
 
 function AddButton({ onClick }: { onClick: (e: React.MouseEvent) => void }) {
   const [showTooltip, setShowTooltip] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
 
   return (
-    <div className="block-handle-btn-wrapper" style={{ position: "relative" }}>
+    <div ref={wrapperRef} className="block-handle-btn-wrapper" style={{ position: "relative" }}>
       <button
         id="block-handle-add"
         className="block-handle-btn"
@@ -117,7 +161,7 @@ function AddButton({ onClick }: { onClick: (e: React.MouseEvent) => void }) {
         </svg>
       </button>
       {showTooltip && (
-        <Tooltip>
+        <Tooltip triggerRef={wrapperRef}>
           <span>Click to add below, Alt+Click to add above</span>
         </Tooltip>
       )}
@@ -133,9 +177,10 @@ function DragHandleButton({
   onClick: (e: React.MouseEvent) => void
 }) {
   const [showTooltip, setShowTooltip] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
 
   return (
-    <div className="block-handle-btn-wrapper" style={{ position: "relative" }}>
+    <div ref={wrapperRef} className="block-handle-btn-wrapper" style={{ position: "relative" }}>
       <button
         id="block-handle-drag"
         className="block-handle-btn"
@@ -158,7 +203,7 @@ function DragHandleButton({
         </svg>
       </button>
       {showTooltip && (
-        <Tooltip>
+        <Tooltip triggerRef={wrapperRef}>
           <span>Click for options</span>
           <span className="block-handle-tooltip-hint">Drag to reorder</span>
         </Tooltip>
@@ -185,7 +230,7 @@ const COLORS = [
 // ─── Context Menu ─────────────────────────────────────────────────────────────
 
 interface MenuProps {
-  position: { top: number; left: number }
+  position: { x: number; y: number }
   nodeKey: string
   onClose: () => void
   onDuplicate: () => void
@@ -218,8 +263,15 @@ function BlockContextMenu({
   const [search, setSearch] = useState("")
   const [turnIntoOpen, setTurnIntoOpen] = useState(false)
   const [colorOpen, setColorOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
+
+  const { menuRef, menuRefObject, style: menuStyle } = useContextMenuPosition({
+    x: position.x,
+    y: position.y,
+    open: true,
+    estimatedWidth: 260,
+    estimatedHeight: 340,
+  })
 
   // Auto-focus search
   useEffect(() => {
@@ -229,7 +281,7 @@ function BlockContextMenu({
   // Close on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      if (menuRefObject.current && !menuRefObject.current.contains(e.target as Node)) {
         onClose()
       }
     }
@@ -341,21 +393,11 @@ function BlockContextMenu({
     })
     : menuItems
 
-  // Adjust menu position so it stays in viewport
-  const viewportHeight = window.innerHeight
-  const menuHeight = 340 // approximate
-  const top = position.top + menuHeight > viewportHeight
-    ? Math.max(8, position.top - menuHeight)
-    : position.top
-
-  // Clamp left so menu doesn't overflow right edge
-  const left = Math.min(position.left, window.innerWidth - 260)
-
   return (
     <div
       ref={menuRef}
       className="block-context-menu block-options-menu"
-      style={{ top, left }}
+      style={menuStyle}
       role="menu"
       aria-label="Block options"
     >
@@ -609,7 +651,7 @@ export default function BlockHandlePlugin({
   }, [handle])
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string>('transparent');
-  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 })
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const lastEditedRef = useRef<Date>(new Date())
   // FIX 7d: toast state
@@ -801,12 +843,65 @@ export default function BlockHandlePlugin({
       }
     }
 
+    // Scroll listener: recalculate handle position when the editor scrolls
+    const scrollContainer = document.querySelector('.editor-scroll-area') as HTMLElement | null
+    const onScroll = () => {
+      if (menuOpen) return
+      const current = handleRef.current
+      if (!current) return
+
+      const blockEl = root.querySelector(
+        `[data-lexical-node-key="${current.nodeKey}"]`
+      ) as HTMLElement | null
+      if (!blockEl) {
+        setHandle(null)
+        return
+      }
+
+      const rect = blockEl.getBoundingClientRect()
+      // Hide handle if block has scrolled out of the viewport
+      if (rect.bottom < -40 || rect.top > window.innerHeight + 40) {
+        setHandle(null)
+        return
+      }
+
+      const rootRect = root.getBoundingClientRect()
+      let leftPos = rect.left - 52
+      if (isNested) {
+        leftPos = rect.left - 30
+      }
+      if (!blockEl.classList.contains("lexical-image-wrapper")) {
+        leftPos = Math.max(rootRect.left - 56, leftPos)
+      }
+
+      setHandle((prev) => {
+        const newTop = rect.top
+        const newLeft = leftPos
+        const newHeight = rect.height
+        if (
+          prev &&
+          prev.top === newTop &&
+          prev.left === newLeft &&
+          prev.height === newHeight
+        ) {
+          return prev
+        }
+        return { top: newTop, left: newLeft, height: newHeight, nodeKey: current.nodeKey }
+      })
+    }
+
     document.addEventListener("mousemove", onMouseMove)
     document.addEventListener("mousedown", onMouseDown)
+    if (scrollContainer) {
+      scrollContainer.addEventListener("scroll", onScroll, { passive: true })
+    }
 
     return () => {
       document.removeEventListener("mousemove", onMouseMove)
       document.removeEventListener("mousedown", onMouseDown)
+      if (scrollContainer) {
+        scrollContainer.removeEventListener("scroll", onScroll)
+      }
       clearTimeout(hideTimer.current)
     }
   }, [editor, menuOpen, isNested]);
@@ -838,10 +933,9 @@ export default function BlockHandlePlugin({
     (e: React.MouseEvent) => {
       e.preventDefault()
       e.stopPropagation()
-      const rect = e.currentTarget.getBoundingClientRect()
       setMenuPosition({
-        top: rect.bottom + 6,
-        left: rect.left,
+        x: e.clientX,
+        y: e.clientY,
       })
       setMenuOpen(true)
     },

@@ -772,10 +772,7 @@ body.has-active-block-handle .block-handle-group {
 
 /* ── Block handle tooltip ─────────────────────────── */
 .block-handle-tooltip {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
+  position: fixed;
   background: rgba(15, 15, 15, 0.92);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -791,8 +788,11 @@ body.has-active-block-handle .block-handle-group {
   font-size: 11px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.9);
-  animation: tooltip-in 100ms ease-out forwards;
+  animation: tooltip-in-bottom 100ms ease-out forwards;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+.block-handle-tooltip--top {
+  animation-name: tooltip-in-top;
 }
 
 html.light .block-handle-tooltip {
@@ -807,9 +807,13 @@ html.light .block-handle-tooltip {
   font-weight: 400;
 }
 
-@keyframes tooltip-in {
-  from { opacity: 0; transform: translateX(-50%) translateY(-3px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+@keyframes tooltip-in-bottom {
+  from { opacity: 0; transform: translateY(-3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes tooltip-in-top {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ── Context menu ─────────────────────────────────── */

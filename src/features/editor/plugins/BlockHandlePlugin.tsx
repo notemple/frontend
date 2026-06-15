@@ -1,7 +1,8 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState, useCallback, useLayoutEffect } from "react"
 import type { ReactNode } from "react"
 import { createPortal } from "react-dom"
+import { getPopupPosition } from "../../../shared/hooks/usePortalPosition"
 
 import {
   $getNodeByKey,
@@ -84,11 +85,52 @@ function formatTimeAgo(date: Date): string {
 
 // ─── Tooltip ──────────────────────────────────────────────────────────────────
 
-function Tooltip({ children }: { children: React.ReactNode }) {
+function Tooltip({
+  children,
+  triggerRef,
+}: {
+  children: React.ReactNode
+  triggerRef: React.RefObject<HTMLDivElement | null>
+}) {
+  const tooltipRef = useRef<HTMLDivElement>(null)
+  const [style, setStyle] = useState<React.CSSProperties>({
+    position: "fixed",
+    top: -9999,
+    left: -9999,
+  })
+  const [placement, setPlacement] = useState<"bottom" | "top">("bottom")
+
+  useLayoutEffect(() => {
+    const trigger = triggerRef.current
+    const tooltip = tooltipRef.current
+    if (!trigger || !tooltip) return
+
+    const triggerRect = trigger.getBoundingClientRect()
+    const tooltipRect = tooltip.getBoundingClientRect()
+
+    const result = getPopupPosition(triggerRect, {
+      preferredPlacement: "bottom",
+      offset: 6,
+      menuWidth: tooltipRect.width,
+      menuHeight: tooltipRect.height,
+      centerHorizontally: true,
+    })
+
+    setPlacement(result.placement)
+    setStyle({
+      position: "fixed",
+      top: result.top,
+      left: result.left,
+      zIndex: 9999,
+    })
+  }, [triggerRef])
+
   return (
     <div
-      className="block-handle-tooltip"
+      ref={tooltipRef}
+      className={`block-handle-tooltip ${placement === "top" ? "block-handle-tooltip--top" : ""}`}
       role="tooltip"
+      style={style}
     >
       {children}
     </div>
@@ -99,9 +141,10 @@ function Tooltip({ children }: { children: React.ReactNode }) {
 
 function AddButton({ onClick }: { onClick: (e: React.MouseEvent) => void }) {
   const [showTooltip, setShowTooltip] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
 
   return (
-    <div className="block-handle-btn-wrapper" style={{ position: "relative" }}>
+    <div ref={wrapperRef} className="block-handle-btn-wrapper" style={{ position: "relative" }}>
       <button
         id="block-handle-add"
         className="block-handle-btn"
@@ -118,7 +161,7 @@ function AddButton({ onClick }: { onClick: (e: React.MouseEvent) => void }) {
         </svg>
       </button>
       {showTooltip && (
-        <Tooltip>
+        <Tooltip triggerRef={wrapperRef}>
           <span>Click to add below, Alt+Click to add above</span>
         </Tooltip>
       )}
@@ -134,9 +177,10 @@ function DragHandleButton({
   onClick: (e: React.MouseEvent) => void
 }) {
   const [showTooltip, setShowTooltip] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
 
   return (
-    <div className="block-handle-btn-wrapper" style={{ position: "relative" }}>
+    <div ref={wrapperRef} className="block-handle-btn-wrapper" style={{ position: "relative" }}>
       <button
         id="block-handle-drag"
         className="block-handle-btn"
@@ -159,7 +203,7 @@ function DragHandleButton({
         </svg>
       </button>
       {showTooltip && (
-        <Tooltip>
+        <Tooltip triggerRef={wrapperRef}>
           <span>Click for options</span>
           <span className="block-handle-tooltip-hint">Drag to reorder</span>
         </Tooltip>

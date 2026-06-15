@@ -65,12 +65,40 @@ function EquationPopoverEditor({
       const left = Math.max(
         8,
         Math.min(
-          rect.left + window.scrollX - (popoverWidth - rect.width) / 2,
+          rect.left - (popoverWidth - rect.width) / 2,
           window.innerWidth - popoverWidth - 8
         )
       )
-      const top = rect.bottom + window.scrollY + 8
+      const top = rect.bottom + 8
       setPopoverPos({ top, left })
+    }
+  }, [nodeKey])
+
+  // Reposition popover when editor scrolls
+  useEffect(() => {
+    const scrollContainer = document.querySelector('.editor-scroll-area') as HTMLElement | null
+    if (!scrollContainer) return
+
+    const updatePosition = () => {
+      const node = document.querySelector(`[data-equation-key="${nodeKey}"]`)
+      if (node) {
+        const rect = node.getBoundingClientRect()
+        const popoverWidth = 420
+        const left = Math.max(
+          8,
+          Math.min(
+            rect.left - (popoverWidth - rect.width) / 2,
+            window.innerWidth - popoverWidth - 8
+          )
+        )
+        const top = rect.bottom + 8
+        setPopoverPos({ top, left })
+      }
+    }
+
+    scrollContainer.addEventListener('scroll', updatePosition, { passive: true })
+    return () => {
+      scrollContainer.removeEventListener('scroll', updatePosition)
     }
   }, [nodeKey])
 

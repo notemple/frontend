@@ -165,6 +165,24 @@ export default function FloatingToolbarPlugin(): React.ReactNode {
     }
   }, [editor, updateToolbar])
 
+  // Reposition toolbar when the editor scrolls
+  useEffect(() => {
+    if (!open) return
+    const scrollContainer = document.querySelector('.editor-scroll-area') as HTMLElement | null
+    if (!scrollContainer) return
+
+    const handleScroll = () => {
+      editor.getEditorState().read(() => {
+        updateToolbar()
+      })
+    }
+
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      scrollContainer.removeEventListener('scroll', handleScroll)
+    }
+  }, [editor, updateToolbar, open])
+
   if (!open) return null
 
   return createPortal(

@@ -158,9 +158,30 @@ function CalloutComponent({
   useEffect(() => {
     if (isPickerOpen && emojiRef.current) {
       const rect = emojiRef.current.getBoundingClientRect()
-      const top = rect.bottom + window.scrollY + 6
-      const left = Math.max(10, Math.min(rect.left + window.scrollX, window.innerWidth - 370))
+      const top = rect.bottom + 6
+      const left = Math.max(10, Math.min(rect.left, window.innerWidth - 370))
       setPickerPos({ top, left })
+    }
+  }, [isPickerOpen])
+
+  // Reposition picker on scroll
+  useEffect(() => {
+    if (!isPickerOpen) return
+    const scrollContainer = document.querySelector('.editor-scroll-area') as HTMLElement | null
+    if (!scrollContainer) return
+
+    const updatePosition = () => {
+      if (emojiRef.current) {
+        const rect = emojiRef.current.getBoundingClientRect()
+        const top = rect.bottom + 6
+        const left = Math.max(10, Math.min(rect.left, window.innerWidth - 370))
+        setPickerPos({ top, left })
+      }
+    }
+
+    scrollContainer.addEventListener('scroll', updatePosition, { passive: true })
+    return () => {
+      scrollContainer.removeEventListener('scroll', updatePosition)
     }
   }, [isPickerOpen])
 

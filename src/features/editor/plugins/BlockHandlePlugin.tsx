@@ -801,12 +801,65 @@ export default function BlockHandlePlugin({
       }
     }
 
+    // Scroll listener: recalculate handle position when the editor scrolls
+    const scrollContainer = document.querySelector('.editor-scroll-area') as HTMLElement | null
+    const onScroll = () => {
+      if (menuOpen) return
+      const current = handleRef.current
+      if (!current) return
+
+      const blockEl = root.querySelector(
+        `[data-lexical-node-key="${current.nodeKey}"]`
+      ) as HTMLElement | null
+      if (!blockEl) {
+        setHandle(null)
+        return
+      }
+
+      const rect = blockEl.getBoundingClientRect()
+      // Hide handle if block has scrolled out of the viewport
+      if (rect.bottom < -40 || rect.top > window.innerHeight + 40) {
+        setHandle(null)
+        return
+      }
+
+      const rootRect = root.getBoundingClientRect()
+      let leftPos = rect.left - 52
+      if (isNested) {
+        leftPos = rect.left - 30
+      }
+      if (!blockEl.classList.contains("lexical-image-wrapper")) {
+        leftPos = Math.max(rootRect.left - 56, leftPos)
+      }
+
+      setHandle((prev) => {
+        const newTop = rect.top
+        const newLeft = leftPos
+        const newHeight = rect.height
+        if (
+          prev &&
+          prev.top === newTop &&
+          prev.left === newLeft &&
+          prev.height === newHeight
+        ) {
+          return prev
+        }
+        return { top: newTop, left: newLeft, height: newHeight, nodeKey: current.nodeKey }
+      })
+    }
+
     document.addEventListener("mousemove", onMouseMove)
     document.addEventListener("mousedown", onMouseDown)
+    if (scrollContainer) {
+      scrollContainer.addEventListener("scroll", onScroll, { passive: true })
+    }
 
     return () => {
       document.removeEventListener("mousemove", onMouseMove)
       document.removeEventListener("mousedown", onMouseDown)
+      if (scrollContainer) {
+        scrollContainer.removeEventListener("scroll", onScroll)
+      }
       clearTimeout(hideTimer.current)
     }
   }, [editor, menuOpen, isNested]);

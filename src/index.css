@@ -603,6 +603,11 @@ html.light .lexical-root hr {
   scrollbar-color: var(--border) transparent;
 }
 
+body:has(.slash-command-menu, .mention-menu, .emoji-menu, .block-context-menu, .block-options-menu, .equation-popover, .page-link-preview, .editor-popover-menu) .editor-scroll-area,
+body:has(.slash-command-menu, .mention-menu, .emoji-menu, .block-context-menu, .block-options-menu, .equation-popover, .page-link-preview, .editor-popover-menu) .editor-scroll-area [class*="overflow-y-auto"] {
+  overflow-y: hidden !important;
+}
+
 .editor-scroll-area::-webkit-scrollbar {
   width: 6px;
 }

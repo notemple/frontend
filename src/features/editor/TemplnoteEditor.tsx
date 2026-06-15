@@ -51,6 +51,43 @@ interface Props {
 
 function EditorScrollContainer({ children, isMinimized }: { children: React.ReactNode; isMinimized?: boolean }) {
   const [editor] = useLexicalComposerContext()
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Global wheel listener: when wheel events target elements OUTSIDE the scroll area
+  // (e.g. fixed-position popovers, context menus), forward the scroll to the editor.
+  useEffect(() => {
+    const scrollEl = scrollRef.current
+    if (!scrollEl) return
+
+    const handleWheel = (e: WheelEvent) => {
+      const target = e.target as HTMLElement
+      // If the scroll area itself is the target (or a descendant), let native scroll handle it
+      if (scrollEl.contains(target)) return
+
+      // Check if the target is inside a scrollable popover list that hasn't reached its boundary
+      let scrollableParent: HTMLElement | null = target
+      while (scrollableParent && scrollableParent !== document.body) {
+        const style = window.getComputedStyle(scrollableParent)
+        if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+          const { scrollTop, scrollHeight, clientHeight } = scrollableParent
+          const atTop = scrollTop <= 0 && e.deltaY < 0
+          const atBottom = scrollTop + clientHeight >= scrollHeight - 1 && e.deltaY > 0
+          // If the popover list can still scroll in this direction, let it
+          if (!atTop && !atBottom) return
+          // At boundary — fall through to scroll the editor
+          break
+        }
+        scrollableParent = scrollableParent.parentElement
+      }
+
+      // Forward the wheel to the editor scroll area
+      e.preventDefault()
+      scrollEl.scrollTop += e.deltaY
+    }
+
+    document.addEventListener('wheel', handleWheel, { passive: false })
+    return () => document.removeEventListener('wheel', handleWheel)
+  }, [editor])
 
   const handleScrollAreaClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement
@@ -102,6 +139,7 @@ function EditorScrollContainer({ children, isMinimized }: { children: React.Reac
 
   return (
     <div
+      ref={scrollRef}
       className={cn(
         "editor-scroll-area flex-1 w-full flex flex-col",
         isMinimized ? "items-start" : "items-center"
@@ -324,7 +362,7 @@ export function TemplnoteEditor({
    
                   {isEmojiPickerOpen && (
                     <div 
-                      className="absolute top-18 left-0 z-50 rounded-lg shadow-xl bg-white dark:bg-[#1f1f22] border border-zinc-200 dark:border-zinc-800 p-2 flex flex-col gap-2"
+                      className="editor-popover-menu absolute top-18 left-0 z-50 rounded-lg shadow-xl bg-white dark:bg-[#1f1f22] border border-zinc-200 dark:border-zinc-800 p-2 flex flex-col gap-2"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {doc?.icon && (
@@ -438,7 +476,7 @@ export function TemplnoteEditor({
 
                           {isTagPopoverOpen && (
                             <div 
-                              className="absolute top-7 left-0 z-50 w-64 rounded-lg shadow-xl bg-white dark:bg-[#1f1f22] border border-zinc-200 dark:border-zinc-800 p-2 flex flex-col gap-2"
+                              className="editor-popover-menu absolute top-7 left-0 z-50 w-64 rounded-lg shadow-xl bg-white dark:bg-[#1f1f22] border border-zinc-200 dark:border-zinc-800 p-2 flex flex-col gap-2"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <input

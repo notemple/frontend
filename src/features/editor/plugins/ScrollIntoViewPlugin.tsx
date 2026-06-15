@@ -13,7 +13,7 @@ export default function ScrollIntoViewPlugin(): null {
         if (!nativeSel || nativeSel.rangeCount === 0) return
         const range = nativeSel.getRangeAt(0)
         const rect = range.getBoundingClientRect()
-        if (rect.bottom > window.innerHeight - 80) {
+        if (rect.bottom > window.innerHeight - 80 || rect.top < 80) {
           range.startContainer.parentElement?.scrollIntoView({
             block: "nearest",
             behavior: "smooth",

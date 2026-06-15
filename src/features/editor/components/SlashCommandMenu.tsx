@@ -1,12 +1,14 @@
 import * as Icons from "@phosphor-icons/react"
-import { useRef, useEffect, useState } from "react"
+import { useRef, useEffect } from "react"
 import type { SlashCommand } from "../plugins/slashCommandList"
+import type { RefCallback, CSSProperties } from "react"
 
 interface Props {
   commands: SlashCommand[]
   selectedIdx: number
-  position: { top: number; bottom: number; left: number }
   currentQuery: string
+  menuRef: RefCallback<HTMLDivElement>
+  menuStyle: CSSProperties
   onSelect: (cmd: SlashCommand) => void
   onHover: (idx: number) => void
   onClose: () => void
@@ -17,41 +19,17 @@ export const CATEGORY_ORDER = ["Basic", "Lists", "Layout", "Media", "Advanced"]
 export default function SlashCommandMenu({
   commands,
   selectedIdx,
-  position,
   currentQuery,
+  menuRef,
+  menuStyle,
   onSelect,
   onHover,
 }: Props) {
-  // FIX 4: use a ref on the selected button directly
   const selectedRef = useRef<HTMLButtonElement>(null)
-  const menuRef = useRef<HTMLDivElement>(null)
-  const [coords, setCoords] = useState({ top: position.bottom + 8, left: position.left })
 
   useEffect(() => {
     selectedRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" })
   }, [selectedIdx])
-
-  useEffect(() => {
-    const el = menuRef.current
-    if (!el) return
-
-    const rect = el.getBoundingClientRect()
-    const menuHeight = rect.height || 350
-    const menuWidth = rect.width || 260
-
-    // Check space below
-    const spaceBelow = window.innerHeight - position.bottom - 16
-    let targetTop = position.bottom + 8
-
-    if (spaceBelow < menuHeight && position.top > menuHeight + 16) {
-      // Place above the cursor
-      targetTop = position.top - menuHeight - 8
-    }
-
-    const targetLeft = Math.max(10, Math.min(position.left, window.innerWidth - menuWidth - 16))
-
-    setCoords({ top: targetTop, left: targetLeft })
-  }, [position.top, position.bottom, position.left, commands.length])
 
   const grouped = CATEGORY_ORDER.reduce<Record<string, SlashCommand[]>>(
     (acc, cat) => {
@@ -69,12 +47,7 @@ export default function SlashCommandMenu({
       ref={menuRef}
       data-testid="slash-menu"
       className="slash-command-menu w-[260px] rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
-      style={{
-        position: "fixed",
-        top: coords.top,
-        left: coords.left,
-        zIndex: 9999,
-      }}
+      style={menuStyle}
       onMouseDown={(e) => {
         e.preventDefault()
         e.stopPropagation()

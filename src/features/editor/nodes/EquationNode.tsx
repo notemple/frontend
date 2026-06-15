@@ -11,6 +11,7 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { createPortal } from "react-dom"
 import * as Icons from "@phosphor-icons/react"
 import katex from "katex"
+import { getPopupPosition } from "../../../shared/hooks/usePortalPosition"
 
 export type SerializedEquationNode = Spread<
   { equation: string; inline: boolean },
@@ -57,50 +58,50 @@ function EquationPopoverEditor({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
+  const recalcPosition = useCallback(() => {
     const node = document.querySelector(`[data-equation-key="${nodeKey}"]`)
-    if (node) {
-      const rect = node.getBoundingClientRect()
-      const popoverWidth = 420
-      const left = Math.max(
-        8,
-        Math.min(
-          rect.left - (popoverWidth - rect.width) / 2,
-          window.innerWidth - popoverWidth - 8
-        )
-      )
-      const top = rect.bottom + 8
-      setPopoverPos({ top, left })
-    }
+    const popover = popoverRef.current
+    if (!node || !popover) return
+
+    const triggerRect = node.getBoundingClientRect()
+    const popoverRect = popover.getBoundingClientRect()
+
+    const { top, left } = getPopupPosition(triggerRect, {
+      preferredPlacement: "bottom",
+      offset: 8,
+      menuWidth: popoverRect.width,
+      menuHeight: popoverRect.height,
+      centerHorizontally: true,
+    })
+
+    setPopoverPos({ top, left })
   }, [nodeKey])
 
-  // Reposition popover when editor scrolls
+  useEffect(() => {
+    recalcPosition()
+  }, [recalcPosition])
+
+  // Reposition popover when editor scrolls or viewport resizes
   useEffect(() => {
     const scrollContainer = document.querySelector('.editor-scroll-area') as HTMLElement | null
-    if (!scrollContainer) return
-
-    const updatePosition = () => {
-      const node = document.querySelector(`[data-equation-key="${nodeKey}"]`)
-      if (node) {
-        const rect = node.getBoundingClientRect()
-        const popoverWidth = 420
-        const left = Math.max(
-          8,
-          Math.min(
-            rect.left - (popoverWidth - rect.width) / 2,
-            window.innerWidth - popoverWidth - 8
-          )
-        )
-        const top = rect.bottom + 8
-        setPopoverPos({ top, left })
-      }
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', recalcPosition, { passive: true })
     }
-
-    scrollContainer.addEventListener('scroll', updatePosition, { passive: true })
+    window.addEventListener('resize', recalcPosition)
     return () => {
-      scrollContainer.removeEventListener('scroll', updatePosition)
+      scrollContainer?.removeEventListener('scroll', recalcPosition)
+      window.removeEventListener('resize', recalcPosition)
     }
-  }, [nodeKey])
+  }, [recalcPosition])
+
+  // Reposition when popover size changes (textarea grows/shrinks)
+  useEffect(() => {
+    const popover = popoverRef.current
+    if (!popover) return
+    const ro = new ResizeObserver(recalcPosition)
+    ro.observe(popover)
+    return () => ro.disconnect()
+  }, [recalcPosition])
 
   useEffect(() => {
     if (textareaRef.current) {

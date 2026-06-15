@@ -13,6 +13,7 @@ import { useUiStore } from "../../../shared/store/uiStore"
 import { useCollectionStore } from "@/features/collections/store/collectionStore"
 import { $isPageLinkNode } from "../nodes/PageLinkNode"
 import * as Icons from "@phosphor-icons/react"
+import { getPopupPosition } from "@/shared/hooks/usePortalPosition"
 
 interface Props {
   paneId?: string
@@ -77,21 +78,15 @@ export default function PageLinkPreviewPlugin({ paneId }: Props): React.ReactNod
           const rect = target.getBoundingClientRect()
           const width = 340
           const height = 350 // estimated default height
-          
-          let left = rect.left
-          if (left + width > window.innerWidth) {
-            left = window.innerWidth - width - 16
-          }
-          left = Math.max(16, left)
 
-          let top = rect.bottom + 8
-          if (rect.bottom + height > window.innerHeight) {
-            top = rect.top - height - 8
-          }
+          const result = getPopupPosition(
+            { top: rect.top, bottom: rect.bottom, left: rect.left, width: rect.width },
+            { menuWidth: width, menuHeight: height, offset: 8, centerHorizontally: false }
+          )
 
           setPreviewData({
             docId,
-            position: { top, left }
+            position: { top: result.top, left: result.left }
           })
         }
       }, 250) // 250ms hover delay

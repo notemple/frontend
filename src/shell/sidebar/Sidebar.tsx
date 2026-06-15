@@ -7,6 +7,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { ColorPicker } from '@/shared/ui/ColorPicker';
 import { TnLogo } from '@/shared/ui/TnLogo';
+import { useContextMenuPosition } from '@/shared/hooks/useContextMenuPosition';
 import {
   Book,
   CalendarBlank,
@@ -161,10 +162,19 @@ const SidebarContextMenu = ({
   const documentColor = useDocumentStore(documentColorSelector);
   const updateDocument = useDocumentStore(state => state.updateDocument);
 
+  const { menuRef, style: menuStyle } = useContextMenuPosition({
+    x: contextMenu.x,
+    y: contextMenu.y,
+    open: true,
+    estimatedWidth: 180,
+    estimatedHeight: 200,
+  });
+
   return (
     <div
+      ref={menuRef}
       className="fixed z-50 bg-background neu-panel rounded-sm-sm py-1 min-w-35 shadow-sm-sm border border-border"
-      style={{ top: contextMenu.y, left: contextMenu.x }}
+      style={menuStyle}
       onClick={(e) => e.stopPropagation()}
     >
       {contextMenu.type === 'document' && (

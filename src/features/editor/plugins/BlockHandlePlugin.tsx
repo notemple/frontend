@@ -23,6 +23,7 @@ import {
   INSERT_UNORDERED_LIST_COMMAND,
 } from "@lexical/list"
 import { ColorPicker } from '../../../shared/ui/ColorPicker';
+import { useContextMenuPosition } from '@/shared/hooks/useContextMenuPosition';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 // --- MONKEY PATCH FOR ELEMENT NODE STYLES ---
@@ -185,7 +186,7 @@ const COLORS = [
 // ─── Context Menu ─────────────────────────────────────────────────────────────
 
 interface MenuProps {
-  position: { top: number; left: number }
+  position: { x: number; y: number }
   nodeKey: string
   onClose: () => void
   onDuplicate: () => void
@@ -218,8 +219,15 @@ function BlockContextMenu({
   const [search, setSearch] = useState("")
   const [turnIntoOpen, setTurnIntoOpen] = useState(false)
   const [colorOpen, setColorOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
+
+  const { menuRef, menuRefObject, style: menuStyle } = useContextMenuPosition({
+    x: position.x,
+    y: position.y,
+    open: true,
+    estimatedWidth: 260,
+    estimatedHeight: 340,
+  })
 
   // Auto-focus search
   useEffect(() => {
@@ -229,7 +237,7 @@ function BlockContextMenu({
   // Close on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      if (menuRefObject.current && !menuRefObject.current.contains(e.target as Node)) {
         onClose()
       }
     }
@@ -341,21 +349,11 @@ function BlockContextMenu({
     })
     : menuItems
 
-  // Adjust menu position so it stays in viewport
-  const viewportHeight = window.innerHeight
-  const menuHeight = 340 // approximate
-  const top = position.top + menuHeight > viewportHeight
-    ? Math.max(8, position.top - menuHeight)
-    : position.top
-
-  // Clamp left so menu doesn't overflow right edge
-  const left = Math.min(position.left, window.innerWidth - 260)
-
   return (
     <div
       ref={menuRef}
       className="block-context-menu block-options-menu"
-      style={{ top, left }}
+      style={menuStyle}
       role="menu"
       aria-label="Block options"
     >
@@ -609,7 +607,7 @@ export default function BlockHandlePlugin({
   }, [handle])
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string>('transparent');
-  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 })
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const lastEditedRef = useRef<Date>(new Date())
   // FIX 7d: toast state
@@ -891,10 +889,9 @@ export default function BlockHandlePlugin({
     (e: React.MouseEvent) => {
       e.preventDefault()
       e.stopPropagation()
-      const rect = e.currentTarget.getBoundingClientRect()
       setMenuPosition({
-        top: rect.bottom + 6,
-        left: rect.left,
+        x: e.clientX,
+        y: e.clientY,
       })
       setMenuOpen(true)
     },

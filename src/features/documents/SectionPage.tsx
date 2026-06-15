@@ -12,6 +12,7 @@ import { TAG_COLOR_PRESETS } from '@/shared/constants/colors';
 import { getFolderHexColor } from '@/shared/lib/utils';
 import { useUiStore } from '@/shared/store/uiStore';
 import { ColorPicker } from '@/shared/ui/ColorPicker';
+import { useContextMenuPosition } from '@/shared/hooks/useContextMenuPosition';
 import { DeleteFolderDialog } from '@/shell/sidebar/DeleteFolderDialog';
 import { CollectionPage } from '@/features/collections/pages/CollectionPage';
 import { CollectionsDashboardPage } from '@/features/collections/pages/CollectionsDashboardPage';
@@ -61,6 +62,22 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
   const [documentContextMenu, setDocumentContextMenu] = React.useState<{
     x: number; y: number; docId: string;
   } | null>(null);
+
+  const { menuRef: folderMenuRef, style: folderMenuStyle } = useContextMenuPosition({
+    x: folderContextMenu?.x ?? 0,
+    y: folderContextMenu?.y ?? 0,
+    open: !!folderContextMenu,
+    estimatedWidth: 200,
+    estimatedHeight: 250,
+  });
+
+  const { menuRef: docMenuRef, style: docMenuStyle } = useContextMenuPosition({
+    x: documentContextMenu?.x ?? 0,
+    y: documentContextMenu?.y ?? 0,
+    open: !!documentContextMenu,
+    estimatedWidth: 200,
+    estimatedHeight: 250,
+  });
 
   // Dismiss context menu on click outside
   React.useEffect(() => {
@@ -328,8 +345,9 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
       {/* Folder Colour Context Menu */}
       {folderContextMenu && (
         <div
+          ref={folderMenuRef}
           className="fixed z-50 bg-background rounded-sm-sm py-1 min-w-[160px] shadow-sm-sm border border-border neu-panel"
-          style={{ top: folderContextMenu.y, left: folderContextMenu.x }}
+          style={folderMenuStyle}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
         >
@@ -417,8 +435,9 @@ export const SectionPage = ({ paneId, sectionId }: { paneId: string, sectionId: 
       {/* Document Colour Context Menu */}
       {documentContextMenu && (
         <div
+          ref={docMenuRef}
           className="fixed z-50 bg-background rounded-sm-sm py-1 min-w-[160px] shadow-sm-sm border border-border neu-panel"
-          style={{ top: documentContextMenu.y, left: documentContextMenu.x }}
+          style={docMenuStyle}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
         >

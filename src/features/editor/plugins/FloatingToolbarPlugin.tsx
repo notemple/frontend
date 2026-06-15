@@ -12,14 +12,15 @@ import { $isListNode } from "@lexical/list"
 import { $isHeadingNode, $isQuoteNode } from "@lexical/rich-text"
 import { $isCodeNode } from "@lexical/code"
 import { mergeRegister } from "@lexical/utils"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import FloatingToolbar from "../components/FloatingToolbar"
+import { useEditorMenuPosition } from "@/shared/hooks/usePortalPosition"
 
 export default function FloatingToolbarPlugin(): React.ReactNode {
   const [editor] = useLexicalComposerContext()
   const [open, setOpen] = useState(false)
-  const [position, setPosition] = useState({ top: 0, left: 0 })
+  const [triggerRect, setTriggerRect] = useState<{ top: number; bottom: number; left: number; width: number } | null>(null)
   const [isBold, setIsBold] = useState(false)
   const [isItalic, setIsItalic] = useState(false)
   const [isUnderline, setIsUnderline] = useState(false)
@@ -100,31 +101,13 @@ export default function FloatingToolbarPlugin(): React.ReactNode {
     const domRange = domSelection.getRangeAt(0)
     const rect = domRange.getBoundingClientRect()
 
-    // Position floating menu
-    const toolbarWidth = 220
-    const toolbarHeight = 180 // Approximate menu height with alignment row
-    
-    // Center horizontally
-    let left = rect.left + rect.width / 2 - toolbarWidth / 2
-    left = Math.max(8, Math.min(left, window.innerWidth - toolbarWidth - 8))
+    setTriggerRect({
+      top: rect.top,
+      bottom: rect.bottom,
+      left: rect.width > 0 ? rect.left : (editor.getRootElement()?.getBoundingClientRect().left ?? 100),
+      width: rect.width,
+    })
 
-    // Position vertically: prefer below to avoid showing it above selection
-    const spaceBelow = window.innerHeight - rect.bottom
-    const spaceAbove = rect.top
-
-    let top = 0
-    if (spaceBelow >= toolbarHeight + 16) {
-      // Show below the selection (clearance of 10px)
-      top = rect.bottom + 10
-    } else if (spaceAbove >= toolbarHeight + 16) {
-      // Show above the selection if not enough space below (clearance of 10px)
-      top = rect.top - toolbarHeight - 10
-    } else {
-      // Default fallback centered vertically within bounds
-      top = Math.max(8, window.innerHeight - toolbarHeight - 8)
-    }
-
-    setPosition({ top, left })
     setOpen(true)
   }, [])
 
@@ -183,12 +166,22 @@ export default function FloatingToolbarPlugin(): React.ReactNode {
     }
   }, [editor, updateToolbar, open])
 
+  const { menuRef, style: menuStyle } = useEditorMenuPosition({
+    triggerRect: open ? triggerRect : null,
+    open,
+    offset: 10,
+    maxHeight: 180,
+    maxWidth: 220,
+    centerHorizontally: true,
+  })
+
   if (!open) return null
 
   return createPortal(
     <FloatingToolbar
       editor={editor}
-      position={position}
+      menuRef={menuRef}
+      menuStyle={menuStyle}
       isBold={isBold}
       isItalic={isItalic}
       isUnderline={isUnderline}

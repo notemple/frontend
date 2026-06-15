@@ -4,11 +4,13 @@ import { useDocumentStore } from "@/features/documents/store"
 import { useTaskStore } from "@/features/tasks/store"
 import { useCollectionStore } from "@/features/collections/store/collectionStore"
 import { format, addDays, subDays } from "date-fns"
+import type { RefCallback, CSSProperties } from "react"
 
 interface Props {
   selectedIdx: number
-  position: { top: number; bottom: number; left: number }
   currentQuery: string
+  menuRef: RefCallback<HTMLDivElement>
+  menuStyle: CSSProperties
   onSelect: (payload: { type: "doc" | "task" | "date" | "collection-item"; id: string; title: string }) => void
   onHover: (idx: number) => void
   onClose: () => void
@@ -35,8 +37,9 @@ type RenderableItem =
 
 export default function MentionMenu({
   selectedIdx,
-  position,
   currentQuery,
+  menuRef,
+  menuStyle,
   onSelect,
   onHover,
   onItemsChange,
@@ -54,31 +57,6 @@ export default function MentionMenu({
 
   const activeTasks = tasks.filter((t) => !t.isDeleted && t.status !== "done")
   const activeDocs = Object.values(documentsDict).filter((d) => !d.isDeleted && d.type !== "daily-note")
-
-  const menuRef = useRef<HTMLDivElement>(null)
-  const [coords, setCoords] = useState({ top: position.bottom + 8, left: position.left })
-
-  useEffect(() => {
-    const el = menuRef.current
-    if (!el) return
-
-    const rect = el.getBoundingClientRect()
-    const menuHeight = rect.height || 350
-    const menuWidth = rect.width || 280
-
-    // Check space below
-    const spaceBelow = window.innerHeight - position.bottom - 16
-    let targetTop = position.bottom + 8
-
-    if (spaceBelow < menuHeight && position.top > menuHeight + 16) {
-      // Place above the cursor
-      targetTop = position.top - menuHeight - 8
-    }
-
-    const targetLeft = Math.max(10, Math.min(position.left, window.innerWidth - menuWidth - 16))
-
-    setCoords({ top: targetTop, left: targetLeft })
-  }, [position.top, position.bottom, position.left, menuState, currentQuery])
 
   // Generate Date list
   const today = new Date()
@@ -333,12 +311,7 @@ export default function MentionMenu({
       id="onboarding-mention-list"
       data-testid="mention-menu"
       className="mention-menu w-[280px] rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex flex-col overflow-hidden"
-      style={{
-        position: "fixed",
-        top: coords.top,
-        left: coords.left,
-        zIndex: 9999,
-      }}
+      style={menuStyle}
       onMouseDown={(e) => {
         e.preventDefault()
         e.stopPropagation()

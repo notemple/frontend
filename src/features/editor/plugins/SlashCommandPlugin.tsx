@@ -27,32 +27,34 @@ export default function SlashCommandPlugin(): ReactNode {
     })
   )
 
-  const activeCommands = menuMode === "callout"
+  const submenuCommands = menuMode === "callout"
     ? calloutSubmenuCommands
     : menuMode === "equation"
       ? equationSubmenuCommands
-      : slashCommands
+      : null
 
-  const unfiltered: SlashCommand[] = query.trim()
-    ? (menuMode === "callout"
-        ? calloutSubmenuCommands.filter((c) =>
+  const mainFiltered: SlashCommand[] = query.trim() && menuMode === "main"
+    ? fuse.current.search(query).map((r: { item: SlashCommand }) => r.item)
+    : slashCommands
+
+  const mainFilteredGrouped = CATEGORY_ORDER.reduce<SlashCommand[]>((acc, cat) => {
+    return acc.concat(mainFiltered.filter((c) => c.category === cat))
+  }, [])
+
+  const submenuFiltered: SlashCommand[] = submenuCommands
+    ? query.trim()
+        ? submenuCommands.filter((c) =>
             c.title.toLowerCase().includes(query.toLowerCase()) ||
             c.keywords.some((k) => k.includes(query.toLowerCase()))
           )
-        : menuMode === "equation"
-          ? equationSubmenuCommands.filter((c) =>
-              c.title.toLowerCase().includes(query.toLowerCase()) ||
-              c.keywords.some((k) => k.includes(query.toLowerCase()))
-            )
-          : fuse.current.search(query).map((r: { item: SlashCommand }) => r.item)
-      )
-    : activeCommands
+        : submenuCommands
+    : []
 
-  const filtered = menuMode === "callout" || menuMode === "equation"
-    ? unfiltered
-    : CATEGORY_ORDER.reduce<SlashCommand[]>((acc, cat) => {
-        return acc.concat(unfiltered.filter((c) => c.category === cat))
-      }, [])
+  const parentIdx = submenuCommands
+    ? slashCommands.findIndex((c) =>
+        menuMode === "callout" ? c.title === "Callout" : c.title === "Math Equation"
+      )
+    : -1
 
   // Open, position, and filter menu when "/" is typed
   useEffect(() => {
@@ -186,36 +188,46 @@ export default function SlashCommandPlugin(): ReactNode {
         setMenuMode("main")
         return
       }
-      if (e.key === "Backspace" && (menuMode === "callout" || menuMode === "equation") && query === "") {
+      if (e.key === "Backspace" && menuMode !== "main" && query === "") {
         e.preventDefault()
         e.stopPropagation()
         setMenuMode("main")
-        setSelectedIdx(0)
+        setSelectedIdx(parentIdx >= 0 ? parentIdx : 0)
+        return
+      }
+      if (e.key === "ArrowLeft" && menuMode !== "main") {
+        e.preventDefault()
+        e.stopPropagation()
+        setMenuMode("main")
+        setSelectedIdx(parentIdx >= 0 ? parentIdx : 0)
         return
       }
       if (e.key === "ArrowDown") {
         e.preventDefault()
         e.stopPropagation()
-        setSelectedIdx((i) => (i + 1) % Math.max(filtered.length, 1))
+        const list = menuMode !== "main" ? submenuFiltered : mainFilteredGrouped
+        setSelectedIdx((i) => (i + 1) % Math.max(list.length, 1))
         return
       }
       if (e.key === "ArrowUp") {
         e.preventDefault()
         e.stopPropagation()
-        setSelectedIdx((i) => (i - 1 + Math.max(filtered.length, 1)) % Math.max(filtered.length, 1))
+        const list = menuMode !== "main" ? submenuFiltered : mainFilteredGrouped
+        setSelectedIdx((i) => (i - 1 + Math.max(list.length, 1)) % Math.max(list.length, 1))
         return
       }
       if (e.key === "Enter") {
         e.preventDefault()
         e.stopPropagation()
-        if (filtered[selectedIdx]) executeCommand(filtered[selectedIdx])
+        const list = menuMode !== "main" ? submenuFiltered : mainFilteredGrouped
+        if (list[selectedIdx]) executeCommand(list[selectedIdx])
         return
       }
     }
 
     window.addEventListener("keydown", handleKeyDown, true)
     return () => window.removeEventListener("keydown", handleKeyDown, true)
-  }, [open, filtered, selectedIdx, executeCommand, menuMode, query])
+  }, [open, mainFilteredGrouped, submenuFiltered, selectedIdx, executeCommand, menuMode, query, parentIdx])
 
   // Close when clicking outside
   useEffect(() => {
@@ -233,7 +245,7 @@ export default function SlashCommandPlugin(): ReactNode {
     open,
     offset: 8,
     maxHeight: 350,
-    maxWidth: 260,
+    maxWidth: 540,
   })
 
   // FIX 6: keep menu open even with 0 results (shows empty state)
@@ -241,8 +253,8 @@ export default function SlashCommandPlugin(): ReactNode {
 
   return createPortal(
     <SlashCommandMenu
-      commands={filtered}
-      selectedIdx={selectedIdx}
+      commands={mainFilteredGrouped}
+      selectedIdx={menuMode === "main" ? selectedIdx : parentIdx}
       currentQuery={query}
       menuRef={menuRef}
       menuStyle={menuStyle}
@@ -251,6 +263,14 @@ export default function SlashCommandPlugin(): ReactNode {
       onClose={() => {
         setOpen(false)
         setMenuMode("main")
+      }}
+      menuMode={menuMode}
+      submenuCommands={submenuFiltered}
+      submenuSelectedIdx={menuMode !== "main" ? selectedIdx : 0}
+      onSubmenuHover={(idx) => setSelectedIdx(idx)}
+      onBack={() => {
+        setMenuMode("main")
+        setSelectedIdx(parentIdx >= 0 ? parentIdx : 0)
       }}
     />,
     document.body

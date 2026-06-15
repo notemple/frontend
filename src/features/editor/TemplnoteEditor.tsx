@@ -18,7 +18,6 @@ import SlashCommandPlugin from "./plugins/SlashCommandPlugin"
 import MentionPlugin from "./plugins/MentionPlugin"
 import EmojiPickerPlugin from "./plugins/EmojiPickerPlugin"
 import PersistencePlugin from "./plugins/PersistencePlugin"
-import ScrollIntoViewPlugin from "./plugins/ScrollIntoViewPlugin"
 import BlockHandlePlugin from "./plugins/BlockHandlePlugin"
 import BackspacePlugin from "./plugins/BackspacePlugin"
 import FloatingToolbarPlugin from "./plugins/FloatingToolbarPlugin"
@@ -636,7 +635,6 @@ export function TemplnoteEditor({
         <SlashCommandPlugin />
         <MentionPlugin />
         <EmojiPickerPlugin />
-        <ScrollIntoViewPlugin />
         <BlockHandlePlugin />
         <BackspacePlugin />
         <FloatingToolbarPlugin />
